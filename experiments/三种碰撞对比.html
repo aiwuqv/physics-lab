@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>动量守恒 · 三种碰撞对比实验</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background: #16222e;
+            font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            background: #0d1c2b;
+            border-radius: 40px;
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.7);
+            border: 1px solid #2b4a6a;
+        }
+        /* 标题 */
+        .title {
+            font-size: 2.2rem;
+            font-weight: 500;
+            color: #e4f0ff;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .title span {
+            background: #264f73;
+            font-size: 1rem;
+            padding: 6px 18px;
+            border-radius: 40px;
+            color: #c7ddff;
+        }
+        /* 控制面板 */
+        .control-panel {
+            background: #122f44;
+            border-radius: 36px;
+            padding: 22px 24px;
+            margin: 20px 0 24px;
+            border: 1px solid #2d5982;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            align-items: flex-end;
+        }
+        .slider-group {
+            flex: 1 1 160px;
+        }
+        .slider-group label {
+            display: flex;
+            justify-content: space-between;
+            color: #d0e6ff;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        .slider-group label span {
+            background: #1d4463;
+            padding: 3px 14px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+        }
+        input[type=range] {
+            width: 100%;
+            height: 8px;
+            background: #214a68;
+            border-radius: 20px;
+            -webkit-appearance: none;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            background: #6bb0ff;
+            border-radius: 50%;
+            border: 2px solid #d2e6ff;
+            cursor: pointer;
+            box-shadow: 0 2px 8px black;
+            margin-top: -7px;
+        }
+        .type-selector {
+            display: flex;
+            gap: 12px;
+            background: #0e273e;
+            padding: 8px 16px;
+            border-radius: 50px;
+            border: 1px solid #31699b;
+            flex-wrap: wrap;
+        }
+        .type-btn {
+            background: #1c405e;
+            border: none;
+            color: white;
+            padding: 10px 22px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.1s;
+            font-size: 0.95rem;
+            border: 1px solid #407bb0;
+            box-shadow: 0 4px 0 #082433;
+        }
+        .type-btn.active {
+            background: #3f82be;
+            box-shadow: 0 4px 0 #1d405e;
+        }
+        .type-btn:hover {
+            background: #3273aa;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #082433;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-left: auto;
+        }
+        .action-buttons button {
+            background: #2a5a82;
+            border: none;
+            color: white;
+            padding: 12px 28px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1rem;
+            border: 1px solid #5085b9;
+            box-shadow: 0 5px 0 #0b2235;
+        }
+        .action-buttons button:hover {
+            background: #3b73a5;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 0 #0b2235;
+        }
+        /* 动画区 */
+        .animation-area {
+            background: #0f2337;
+            border-radius: 40px;
+            padding: 30px 20px 20px;
+            border: 1px solid #2e5b86;
+            margin-bottom: 24px;
+        }
+        #collisionCanvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: #0b1b2c;
+            border-radius: 32px;
+            border: 1px solid #316a99;
+            margin-bottom: 10px;
+        }
+        .canvas-labels {
+            display: flex;
+            justify-content: space-between;
+            color: #9cb9dd;
+            padding: 0 16px;
+            font-size: 0.9rem;
+        }
+        /* 数据区 */
+        .data-panel {
+            background: #102a3e;
+            border-radius: 36px;
+            padding: 22px 24px;
+            border: 1px solid #2b6090;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 32px;
+            margin-bottom: 24px;
+        }
+        .data-col {
+            flex: 1 1 200px;
+        }
+        .data-title {
+            color: #a7c9f0;
+            font-size: 1rem;
+            margin-bottom: 16px;
+            font-weight: 500;
+            border-left: 4px solid #4f96cf;
+            padding-left: 12px;
+        }
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            background: #0a2033;
+            padding: 10px 16px;
+            border-radius: 30px;
+            margin: 10px 0;
+            color: #d2e8ff;
+            border: 1px solid #295682;
+        }
+        .data-row .value {
+            font-family: 'JetBrains Mono', monospace;
+            background: #02111f;
+            padding: 3px 14px;
+            border-radius: 30px;
+            color: #9fc9ff;
+        }
+        .speed-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .speed-box {
+            background: #0d263c;
+            border-radius: 28px;
+            padding: 14px 20px;
+            flex: 1 1 140px;
+            border: 1px solid #3473a8;
+            text-align: center;
+        }
+        .speed-box .label {
+            color: #b0d2f8;
+            margin-bottom: 8px;
+        }
+        .speed-box .number {
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: #ffdb9d;
+        }
+        /* 底部结论 */
+        .conclusion {
+            background: #123e5a;
+            border-radius: 60px;
+            padding: 18px 28px;
+            color: #dceeff;
+            border: 1px solid #3980b7;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+        .conclusion div {
+            background: #1c5379;
+            padding: 6px 22px;
+            border-radius: 40px;
+            font-size: 0.98rem;
+        }
+        hr {
+            border: 0.5px solid #2e5f89;
+            margin: 12px 0;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+<div class="container">
+    <div class="title">
+        ⚡ 动量守恒 · 三种碰撞对比
+        <span>弹性 / 非弹性 / 完全非弹性</span>
+    </div>
+
+    <!-- 控制面板 -->
+    <div class="control-panel">
+        <div class="slider-group">
+            <label>⚪ 质量 m₁ <span id="m1Val">2.0 kg</span></label>
+            <input type="range" id="m1Slider" min="0.5" max="8" value="2" step="0.1">
+        </div>
+        <div class="slider-group">
+            <label>🔵 质量 m₂ <span id="m2Val">2.0 kg</span></label>
+            <input type="range" id="m2Slider" min="0.5" max="8" value="2" step="0.1">
+        </div>
+        <div class="slider-group">
+            <label>▶️ 初速度 v₁ <span id="v1Val">4.0</span></label>
+            <input type="range" id="v1Slider" min="-6" max="8" value="4" step="0.2">
+        </div>
+        <div class="type-selector">
+            <button id="elasticBtn" class="type-btn active">⚡ 弹性 (e=1)</button>
+            <button id="inelasticBtn" class="type-btn">🌀 非弹性 (e=0.5)</button>
+            <button id="completelyInelasticBtn" class="type-btn">🔗 完全非弹性 (e=0)</button>
+        </div>
+        <div class="action-buttons">
+            <button id="playPauseBtn">⏸️ 暂停</button>
+            <button id="resetBtn">↺ 重置</button>
+        </div>
+    </div>
+
+    <!-- 动画区 -->
+    <div class="animation-area">
+        <canvas id="collisionCanvas" width="900" height="240"></canvas>
+        <div class="canvas-labels">
+            <span>球1 (m₁)</span>
+            <span>球2 (m₂)</span>
+        </div>
+    </div>
+
+    <!-- 数据区 -->
+    <div class="data-panel">
+        <div class="data-col">
+            <div class="data-title">📊 守恒量</div>
+            <div class="data-row"><span>总动量 p</span><span class="value" id="totalMomentum">8.00 kg·px/s</span></div>
+            <div class="data-row"><span>总动能 Ek</span><span class="value" id="totalKinetic">16.00</span></div>
+        </div>
+        <div class="data-col">
+            <div class="data-title">⚡ 瞬时速度</div>
+            <div class="speed-row">
+                <div class="speed-box"><span class="label">v₁</span><span class="number" id="v1Display">4.00</span></div>
+                <div class="speed-box"><span class="label">v₂</span><span class="number" id="v2Display">0.00</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部固定结论 -->
+    <div class="conclusion">
+        <div>1️⃣ 三种碰撞动量都守恒</div>
+        <div>2️⃣ 只有弹性碰撞动能守恒</div>
+        <div>3️⃣ 完全非弹性碰撞共速，动能损失最大</div>
+    </div>
+</div>
+
+<script>
+(function() {
+    // ----- 物理参数 -----
+    const canvas = document.getElementById('collisionCanvas');
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width, height = canvas.height;
+
+    // 球半径 (像素)
+    const R = 28;
+    // 初始位置 (确保不重叠)
+    const INIT_X1 = 180;
+    const INIT_X2 = 580;  // 距离 = 400 > 2R
+
+    // 物理状态
+    let m1 = 2.0, m2 = 2.0;          // 质量 (kg)
+    let v1 = 4.0, v2 = 0.0;           // 速度 (像素/帧)
+    let x1 = INIT_X1, x2 = INIT_X2;   // 位置
+
+    // 碰撞类型对应的恢复系数 e
+    let e = 1.0;   // 默认弹性
+    // 当前选中的按钮
+    let currentType = 'elastic';
+
+    // 动画控制
+    let isPlaying = true;
+    let animationId = null;
+
+    // DOM 元素
+    const m1Slider = document.getElementById('m1Slider');
+    const m2Slider = document.getElementById('m2Slider');
+    const v1Slider = document.getElementById('v1Slider');
+    const m1Val = document.getElementById('m1Val');
+    const m2Val = document.getElementById('m2Val');
+    const v1Val = document.getElementById('v1Val');
+
+    const elasticBtn = document.getElementById('elasticBtn');
+    const inelasticBtn = document.getElementById('inelasticBtn');
+    const completelyBtn = document.getElementById('completelyInelasticBtn');
+
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    const totalMomentumSpan = document.getElementById('totalMomentum');
+    const totalKineticSpan = document.getElementById('totalKinetic');
+    const v1Display = document.getElementById('v1Display');
+    const v2Display = document.getElementById('v2Display');
+
+    // 辅助更新滑块显示
+    function updateSliderReadouts() {
+        m1Val.innerText = m1.toFixed(1) + ' kg';
+        m2Val.innerText = m2.toFixed(1) + ' kg';
+        v1Val.innerText = v1.toFixed(1);
+    }
+
+    // 从滑块读取值并重置状态 (但保留当前速度？重置时统一用新值)
+    function readSlidersAndReset() {
+        m1 = parseFloat(m1Slider.value);
+        m2 = parseFloat(m2Slider.value);
+        v1 = parseFloat(v1Slider.value);
+        v2 = 0.0;
+        x1 = INIT_X1;
+        x2 = INIT_X2;
+        updateSliderReadouts();
+    }
+
+    // 重置到初始条件 (使用当前滑块值)
+    function resetSimulation() {
+        readSlidersAndReset();
+        // 确保画布重绘
+    }
+
+    // 更新数据区显示
+    function updateData() {
+        // 动量 p = m1*v1 + m2*v2 (单位：kg * 像素/帧)
+        const p = m1 * v1 + m2 * v2;
+        // 动能 Ek = 0.5*m1*v1^2 + 0.5*m2*v2^2
+        const ek = 0.5 * m1 * v1 * v1 + 0.5 * m2 * v2 * v2;
+
+        totalMomentumSpan.innerText = p.toFixed(2) + ' kg·px/s';
+        totalKineticSpan.innerText = ek.toFixed(2);
+        v1Display.innerText = v1.toFixed(2);
+        v2Display.innerText = v2.toFixed(2);
+    }
+
+    // 碰撞处理 (基于恢复系数 e)
+    function handleCollision() {
+        const dist = Math.abs(x2 - x1);
+        if (dist <= 2 * R) {
+            // 碰撞公式 (一维，恢复系数 e)
+            // v1f = ( (m1 - e*m2)*v1 + (1+e)*m2*v2 ) / (m1+m2)
+            // v2f = ( (1+e)*m1*v1 + (m2 - e*m1)*v2 ) / (m1+m2)
+            const sumM = m1 + m2;
+            const v1f = ((m1 - e * m2) * v1 + (1 + e) * m2 * v2) / sumM;
+            const v2f = ((1 + e) * m1 * v1 + (m2 - e * m1) * v2) / sumM;
+
+            v1 = v1f;
+            v2 = v2f;
+
+            // 分开两球，避免重叠：将它们置于刚好接触 (球1左,球2右)
+            const mid = (x1 + x2) / 2;
+            x1 = mid - R;
+            x2 = mid + R;
+        }
+    }
+
+    // 更新物理 (每帧)
+    function updatePhysics() {
+        if (!isPlaying) return;
+
+        // 移动
+        x1 += v1;
+        x2 += v2;
+
+        // 简单的边界限制：防止无限出界，但为了实验连续性，不反弹，只让球保持在视野内？如果完全出界，我们让它们停住？但动量就不守恒了。
+        // 此处不做边界处理，允许球移出画布，但用户可重置。为了视觉，我们限制 x 范围，但会破坏动量？所以我们不限制，让它们出去。
+        // 但为了避免完全消失，可以在超出太多时自动重置？不，留给用户重置。
+
+        // 碰撞检测 (只有一次，但可能再次碰撞，不过通常一维两次碰撞很少，但为了防止连续碰撞，我们检测一次)
+        handleCollision();
+
+        // 更新数据
+        updateData();
+    }
+
+    // 绘制
+    function draw() {
+        ctx.clearRect(0, 0, width, height);
+
+        // 画一条轨道线
+        ctx.strokeStyle = '#376e9e';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(40, height/2);
+        ctx.lineTo(width-40, height/2);
+        ctx.stroke();
+
+        // 画球1 (左)
+        ctx.shadowColor = '#7ab7ff';
+        ctx.shadowBlur = 15;
+        ctx.beginPath();
+        ctx.arc(x1, height/2, R, 0, 2*Math.PI);
+        ctx.fillStyle = '#ffaa33';
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 16px "Segoe UI"';
+        ctx.fillText('1', x1-10, height/2-15);
+
+        // 画球2 (右)
+        ctx.beginPath();
+        ctx.arc(x2, height/2, R, 0, 2*Math.PI);
+        ctx.fillStyle = '#3399ff';
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.stroke();
+        ctx.fillStyle = '#fff';
+        ctx.fillText('2', x2-10, height/2-15);
+
+        ctx.shadowBlur = 0;
+
+        // 显示速度矢量小箭头
+        drawArrow(x1, v1);
+        drawArrow(x2, v2);
+    }
+
+    function drawArrow(x, v) {
+        if (Math.abs(v) < 0.1) return;
+        const direction = v > 0 ? 1 : -1;
+        const arrowX = x + (direction * (R + 12));
+        ctx.beginPath();
+        ctx.strokeStyle = v > 0 ? '#8affb2' : '#ff8a8a';
+        ctx.lineWidth = 2;
+        ctx.moveTo(x, height/2 - 18);
+        ctx.lineTo(arrowX, height/2 - 18);
+        ctx.stroke();
+        // 箭头
+        ctx.beginPath();
+        ctx.fillStyle = v > 0 ? '#8affb2' : '#ff8a8a';
+        ctx.moveTo(arrowX, height/2 - 18);
+        ctx.lineTo(arrowX - 8 * direction, height/2 - 24);
+        ctx.lineTo(arrowX - 8 * direction, height/2 - 12);
+        ctx.fill();
+    }
+
+    // 动画循环
+    function animate() {
+        updatePhysics();
+        draw();
+        animationId = requestAnimationFrame(animate);
+    }
+
+    // 开始/暂停
+    function togglePlay() {
+        isPlaying = !isPlaying;
+        playPauseBtn.innerHTML = isPlaying ? '⏸️ 暂停' : '▶ 开始';
+    }
+
+    // 切换碰撞类型
+    function setType(type, btn) {
+        // 移除所有active
+        [elasticBtn, inelasticBtn, completelyBtn].forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentType = type;
+        if (type === 'elastic') e = 1.0;
+        else if (type === 'inelastic') e = 0.5;
+        else e = 0.0;
+
+        // 重置到初始状态 (新类型重新开始)
+        resetSimulation();
+    }
+
+    // 事件绑定
+    m1Slider.addEventListener('input', () => {
+        m1 = parseFloat(m1Slider.value);
+        m1Val.innerText = m1.toFixed(1) + ' kg';
+        resetSimulation();
+    });
+    m2Slider.addEventListener('input', () => {
+        m2 = parseFloat(m2Slider.value);
+        m2Val.innerText = m2.toFixed(1) + ' kg';
+        resetSimulation();
+    });
+    v1Slider.addEventListener('input', () => {
+        v1 = parseFloat(v1Slider.value);
+        v1Val.innerText = v1.toFixed(1);
+        resetSimulation();
+    });
+
+    elasticBtn.addEventListener('click', () => setType('elastic', elasticBtn));
+    inelasticBtn.addEventListener('click', () => setType('inelastic', inelasticBtn));
+    completelyBtn.addEventListener('click', () => setType('completely', completelyBtn));
+
+    playPauseBtn.addEventListener('click', togglePlay);
+    resetBtn.addEventListener('click', resetSimulation);
+
+    // 初始化
+    function init() {
+        readSlidersAndReset();
+        updateData();
+        animate();
+    }
+
+    init();
+
+    // 清理动画 (理论上不需要，但为了规范)
+    window.addEventListener('beforeunload', () => {
+        if (animationId) cancelAnimationFrame(animationId);
+    });
+})();
+</script>
+</body>
+</html>

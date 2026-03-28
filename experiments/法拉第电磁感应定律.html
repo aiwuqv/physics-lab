@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>法拉第电磁感应定律交互演示</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a237e 0%, #311b92 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        header {
+            text-align: center;
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            margin-bottom: 10px;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+        
+        .subtitle {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .main-content {
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .controls-panel {
+            flex: 1;
+            min-width: 350px;
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .visualization {
+            flex: 2;
+            min-width: 600px;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .panel-title {
+            font-size: 1.6rem;
+            color: #311b92;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #311b92;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .panel-title i {
+            color: #6200ea;
+        }
+        
+        .control-group {
+            margin-bottom: 25px;
+        }
+        
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #444;
+        }
+        
+        .value-display {
+            color: #6200ea;
+            font-weight: bold;
+            background: #f3e5f5;
+            padding: 2px 10px;
+            border-radius: 10px;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 10px;
+            border-radius: 5px;
+            background: #e0e0e0;
+            outline: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #6200ea;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .slider-icon {
+            color: #6200ea;
+            font-size: 1.2rem;
+            width: 30px;
+            text-align: center;
+        }
+        
+        .formula-container {
+            background: #f3e5f5;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 25px 0;
+            text-align: center;
+            border-left: 5px solid #6200ea;
+        }
+        
+        .formula {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #311b92;
+            margin: 10px 0;
+            font-family: "Cambria Math", "Times New Roman", serif;
+        }
+        
+        .formula-description {
+            color: #666;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+        
+        .canvas-container {
+            flex: 1;
+            background: #f9f9f9;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+            border: 2px solid #e0e0e0;
+            min-height: 400px;
+        }
+        
+        #magneticCanvas {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .result-display {
+            background: #e8f5e9;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+            border-left: 5px solid #4caf50;
+        }
+        
+        .result-value {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #2e7d32;
+            margin: 10px 0;
+        }
+        
+        .result-label {
+            color: #666;
+            font-size: 1.1rem;
+        }
+        
+        .button {
+            background: #6200ea;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .button:hover {
+            background: #3700b3;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(98, 0, 234, 0.4);
+        }
+        
+        .button:active {
+            transform: translateY(0);
+        }
+        
+        .quiz-button {
+            background: #ff9800;
+        }
+        
+        .quiz-button:hover {
+            background: #f57c00;
+            box-shadow: 0 5px 15px rgba(255, 152, 0, 0.4);
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .data-table th, .data-table td {
+            padding: 15px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        
+        .data-table th {
+            background: #311b92;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .data-table tr:nth-child(even) {
+            background: #f5f5f5;
+        }
+        
+        .data-table tr:hover {
+            background: #f0e6ff;
+        }
+        
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .close-modal {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close-modal:hover {
+            color: #000;
+        }
+        
+        .quiz-question {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .question-text {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .quiz-option {
+            display: block;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .quiz-option:hover {
+            background: #e0e0e0;
+        }
+        
+        .quiz-option.selected {
+            background: #bbdefb;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .quiz-option.correct {
+            background: #c8e6c9;
+            border-left: 4px solid #4caf50;
+        }
+        
+        .quiz-option.incorrect {
+            background: #ffcdd2;
+            border-left: 4px solid #f44336;
+        }
+        
+        .explanation {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            font-size: 0.95rem;
+            color: #555;
+            display: none;
+        }
+        
+        .quiz-results {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #eee;
+        }
+        
+        .results-summary {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #311b92;
+        }
+        
+        @media (max-width: 1100px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .controls-panel, .visualization {
+                min-width: 100%;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .formula {
+                font-size: 1.6rem;
+            }
+            
+            .result-value {
+                font-size: 1.8rem;
+            }
+        }
+        
+        .coil-info {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+            color: #666;
+        }
+        
+        .coil-info span {
+            background: #f0f0f0;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        
+        .field-info {
+            text-align: center;
+            margin-top: 10px;
+            color: #2196F3;
+            font-weight: 600;
+        }
+        
+        .current-direction {
+            text-align: center;
+            margin-top: 10px;
+            color: #4CAF50;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-bolt"></i> 法拉第电磁感应定律交互演示</h1>
+            <p class="subtitle">通过交互实验探索变化的磁场如何产生感应电动势。调整参数观察感应电动势的变化，并理解法拉第定律的数学表达。</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="controls-panel">
+                <h2 class="panel-title"><i class="fas fa-sliders-h"></i> 参数控制</h2>
+                
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>磁场强度 B (T)</span>
+                        <span class="value-display" id="bValue">1.0</span>
+                    </div>
+                    <div class="slider-container">
+                        <i class="slider-icon fas fa-magnet"></i>
+                        <input type="range" min="0.1" max="3.0" step="0.1" value="1.0" class="slider" id="bSlider">
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>线圈面积 S (m²)</span>
+                        <span class="value-display" id="sValue">0.5</span>
+                    </div>
+                    <div class="slider-container">
+                        <i class="slider-icon fas fa-expand-alt"></i>
+                        <input type="range" min="0.1" max="2.0" step="0.1" value="0.5" class="slider" id="sSlider">
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>线圈匝数 n</span>
+                        <span class="value-display" id="nValue">10</span>
+                    </div>
+                    <div class="slider-container">
+                        <i class="slider-icon fas fa-layer-group"></i>
+                        <input type="range" min="1" max="30" step="1" value="10" class="slider" id="nSlider">
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>变化时间 Δt (s)</span>
+                        <span class="value-display" id="dtValue">2.0</span>
+                    </div>
+                    <div class="slider-container">
+                        <i class="slider-icon fas fa-clock"></i>
+                        <input type="range" min="0.5" max="5.0" step="0.1" value="2.0" class="slider" id="dtSlider">
+                    </div>
+                </div>
+                
+                <div class="formula-container">
+                    <h3>法拉第电磁感应定律公式</h3>
+                    <div class="formula" id="formulaDisplay">
+                        ε = n × (ΔΦ/Δt)
+                    </div>
+                    <p class="formula-description">
+                        其中：ε 是感应电动势(V)，n 是线圈匝数，ΔΦ 是磁通量变化量(Wb)，Δt 是变化时间(s)。<br>
+                        总磁通量 Φ = n × B × S × cosθ，这里假设磁场垂直于线圈平面(θ=0°)
+                    </p>
+                </div>
+                
+                <button class="button" id="resetBtn">
+                    <i class="fas fa-redo"></i> 重置参数
+                </button>
+                
+                <button class="button quiz-button" id="quizBtn">
+                    <i class="fas fa-question-circle"></i> 学习检测测验
+                </button>
+                
+                <div class="data-table-container">
+                    <h3 class="panel-title" style="margin-top: 30px;"><i class="fas fa-table"></i> 磁通量变化数据</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>参数</th>
+                                <th>初始值</th>
+                                <th>最终值</th>
+                                <th>变化量</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>磁感应强度 B (T)</td>
+                                <td>0.5</td>
+                                <td id="bFinal">1.0</td>
+                                <td id="bChange">+0.5</td>
+                            </tr>
+                            <tr>
+                                <td>线圈面积 S (m²)</td>
+                                <td>0.2</td>
+                                <td id="sFinal">0.5</td>
+                                <td id="sChange">+0.3</td>
+                            </tr>
+                            <tr>
+                                <td>线圈匝数 n</td>
+                                <td>5</td>
+                                <td id="nFinal">10</td>
+                                <td id="nChange">+5</td>
+                            </tr>
+                            <tr>
+                                <td>总磁通量 nΦ (Wb)</td>
+                                <td>0.50</td>
+                                <td id="fluxFinal">5.00</td>
+                                <td id="fluxChange">+4.50</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="visualization">
+                <h2 class="panel-title"><i class="fas fa-eye"></i> 磁场与线圈可视化</h2>
+                
+                <div class="canvas-container">
+                    <canvas id="magneticCanvas" width="800" height="500"></canvas>
+                </div>
+                
+                <div class="field-info">
+                    <i class="fas fa-times"></i> 表示垂直进入屏幕的均匀磁场方向
+                </div>
+                
+                <div class="current-direction" id="currentDirectionInfo">
+                    <i class="fas fa-arrow-circle-right" style="color: #4CAF50;"></i> 感应电流方向: <span id="currentDirection">逆时针</span>
+                </div>
+                
+                <div class="coil-info">
+                    <span>线圈半径: <span id="coilRadius">0.40</span> m</span>
+                    <span>线圈匝数: <span id="coilTurns">10</span></span>
+                    <span>导线粗细: <span id="wireThickness">中等</span></span>
+                </div>
+                
+                <div class="result-display">
+                    <p class="result-label">根据当前参数计算的感应电动势为：</p>
+                    <div class="result-value" id="emfResult">2.25 V</div>
+                    <p class="result-label">根据楞次定律，感应电流方向总是阻碍磁通量变化</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 测验模态框 -->
+    <div id="quizModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2 style="color: #311b92; margin-bottom: 20px;"><i class="fas fa-graduation-cap"></i> 法拉第定律学习检测</h2>
+            <p style="margin-bottom: 25px; color: #555;">完成以下5道题目来测试你对法拉第电磁感应定律的理解。每道题选择答案后会有解析。</p>
+            
+            <div id="quizContainer">
+                <!-- 题目将由JavaScript动态生成 -->
+            </div>
+            
+            <div class="quiz-results" id="quizResults" style="display: none;">
+                <div class="results-summary" id="resultsSummary"></div>
+                <button class="button" id="closeQuizBtn">完成测验</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 获取DOM元素
+        const bSlider = document.getElementById('bSlider');
+        const sSlider = document.getElementById('sSlider');
+        const nSlider = document.getElementById('nSlider');
+        const dtSlider = document.getElementById('dtSlider');
+        
+        const bValue = document.getElementById('bValue');
+        const sValue = document.getElementById('sValue');
+        const nValue = document.getElementById('nValue');
+        const dtValue = document.getElementById('dtValue');
+        
+        const bFinal = document.getElementById('bFinal');
+        const sFinal = document.getElementById('sFinal');
+        const nFinal = document.getElementById('nFinal');
+        const fluxFinal = document.getElementById('fluxFinal');
+        const bChange = document.getElementById('bChange');
+        const sChange = document.getElementById('sChange');
+        const nChange = document.getElementById('nChange');
+        const fluxChange = document.getElementById('fluxChange');
+        
+        const coilRadius = document.getElementById('coilRadius');
+        const coilTurns = document.getElementById('coilTurns');
+        const wireThickness = document.getElementById('wireThickness');
+        
+        const emfResult = document.getElementById('emfResult');
+        const formulaDisplay = document.getElementById('formulaDisplay');
+        const currentDirection = document.getElementById('currentDirection');
+        const currentDirectionInfo = document.getElementById('currentDirectionInfo');
+        
+        const canvas = document.getElementById('magneticCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        const resetBtn = document.getElementById('resetBtn');
+        const quizBtn = document.getElementById('quizBtn');
+        const quizModal = document.getElementById('quizModal');
+        const closeModal = document.querySelector('.close-modal');
+        const quizContainer = document.getElementById('quizContainer');
+        const quizResults = document.getElementById('quizResults');
+        const resultsSummary = document.getElementById('resultsSummary');
+        const closeQuizBtn = document.getElementById('closeQuizBtn');
+        
+        // 初始参数值
+        let params = {
+            B: parseFloat(bSlider.value),
+            S: parseFloat(sSlider.value),
+            n: parseInt(nSlider.value),
+            dt: parseFloat(dtSlider.value),
+            B0: 0.5, // 初始磁场强度
+            S0: 0.2, // 初始线圈面积
+            n0: 5    // 初始线圈匝数
+        };
+        
+        // 更新显示值
+        function updateDisplays() {
+            bValue.textContent = params.B.toFixed(1);
+            sValue.textContent = params.S.toFixed(1);
+            nValue.textContent = params.n;
+            dtValue.textContent = params.dt.toFixed(1);
+            
+            // 计算半径 (S = πr²)
+            const radius = Math.sqrt(params.S / Math.PI);
+            coilRadius.textContent = radius.toFixed(2);
+            coilTurns.textContent = params.n;
+            
+            // 根据匝数设置导线粗细
+            if (params.n < 10) wireThickness.textContent = "细";
+            else if (params.n < 20) wireThickness.textContent = "中等";
+            else wireThickness.textContent = "粗";
+            
+            // 计算磁通量变化（现在包含匝数n）
+            const fluxInitial = params.n0 * params.B0 * params.S0;  // n0 × B0 × S0
+            const fluxFinalValue = params.n * params.B * params.S;  // n × B × S
+            const deltaFlux = fluxFinalValue - fluxInitial;
+            
+            // 计算感应电动势 ε = n * (ΔΦ/Δt) （移除负号）
+            const emf = Math.abs(deltaFlux) / params.dt;
+            
+            // 确定感应电流方向（根据楞次定律）
+            let currentDir = "";
+            let currentColor = "#4CAF50";
+            
+            if (deltaFlux > 0) {
+                currentDir = "逆时针"; // 磁通量增加，感应电流产生反向磁场（逆时针）
+            } else if (deltaFlux < 0) {
+                currentDir = "顺时针"; // 磁通量减少，感应电流产生同向磁场（顺时针）
+            } else {
+                currentDir = "无感应电流";
+                currentColor = "#666";
+            }
+            
+            // 更新表格数据
+            bFinal.textContent = params.B.toFixed(1);
+            sFinal.textContent = params.S.toFixed(1);
+            nFinal.textContent = params.n;
+            fluxFinal.textContent = fluxFinalValue.toFixed(2);
+            
+            const bDelta = params.B - params.B0;
+            const sDelta = params.S - params.S0;
+            const nDelta = params.n - params.n0;
+            
+            bChange.textContent = (bDelta >= 0 ? "+" : "") + bDelta.toFixed(1);
+            sChange.textContent = (sDelta >= 0 ? "+" : "") + sDelta.toFixed(1);
+            nChange.textContent = (nDelta >= 0 ? "+" : "") + nDelta;
+            fluxChange.textContent = (deltaFlux >= 0 ? "+" : "") + deltaFlux.toFixed(2);
+            
+            // 更新结果
+            emfResult.textContent = `${emf.toFixed(2)} V`;
+            
+            // 更新电流方向显示
+            currentDirection.textContent = currentDir;
+            currentDirectionInfo.style.color = currentColor;
+            
+            // 更新公式显示（移除负号）
+            formulaDisplay.innerHTML = `ε = n × (ΔΦ/Δt) = ${Math.abs(deltaFlux).toFixed(2)} / ${params.dt.toFixed(1)}`;
+            
+            // 重新绘制可视化
+            drawVisualization(currentDir, deltaFlux);
+        }
+        
+        // 绘制磁场和线圈可视化
+        function drawVisualization(currentDir, deltaFlux) {
+            // 清除画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 首先绘制布满整个画布的均匀磁场方向标记 (×)
+            drawUniformMagneticField();
+            
+            // 然后绘制线圈和感应电流方向箭头
+            drawCoilWithCurrent(currentDir, deltaFlux);
+        }
+        
+        // 绘制均匀分布的磁场方向标记 (×) - 布满整个画布
+        function drawUniformMagneticField() {
+            // 固定间距，始终保持均匀分布
+            const spacing = 25; // 固定间距
+            
+            ctx.strokeStyle = "#2196F3";
+            ctx.lineWidth = 1.5;
+            
+            // 计算画布上的网格点
+            const rows = Math.ceil(canvas.height / spacing);
+            const cols = Math.ceil(canvas.width / spacing);
+            
+            // 在整个画布上均匀绘制×标记
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    const x = col * spacing + spacing/2;
+                    const y = row * spacing + spacing/2;
+                    
+                    const size = 6;
+                    
+                    // 绘制一个×
+                    ctx.beginPath();
+                    ctx.moveTo(x - size/2, y - size/2);
+                    ctx.lineTo(x + size/2, y + size/2);
+                    ctx.moveTo(x + size/2, y - size/2);
+                    ctx.lineTo(x - size/2, y + size/2);
+                    ctx.stroke();
+                }
+            }
+        }
+        
+        // 绘制线圈和感应电流方向箭头
+        function drawCoilWithCurrent(currentDir, deltaFlux) {
+            // 计算线圈半径和中心位置
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = Math.sqrt(params.S / Math.PI) * 150; // 缩放因子
+            
+            // 根据匝数确定线圈的线宽
+            const lineWidth = Math.min(10, Math.max(2, params.n / 3));
+            
+            // 绘制线圈轮廓
+            ctx.strokeStyle = "#FF5722";
+            ctx.lineWidth = lineWidth;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // 绘制线圈匝数指示
+            const turns = params.n;
+            const angleStep = (Math.PI * 2) / turns;
+            
+            ctx.strokeStyle = "#FF5722";
+            ctx.lineWidth = 2;
+            
+            for (let i = 0; i < turns; i++) {
+                const angle = i * angleStep;
+                const innerRadius = radius - 5;
+                const outerRadius = radius + 5;
+                
+                const x1 = centerX + Math.cos(angle) * innerRadius;
+                const y1 = centerY + Math.sin(angle) * innerRadius;
+                const x2 = centerX + Math.cos(angle) * outerRadius;
+                const y2 = centerY + Math.sin(angle) * outerRadius;
+                
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.stroke();
+            }
+            
+            // 在红色线圈上绘制一个绿色箭头表示感应电流方向
+            if (currentDir !== "无感应电流") {
+                drawCurrentArrowOnCoil(centerX, centerY, radius, currentDir);
+            }
+        }
+        
+        // 在红色线圈上绘制一个绿色箭头
+        function drawCurrentArrowOnCoil(centerX, centerY, radius, currentDir) {
+            // 设置箭头样式
+            ctx.fillStyle = "#4CAF50";
+            ctx.strokeStyle = "#4CAF50";
+            ctx.lineWidth = 3;
+            
+            // 确定箭头位置（在线圈的右侧）
+            const arrowAngle = 0; // 右侧位置
+            const arrowDistance = radius + 3; // 箭头距离线圈中心
+            
+            // 箭头的位置
+            const arrowX = centerX + Math.cos(arrowAngle) * arrowDistance;
+            const arrowY = centerY + Math.sin(arrowAngle) * arrowDistance;
+            
+            // 箭头大小
+            const arrowSize = 15;
+            
+            // 绘制箭头
+            ctx.beginPath();
+            
+            // 修正：确保箭头方向正确
+            if (currentDir === "逆时针") {
+                // 逆时针箭头（向上） - 从右侧看，逆时针电流向上流动
+                ctx.moveTo(arrowX, arrowY - arrowSize * 1.5);
+                ctx.lineTo(arrowX - arrowSize/2, arrowY);
+                ctx.lineTo(arrowX + arrowSize/2, arrowY);
+            } else if (currentDir === "顺时针") {
+                // 顺时针箭头（向下） - 从右侧看，顺时针电流向下流动
+                ctx.moveTo(arrowX, arrowY + arrowSize * 1.5);
+                ctx.lineTo(arrowX - arrowSize/2, arrowY);
+                ctx.lineTo(arrowX + arrowSize/2, arrowY);
+            }
+            
+            ctx.closePath();
+            ctx.fill();
+            
+            // 绘制箭头杆（短线）
+            ctx.beginPath();
+            if (currentDir === "逆时针") {
+                // 逆时针箭头杆向上
+                ctx.moveTo(arrowX, arrowY);
+                ctx.lineTo(arrowX, arrowY - arrowSize * 1.5);
+            } else if (currentDir === "顺时针") {
+                // 顺时针箭头杆向下
+                ctx.moveTo(arrowX, arrowY);
+                ctx.lineTo(arrowX, arrowY + arrowSize * 1.5);
+            }
+            ctx.stroke();
+            
+            // 添加磁通量变化方向说明
+            ctx.fillStyle = "#333";
+            ctx.font = "bold 14px Arial";
+            ctx.textAlign = "center";
+        }
+        
+        // 滑块事件监听
+        bSlider.addEventListener('input', function() {
+            params.B = parseFloat(this.value);
+            updateDisplays();
+        });
+        
+        sSlider.addEventListener('input', function() {
+            params.S = parseFloat(this.value);
+            updateDisplays();
+        });
+        
+        nSlider.addEventListener('input', function() {
+            params.n = parseInt(this.value);
+            updateDisplays();
+        });
+        
+        dtSlider.addEventListener('input', function() {
+            params.dt = parseFloat(this.value);
+            updateDisplays();
+        });
+        
+        // 重置按钮
+        resetBtn.addEventListener('click', function() {
+            params.B = 1.0;
+            params.S = 0.5;
+            params.n = 10;
+            params.dt = 2.0;
+            
+            bSlider.value = params.B;
+            sSlider.value = params.S;
+            nSlider.value = params.n;
+            dtSlider.value = params.dt;
+            
+            updateDisplays();
+        });
+        
+        // 测验相关
+        const quizQuestions = [
+            {
+                question: "法拉第电磁感应定律表明，闭合回路中感应电动势的大小与什么成正比？",
+                options: [
+                    "穿过回路的磁通量",
+                    "穿过回路的磁通量的变化率",
+                    "磁场的强度",
+                    "线圈的匝数"
+                ],
+                correct: 1,
+                explanation: "法拉第定律明确指出：闭合回路中感应电动势的大小，与穿过该回路的磁通量的变化率成正比，而不是与磁通量本身成正比。"
+            },
+            {
+                question: "下列哪种方法可以增大线圈中的感应电动势？",
+                options: [
+                    "减小磁场变化率",
+                    "增加线圈的电阻",
+                    "增加线圈的匝数",
+                    "延长磁场变化的时间"
+                ],
+                correct: 2,
+                explanation: "根据法拉第定律 ε = n × (ΔΦ/Δt)，增加线圈匝数n可以增大感应电动势。减小磁场变化率或延长变化时间会减小感应电动势，增加电阻不影响电动势大小。"
+            },
+            {
+                question: "下列哪种情况不会在线圈中产生感应电动势？",
+                options: [
+                    "线圈在均匀磁场中平移",
+                    "线圈在均匀磁场中旋转",
+                    "穿过线圈的磁场强度发生变化",
+                    "线圈的面积在磁场中发生变化"
+                ],
+                correct: 0,
+                explanation: "当线圈在均匀磁场中平移时，穿过线圈的磁通量不变（ΔΦ=0），因此不会产生感应电动势。其他情况都会导致磁通量变化。"
+            },
+            {
+                question: "一个100匝的线圈，磁通量在0.5秒内从0.02 Wb均匀增加到0.08 Wb，感应电动势是多少？",
+                options: [
+                    "6 V",
+                    "12 V",
+                    "24 V",
+                    "30 V"
+                ],
+                correct: 1,
+                explanation: "ΔΦ = 0.08 - 0.02 = 0.06 Wb，Δt = 0.5 s，n = 100，所以 ε = 100 × (0.06/0.5) = 12 V。"
+            },
+            {
+                question: "关于磁通量Φ，以下说法正确的是：",
+                options: [
+                    "磁通量是矢量，方向与磁场方向相同",
+                    "当线圈平面与磁场方向平行时，磁通量最大",
+                    "磁通量的单位是特斯拉(T)",
+                    "磁通量Φ = B×S×cosθ，其中θ是磁场方向与线圈法线的夹角"
+                ],
+                correct: 3,
+                explanation: "磁通量Φ = B×S×cosθ，其中θ是磁场方向与线圈法线的夹角。当θ=0°(磁场垂直穿过线圈)时，磁通量最大；当θ=90°(磁场平行于线圈平面)时，磁通量为0。磁通量是标量，单位是韦伯(Wb)。"
+            }
+        ];
+        
+        // 初始化测验
+        function initializeQuiz() {
+            quizContainer.innerHTML = '';
+            let quizHTML = '';
+            
+            quizQuestions.forEach((q, index) => {
+                quizHTML += `
+                    <div class="quiz-question" id="question${index}">
+                        <div class="question-text">${index + 1}. ${q.question}</div>
+                        ${q.options.map((option, optIndex) => `
+                            <div class="quiz-option" data-question="${index}" data-option="${optIndex}">
+                                ${String.fromCharCode(65 + optIndex)}. ${option}
+                            </div>
+                        `).join('')}
+                        <div class="explanation" id="explanation${index}">
+                            <strong>解析:</strong> ${q.explanation}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            quizHTML += `<button class="button" id="submitQuizBtn" style="margin-top: 20px;">提交答案</button>`;
+            quizContainer.innerHTML = quizHTML;
+            
+            // 添加选项点击事件
+            document.querySelectorAll('.quiz-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const questionIndex = parseInt(this.getAttribute('data-question'));
+                    const optionIndex = parseInt(this.getAttribute('data-option'));
+                    
+                    // 移除同一问题中其他选项的选中状态
+                    const questionDiv = document.getElementById(`question${questionIndex}`);
+                    questionDiv.querySelectorAll('.quiz-option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    
+                    // 选中当前选项
+                    this.classList.add('selected');
+                    
+                    // 存储用户答案
+                    this.closest('.quiz-question').setAttribute('data-user-answer', optionIndex);
+                });
+            });
+            
+            // 提交测验按钮
+            document.getElementById('submitQuizBtn').addEventListener('click', submitQuiz);
+            
+            // 重置结果区域
+            quizResults.style.display = 'none';
+        }
+        
+        // 提交测验
+        function submitQuiz() {
+            let correctCount = 0;
+            const totalQuestions = quizQuestions.length;
+            
+            // 检查每个问题
+            quizQuestions.forEach((q, index) => {
+                const questionDiv = document.getElementById(`question${index}`);
+                const userAnswer = questionDiv.getAttribute('data-user-answer');
+                const explanationDiv = document.getElementById(`explanation${index}`);
+                
+                // 获取所有选项
+                const options = questionDiv.querySelectorAll('.quiz-option');
+                
+                // 重置样式
+                options.forEach(opt => {
+                    opt.classList.remove('correct', 'incorrect');
+                });
+                
+                // 显示正确答案
+                options[q.correct].classList.add('correct');
+                
+                // 如果用户回答了，检查是否正确
+                if (userAnswer !== null) {
+                    if (parseInt(userAnswer) === q.correct) {
+                        correctCount++;
+                    } else {
+                        options[parseInt(userAnswer)].classList.add('incorrect');
+                    }
+                }
+                
+                // 显示解析
+                explanationDiv.style.display = 'block';
+            });
+            
+            // 显示结果
+            const percentage = Math.round((correctCount / totalQuestions) * 100);
+            resultsSummary.innerHTML = `
+                <i class="fas fa-chart-bar"></i> 测验完成！<br>
+                你答对了 ${correctCount} 题，共 ${totalQuestions} 题<br>
+                正确率: ${percentage}%
+                <div style="margin-top: 10px; font-size: 1rem;">
+                    ${percentage >= 80 ? 
+                        '<span style="color:#4CAF50">优秀！你对法拉第定律理解得很好！</span>' : 
+                    percentage >= 60 ? 
+                        '<span style="color:#FF9800">不错，但还有提升空间！</span>' : 
+                        '<span style="color:#F44336">需要加强学习，建议回顾法拉第定律的核心概念。</span>'
+                    }
+                </div>
+            `;
+            
+            quizResults.style.display = 'block';
+            document.getElementById('submitQuizBtn').style.display = 'none';
+        }
+        
+        // 打开测验模态框
+        quizBtn.addEventListener('click', function() {
+            initializeQuiz();
+            quizModal.style.display = 'flex';
+        });
+        
+        // 关闭模态框
+        closeModal.addEventListener('click', function() {
+            quizModal.style.display = 'none';
+        });
+        
+        closeQuizBtn.addEventListener('click', function() {
+            quizModal.style.display = 'none';
+        });
+        
+        // 点击模态框外部关闭
+        window.addEventListener('click', function(event) {
+            if (event.target === quizModal) {
+                quizModal.style.display = 'none';
+            }
+        });
+        
+        // 初始更新
+        updateDisplays();
+        
+        // 窗口大小调整时重新绘制
+        window.addEventListener('resize', function() {
+            // 更新画布尺寸
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            updateDisplays();
+        });
+        
+        // 初始调整画布大小
+        const container = canvas.parentElement;
+        canvas.width = container.clientWidth;
+        canvas.height = container.clientHeight;
+    </script>
+</body>
+</html>

@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电势与电势差交互模拟器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0c2461, #1e3799);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #1a2980, #26d0ce);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+        }
+        
+        .formula-container {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .formula-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            min-width: 280px;
+        }
+        
+        .formula {
+            font-size: 2rem;
+            color: #1a2980;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .main-content {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .left-panel {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .simulation-container {
+            flex: 3;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #4a6fa5;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .simulation-area {
+            flex: 1;
+            position: relative;
+            background: #f8f9fa;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+            min-height: 600px;
+        }
+        
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .toolbox {
+            margin-bottom: 25px;
+        }
+        
+        .tools {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .tool {
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            cursor: grab;
+            text-align: center;
+            min-width: 120px;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .tool:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .tool.positive {
+            border-color: #e74c3c;
+        }
+        
+        .tool.negative {
+            border-color: #3498db;
+        }
+        
+        .tool-icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+        
+        .control-group {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+        }
+        
+        .slider-container {
+            margin: 15px 0;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            background: linear-gradient(to right, #1a2980, #26d0ce);
+            border-radius: 4px;
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid #1a2980;
+            cursor: pointer;
+        }
+        
+        .info-display {
+            background: linear-gradient(135deg, #1a2980, #26d0ce);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .info-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .info-label {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        button {
+            background: linear-gradient(to right, #1a2980, #26d0ce);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-top: 10px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            width: 100%;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-knowledge {
+            background: linear-gradient(to right, #e74c3c, #c0392b);
+        }
+        
+        .btn-reset {
+            background: linear-gradient(to right, #2ecc71, #27ae60);
+        }
+        
+        .btn-clear {
+            background: linear-gradient(to right, #f39c12, #d35400);
+        }
+        
+        .charge {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: move;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            z-index: 100;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s;
+            user-select: none;
+        }
+        
+        .charge:hover {
+            transform: scale(1.1);
+        }
+        
+        .charge.positive {
+            background: radial-gradient(circle at 30% 30%, #ff6b6b, #c0392b);
+        }
+        
+        .charge.negative {
+            background: radial-gradient(circle at 30% 30%, #3498db, #2980b9);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80%;
+            overflow-y: auto;
+            padding: 30px;
+            position: relative;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #7f8c8d;
+        }
+        
+        .question {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #1a2980;
+        }
+        
+        .options {
+            margin-bottom: 25px;
+        }
+        
+        .option {
+            padding: 12px;
+            margin-bottom: 10px;
+            background: #f1f8ff;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .option:hover {
+            background: #e3f2fd;
+        }
+        
+        .option.selected {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+        
+        .explanation {
+            background: #e8f4f8;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        footer {
+            text-align: center;
+            color: white;
+            padding: 20px;
+            margin-top: 30px;
+        }
+        
+        .instructions {
+            background: #fff8e1;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #ffc107;
+        }
+        
+        @media (max-width: 1200px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .simulation-area {
+                min-height: 500px;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <header>
+            <h1>⚡ 电势与电势差交互模拟器</h1>
+            <p class="subtitle">探索匀强电场中的电势分布、等势面与电势差关系</p>
+            <div class="formula-container">
+                <div class="formula-box">
+                    <div class="formula">U = Ed</div>
+                    <div>匀强电场中电势差公式</div>
+                </div>
+                <div class="formula-box">
+                    <div class="formula">E = -∇V</div>
+                    <div>电场强度与电势梯度关系</div>
+                </div>
+                <div class="formula-box">
+                    <div class="formula">V = k·q/r</div>
+                    <div>点电荷电势公式</div>
+                </div>
+            </div>
+        </header>
+        
+        <div class="main-content">
+            <div class="left-panel">
+                <div class="section-title">📦 工具栏</div>
+                <div class="toolbox">
+                    <p style="margin-bottom: 15px; color: #666;">拖拽电荷到模拟区：</p>
+                    <div class="tools">
+                        <div class="tool positive" draggable="true" id="positiveTool">
+                            <div class="tool-icon" style="color: #e74c3c;">⊕</div>
+                            <div>正电荷 (+q)</div>
+                        </div>
+                        <div class="tool negative" draggable="true" id="negativeTool">
+                            <div class="tool-icon" style="color: #3498db;">⊖</div>
+                            <div>负电荷 (-q)</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <div class="section-title">⚙️ 电场控制</div>
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>电场强度 E:</span>
+                            <span id="fieldValue">100 N/C</span>
+                        </div>
+                        <input type="range" id="fieldSlider" min="0" max="200" step="10" value="100">
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>电场方向:</span>
+                            <span id="directionValue">水平向右</span>
+                        </div>
+                        <input type="range" id="directionSlider" min="0" max="360" step="45" value="0">
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <div class="section-title">📊 等势面设置</div>
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>等势面密度:</span>
+                            <span id="densityValue">中等</span>
+                        </div>
+                        <input type="range" id="densitySlider" min="1" max="5" step="1" value="3">
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>等势面透明度:</span>
+                            <span id="alphaValue">0.3</span>
+                        </div>
+                        <input type="range" id="alphaSlider" min="0.1" max="0.7" step="0.1" value="0.3">
+                    </div>
+                </div>
+                
+                <div class="info-display">
+                    <div class="info-label">两点间电势差</div>
+                    <div class="info-value" id="potentialDiff">0.00 V</div>
+                    <div class="info-label">距离 d</div>
+                    <div class="info-value" id="distanceValue">0.00 m</div>
+                </div>
+                
+                <div class="instructions">
+                    <p><strong>使用说明：</strong></p>
+                    <ul style="padding-left: 20px; margin-top: 10px;">
+                        <li>从工具栏拖拽电荷到模拟区</li>
+                        <li>拖拽电荷可以移动位置</li>
+                        <li>观察等势面变化</li>
+                        <li>调节电场强度和方向</li>
+                        <li>测量两点间电势差</li>
+                    </ul>
+                </div>
+                
+                <button class="btn-clear" onclick="clearAllCharges()">🗑️ 清除所有电荷</button>
+                <button class="btn-reset" onclick="resetSimulation()">🔄 重置模拟</button>
+                <button class="btn-knowledge" onclick="openModal()">📚 知识检测</button>
+            </div>
+            
+            <div class="simulation-container">
+                <div class="section-title">🎮 模拟演示区</div>
+                <div class="simulation-area" id="simulationArea">
+                    <canvas id="mainCanvas"></canvas>
+                    <canvas id="uiCanvas"></canvas>
+                </div>
+                <div style="margin-top: 15px; display: flex; gap: 15px;">
+                    <div style="flex: 1; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                        <div style="font-weight: bold; color: #2c3e50; margin-bottom: 8px;">图例说明</div>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                            <div style="width: 20px; height: 20px; background: #e74c3c; border-radius: 50%;"></div>
+                            <div>正电荷 (+q)</div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                            <div style="width: 20px; height: 20px; background: #3498db; border-radius: 50%;"></div>
+                            <div>负电荷 (-q)</div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                            <div style="width: 20px; height: 3px; background: #2c3e50;"></div>
+                            <div>电场线</div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 20px; height: 2px; border: 2px dashed #9b59b6;"></div>
+                            <div>等势面</div>
+                        </div>
+                    </div>
+                    <div style="flex: 1; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                        <div style="font-weight: bold; color: #2c3e50; margin-bottom: 8px;">物理规律</div>
+                        <div>1. 沿电场线方向电势降低</div>
+                        <div>2. 等势面垂直于电场线</div>
+                        <div>3. U = E·d·cosθ</div>
+                        <div>4. 点电荷电势 V = kq/r</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>电势与电势差交互模拟器 | 探索电场与电势的物理规律</p>
+            <p style="opacity: 0.8; margin-top: 5px;">© 2023 物理教学工具</p>
+        </footer>
+    </div>
+    
+    <!-- 知识检测模态框 -->
+    <div class="modal" id="knowledgeModal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">×</span>
+            <div class="section-title">📝 电势与电势差知识检测</div>
+            
+            <div class="question">
+                1. 在匀强电场中，两点间的电势差 U 与电场强度 E、距离 d 的关系是：
+            </div>
+            <div class="options">
+                <div class="option" onclick="selectOption(this, 1)">A. U = E/d</div>
+                <div class="option" onclick="selectOption(this, 1)">B. U = E·d</div>
+                <div class="option" onclick="selectOption(this, 1)">C. U = E + d</div>
+                <div class="option" onclick="selectOption(this, 1)">D. U = E - d</div>
+            </div>
+            
+            <div class="question">
+                2. 关于等势面，正确的说法是：
+            </div>
+            <div class="options">
+                <div class="option" onclick="selectOption(this, 2)">A. 等势面上各点电势相等</div>
+                <div class="option" onclick="selectOption(this, 2)">B. 等势面与电场线平行</div>
+                <div class="option" onclick="selectOption(this, 2)">C. 电荷在等势面上移动电场力做功不为零</div>
+                <div class="option" onclick="selectOption(this, 2)">D. 等势面越密电势越高</div>
+            </div>
+            
+            <div class="question">
+                3. 沿电场线方向，电势的变化是：
+            </div>
+            <div class="options">
+                <div class="option" onclick="selectOption(this, 3)">A. 逐渐升高</div>
+                <div class="option" onclick="selectOption(this, 3)">B. 逐渐降低</div>
+                <div class="option" onclick="selectOption(this, 3)">C. 保持不变</div>
+                <div class="option" onclick="selectOption(this, 3)">D. 先升高后降低</div>
+            </div>
+            
+            <div class="question">
+                4. 点电荷的电势公式 V = kq/r 中，r 表示：
+            </div>
+            <div class="options">
+                <div class="option" onclick="selectOption(this, 4)">A. 到电荷表面的距离</div>
+                <div class="option" onclick="selectOption(this, 4)">B. 到电荷中心的距离</div>
+                <div class="option" onclick="selectOption(this, 4)">C. 电荷的半径</div>
+                <div class="option" onclick="selectOption(this, 4)">D. 任意距离</div>
+            </div>
+            
+            <button onclick="checkAnswers()" style="width: 100%; margin-top: 20px; padding: 15px; background: #1a2980; color: white; border: none; border-radius: 8px; font-size: 1.1rem; cursor: pointer;">
+                提交答案
+            </button>
+            
+            <div class="explanation" id="explanation">
+                <h3>📖 习题解析</h3>
+                <p><strong>第1题：</strong> 匀强电场中电势差公式为 U = E·d·cosθ，当沿电场线方向时，U = E·d。正确答案是 <strong>B</strong>。</p>
+                <p><strong>第2题：</strong> 等势面上各点电势相等；等势面与电场线垂直；电荷在等势面上移动电场力做功为零；等势面越密电场强度越大。正确答案是 <strong>A</strong>。</p>
+                <p><strong>第3题：</strong> 沿电场线方向，正电荷受电场力方向与电场线方向相同，电势能减少，电势降低。正确答案是 <strong>B</strong>。</p>
+                <p><strong>第4题：</strong> 点电荷电势公式中的 r 是到点电荷中心的距离。正确答案是 <strong>B</strong>。</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 物理常量
+        const k = 9e9; // 静电力常量 N·m²/C²
+        const pixelToMeter = 0.001; // 1像素 = 0.001米
+        
+        // 模拟变量
+        let canvas, ctx, uiCanvas, uiCtx;
+        let charges = [];
+        let selectedCharges = [];
+        let isDragging = false;
+        let dragOffsetX = 0, dragOffsetY = 0;
+        let uniformField = {
+            strength: 100, // N/C
+            angle: 0, // 弧度
+            direction: 'right'
+        };
+        let equipotentialSettings = {
+            density: 3,
+            alpha: 0.3
+        };
+        let animationId;
+        
+        // 初始化
+        function init() {
+            canvas = document.getElementById('mainCanvas');
+            ctx = canvas.getContext('2d');
+            uiCanvas = document.getElementById('uiCanvas');
+            uiCtx = uiCanvas.getContext('2d');
+            
+            // 设置canvas大小
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            // 设置事件监听器
+            setupEventListeners();
+            
+            // 开始动画
+            animate();
+            
+            // 创建初始匀强电场
+            drawUniformField();
+        }
+        
+        // 调整canvas大小
+        function resizeCanvas() {
+            const container = document.getElementById('simulationArea');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            
+            canvas.width = width;
+            canvas.height = height;
+            uiCanvas.width = width;
+            uiCanvas.height = height;
+            
+            drawUniformField();
+        }
+        
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 工具栏拖拽
+            const positiveTool = document.getElementById('positiveTool');
+            const negativeTool = document.getElementById('negativeTool');
+            
+            positiveTool.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', 'positive');
+            });
+            
+            negativeTool.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', 'negative');
+            });
+            
+            // 模拟区拖拽
+            const simArea = document.getElementById('simulationArea');
+            simArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                simArea.style.backgroundColor = '#e8f4f8';
+            });
+            
+            simArea.addEventListener('dragleave', () => {
+                simArea.style.backgroundColor = '#f8f9fa';
+            });
+            
+            simArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                simArea.style.backgroundColor = '#f8f9fa';
+                
+                const type = e.dataTransfer.getData('text/plain');
+                const rect = simArea.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                createCharge(x, y, type);
+                updatePotentialDifference();
+            });
+            
+            // 滑块控制
+            document.getElementById('fieldSlider').addEventListener('input', (e) => {
+                uniformField.strength = e.target.value;
+                document.getElementById('fieldValue').textContent = `${uniformField.strength} N/C`;
+                updatePotentialDifference();
+            });
+            
+            document.getElementById('directionSlider').addEventListener('input', (e) => {
+                const angle = parseInt(e.target.value);
+                uniformField.angle = angle * Math.PI / 180;
+                
+                let direction = '水平向右';
+                if (angle === 45) direction = '右上';
+                else if (angle === 90) direction = '垂直向上';
+                else if (angle === 135) direction = '左上';
+                else if (angle === 180) direction = '水平向左';
+                else if (angle === 225) direction = '左下';
+                else if (angle === 270) direction = '垂直向下';
+                else if (angle === 315) direction = '右下';
+                
+                document.getElementById('directionValue').textContent = direction;
+                drawUniformField();
+            });
+            
+            document.getElementById('densitySlider').addEventListener('input', (e) => {
+                const density = parseInt(e.target.value);
+                equipotentialSettings.density = density;
+                
+                let densityText = '稀疏';
+                if (density === 2) densityText = '较疏';
+                else if (density === 3) densityText = '中等';
+                else if (density === 4) densityText = '较密';
+                else if (density === 5) densityText = '密集';
+                
+                document.getElementById('densityValue').textContent = densityText;
+            });
+            
+            document.getElementById('alphaSlider').addEventListener('input', (e) => {
+                equipotentialSettings.alpha = parseFloat(e.target.value);
+                document.getElementById('alphaValue').textContent = equipotentialSettings.alpha;
+            });
+            
+            // 电荷拖拽
+            uiCanvas.addEventListener('mousedown', startDrag);
+            uiCanvas.addEventListener('mousemove', drag);
+            uiCanvas.addEventListener('mouseup', endDrag);
+            uiCanvas.addEventListener('mouseleave', endDrag);
+            
+            // 触摸屏支持
+            uiCanvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (e.touches.length === 1) {
+                    const touch = e.touches[0];
+                    const rect = uiCanvas.getBoundingClientRect();
+                    const x = touch.clientX - rect.left;
+                    const y = touch.clientY - rect.top;
+                    startDrag({ clientX: touch.clientX, clientY: touch.clientY });
+                }
+            });
+            
+            uiCanvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                if (e.touches.length === 1 && isDragging) {
+                    const touch = e.touches[0];
+                    drag({ clientX: touch.clientX, clientY: touch.clientY });
+                }
+            });
+            
+            uiCanvas.addEventListener('touchend', endDrag);
+        }
+        
+        // 创建电荷
+        function createCharge(x, y, type) {
+            const id = Date.now() + Math.random();
+            const charge = {
+                id,
+                x,
+                y,
+                type,
+                value: type === 'positive' ? 1e-6 : -1e-6,
+                radius: 20,
+                color: type === 'positive' ? '#e74c3c' : '#3498db'
+            };
+            
+            charges.push(charge);
+            return charge;
+        }
+        
+        // 绘制匀强电场
+        function drawUniformField() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const spacing = 40; // 电场线间距
+            const lineLength = 20; // 箭头长度
+            
+            ctx.strokeStyle = '#2c3e50';
+            ctx.lineWidth = 2;
+            ctx.fillStyle = '#2c3e50';
+            
+            // 计算方向向量
+            const dx = Math.cos(uniformField.angle);
+            const dy = Math.sin(uniformField.angle);
+            
+            // 绘制电场线
+            for (let y = spacing; y < canvas.height; y += spacing) {
+                for (let x = spacing; x < canvas.width; x += spacing * 2) {
+                    const startX = x;
+                    const startY = y;
+                    
+                    // 绘制线
+                    ctx.beginPath();
+                    ctx.moveTo(startX, startY);
+                    ctx.lineTo(startX + dx * 50, startY + dy * 50);
+                    ctx.stroke();
+                    
+                    // 绘制箭头
+                    ctx.save();
+                    ctx.translate(startX + dx * 50, startY + dy * 50);
+                    ctx.rotate(uniformField.angle);
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(-lineLength, -lineLength/2);
+                    ctx.lineTo(-lineLength, lineLength/2);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    ctx.restore();
+                }
+            }
+        }
+        
+        // 绘制电荷和等势面
+        function drawChargesAndEquipotentials() {
+            uiCtx.clearRect(0, 0, uiCanvas.width, uiCanvas.height);
+            
+            // 绘制等势面
+            charges.forEach(charge => {
+                drawEquipotentials(charge);
+            });
+            
+            // 绘制电荷
+            charges.forEach(charge => {
+                drawCharge(charge);
+            });
+            
+            // 绘制选中电荷的连接线
+            if (selectedCharges.length === 2) {
+                drawConnectionLine();
+            }
+        }
+        
+        // 绘制电荷
+        function drawCharge(charge) {
+            uiCtx.save();
+            
+            // 绘制电荷体
+            const gradient = uiCtx.createRadialGradient(
+                charge.x, charge.y, 5,
+                charge.x, charge.y, charge.radius
+            );
+            
+            if (charge.type === 'positive') {
+                gradient.addColorStop(0, '#ff8a80');
+                gradient.addColorStop(1, '#c62828');
+            } else {
+                gradient.addColorStop(0, '#81d4fa');
+                gradient.addColorStop(1, '#0277bd');
+            }
+            
+            uiCtx.beginPath();
+            uiCtx.arc(charge.x, charge.y, charge.radius, 0, Math.PI * 2);
+            uiCtx.fillStyle = gradient;
+            uiCtx.fill();
+            
+            // 绘制电荷符号
+            uiCtx.fillStyle = 'white';
+            uiCtx.font = 'bold 16px Arial';
+            uiCtx.textAlign = 'center';
+            uiCtx.textBaseline = 'middle';
+            uiCtx.fillText(charge.type === 'positive' ? '+' : '−', charge.x, charge.y);
+            
+            // 高亮选中的电荷
+            if (selectedCharges.includes(charge.id)) {
+                uiCtx.strokeStyle = '#ffeb3b';
+                uiCtx.lineWidth = 3;
+                uiCtx.beginPath();
+                uiCtx.arc(charge.x, charge.y, charge.radius + 5, 0, Math.PI * 2);
+                uiCtx.stroke();
+            }
+            
+            uiCtx.restore();
+        }
+        
+        // 绘制等势面
+        function drawEquipotentials(charge) {
+            const density = equipotentialSettings.density;
+            const alpha = equipotentialSettings.alpha;
+            
+            // 计算最大半径
+            const maxRadius = Math.min(canvas.width, canvas.height) / 2;
+            
+            // 根据密度确定等势面数量
+            const numSurfaces = 3 + density * 2;
+            
+            // 绘制等势面
+            for (let i = 1; i <= numSurfaces; i++) {
+                const radius = (i * maxRadius) / numSurfaces;
+                
+                // 计算电势值（近似）
+                const potential = k * charge.value / (radius * pixelToMeter);
+                
+                // 设置颜色和样式
+                uiCtx.strokeStyle = charge.type === 'positive' ? 
+                    `rgba(231, 76, 60, ${alpha})` : 
+                    `rgba(52, 152, 219, ${alpha})`;
+                uiCtx.lineWidth = 2;
+                uiCtx.setLineDash([5, 5]);
+                
+                // 绘制等势面
+                uiCtx.beginPath();
+                uiCtx.arc(charge.x, charge.y, radius, 0, Math.PI * 2);
+                uiCtx.stroke();
+                
+                // 绘制电势值标签
+                if (i % 2 === 0) {
+                    uiCtx.save();
+                    uiCtx.fillStyle = charge.type === 'positive' ? '#c0392b' : '#2980b9';
+                    uiCtx.font = '12px Arial';
+                    uiCtx.textAlign = 'center';
+                    uiCtx.textBaseline = 'middle';
+                    uiCtx.fillText(
+                        `${(potential/1000).toFixed(1)} kV`,
+                        charge.x + radius,
+                        charge.y
+                    );
+                    uiCtx.restore();
+                }
+            }
+            
+            uiCtx.setLineDash([]);
+            
+            // 如果只有一个电荷，绘制匀强电场的等势面
+            if (charges.length === 1) {
+                drawUniformFieldEquipotentials();
+            }
+        }
+        
+        // 绘制匀强电场的等势面
+        function drawUniformFieldEquipotentials() {
+            const spacing = 60; // 等势面间距
+            const alpha = equipotentialSettings.alpha;
+            
+            uiCtx.strokeStyle = `rgba(155, 89, 182, ${alpha})`;
+            uiCtx.lineWidth = 1.5;
+            uiCtx.setLineDash([3, 3]);
+            
+            // 计算等势面方向（垂直于电场线）
+            const perpAngle = uniformField.angle + Math.PI/2;
+            const perpDx = Math.cos(perpAngle);
+            const perpDy = Math.sin(perpAngle);
+            
+            // 绘制等势面
+            const numLines = 5;
+            for (let i = -numLines; i <= numLines; i++) {
+                const offset = i * spacing;
+                
+                uiCtx.beginPath();
+                
+                // 计算起点和终点
+                const startX = canvas.width/2 - perpDx * canvas.width/2 + offset * perpDx;
+                const startY = canvas.height/2 - perpDy * canvas.height/2 + offset * perpDy;
+                const endX = startX + perpDx * canvas.width;
+                const endY = startY + perpDy * canvas.height;
+                
+                uiCtx.moveTo(startX, startY);
+                uiCtx.lineTo(endX, endY);
+                uiCtx.stroke();
+                
+                // 绘制电势值标签
+                if (i % 2 === 0) {
+                    const potential = uniformField.strength * (offset * pixelToMeter);
+                    uiCtx.save();
+                    uiCtx.fillStyle = '#8e44ad';
+                    uiCtx.font = '12px Arial';
+                    uiCtx.textAlign = 'center';
+                    uiCtx.textBaseline = 'middle';
+                    uiCtx.fillText(
+                        `${potential.toFixed(1)} V`,
+                        startX + 20,
+                        startY - 10
+                    );
+                    uiCtx.restore();
+                }
+            }
+            
+            uiCtx.setLineDash([]);
+        }
+        
+        // 绘制连接线
+        function drawConnectionLine() {
+            if (selectedCharges.length !== 2) return;
+            
+            const charge1 = charges.find(c => c.id === selectedCharges[0]);
+            const charge2 = charges.find(c => c.id === selectedCharges[1]);
+            
+            if (!charge1 || !charge2) return;
+            
+            // 绘制连接线
+            uiCtx.strokeStyle = '#2ecc71';
+            uiCtx.lineWidth = 2;
+            uiCtx.setLineDash([5, 5]);
+            
+            uiCtx.beginPath();
+            uiCtx.moveTo(charge1.x, charge1.y);
+            uiCtx.lineTo(charge2.x, charge2.y);
+            uiCtx.stroke();
+            
+            uiCtx.setLineDash([]);
+            
+            // 绘制中点
+            const midX = (charge1.x + charge2.x) / 2;
+            const midY = (charge1.y + charge2.y) / 2;
+            
+            uiCtx.fillStyle = '#2ecc71';
+            uiCtx.beginPath();
+            uiCtx.arc(midX, midY, 4, 0, Math.PI * 2);
+            uiCtx.fill();
+            
+            // 绘制距离标签
+            uiCtx.fillStyle = '#27ae60';
+            uiCtx.font = '14px Arial';
+            uiCtx.textAlign = 'center';
+            uiCtx.fillText(`d`, midX, midY - 15);
+        }
+        
+        // 开始拖拽
+        function startDrag(e) {
+            const rect = uiCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // 检查是否点击了电荷
+            for (let i = charges.length - 1; i >= 0; i--) {
+                const charge = charges[i];
+                const distance = Math.sqrt((x - charge.x)**2 + (y - charge.y)**2);
+                
+                if (distance <= charge.radius) {
+                    isDragging = charge;
+                    dragOffsetX = x - charge.x;
+                    dragOffsetY = y - charge.y;
+                    
+                    // 选择电荷
+                    if (!selectedCharges.includes(charge.id)) {
+                        selectedCharges.push(charge.id);
+                        if (selectedCharges.length > 2) {
+                            selectedCharges.shift();
+                        }
+                        updatePotentialDifference();
+                    }
+                    
+                    break;
+                }
+            }
+        }
+        
+        // 拖拽中
+        function drag(e) {
+            if (!isDragging) return;
+            
+            const rect = uiCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // 限制在canvas范围内
+            isDragging.x = Math.max(isDragging.radius, 
+                Math.min(x - dragOffsetX, canvas.width - isDragging.radius));
+            isDragging.y = Math.max(isDragging.radius, 
+                Math.min(y - dragOffsetY, canvas.height - isDragging.radius));
+            
+            updatePotentialDifference();
+        }
+        
+        // 结束拖拽
+        function endDrag() {
+            isDragging = false;
+        }
+        
+        // 更新电势差显示
+        function updatePotentialDifference() {
+            if (selectedCharges.length !== 2) {
+                document.getElementById('potentialDiff').textContent = '0.00 V';
+                document.getElementById('distanceValue').textContent = '0.00 m';
+                return;
+            }
+            
+            const charge1 = charges.find(c => c.id === selectedCharges[0]);
+            const charge2 = charges.find(c => c.id === selectedCharges[1]);
+            
+            if (!charge1 || !charge2) return;
+            
+            // 计算距离
+            const dx = charge2.x - charge1.x;
+            const dy = charge2.y - charge1.y;
+            const distancePixels = Math.sqrt(dx*dx + dy*dy);
+            const distanceMeters = distancePixels * pixelToMeter;
+            
+            // 计算沿电场线方向的距离分量
+            const angle = Math.atan2(dy, dx);
+            const angleDiff = angle - uniformField.angle;
+            const distanceAlongField = distanceMeters * Math.cos(angleDiff);
+            
+            // 计算匀强电场产生的电势差
+            const uniformPotentialDiff = uniformField.strength * distanceAlongField;
+            
+            // 计算点电荷产生的电势差
+            const r1 = distanceMeters;
+            const r2 = distanceMeters;
+            const v1 = k * charge1.value / (r1 + 1e-10);
+            const v2 = k * charge2.value / (r2 + 1e-10);
+            const pointPotentialDiff = v2 - v1;
+            
+            // 总电势差
+            const totalPotentialDiff = uniformPotentialDiff + pointPotentialDiff;
+            
+            // 更新显示
+            document.getElementById('potentialDiff').textContent = 
+                `${totalPotentialDiff.toFixed(2)} V`;
+            document.getElementById('distanceValue').textContent = 
+                `${distanceMeters.toFixed(2)} m`;
+        }
+        
+        // 清除所有电荷
+        function clearAllCharges() {
+            charges = [];
+            selectedCharges = [];
+            updatePotentialDifference();
+        }
+        
+        // 重置模拟
+        function resetSimulation() {
+            clearAllCharges();
+            uniformField.strength = 100;
+            uniformField.angle = 0;
+            equipotentialSettings.density = 3;
+            equipotentialSettings.alpha = 0.3;
+            
+            document.getElementById('fieldSlider').value = 100;
+            document.getElementById('fieldValue').textContent = '100 N/C';
+            document.getElementById('directionSlider').value = 0;
+            document.getElementById('directionValue').textContent = '水平向右';
+            document.getElementById('densitySlider').value = 3;
+            document.getElementById('densityValue').textContent = '中等';
+            document.getElementById('alphaSlider').value = 0.3;
+            document.getElementById('alphaValue').textContent = '0.3';
+            
+            drawUniformField();
+            updatePotentialDifference();
+        }
+        
+        // 动画循环
+        function animate() {
+            drawChargesAndEquipotentials();
+            animationId = requestAnimationFrame(animate);
+        }
+        
+        // 知识检测相关
+        let selectedOptions = [[], [], [], []];
+        
+        function openModal() {
+            document.getElementById('knowledgeModal').style.display = 'flex';
+        }
+        
+        function closeModal() {
+            document.getElementById('knowledgeModal').style.display = 'none';
+            document.getElementById('explanation').style.display = 'none';
+            
+            // 重置选项
+            document.querySelectorAll('.option').forEach(option => {
+                option.classList.remove('selected', 'correct', 'incorrect');
+            });
+            selectedOptions = [[], [], [], []];
+        }
+        
+        function selectOption(element, question) {
+            const options = element.parentNode.children;
+            for (let option of options) {
+                option.classList.remove('selected');
+            }
+            element.classList.add('selected');
+            selectedOptions[question-1] = element.textContent.charAt(0);
+        }
+        
+        function checkAnswers() {
+            const correctAnswers = ['B', 'A', 'B', 'B'];
+            let score = 0;
+            
+            for (let i = 0; i < 4; i++) {
+                if (selectedOptions[i] === correctAnswers[i]) {
+                    score++;
+                }
+            }
+            
+            // 显示结果
+            const explanation = document.getElementById('explanation');
+            explanation.style.display = 'block';
+            
+            // 添加得分信息
+            const scoreInfo = document.createElement('div');
+            scoreInfo.style.marginTop = '15px';
+            scoreInfo.style.padding = '10px';
+            scoreInfo.style.background = score === 4 ? '#d4edda' : 
+                                       score >= 2 ? '#fff3cd' : '#f8d7da';
+            scoreInfo.style.borderRadius = '5px';
+            scoreInfo.style.textAlign = 'center';
+            scoreInfo.innerHTML = `
+                <strong>得分: ${score}/4</strong><br>
+                ${score === 4 ? '🎉 太棒了！全部正确！' : 
+                  score >= 2 ? '👍 还不错，继续努力！' : 
+                  '📚 需要加强学习哦！'}
+            `;
+            
+            explanation.appendChild(scoreInfo);
+            explanation.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // 初始化
+        window.onload = init;
+    </script>
+</body>
+</html>

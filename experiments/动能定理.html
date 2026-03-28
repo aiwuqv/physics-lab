@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>动能定理 · 合外力做功与动能变化</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+        body {
+            background: linear-gradient(145deg, #e6f0f5 0%, #c9ddee 100%);
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .card {
+            max-width: 1300px;
+            width: 100%;
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(4px);
+            border-radius: 2.5rem;
+            box-shadow: 0 20px 40px rgba(0,20,40,0.4);
+            padding: 2rem 2rem 1.8rem;
+            border: 1px solid rgba(255,255,255,0.7);
+        }
+        h1 {
+            margin: 0 0 0.5rem 0;
+            font-weight: 500;
+            font-size: 2.2rem;
+            color: #0a2a44;
+            border-bottom: 3px solid #2a6f97;
+            padding-bottom: 10px;
+        }
+        .control-panel {
+            background: #ffffffcc;
+            border-radius: 28px;
+            padding: 1.5rem 1.8rem;
+            margin: 1.5rem 0 2rem;
+            box-shadow: inset 0 1px 4px #ffffff, 0 8px 18px rgba(0,40,70,0.1);
+            border: 1px solid #ffffff;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            align-items: flex-end;
+            justify-content: space-between;
+        }
+        .slider-group {
+            min-width: 150px;
+            flex: 1 1 160px;
+        }
+        .slider-group label {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            color: #0e3b5e;
+            margin-bottom: 6px;
+            font-size: 0.95rem;
+            letter-spacing: 0.3px;
+        }
+        .slider-group span {
+            background: #0a2a44;
+            color: white;
+            padding: 2px 12px;
+            border-radius: 40px;
+            font-size: 0.9rem;
+        }
+        input[type=range] {
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(90deg, #1e6f9f, #6bb3d9);
+            border-radius: 20px;
+            -webkit-appearance: none;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 4px 8px #0a2a4466;
+            border: 2px solid #0d4b6e;
+            cursor: pointer;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            background: #e9f0f7;
+            padding: 8px 20px;
+            border-radius: 50px;
+        }
+        .action-btn {
+            background: #ffffff;
+            border: 2px solid #1f5e8e;
+            color: #1f5e8e;
+            font-weight: 600;
+            font-size: 1rem;
+            padding: 8px 24px;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: 0.15s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        .action-btn:hover {
+            background: #1f5e8e;
+            color: white;
+        }
+        .action-btn.active {
+            background: #1f5e8e;
+            color: white;
+        }
+        .canvas-container {
+            background: #d9e9f5;
+            border-radius: 32px;
+            padding: 18px;
+            box-shadow: inset 0 -3px 8px #b0c4d9, 0 12px 22px rgba(0,20,30,0.25);
+            margin: 20px 0 20px;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: #b5d1e6;
+            border-radius: 20px;
+            border: 3px solid white;
+        }
+        .data-panel {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px 30px;
+            background: #102b3f;
+            padding: 1.2rem 2rem;
+            border-radius: 60px;
+            color: white;
+            margin: 25px 0 20px;
+            justify-content: space-evenly;
+            box-shadow: 0 10px 20px #00000030;
+        }
+        .data-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .data-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.7;
+        }
+        .data-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            line-height: 1.2;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .data-unit {
+            font-size: 0.8rem;
+            opacity: 0.6;
+            margin-left: 4px;
+        }
+        .graph-container {
+            background: #ffffffd9;
+            border-radius: 40px;
+            padding: 20px 25px;
+            margin: 20px 0 10px;
+            box-shadow: inset 0 1px 6px #ffffff, 0 8px 16px #00000020;
+        }
+        .graph-title {
+            font-weight: 600;
+            color: #0a2a44;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+        .graph-canvas-wrapper {
+            display: flex;
+            justify-content: center;
+        }
+        canvas#graphCanvas {
+            width: 100%;
+            max-width: 600px;
+            height: 180px;
+            background: #f5faff;
+            border-radius: 30px;
+            border: 2px solid #a0b8d0;
+        }
+        .conclusion {
+            background: #e4eefa;
+            border-left: 10px solid #1e5f86;
+            padding: 1rem 2rem;
+            border-radius: 50px 20px 20px 50px;
+            font-size: 1.05rem;
+            color: #021c2c;
+            box-shadow: 0 6px 14px #0000001a;
+            margin-top: 20px;
+        }
+        .conclusion p {
+            margin: 8px 0;
+        }
+        .small-note {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin-top: 4px;
+        }
+        footer {
+            text-align: right;
+            opacity: 0.6;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+<div class="card">
+    <h1>动能定理 · 合外力做功与动能变化</h1>
+
+    <!-- 控制面板 -->
+    <div class="control-panel">
+        <div class="slider-group">
+            <label>质量 m <span id="massValue">2.0 kg</span></label>
+            <input type="range" id="massSlider" min="0.5" max="5.0" value="2.0" step="0.1">
+        </div>
+        <div class="slider-group">
+            <label>合外力 F <span id="forceValue">4.0 N</span></label>
+            <input type="range" id="forceSlider" min="-10" max="10" value="4.0" step="0.2">
+        </div>
+        <div class="slider-group">
+            <label>初速度 v₀ <span id="v0Value">2.0 m/s</span></label>
+            <input type="range" id="v0Slider" min="-5" max="5" value="2.0" step="0.1">
+        </div>
+        <div class="slider-group">
+            <label>目标位移 s <span id="displaceValue">5.0 m</span></label>
+            <input type="range" id="displaceSlider" min="0.5" max="12.0" value="5.0" step="0.1">
+        </div>
+        <div class="action-buttons">
+            <button class="action-btn" id="startBtn">▶ 开始</button>
+            <button class="action-btn" id="pauseBtn">⏸️ 暂停</button>
+            <button class="action-btn" id="resetBtn">↺ 重置</button>
+        </div>
+    </div>
+
+    <!-- 动画区 -->
+    <div class="canvas-container">
+        <canvas id="mainCanvas" width="900" height="300"></canvas>
+    </div>
+
+    <!-- 数据区 -->
+    <div class="data-panel">
+        <div class="data-item">
+            <span class="data-label">合外力 F</span>
+            <span class="data-value" id="dataF">4.0</span>
+            <span class="data-unit">N</span>
+        </div>
+        <div class="data-item">
+            <span class="data-label">位移 s</span>
+            <span class="data-value" id="dataS">0.00</span>
+            <span class="data-unit">m</span>
+        </div>
+        <div class="data-item">
+            <span class="data-label">初动能 Ek₀</span>
+            <span class="data-value" id="dataEk0">4.00</span>
+            <span class="data-unit">J</span>
+        </div>
+        <div class="data-item">
+            <span class="data-label">末动能 Ek</span>
+            <span class="data-value" id="dataEk">4.00</span>
+            <span class="data-unit">J</span>
+        </div>
+        <div class="data-item">
+            <span class="data-label">做功 W = F·s</span>
+            <span class="data-value" id="dataWork">0.00</span>
+            <span class="data-unit">J</span>
+        </div>
+        <div class="data-item">
+            <span class="data-label">动能变化 ΔEk</span>
+            <span class="data-value" id="dataDeltaEk">0.00</span>
+            <span class="data-unit">J</span>
+        </div>
+    </div>
+
+    <!-- 图像区：做功与动能变化对比图 -->
+    <div class="graph-container">
+        <div class="graph-title">📊 做功 vs 动能变化   (绿色:做功, 蓝色:ΔEk)</div>
+        <div class="graph-canvas-wrapper">
+            <canvas id="graphCanvas" width="600" height="180"></canvas>
+        </div>
+        <div class="small-note" style="text-align:center;">两者数值相等即验证动能定理</div>
+    </div>
+
+    <!-- 底部实验结论 -->
+    <div class="conclusion">
+        <p>🧪 <strong>实验结论</strong> ① 合外力对物体做的功等于物体动能的变化量。</p>
+        <p>② 合外力做正功，物体动能增加；合外力做负功，物体动能减少。</p>
+        <p>③ 动能定理既适用于恒力做功，也适用于变力做功（本实验为恒力）。</p>
+        <p class="small-note">⚙️ 物体从x=0出发，目标位移为设定值。若阻力使速度减为零，则停在最大位移处。</p>
+    </div>
+    <footer>拖动滑块调节参数 | 正功/负功演示 | 实时对比做功与动能变化</footer>
+</div>
+
+<script>
+(function(){
+    // ----- 固定参数 -----
+    const canvas = document.getElementById('mainCanvas');
+    const ctx = canvas.getContext('2d');
+    const graphCanvas = document.getElementById('graphCanvas');
+    const graphCtx = graphCanvas.getContext('2d');
+    
+    const startX = 80;          // 起点画布x
+    const endX = 780;           // 终点画布x (对应最大位移12m)
+    const yLevel = 180;          // 物体运动水平线y坐标
+    const objRadius = 18;        // 物体半径
+
+    // DOM 元素
+    const massSlider = document.getElementById('massSlider');
+    const forceSlider = document.getElementById('forceSlider');
+    const v0Slider = document.getElementById('v0Slider');
+    const displaceSlider = document.getElementById('displaceSlider');
+    const massValue = document.getElementById('massValue');
+    const forceValue = document.getElementById('forceValue');
+    const v0Value = document.getElementById('v0Value');
+    const displaceValue = document.getElementById('displaceValue');
+    
+    const dataF = document.getElementById('dataF');
+    const dataS = document.getElementById('dataS');
+    const dataEk0 = document.getElementById('dataEk0');
+    const dataEk = document.getElementById('dataEk');
+    const dataWork = document.getElementById('dataWork');
+    const dataDeltaEk = document.getElementById('dataDeltaEk');
+
+    const startBtn = document.getElementById('startBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    // 状态变量
+    let m = 2.0;                // kg
+    let F = 4.0;                // N
+    let v0 = 2.0;               // m/s
+    let targetS = 5.0;           // m (目标位移)
+    
+    // 动态变量
+    let x = 0;                   // 当前位移 (m)
+    let v = 2.0;                 // 当前速度 m/s
+    let animActive = false;       // 动画是否运行
+    let finished = false;         // 是否到达终点或停止
+    let lastTimestamp = null;
+    let animationFrame = null;
+
+    // 最大位移范围对应的画布缩放因子：12m -> 700px (endX - startX)
+    const pxPerMeter = (endX - startX) / 12.0;
+
+    // 更新滑块显示
+    function updateSliderReadouts() {
+        m = parseFloat(massSlider.value);
+        F = parseFloat(forceSlider.value);
+        v0 = parseFloat(v0Slider.value);
+        targetS = parseFloat(displaceSlider.value);
+        massValue.innerText = m.toFixed(1) + ' kg';
+        forceValue.innerText = F.toFixed(1) + ' N';
+        v0Value.innerText = v0.toFixed(1) + ' m/s';
+        displaceValue.innerText = targetS.toFixed(1) + ' m';
+    }
+
+    // 重置模拟 (回到起点，速度设为v0，位移0)
+    function resetSimulation() {
+        x = 0;
+        v = v0;
+        finished = false;
+        animActive = false;
+        updateSliderReadouts();
+        drawCanvas();
+        updateDataAndGraph();
+    }
+
+    // 根据当前参数计算理论最大位移（当F与v0反向时）
+    function getMaxPossibleDisplacement() {
+        if (Math.abs(F) < 1e-6) return targetS; // 力为零，匀速
+        let a = F / m;
+        if (a * v0 >= 0) {
+            // 加速度与初速度同向，理论上可无限远，但受目标限制
+            return targetS;
+        } else {
+            // 反向，减速到零的最大位移
+            let maxS = - v0 * v0 / (2 * a); // a为负，所以为正
+            return Math.min(targetS, maxS);
+        }
+    }
+
+    // 更新数据区数值 (基于当前位移x和速度v)
+    function updateDataAndGraph() {
+        let currentF = F;
+        let currentS = x;
+        let currentV = v;
+        let ek0 = 0.5 * m * v0 * v0;
+        let ek = 0.5 * m * currentV * currentV;
+        let work = F * currentS;  // 恒力做功
+        let deltaEk = ek - ek0;
+
+        dataF.innerText = currentF.toFixed(2);
+        dataS.innerText = currentS.toFixed(2);
+        dataEk0.innerText = ek0.toFixed(2);
+        dataEk.innerText = ek.toFixed(2);
+        dataWork.innerText = work.toFixed(2);
+        dataDeltaEk.innerText = deltaEk.toFixed(2);
+
+        // 绘制对比图
+        drawGraph(work, deltaEk);
+    }
+
+    // 绘制柱状对比图
+    function drawGraph(work, deltaEk) {
+        graphCtx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
+        let w = graphCanvas.width;
+        let h = graphCanvas.height;
+        // 背景
+        graphCtx.fillStyle = '#f5faff';
+        graphCtx.fillRect(0, 0, w, h);
+        
+        let maxVal = Math.max(Math.abs(work), Math.abs(deltaEk), 0.1);
+        let barWidth = 80;
+        let gap = 60;
+        let x1 = w/2 - gap - barWidth;
+        let x2 = w/2 + gap;
+
+        // 坐标轴
+        graphCtx.beginPath();
+        graphCtx.strokeStyle = '#aaa';
+        graphCtx.lineWidth = 1;
+        graphCtx.moveTo(50, h-40);
+        graphCtx.lineTo(w-50, h-40);
+        graphCtx.stroke();
+
+        let baseY = h-40;
+        let scale = (h-80) / maxVal; // 留出上下边距
+
+        // 做功柱 (绿色)
+        let workHeight = Math.abs(work) * scale;
+        let workY = work >= 0 ? baseY - workHeight : baseY;
+        graphCtx.fillStyle = work >= 0 ? '#2e8b57' : '#b13e3e';
+        graphCtx.fillRect(x1, workY, barWidth, workHeight);
+        graphCtx.strokeStyle = '#000';
+        graphCtx.lineWidth = 1;
+        graphCtx.strokeRect(x1, workY, barWidth, workHeight);
+        graphCtx.fillStyle = '#000';
+        graphCtx.font = 'bold 14px "Segoe UI"';
+        graphCtx.fillText('做功', x1+20, baseY+20);
+        graphCtx.fillText(work.toFixed(2)+' J', x1+10, workY-5);
+
+        // 动能变化柱 (蓝色)
+        let deltaHeight = Math.abs(deltaEk) * scale;
+        let deltaY = deltaEk >= 0 ? baseY - deltaHeight : baseY;
+        graphCtx.fillStyle = deltaEk >= 0 ? '#1e6f9f' : '#b13e3e';
+        graphCtx.fillRect(x2, deltaY, barWidth, deltaHeight);
+        graphCtx.strokeStyle = '#000';
+        graphCtx.strokeRect(x2, deltaY, barWidth, deltaHeight);
+        graphCtx.fillStyle = '#000';
+        graphCtx.fillText('ΔEk', x2+20, baseY+20);
+        graphCtx.fillText(deltaEk.toFixed(2)+' J', x2+10, deltaY-5);
+    }
+
+    // 绘制主画布
+    function drawCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // 画轨道线
+        ctx.beginPath();
+        ctx.strokeStyle = '#4a7029';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([8, 8]);
+        ctx.moveTo(startX-10, yLevel);
+        ctx.lineTo(endX+10, yLevel);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 起点标记
+        ctx.beginPath();
+        ctx.fillStyle = '#c22d4b';
+        ctx.arc(startX, yLevel-2, 8, 0, 2*Math.PI);
+        ctx.fill();
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 14px "Segoe UI"';
+        ctx.fillText('起点', startX-30, yLevel-25);
+
+        // 终点标记 (目标位移)
+        let targetPixel = startX + targetS * pxPerMeter;
+        if (targetPixel > endX) targetPixel = endX;
+        ctx.beginPath();
+        ctx.fillStyle = '#2e8b57';
+        ctx.arc(targetPixel, yLevel-2, 8, 0, 2*Math.PI);
+        ctx.fill();
+        ctx.fillStyle = 'white';
+        ctx.fillText('目标', targetPixel-30, yLevel-25);
+
+        // 画物体 (圆)
+        let objX = startX + x * pxPerMeter;
+        if (objX > endX) objX = endX;
+        ctx.beginPath();
+        ctx.fillStyle = '#d44c2f';
+        ctx.shadowColor = '#1a1a1a80';
+        ctx.shadowBlur = 12;
+        ctx.arc(objX, yLevel-2, objRadius, 0, 2*Math.PI);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // 受力箭头
+        if (Math.abs(F) > 0.01) {
+            let arrowStartX = objX + (F > 0 ? objRadius + 5 : -objRadius - 5);
+            let arrowEndX = objX + (F > 0 ? objRadius + 50 : -objRadius - 50);
+            ctx.beginPath();
+            ctx.strokeStyle = '#b13e3e';
+            ctx.lineWidth = 3;
+            ctx.moveTo(arrowStartX, yLevel-20);
+            ctx.lineTo(arrowEndX, yLevel-20);
+            ctx.stroke();
+            // 箭头头
+            ctx.beginPath();
+            ctx.fillStyle = '#b13e3e';
+            let headX = arrowEndX;
+            let headY = yLevel-20;
+            if (F > 0) {
+                ctx.moveTo(headX, headY);
+                ctx.lineTo(headX-12, headY-6);
+                ctx.lineTo(headX-12, headY+6);
+            } else {
+                ctx.moveTo(headX, headY);
+                ctx.lineTo(headX+12, headY-6);
+                ctx.lineTo(headX+12, headY+6);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillStyle = '#b13e3e';
+            ctx.font = 'bold 14px "Segoe UI"';
+            ctx.fillText('F', arrowEndX + (F>0?10:-40), yLevel-30);
+        }
+
+        // 显示当前速度
+        ctx.font = 'bold 16px "JetBrains Mono"';
+        ctx.fillStyle = '#0a2a44';
+        ctx.fillText(`v = ${v.toFixed(2)} m/s`, objX-40, yLevel-50);
+    }
+
+    // 动画循环
+    function animationLoop(now) {
+        if (!animActive) {
+            // 暂停或完成时仍然重绘但不动
+            drawCanvas();
+            updateDataAndGraph();
+            animationFrame = requestAnimationFrame(animationLoop);
+            return;
+        }
+
+        if (finished) {
+            animActive = false;
+            drawCanvas();
+            updateDataAndGraph();
+            animationFrame = requestAnimationFrame(animationLoop);
+            return;
+        }
+
+        if (lastTimestamp === null) {
+            lastTimestamp = now;
+            animationFrame = requestAnimationFrame(animationLoop);
+            return;
+        }
+
+        let deltaSec = (now - lastTimestamp) / 1000;
+        if (deltaSec > 0.05) deltaSec = 0.05; // 限制最大步长
+        lastTimestamp = now;
+
+        // 加速度
+        let a = F / m;
+        // 更新速度
+        v += a * deltaSec;
+        // 更新位移
+        let newX = x + v * deltaSec;
+
+        // 检查是否超过目标位移（正向超过或反向超过）
+        let targetReached = false;
+        if (v >= 0) {
+            if (newX >= targetS) {
+                newX = targetS;
+                v = Math.sqrt(Math.max(0, v0*v0 + 2*a*targetS)); // 精确末速度，避免累积误差
+                targetReached = true;
+            }
+        } else {
+            // 如果速度为负，说明物体反向运动，但我们不允许反向位移（因为目标位移为正，我们只考虑从0到targetS）
+            // 但若初速度负且力正，物体会先减速再正向？为了简化，我们限制位移不低于0
+            if (newX < 0) {
+                newX = 0;
+                v = 0; // 撞墙停止
+                targetReached = true;
+            }
+        }
+
+        // 检查是否速度反向且接近零（对于阻力情况）
+        if (Math.abs(v) < 0.01 && newX < targetS && newX > 0 && a * v0 < 0) {
+            // 减速到零，无法继续前进
+            targetReached = true;
+            v = 0;
+        }
+
+        x = newX;
+
+        if (targetReached) {
+            finished = true;
+            animActive = false;
+        }
+
+        drawCanvas();
+        updateDataAndGraph();
+
+        animationFrame = requestAnimationFrame(animationLoop);
+    }
+
+    // 事件绑定
+    massSlider.addEventListener('input', () => {
+        updateSliderReadouts();
+        resetSimulation();
+    });
+    forceSlider.addEventListener('input', () => {
+        updateSliderReadouts();
+        resetSimulation();
+    });
+    v0Slider.addEventListener('input', () => {
+        updateSliderReadouts();
+        resetSimulation();
+    });
+    displaceSlider.addEventListener('input', () => {
+        updateSliderReadouts();
+        resetSimulation();
+    });
+
+    startBtn.addEventListener('click', () => {
+        if (finished) {
+            // 如果已完成，先重置再开始
+            resetSimulation();
+        }
+        animActive = true;
+        lastTimestamp = null;
+    });
+
+    pauseBtn.addEventListener('click', () => {
+        animActive = false;
+    });
+
+    resetBtn.addEventListener('click', resetSimulation);
+
+    // 初始化
+    updateSliderReadouts();
+    resetSimulation();
+
+    // 启动动画循环
+    animationFrame = requestAnimationFrame(animationLoop);
+
+    window.addEventListener('beforeunload', () => {
+        if (animationFrame) cancelAnimationFrame(animationFrame);
+    });
+})();
+</script>
+</body>
+</html>

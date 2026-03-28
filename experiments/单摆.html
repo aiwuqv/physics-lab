@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>单摆 · 机械能守恒 (无阻力/有阻力)</title>
+    <!-- Chart.js 轻量图表 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
+        body {
+            background: linear-gradient(145deg, #1b3b4f 0%, #2b5c7a 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .card {
+            max-width: 1400px;
+            width: 100%;
+            background: rgba(245, 250, 255, 0.9);
+            backdrop-filter: blur(8px);
+            border-radius: 56px;
+            box-shadow: 0 30px 60px rgba(0, 15, 30, 0.7);
+            padding: 28px 30px;
+            border: 2px solid rgba(255, 255, 255, 0.7);
+        }
+        h1 {
+            font-size: 2.6rem;
+            font-weight: 600;
+            margin: 0 0 5px 0;
+            color: #06314b;
+        }
+        .sub {
+            color: #1b5577;
+            margin-bottom: 25px;
+            font-style: italic;
+            background: #cbe4fe;
+            display: inline-block;
+            padding: 6px 32px;
+            border-radius: 60px;
+        }
+        .dashboard {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+        /* 控制面板 */
+        .control-panel {
+            background: #e2f0fc;
+            border-radius: 48px;
+            padding: 25px 20px;
+            box-shadow: inset 0 2px 8px #ffffff, 0 12px 24px #1b405a;
+            border: 1px solid #ffffff;
+        }
+        .control-panel h3 {
+            margin: 0 0 25px 0;
+            color: #0c3857;
+            font-size: 1.7rem;
+            border-bottom: 3px solid #b0cde0;
+            padding-bottom: 8px;
+        }
+        .slider-group {
+            margin-bottom: 28px;
+        }
+        .slider-group label {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            color: #104369;
+            font-size: 1.15rem;
+            margin-bottom: 5px;
+        }
+        .value-badge {
+            background: #1e628b;
+            color: white;
+            padding: 5px 18px;
+            border-radius: 40px;
+            font-family: 'Courier New', monospace;
+        }
+        input[type=range] {
+            width: 100%;
+            height: 8px;
+            background: #8db5d2;
+            border-radius: 20px;
+            -webkit-appearance: none;
+            margin: 8px 0;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            background: #f0a55a;
+            border-radius: 50%;
+            box-shadow: 0 4px 8px #0b3147;
+            border: 2px solid white;
+            cursor: pointer;
+        }
+        .switch-group {
+            background: #c0daf0;
+            border-radius: 60px;
+            padding: 18px 20px;
+            margin: 25px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .switch-group label {
+            font-weight: 700;
+            color: #02416b;
+            font-size: 1.2rem;
+        }
+        .switch-group input {
+            width: 50px;
+            height: 28px;
+            accent-color: #d68b3c;
+            transform: scale(1.2);
+        }
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .btn {
+            flex: 1;
+            background: #eaf2f9;
+            border: none;
+            padding: 16px 0;
+            border-radius: 60px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #003a60;
+            box-shadow: 0 6px 0 #507f9f, 0 10px 20px #0a2a3b;
+            cursor: pointer;
+            transition: 0.05s linear;
+        }
+        .btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 1px 0 #507f9f, 0 8px 16px #0a2a3b;
+        }
+        .btn.reset {
+            background: #fed7b0;
+            color: #733c1a;
+        }
+        /* 动画区 */
+        .canvas-area {
+            background: #cde3f7;
+            border-radius: 48px;
+            padding: 20px;
+            box-shadow: inset 0 -4px 12px #8db1cc, 0 16px 28px #123b52;
+            border: 2px solid #ffffff;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: #b9d9f2;
+            border-radius: 36px;
+            box-shadow: 0 0 0 4px #a1bedb, inset 0 0 0 2px #2d577b;
+        }
+        .data-row {
+            background: #e2f0fa;
+            border-radius: 40px;
+            padding: 18px 20px;
+            margin-top: 18px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            font-weight: 600;
+            color: #013352;
+        }
+        .data-item {
+            background: #ffffffd6;
+            border-radius: 60px;
+            padding: 14px 8px;
+            text-align: center;
+            box-shadow: inset 0 2px 8px #c1dfff;
+        }
+        .data-item span {
+            font-family: 'Courier New', monospace;
+            background: #1a4b70;
+            color: #fff2b5;
+            padding: 8px 18px;
+            border-radius: 40px;
+            margin-left: 12px;
+            font-size: 1.2rem;
+        }
+        /* 图像区 */
+        .graph-container {
+            background: #e2f0fa;
+            border-radius: 48px;
+            padding: 20px;
+            margin-top: 25px;
+            box-shadow: 0 12px 28px #1b405a;
+        }
+        .graph-container h3 {
+            margin: 0 0 15px 12px;
+            color: #044267;
+            font-size: 1.6rem;
+        }
+        .graph-wrapper {
+            position: relative;
+            height: 200px;
+            width: 100%;
+        }
+        /* 底部结论 */
+        .conclusion {
+            background: #0f344b;
+            border-radius: 40px;
+            padding: 22px 32px;
+            margin-top: 25px;
+            color: #f0efd8;
+            box-shadow: inset 0 3px 12px #5d8fb0, 0 12px 24px #021520;
+        }
+        .conclusion h3 {
+            font-size: 1.9rem;
+            color: #ffd894;
+            margin: 0 0 16px 0;
+        }
+        .conclusion p {
+            margin: 10px 0;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .conc-tag {
+            background: #2e6392;
+            padding: 5px 24px;
+            border-radius: 40px;
+            font-family: monospace;
+            color: #ffd98c;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+<div class="card">
+    <h1>⏳ 单摆机械能守恒</h1>
+    <div class="sub">无阻力守恒 · 有阻力衰减 · 能量转化实时显示</div>
+
+    <div class="dashboard">
+        <!-- 控制面板 -->
+        <div class="control-panel">
+            <h3>⚙️ 参数调节</h3>
+            <div class="slider-group">
+                <label>摆长 L <span class="value-badge" id="lengthVal">1.00 m</span></label>
+                <input type="range" id="lengthSlider" min="0.5" max="2.5" value="1.2" step="0.05">
+            </div>
+            <div class="slider-group">
+                <label>初始摆角 θ₀ <span class="value-badge" id="angleVal">15.0 °</span></label>
+                <input type="range" id="angleSlider" min="5" max="45" value="20" step="1">
+            </div>
+            <div class="switch-group">
+                <label for="airResistance">🌪️ 空气阻力</label>
+                <input type="checkbox" id="airResistance">
+            </div>
+            <div class="action-buttons">
+                <button class="btn" id="startPauseBtn">⏸️ 暂停</button>
+                <button class="btn reset" id="resetBtn">↺ 重置</button>
+            </div>
+            <p style="font-size:0.9rem; margin-top:25px; background:#bad2eb; border-radius:36px; padding:10px; text-align:center;">
+                ⚡ 质量 m = 1.0 kg (固定) &nbsp; | &nbsp; 重力加速度 g = 9.8 m/s²
+            </p>
+        </div>
+
+        <!-- 动画区 + 实时数据 -->
+        <div class="canvas-area">
+            <canvas id="pendulumCanvas" width="700" height="300"></canvas>
+            <div class="data-row">
+                <div class="data-item">动能 Ek <span id="kineticEnergy">0.00</span> J</div>
+                <div class="data-item">势能 Ep <span id="potentialEnergy">0.00</span> J</div>
+                <div class="data-item">总机械能 E <span id="totalEnergy">0.00</span> J</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 图像区：能量-时间曲线 -->
+    <div class="graph-container">
+        <h3>📈 能量–时间曲线 (最近20秒)</h3>
+        <div class="graph-wrapper">
+            <canvas id="energyChart"></canvas>
+        </div>
+    </div>
+
+    <!-- 底部实验结论 -->
+    <div class="conclusion">
+        <h3>📌 实验结论 · 单摆机械能守恒</h3>
+        <p><span class="conc-tag">①</span> 只有重力做功时，机械能总量保持不变。</p>
+        <p><span class="conc-tag">②</span> 单摆摆动中动能与重力势能相互转化，最高点势能最大，最低点动能最大。</p>
+        <p><span class="conc-tag">③</span> 空气阻力会导致机械能损失，振幅逐渐减小。</p>
+    </div>
+</div>
+
+<script>
+(function() {
+    // ----- 物理常数 -----
+    const g = 9.8;          // 重力加速度 m/s²
+    const m = 1.0;          // 小球质量 1kg (固定)
+
+    // ----- DOM 元素 -----
+    const canvas = document.getElementById('pendulumCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // 滑块
+    const lengthSlider = document.getElementById('lengthSlider');
+    const angleSlider = document.getElementById('angleSlider');
+    const lengthVal = document.getElementById('lengthVal');
+    const angleVal = document.getElementById('angleVal');
+    const airResCheck = document.getElementById('airResistance');
+
+    // 数据展示
+    const kineticSpan = document.getElementById('kineticEnergy');
+    const potentialSpan = document.getElementById('potentialEnergy');
+    const totalSpan = document.getElementById('totalEnergy');
+
+    // 按钮
+    const startPauseBtn = document.getElementById('startPauseBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    // 图表
+    const chartCtx = document.getElementById('energyChart').getContext('2d');
+
+    // ----- 可调参数 -----
+    let L = 1.2;            // 摆长 (m)
+    let theta0 = 20;        // 初始角度 (度)
+
+    // ----- 状态变量 -----
+    let theta = theta0 * Math.PI / 180;   // 当前角度 (rad)
+    let omega = 0.0;                       // 角速度 (rad/s)
+    let time = 0.0;                         // 模拟时间 (用于图表)
+
+    // 阻力系数 (当复选框选中时 b=0.1，否则0)
+    const DAMP_COEF = 0.12;   // 适当阻尼，使衰减可见
+
+    // 动画控制
+    let animActive = true;
+    let animFrame = null;
+    const dt = 0.02;          // 时间步长 (秒) 50fps对应0.02s
+
+    // 画布几何参数
+    const pivotX = 350, pivotY = 80;      // 悬挂点
+    const scalePxPerM = 70;                // 1米 = 70像素 (这样摆长1.2m对应84px左右)
+
+    // ----- 能量曲线数据 (时间序列) -----
+    const maxDataPoints = 1000;             // 最多保存点数 (对应20秒，dt=0.02则需要1000点)
+    let timeData = [];
+    let kineticData = [];
+    let potentialData = [];
+    let totalData = [];
+
+    // 初始化图表
+    let energyChart = new Chart(chartCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [
+                { label: '动能 Ek', data: [], borderColor: '#d45d1e', backgroundColor: 'transparent', tension: 0.2, pointRadius: 0, borderWidth: 2 },
+                { label: '势能 Ep', data: [], borderColor: '#2a6f97', backgroundColor: 'transparent', tension: 0.2, pointRadius: 0, borderWidth: 2 },
+                { label: '总机械能 E', data: [], borderColor: '#5e3c8b', backgroundColor: 'transparent', tension: 0.2, pointRadius: 0, borderWidth: 2 }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: false,
+            scales: {
+                x: { title: { display: true, text: '时间 (s)' } },
+                y: { title: { display: true, text: '能量 (J)' }, beginAtZero: true }
+            }
+        }
+    });
+
+    // ----- 辅助函数：更新滑块显示 -----
+    function updateSliderReadout() {
+        L = parseFloat(lengthSlider.value);
+        theta0 = parseFloat(angleSlider.value);
+        lengthVal.innerText = L.toFixed(2) + ' m';
+        angleVal.innerText = theta0.toFixed(0) + ' °';
+    }
+
+    // ----- 重置到初始状态 (角度=theta0, 角速度=0) -----
+    function resetSimulation() {
+        theta = theta0 * Math.PI / 180;
+        omega = 0.0;
+        time = 0.0;
+        // 清空图表数据
+        timeData = [];
+        kineticData = [];
+        potentialData = [];
+        totalData = [];
+        energyChart.data.labels = [];
+        energyChart.data.datasets[0].data = [];
+        energyChart.data.datasets[1].data = [];
+        energyChart.data.datasets[2].data = [];
+        energyChart.update();
+
+        // 如果动画暂停，则更新画布和数据
+        if (!animActive) {
+            updateDataAndCanvas();
+        }
+    }
+
+    // 更新数据区和画布 (根据当前theta, omega)
+    function updateDataAndCanvas() {
+        // 计算能量
+        let v = L * omega;   // 线速度
+        let Ek = 0.5 * m * v * v;
+        let Ep = m * g * L * (1 - Math.cos(theta));
+        let total = Ek + Ep;
+        kineticSpan.innerText = Ek.toFixed(2);
+        potentialSpan.innerText = Ep.toFixed(2);
+        totalSpan.innerText = total.toFixed(2);
+
+        drawCanvas(Ek, Ep, total);
+    }
+
+    // 绘制单摆及高度标注
+    function drawCanvas(Ek, Ep, total) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // 悬挂点
+        ctx.beginPath();
+        ctx.arc(pivotX, pivotY, 6, 0, 2*Math.PI);
+        ctx.fillStyle = '#4a2e1e';
+        ctx.shadowColor = '#2b1a0e';
+        ctx.shadowBlur = 8;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // 摆线长度 (像素)
+        let lengthPx = L * scalePxPerM;
+        // 小球位置 (角度θ: 0为竖直向下)
+        let ballX = pivotX + lengthPx * Math.sin(theta);
+        let ballY = pivotY + lengthPx * Math.cos(theta);
+
+        // 摆线
+        ctx.beginPath();
+        ctx.moveTo(pivotX, pivotY);
+        ctx.lineTo(ballX, ballY);
+        ctx.strokeStyle = '#5d4b3a';
+        ctx.lineWidth = 3;
+        ctx.shadowBlur = 6;
+        ctx.stroke();
+
+        // 小球
+        ctx.shadowBlur = 12;
+        ctx.beginPath();
+        ctx.arc(ballX, ballY, 14, 0, 2*Math.PI);
+        ctx.fillStyle = '#d68b3c';
+        ctx.fill();
+        ctx.shadowBlur = 6;
+        ctx.fillStyle = '#f5b85c';
+        ctx.beginPath();
+        ctx.arc(ballX-2, ballY-2, 10, 0, 2*Math.PI);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // 标注高度 (虚线水平线从最低点至当前高度)
+        let lowestY = pivotY + lengthPx;   // 最低点y坐标
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.moveTo(ballX - 30, ballY);
+        ctx.lineTo(ballX + 30, ballY);
+        ctx.strokeStyle = '#2b5f7a';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        // 最低点水平参考线
+        ctx.beginPath();
+        ctx.moveTo(20, lowestY);
+        ctx.lineTo(canvas.width-20, lowestY);
+        ctx.strokeStyle = '#5e7c94';
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 标注文字
+        ctx.font = 'bold 14px "Segoe UI"';
+        ctx.fillStyle = '#012b3d';
+        ctx.fillText('最低点', 20, lowestY-8);
+        ctx.fillText('当前高度', ballX+35, ballY-10);
+
+        // 显示能量数值
+        ctx.font = 'bold 16px "Courier New"';
+        ctx.fillStyle = '#1e3b4f';
+        ctx.fillText(`Ek = ${Ek.toFixed(2)} J`, 500, 40);
+        ctx.fillText(`Ep = ${Ep.toFixed(2)} J`, 500, 70);
+        ctx.fillText(`E  = ${total.toFixed(2)} J`, 500, 100);
+    }
+
+    // 物理更新 (每帧)
+    function updatePhysics() {
+        if (!animActive) return;
+
+        // 计算角加速度: α = - (g/L) sinθ - b * ω
+        let b = airResCheck.checked ? DAMP_COEF : 0.0;
+        let alpha = - (g / L) * Math.sin(theta) - b * omega;
+
+        // 半隐式欧拉 (更新omega, 再更新theta)
+        omega += alpha * dt;
+        theta += omega * dt;
+
+        // 时间累积
+        time += dt;
+
+        // 计算能量
+        let v = L * omega;
+        let Ek = 0.5 * m * v * v;
+        let Ep = m * g * L * (1 - Math.cos(theta));
+        let total = Ek + Ep;
+
+        // 更新数据显示
+        kineticSpan.innerText = Ek.toFixed(2);
+        potentialSpan.innerText = Ep.toFixed(2);
+        totalSpan.innerText = total.toFixed(2);
+
+        // 存储图表数据
+        timeData.push(time);
+        kineticData.push(Ek);
+        potentialData.push(Ep);
+        totalData.push(total);
+        if (timeData.length > maxDataPoints) {
+            timeData.shift();
+            kineticData.shift();
+            potentialData.shift();
+            totalData.shift();
+        }
+
+        // 更新图表 (每帧更新)
+        energyChart.data.labels = timeData.map(t => t.toFixed(1));
+        energyChart.data.datasets[0].data = kineticData;
+        energyChart.data.datasets[1].data = potentialData;
+        energyChart.data.datasets[2].data = totalData;
+        energyChart.update();
+
+        // 绘制画布
+        drawCanvas(Ek, Ep, total);
+
+        // 继续动画
+        animFrame = requestAnimationFrame(updatePhysics);
+    }
+
+    // 启动/暂停
+    function toggleAnimation() {
+        if (animActive) {
+            animActive = false;
+            startPauseBtn.innerText = '▶ 开始';
+            if (animFrame) {
+                cancelAnimationFrame(animFrame);
+                animFrame = null;
+            }
+        } else {
+            animActive = true;
+            startPauseBtn.innerText = '⏸️ 暂停';
+            if (!animFrame) {
+                animFrame = requestAnimationFrame(updatePhysics);
+            }
+        }
+    }
+
+    // 滑块事件：重置到新参数
+    function slidersChanged() {
+        updateSliderReadout();
+        // 重置状态
+        resetSimulation();
+        // 如果动画暂停，手动更新画布
+        if (!animActive) {
+            updateDataAndCanvas();
+        }
+    }
+
+    // 阻力开关改变时重置 (为了清晰展示有无阻尼的对比)
+    function resistanceChanged() {
+        resetSimulation();
+        if (!animActive) {
+            updateDataAndCanvas();
+        }
+    }
+
+    // 绑定事件
+    lengthSlider.addEventListener('input', slidersChanged);
+    angleSlider.addEventListener('input', slidersChanged);
+    airResCheck.addEventListener('change', resistanceChanged);
+    startPauseBtn.addEventListener('click', toggleAnimation);
+    resetBtn.addEventListener('click', function() {
+        resetSimulation();
+        if (!animActive) {
+            updateDataAndCanvas();
+        }
+    });
+
+    // 初始化
+    updateSliderReadout();
+    resetSimulation();
+    updateDataAndCanvas();
+
+    // 启动动画
+    animActive = true;
+    startPauseBtn.innerText = '⏸️ 暂停';
+    animFrame = requestAnimationFrame(updatePhysics);
+})();
+</script>
+</body>
+</html>

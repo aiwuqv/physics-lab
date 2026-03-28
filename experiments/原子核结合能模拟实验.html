@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>原子核结合能模拟实验</title>
+    <style>
+        body {
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(90deg, #2c3e50, #4a6478);
+            color: white;
+            text-align: center;
+            padding: 25px;
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 28px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-top: 8px;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding: 20px;
+        }
+        
+        .simulation-area {
+            flex: 1;
+            min-width: 500px;
+            height: 500px;
+            border: 3px solid #2c3e50;
+            border-radius: 10px;
+            background: linear-gradient(to bottom, 
+                #ffffff 0%, 
+                #ffffff 10%, 
+                #e8f4fd 10%, 
+                #e8f4fd 90%, 
+                #ffffff 90%, 
+                #ffffff 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .binding-energy-chart {
+            flex: 1;
+            min-width: 500px;
+            height: 500px;
+            border: 3px solid #2c3e50;
+            border-radius: 10px;
+            background-color: white;
+            position: relative;
+        }
+        
+        .chart-canvas {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            padding: 20px;
+            background-color: #ecf0f1;
+            flex-wrap: wrap;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 180px;
+        }
+        
+        label {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+        
+        input[type="number"] {
+            width: 120px;
+            padding: 8px;
+            border: 2px solid #3498db;
+            border-radius: 5px;
+            font-size: 16px;
+            text-align: center;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.6);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .info-panel {
+            padding: 20px;
+            background-color: #fff;
+            border-top: 2px solid #3498db;
+        }
+        
+        .info-panel h3 {
+            color: #2c3e50;
+            margin-top: 0;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        
+        .physics-formulas {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .formula {
+            font-family: "Times New Roman", serif;
+            font-size: 18px;
+            margin: 10px 0;
+            color: #2c3e50;
+        }
+        
+        .explanation {
+            line-height: 1.6;
+            color: #34495e;
+        }
+        
+        .data-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .data-card {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .data-card h4 {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+        }
+        
+        .data-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .unit {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .nucleus-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        
+        .nucleus-core {
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle, #e74c3c, #c0392b);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            box-shadow: 0 0 20px rgba(231, 76, 60, 0.6);
+            margin-bottom: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nucleon {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #f1c40f;
+            box-shadow: 0 0 5px rgba(241, 196, 15, 0.8);
+        }
+        
+        .nucleus-info {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .energy-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #ecf0f1;
+            border-radius: 10px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        
+        .energy-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2ecc71, #27ae60);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            font-size: 14px;
+        }
+        
+        /* 知识检测模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 600px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            position: absolute;
+            right: 20px;
+            top: 15px;
+        }
+        
+        .close:hover {
+            color: #2c3e50;
+        }
+        
+        .quiz-question {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .quiz-options {
+            margin: 10px 0;
+        }
+        
+        .quiz-option {
+            display: block;
+            margin: 8px 0;
+            padding: 10px;
+            background-color: white;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .quiz-option:hover {
+            border-color: #3498db;
+            background-color: #e3f2fd;
+        }
+        
+        .quiz-option.selected {
+            border-color: #3498db;
+            background-color: #bbdefb;
+        }
+        
+        .quiz-feedback {
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .quiz-feedback.correct {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .quiz-feedback.incorrect {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .quiz-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .quiz-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .quiz-btn-primary {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+        
+        .quiz-btn-secondary {
+            background: #ecf0f1;
+            color: #2c3e50;
+        }
+        
+        .quiz-progress {
+            text-align: center;
+            margin: 15px 0;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .quiz-results {
+            text-align: center;
+            padding: 20px;
+            background-color: #e8f4fd;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .quiz-score {
+            font-size: 24px;
+            font-weight: bold;
+            color: #27ae60;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <header>
+            <h1>原子核结合能模拟实验</h1>
+            <div class="subtitle">探索原子核稳定性与结合能的关系 | 高中物理核物理专题</div>
+        </header>
+        
+        <div class="main-content">
+            <div class="simulation-area" id="simulationArea">
+                <div class="nucleus-display">
+                    <div class="nucleus-core" id="nucleusCore">
+                        <div class="nucleus-info" id="nucleusInfo">H-1</div>
+                    </div>
+                    <div id="bindingEnergyBar" class="energy-bar">
+                        <div id="energyFill" class="energy-fill" style="width: 10%;"></div>
+                    </div>
+                    <div id="bindingEnergyText">结合能: 0.00 MeV</div>
+                    <div id="averageBindingText">比结合能: 0.00 MeV/nucleon</div>
+                </div>
+            </div>
+            
+            <div class="binding-energy-chart">
+                <canvas id="chartCanvas" class="chart-canvas"></canvas>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="protons">质子数 (Z)</label>
+                <input type="number" id="protons" min="1" max="92" value="1" step="1">
+            </div>
+            
+            <div class="control-group">
+                <label for="neutrons">中子数 (N)</label>
+                <input type="number" id="neutrons" min="0" max="146" value="0" step="1">
+            </div>
+            
+            <div class="control-group">
+                <button id="calculateBtn">计算结合能</button>
+            </div>
+            
+            <div class="control-group">
+                <button id="presetBtn">预设原子核</button>
+            </div>
+            
+            <div class="control-group">
+                <button id="theoryBtn">理论说明</button>
+            </div>
+            
+            <div class="control-group">
+                <button id="quizBtn">知识检测</button>
+            </div>
+        </div>
+        
+        <div class="data-display">
+            <div class="data-card">
+                <h4>原子核信息</h4>
+                <div class="data-value" id="nucleusSymbol">¹H</div>
+                <div class="unit">核素符号</div>
+            </div>
+            
+            <div class="data-card">
+                <h4>质量数</h4>
+                <div class="data-value" id="massNumber">1</div>
+                <div class="unit">A = Z + N</div>
+            </div>
+            
+            <div class="data-card">
+                <h4>结合能</h4>
+                <div class="data-value" id="bindingEnergy">0.00</div>
+                <div class="unit">MeV</div>
+            </div>
+            
+            <div class="data-card">
+                <h4>比结合能</h4>
+                <div class="data-value" id="averageBinding">0.00</div>
+                <div class="unit">MeV/nucleon</div>
+            </div>
+            
+            <div class="data-card">
+                <h4>稳定性</h4>
+                <div class="data-value" id="stability">不稳定</div>
+                <div class="unit">相对稳定性</div>
+            </div>
+        </div>
+        
+        <div class="info-panel">
+            <h3>物理原理解析</h3>
+            
+            <div class="physics-formulas">
+                <div class="formula"><strong>质量亏损公式：</strong> Δm = [Z·mₚ + N·mₙ] - M(A,Z)</div>
+                <div class="formula"><strong>结合能公式：</strong> E = Δm·c²</div>
+                <div class="formula"><strong>比结合能公式：</strong> ε = E/A</div>
+                <div class="formula"><strong>质能方程：</strong> E = mc²</div>
+            </div>
+            
+            <div class="explanation">
+                <p><strong>实验原理：</strong> 原子核是由质子和中子通过强大的核力结合而成的。要把原子核分解成单个核子需要消耗能量，这个能量就是原子核的结合能。结合能越大，说明原子核越稳定。</p>
+                
+                <p><strong>关键概念：</strong></p>
+                <ul>
+                    <li><strong>质量亏损：</strong> 原子核的质量总是小于组成它的核子质量之和，这个差值称为质量亏损</li>
+                    <li><strong>结合能：</strong> 使原子核分解为单个核子所需的最小能量</li>
+                    <li><strong>比结合能：</strong> 结合能与核子数的比值，反映原子核的稳定程度</li>
+                    <li><strong>核力特点：</strong> 短程力、饱和性、与电荷无关</li>
+                </ul>
+                
+                <p><strong>重要规律：</strong></p>
+                <ul>
+                    <li>中等质量原子核（质量数50-60附近）比结合能最大，最稳定</li>
+                    <li>轻核和重核的比结合能都较小</li>
+                    <li>铁-56（²⁶Fe⁵⁶）是自然界中最稳定的原子核</li>
+                    <li>核反应中质量亏损转化为能量释放</li>
+                </ul>
+                
+                <p><strong>应用意义：</strong> 通过研究结合能曲线，可以理解核能利用的基本原理——重核裂变和轻核聚变都能释放巨大能量。</p>
+            </div>
+        </div>
+        
+        <footer>
+            <p>基于真实物理数据的科学模拟 | 适用于高中物理教学 | 核物理与原子核结构专题</p>
+        </footer>
+    </div>
+    
+    <!-- 知识检测模态框 -->
+    <div id="quizModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 style="color: #2c3e50; text-align: center; margin-bottom: 20px;">结合能知识检测</h2>
+            
+            <div class="quiz-progress" id="quizProgress">题目 1/5</div>
+            
+            <div id="quizQuestion" class="quiz-question">
+                <h3 id="questionText"></h3>
+                <div class="quiz-options" id="quizOptions"></div>
+                <div class="quiz-feedback" id="quizFeedback"></div>
+            </div>
+            
+            <div class="quiz-navigation">
+                <button class="quiz-btn quiz-btn-secondary" id="prevBtn" style="display: none;">上一题</button>
+                <button class="quiz-btn quiz-btn-primary" id="nextBtn">下一题</button>
+                <button class="quiz-btn quiz-btn-primary" id="submitBtn" style="display: none;">提交答案</button>
+            </div>
+            
+            <div id="quizResults" class="quiz-results" style="display: none;">
+                <h3>检测结果</h3>
+                <div class="quiz-score" id="finalScore"></div>
+                <p id="scoreDescription"></p>
+                <button class="quiz-btn quiz-btn-primary" id="restartQuiz">重新测试</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 物理常量（单位：u，原子质量单位）
+        const CONSTANTS = {
+            PROTON_MASS: 1.007276,      // 质子质量(u)
+            NEUTRON_MASS: 1.008665,     // 中子质量(u)
+            ELECTRON_MASS: 0.000549,    // 电子质量(u)
+            AMU_TO_MEV: 931.494         // 1u = 931.494 MeV/c²
+        };
+        
+        // 常见稳定原子核的数据（质量数A, 比结合能MeV/nucleon）
+        const STABLE_NUCLEI = {
+            // 轻核
+            "1H": {A: 1, Z: 1, N: 0, bindingPerNucleon: 0.00},
+            "2H": {A: 2, Z: 1, N: 1, bindingPerNucleon: 1.11},
+            "3He": {A: 3, Z: 2, N: 1, bindingPerNucleon: 2.57},
+            "4He": {A: 4, Z: 2, N: 2, bindingPerNucleon: 7.07},
+            "6Li": {A: 6, Z: 3, N: 3, bindingPerNucleon: 5.33},
+            "7Li": {A: 7, Z: 3, N: 4, bindingPerNucleon: 5.61},
+            "12C": {A: 12, Z: 6, N: 6, bindingPerNucleon: 7.68},
+            "14N": {A: 14, Z: 7, N: 7, bindingPerNucleon: 7.48},
+            "16O": {A: 16, Z: 8, N: 8, bindingPerNucleon: 7.98},
+            // 中等质量核
+            "28Si": {A: 28, Z: 14, N: 14, bindingPerNucleon: 8.45},
+            "40Ca": {A: 40, Z: 20, N: 20, bindingPerNucleon: 8.55},
+            "56Fe": {A: 56, Z: 26, N: 30, bindingPerNucleon: 8.79},
+            "58Ni": {A: 58, Z: 28, N: 30, bindingPerNucleon: 8.73},
+            // 重核
+            "107Ag": {A: 107, Z: 47, N: 60, bindingPerNucleon: 8.54},
+            "131Xe": {A: 131, Z: 54, N: 77, bindingPerNucleon: 8.40},
+            "208Pb": {A: 208, Z: 82, N: 126, bindingPerNucleon: 7.87},
+            "235U": {A: 235, Z: 92, N: 143, bindingPerNucleon: 7.59},
+            "238U": {A: 238, Z: 92, N: 146, bindingPerNucleon: 7.57}
+        };
+        
+        // DOM元素引用
+        const protonsInput = document.getElementById('protons');
+        const neutronsInput = document.getElementById('neutrons');
+        const calculateBtn = document.getElementById('calculateBtn');
+        const presetBtn = document.getElementById('presetBtn');
+        const theoryBtn = document.getElementById('theoryBtn');
+        const quizBtn = document.getElementById('quizBtn');
+        const nucleusCore = document.getElementById('nucleusCore');
+        const nucleusInfo = document.getElementById('nucleusInfo');
+        const energyFill = document.getElementById('energyFill');
+        const bindingEnergyText = document.getElementById('bindingEnergyText');
+        const averageBindingText = document.getElementById('averageBindingText');
+        
+        // 数据显示元素
+        const nucleusSymbol = document.getElementById('nucleusSymbol');
+        const massNumber = document.getElementById('massNumber');
+        const bindingEnergy = document.getElementById('bindingEnergy');
+        const averageBinding = document.getElementById('averageBinding');
+        const stability = document.getElementById('stability');
+        
+        // 图表相关
+        const chartCanvas = document.getElementById('chartCanvas');
+        const ctx = chartCanvas.getContext('2d');
+        
+        // 实验参数
+        let protonCount = 1;
+        let neutronCount = 0;
+        let currentBindingEnergy = 0;
+        let currentAverageBinding = 0;
+        
+        // 事件监听器
+        calculateBtn.addEventListener('click', calculateBindingEnergy);
+        presetBtn.addEventListener('click', showPresetMenu);
+        theoryBtn.addEventListener('click', showEnhancedTheory);
+        quizBtn.addEventListener('click', showQuiz);
+        
+        // 初始化
+        initializeChart();
+        updateDisplay();
+        
+        /**
+         * 计算结合能
+         */
+        function calculateBindingEnergy() {
+            protonCount = parseInt(protonsInput.value) || 1;
+            neutronCount = parseInt(neutronsInput.value) || 0;
+            
+            // 验证输入范围
+            if (protonCount < 1 || protonCount > 92) {
+                alert('质子数必须在1-92之间！');
+                return;
+            }
+            
+            if (neutronCount < 0 || neutronCount > 146) {
+                alert('中子数必须在0-146之间！');
+                return;
+            }
+            
+            const massNumber = protonCount + neutronCount;
+            
+            // 使用半经验质量公式计算结合能（魏扎克公式简化版）
+            const bindingEnergy = calculateSemiEmpiricalBindingEnergy(protonCount, neutronCount);
+            const averageBinding = bindingEnergy / massNumber;
+            
+            // 更新全局变量
+            currentBindingEnergy = bindingEnergy;
+            currentAverageBinding = averageBinding;
+            
+            // 更新显示
+            updateDisplay();
+            updateNucleusVisualization();
+            updateChartData();
+            
+            // 添加动画效果
+            animateEnergyBar(averageBinding);
+        }
+        
+        /**
+         * 半经验质量公式计算结合能（MeV）
+         */
+        function calculateSemiEmpiricalBindingEnergy(Z, N) {
+            const A = Z + N;
+            
+            // 魏扎克公式的各项系数（单位：MeV）
+            const av = 15.8;    // 体积项
+            const as = 18.3;    // 表面项
+            const ac = 0.71;    // 库仑项
+            const asym = 23.2;  // 不对称项
+            const ap = 12.0;    // 配对项
+            
+            // 各项计算
+            const volumeTerm = av * A;
+            const surfaceTerm = -as * Math.pow(A, 2/3);
+            const coulombTerm = -ac * Z * Z / Math.pow(A, 1/3);
+            const asymmetryTerm = -asym * Math.pow(Z - N, 2) / A;
+            
+            // 配对项（只对偶数核有贡献）
+            let pairingTerm = 0;
+            if (Z % 2 === 0 && N % 2 === 0) {
+                pairingTerm = ap / Math.sqrt(A);
+            } else if (Z % 2 === 1 && N % 2 === 1) {
+                pairingTerm = -ap / Math.sqrt(A);
+            }
+            
+            return volumeTerm + surfaceTerm + coulombTerm + asymmetryTerm + pairingTerm;
+        }
+        
+        /**
+         * 更新显示信息
+         */
+        function updateDisplay() {
+            const A = protonCount + neutronCount;
+            const symbol = getElementSymbol(protonCount);
+            
+            // 更新核素信息
+            nucleusSymbol.textContent = `${symbol}-${A}`;
+            massNumber.textContent = A;
+            bindingEnergy.textContent = currentBindingEnergy.toFixed(2);
+            averageBinding.textContent = currentAverageBinding.toFixed(2);
+            
+            // 判断稳定性
+            const stabilityLevel = getStabilityLevel(currentAverageBinding);
+            stability.textContent = stabilityLevel;
+            
+            // 更新输入框
+            protonsInput.value = protonCount;
+            neutronsInput.value = neutronCount;
+        }
+        
+        /**
+         * 获取元素符号
+         */
+        function getElementSymbol(Z) {
+            const symbols = [
+                'H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne',
+                'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar', 'K', 'Ca',
+                'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn',
+                'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr', 'Y', 'Zr',
+                'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn',
+                'Sb', 'Te', 'I', 'Xe', 'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd',
+                'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb',
+                'Lu', 'Hf', 'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg',
+                'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn', 'Fr', 'Ra', 'Ac', 'Th',
+                'Pa', 'U', 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm',
+                'Md', 'No', 'Lr', 'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Mt', 'Ds',
+                'Rg', 'Cn', 'Nh', 'Fl', 'Mc', 'Lv', 'Ts', 'Og'
+            ];
+            return Z <= symbols.length ? symbols[Z - 1] : 'Unk';
+        }
+        
+        /**
+         * 判断稳定性等级
+         */
+        function getStabilityLevel(avgBinding) {
+            if (avgBinding >= 8.5) return '非常稳定';
+            if (avgBinding >= 8.0) return '稳定';
+            if (avgBinding >= 7.5) return '较稳定';
+            if (avgBinding >= 7.0) return '不太稳定';
+            return '不稳定';
+        }
+        
+        /**
+         * 更新原子核可视化
+         */
+        function updateNucleusVisualization() {
+            const A = protonCount + neutronCount;
+            const symbol = getElementSymbol(protonCount);
+            
+            // 更新核芯显示
+            nucleusInfo.textContent = `${symbol}-${A}`;
+            
+            // 根据比结合能调整颜色深浅
+            const intensity = Math.min(1, currentAverageBinding / 9);
+            const red = Math.floor(231 - intensity * 100);
+            const green = Math.floor(76 + intensity * 100);
+            nucleusCore.style.background = `radial-gradient(circle, rgb(${red}, ${green}, 43), rgb(${red-30}, ${green-30}, 20))`;
+        }
+        
+        /**
+         * 动画显示能量条
+         */
+        function animateEnergyBar(avgBinding) {
+            const percentage = Math.min(100, (avgBinding / 9) * 100);
+            energyFill.style.width = '0%';
+            
+            setTimeout(() => {
+                energyFill.style.transition = 'width 1s ease-out';
+                energyFill.style.width = percentage + '%';
+            }, 100);
+        }
+        
+        /**
+         * 显示预设菜单
+         */
+        function showPresetMenu() {
+            const presets = Object.keys(STABLE_NUCLEI);
+            let menu = '请选择预设原子核：\n\n';
+            
+            presets.forEach((key, index) => {
+                const nucleus = STABLE_NUCLEI[key];
+                menu += `${index + 1}. ${key} (Z=${nucleus.Z}, N=${nucleus.N})\n`;
+            });
+            
+            const choice = prompt(menu + '\n请输入序号(1-' + presets.length + '):');
+            const index = parseInt(choice) - 1;
+            
+            if (index >= 0 && index < presets.length) {
+                const selected = STABLE_NUCLEI[presets[index]];
+                protonsInput.value = selected.Z;
+                neutronsInput.value = selected.N;
+                calculateBindingEnergy();
+            }
+        }
+        
+        /**
+         * 显示增强版理论说明
+         */
+        function showEnhancedTheory() {
+            const theoryWindow = window.open('', 'theoryWindow', 'width=800,height=700,scrollbars=yes,resizable=yes');
+            
+            const theoryContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>原子核结合能理论详解</title>
+                    <style>
+                        body { font-family: "Microsoft YaHei", Arial, sans-serif; margin: 20px; line-height: 1.6; }
+                        h2 { color: #2c3e50; text-align: center; border-bottom: 3px solid #3498db; padding-bottom: 10px; }
+                        h3 { color: #3498db; margin-top: 25px; }
+                        .formula { font-family: "Times New Roman", serif; font-size: 18px; background: #f8f9fa; padding: 10px; border-radius: 5px; margin: 10px 0; }
+                        .concept { background: #e8f4fd; padding: 15px; border-left: 4px solid #3498db; margin: 15px 0; }
+                        .example { background: #fff3cd; padding: 15px; border-left: 4px solid #ffc107; margin: 15px 0; }
+                        ul { margin: 10px 0; }
+                        li { margin: 8px 0; }
+                    </style>
+                </head>
+                <body>
+                    <h2>原子核结合能理论详解</h2>
+                    
+                    <h3>1. 核心概念解析</h3>
+                    <div class="concept">
+                        <p><strong>结合能：</strong>使原子核分解为其组成核子所需要的能量。数值上等于核子结合成原子核时释放的能量。</p>
+                        <p><strong>比结合能：</strong>结合能与核子数的比值(ε = E/A)，反映原子核的稳定程度。比结合能越大，原子核越稳定。</p>
+                        <p><strong>质量亏损：</strong>原子核质量小于组成核子质量之和的现象。亏损的质量转化为结合能释放。</p>
+                    </div>
+                    
+                    <h3>2. 魏扎克半经验质量公式</h3>
+                    <div class="formula">
+                        B = aᵥA - aₛA^(2/3) - a<sub>c</sub>Z(Z-1)/A^(1/3) - a<sub>asym</sub>(N-Z)²/A ± a<sub>p</sub>/A^(1/2)
+                    </div>
+                    <div class="concept">
+                        <p><strong>各项物理意义：</strong></p>
+                        <ul>
+                            <li><strong>体积项(aᵥA)：</strong>核子间强相互作用，与核子数成正比</li>
+                            <li><strong>表面项(-aₛA^(2/3))：</strong>表面核子结合力较弱，与表面积成正比</li>
+                            <li><strong>库仑项(-a<sub>c</sub>Z(Z-1)/A^(1/3))：</strong>质子间库仑排斥力</li>
+                            <li><strong>不对称项(-a<sub>asym</sub>(N-Z)²/A)：</strong>中子质子比例对稳定性的影响</li>
+                            <li><strong>配对项(±a<sub>p</sub>/A^(1/2))：</strong>核子配对效应，偶数核更稳定</li>
+                        </ul>
+                    </div>
+                    
+                    <h3>3. 结合能曲线特征</h3>
+                    <div class="concept">
+                        <ul>
+                            <li><strong>轻核区域(A<20)：</strong>比结合能随A增加而增加，但增长缓慢</li>
+                            <li><strong>中等质量核(A=50-60)：</strong>比结合能达到最大值(~8.8 MeV)，最稳定</li>
+                            <li><strong>重核区域(A>60)：</strong>比结合能略有下降，但仍保持较高水平</li>
+                        </ul>
+                    </div>
+                    
+                    <h3>4. 典型数值示例</h3>
+                    <div class="example">
+                        <p><strong>轻核：</strong><sup>4</sup>He: 7.07 MeV/nucleon</p>
+                        <p><strong>中等核：</strong><sup>56</sup>Fe: 8.79 MeV/nucleon (最稳定)</p>
+                        <p><strong>重核：</strong><sup>238</sup>U: 7.57 MeV/nucleon</p>
+                    </div>
+                    
+                    <h3>5. 核能利用原理</h3>
+                    <div class="concept">
+                        <p><strong>核裂变：</strong>重核分裂成中等质量核，释放能量</p>
+                        <p><strong>核聚变：</strong>轻核结合成较重核，释放能量</p>
+                        <p>两种过程都使核子趋向更稳定的结合状态</p>
+                    </div>
+                    
+                    <h3>6. 实际应用</h3>
+                    <ul>
+                        <li>核电站发电(核裂变)</li>
+                        <li>太阳能源(氢核聚变)</li>
+                        <li>核武器(链式反应)</li>
+                        <li>医用同位素生产</li>
+                        <li>考古年代测定</li>
+                    </ul>
+                </body>
+                </html>
+            `;
+            
+            theoryWindow.document.write(theoryContent);
+            theoryWindow.document.close();
+        }
+        
+        // 知识检测相关变量和函数
+        let currentQuestionIndex = 0;
+        let userAnswers = [];
+        let quizScore = 0;
+        
+        // 知识检测题目
+        const quizQuestions = [
+            {
+                question: "原子核的结合能是指什么？",
+                options: [
+                    "原子核的质量",
+                    "使原子核分解为单个核子所需的最小能量",
+                    "原子核的电荷数",
+                    "原子核的半径"
+                ],
+                correct: 1,
+                explanation: "结合能是使原子核分解为其组成核子所需要的能量，数值上等于核子结合成原子核时释放的能量。"
+            },
+            {
+                question: "比结合能的定义是？",
+                options: [
+                    "结合能与质子数的比值",
+                    "结合能与中子数的比值",
+                    "结合能与核子数的比值",
+                    "结合能与质量数的比值"
+                ],
+                correct: 2,
+                explanation: "比结合能 = 结合能/核子数，反映原子核的稳定程度。"
+            },
+            {
+                question: "哪种原子核最稳定？",
+                options: [
+                    "氢核",
+                    "氦核",
+                    "铁核",
+                    "铀核"
+                ],
+                correct: 2,
+                explanation: "铁-56(<sup>56</sup>Fe)的比结合能最大(约8.79 MeV/nucleon)，是自然界中最稳定的原子核。"
+            },
+            {
+                question: "魏扎克半经验公式中哪一项代表库仑排斥力？",
+                options: [
+                    "体积项",
+                    "表面项",
+                    "库仑项",
+                    "不对称项"
+                ],
+                correct: 2,
+                explanation: "库仑项(-a<sub>c</sub>Z(Z-1)/A^(1/3))代表质子间的库仑排斥力。"
+            },
+            {
+                question: "核能利用的基本原理是？",
+                options: [
+                    "增加原子核质量",
+                    "使核子结合得更紧密",
+                    "使核子趋向更稳定的结合状态",
+                    "减少中子数量"
+                ],
+                correct: 2,
+                explanation: "无论是核裂变还是核聚变，都是使核子趋向比结合能更大的稳定状态，从而释放能量。"
+            }
+        ];
+        
+        /**
+         * 显示知识检测
+         */
+        function showQuiz() {
+            const modal = document.getElementById('quizModal');
+            modal.style.display = 'block';
+            
+            // 重置测验状态
+            currentQuestionIndex = 0;
+            userAnswers = [];
+            quizScore = 0;
+            
+            displayQuestion();
+            updateQuizNavigation();
+        }
+        
+        /**
+         * 显示当前题目
+         */
+        function displayQuestion() {
+            const question = quizQuestions[currentQuestionIndex];
+            const questionText = document.getElementById('questionText');
+            const quizOptions = document.getElementById('quizOptions');
+            const quizFeedback = document.getElementById('quizFeedback');
+            const quizProgress = document.getElementById('quizProgress');
+            
+            // 更新进度
+            quizProgress.textContent = `题目 ${currentQuestionIndex + 1}/${quizQuestions.length}`;
+            
+            // 显示题目
+            questionText.textContent = question.question;
+            
+            // 清空之前的选项和反馈
+            quizOptions.innerHTML = '';
+            quizFeedback.style.display = 'none';
+            
+            // 创建选项
+            question.options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'quiz-option';
+                optionElement.textContent = option;
+                optionElement.onclick = () => selectOption(index, optionElement);
+                quizOptions.appendChild(optionElement);
+            });
+            
+            // 显示之前的选择（如果有）
+            if (userAnswers[currentQuestionIndex] !== undefined) {
+                const selectedOption = quizOptions.children[userAnswers[currentQuestionIndex]];
+                if (selectedOption) {
+                    selectedOption.classList.add('selected');
+                }
+            }
+        }
+        
+        /**
+         * 选择选项
+         */
+        function selectOption(optionIndex, optionElement) {
+            // 移除其他选项的选中状态
+            const options = optionElement.parentElement.children;
+            for (let i = 0; i < options.length; i++) {
+                options[i].classList.remove('selected');
+            }
+            
+            // 添加选中状态
+            optionElement.classList.add('selected');
+            
+            // 保存答案
+            userAnswers[currentQuestionIndex] = optionIndex;
+        }
+        
+        /**
+         * 更新导航按钮状态
+         */
+        function updateQuizNavigation() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const submitBtn = document.getElementById('submitBtn');
+            const quizResults = document.getElementById('quizResults');
+            
+            // 控制按钮显示
+            prevBtn.style.display = currentQuestionIndex > 0 ? 'inline-block' : 'none';
+            
+            if (currentQuestionIndex === quizQuestions.length - 1) {
+                nextBtn.style.display = 'none';
+                submitBtn.style.display = 'inline-block';
+            } else {
+                nextBtn.style.display = 'inline-block';
+                submitBtn.style.display = 'none';
+            }
+            
+            // 隐藏结果
+            quizResults.style.display = 'none';
+        }
+        
+        /**
+         * 下一题
+         */
+        function nextQuestion() {
+            if (currentQuestionIndex < quizQuestions.length - 1) {
+                currentQuestionIndex++;
+                displayQuestion();
+                updateQuizNavigation();
+            }
+        }
+        
+        /**
+         * 上一题
+         */
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                displayQuestion();
+                updateQuizNavigation();
+            }
+        }
+        
+        /**
+         * 提交答案
+         */
+        function submitQuiz() {
+            // 计算得分
+            quizScore = 0;
+            for (let i = 0; i < quizQuestions.length; i++) {
+                if (userAnswers[i] === quizQuestions[i].correct) {
+                    quizScore++;
+                }
+            }
+            
+            // 显示结果
+            displayQuizResults();
+        }
+        
+        /**
+         * 显示测验结果
+         */
+        function displayQuizResults() {
+            const quizResults = document.getElementById('quizResults');
+            const finalScore = document.getElementById('finalScore');
+            const scoreDescription = document.getElementById('scoreDescription');
+            
+            // 隐藏题目和导航
+            document.getElementById('quizQuestion').style.display = 'none';
+            document.querySelector('.quiz-navigation').style.display = 'none';
+            document.getElementById('quizProgress').style.display = 'none';
+            
+            // 显示结果
+            quizResults.style.display = 'block';
+            
+            const percentage = (quizScore / quizQuestions.length * 100).toFixed(1);
+            finalScore.textContent = `${quizScore}/${quizQuestions.length} (${percentage}%)`;
+            
+            // 根据得分给出评价
+            if (percentage >= 90) {
+                scoreDescription.textContent = '优秀！你对结合能概念掌握得很好！';
+                scoreDescription.style.color = '#27ae60';
+            } else if (percentage >= 70) {
+                scoreDescription.textContent = '良好！继续努力，你已经掌握了大部分知识点。';
+                scoreDescription.style.color = '#3498db';
+            } else if (percentage >= 50) {
+                scoreDescription.textContent = '及格！建议复习相关概念后再测试一次。';
+                scoreDescription.style.color = '#f39c12';
+            } else {
+                scoreDescription.textContent = '需要加强！建议仔细学习理论知识后再测试。';
+                scoreDescription.style.color = '#e74c3c';
+            }
+        }
+        
+        /**
+         * 重新开始测验
+         */
+        function restartQuiz() {
+            // 显示题目和导航
+            document.getElementById('quizQuestion').style.display = 'block';
+            document.querySelector('.quiz-navigation').style.display = 'flex';
+            document.getElementById('quizProgress').style.display = 'block';
+            
+            // 隐藏结果
+            document.getElementById('quizResults').style.display = 'none';
+            
+            // 重置状态
+            currentQuestionIndex = 0;
+            userAnswers = [];
+            quizScore = 0;
+            
+            displayQuestion();
+            updateQuizNavigation();
+        }
+        
+        // 知识检测按钮事件监听
+        document.getElementById('prevBtn').addEventListener('click', prevQuestion);
+        document.getElementById('nextBtn').addEventListener('click', nextQuestion);
+        document.getElementById('submitBtn').addEventListener('click', submitQuiz);
+        document.getElementById('restartQuiz').addEventListener('click', restartQuiz);
+        
+        // 模态框关闭功能
+        const modal = document.getElementById('quizModal');
+        const closeBtn = document.querySelector('.close');
+        
+        closeBtn.onclick = function() {
+            modal.style.display = 'none';
+        }
+        
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+        
+        /**
+         * 初始化图表
+         */
+        function initializeChart() {
+            // 设置画布尺寸
+            chartCanvas.width = chartCanvas.offsetWidth;
+            chartCanvas.height = chartCanvas.offsetHeight;
+            
+            drawBindingEnergyCurve();
+        }
+        
+        /**
+         * 绘制结合能曲线
+         */
+        function drawBindingEnergyCurve() {
+            const width = chartCanvas.width;
+            const height = chartCanvas.height;
+            const padding = 60;
+            
+            // 清空画布
+            ctx.clearRect(0, 0, width, height);
+            
+            // 绘制坐标轴
+            ctx.strokeStyle = '#34495e';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, height - padding);
+            ctx.lineTo(width - padding, height - padding);
+            ctx.stroke();
+            
+            // 绘制刻度和标签
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'center';
+            
+            // X轴标签（质量数）
+            ctx.fillText('质量数 A', width/2, height - 20);
+            
+            // Y轴标签（比结合能）
+            ctx.save();
+            ctx.translate(20, height/2);
+            ctx.rotate(-Math.PI/2);
+            ctx.fillText('比结合能 (MeV/nucleon)', 0, 0);
+            ctx.restore();
+            
+            // 绘制理论曲线点
+            const points = generateBindingCurvePoints();
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            
+            points.forEach((point, index) => {
+                const x = padding + (point.A / 250) * (width - 2*padding);
+                const y = height - padding - (point.binding / 9) * (height - 2*padding);
+                
+                if (index === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+            
+            ctx.stroke();
+            
+            // 标注特殊点
+            ctx.fillStyle = '#3498db';
+            ctx.font = '12px Arial';
+            
+            // 标注铁-56
+            const fe56_x = padding + (56 / 250) * (width - 2*padding);
+            const fe56_y = height - padding - (8.79 / 9) * (height - 2*padding);
+            ctx.fillText('Fe-56', fe56_x, fe56_y - 15);
+        }
+        
+        /**
+         * 生成结合能曲线数据点
+         */
+        function generateBindingCurvePoints() {
+            const points = [];
+            
+            // 轻核区域
+            for (let A = 1; A <= 20; A += 1) {
+                const binding = 1.0 + 0.3 * Math.log(A);
+                points.push({A: A, binding: binding});
+            }
+            
+            // 中等质量核区域
+            for (let A = 21; A <= 60; A += 2) {
+                const binding = 7.5 + 1.2 * Math.exp(-(A-56)*(A-56)/200);
+                points.push({A: A, binding: binding});
+            }
+            
+            // 重核区域
+            for (let A = 62; A <= 240; A += 4) {
+                const binding = 7.5 + 0.8 * Math.exp(-(A-200)*(A-200)/1000);
+                points.push({A: A, binding: binding});
+            }
+            
+            return points;
+        }
+        
+        /**
+         * 更新图表数据点
+         */
+        function updateChartData() {
+            // 重新绘制基础曲线
+            drawBindingEnergyCurve();
+            
+            // 添加当前点
+            const width = chartCanvas.width;
+            const height = chartCanvas.height;
+            const padding = 60;
+            const A = protonCount + neutronCount;
+            
+            const x = padding + (A / 250) * (width - 2*padding);
+            const y = height - padding - (currentAverageBinding / 9) * (height - 2*padding);
+            
+            // 绘制当前点
+            ctx.fillStyle = '#27ae60';
+            ctx.beginPath();
+            ctx.arc(x, y, 6, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 添加标签
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = '12px Arial';
+            ctx.fillText(`${getElementSymbol(protonCount)}-${A}`, x, y - 10);
+        }
+        
+        // 窗口大小改变时重新绘制图表
+        window.addEventListener('resize', function() {
+            initializeChart();
+            updateChartData();
+        });
+    </script>
+</body>
+</html>

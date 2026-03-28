@@ -1,0 +1,1502 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>劈尖干涉实验 - 参数对条纹间距的影响</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #f0f2f5;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+            color: white;
+            padding: 20px 30px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+        
+        .content {
+            display: flex;
+            padding: 20px;
+            gap: 30px;
+        }
+        
+        .animation-area {
+            flex: 2;
+            min-width: 700px;
+        }
+        
+        .explanation-area {
+            flex: 1;
+            min-width: 350px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .animation-container {
+            position: relative;
+            height: 500px;
+            background-color: #0a1931;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 2px solid #1a237e;
+            overflow: hidden;
+        }
+        
+        #animationCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        .step-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .step-buttons {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .control-button {
+            background-color: #3949ab;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 120px;
+        }
+        
+        .control-button:hover {
+            background-color: #303f9f;
+            transform: translateY(-2px);
+        }
+        
+        .control-button:disabled {
+            background-color: #9fa8da;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .control-button i {
+            margin-right: 8px;
+        }
+        
+        .step-indicator {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .step-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .step-dot.active {
+            background-color: #3949ab;
+            transform: scale(1.2);
+        }
+        
+        .step-info {
+            background-color: #e8eaf6;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 5px solid #3949ab;
+            flex-grow: 1;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .step-title {
+            font-size: 1.4rem;
+            color: #1a237e;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+        
+        .step-description {
+            font-size: 1.05rem;
+            color: #333;
+            line-height: 1.7;
+            margin-bottom: 15px;
+        }
+        
+        .formula-box {
+            background-color: #f3f4fa;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-family: 'Cambria', 'Times New Roman', serif;
+            text-align: center;
+            border: 1px solid #c5cae9;
+            font-size: 0.95rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .physics-concept {
+            background-color: #fff8e1;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border-left: 4px solid #ffb300;
+            font-size: 0.95rem;
+        }
+        
+        .concept-title {
+            font-weight: 600;
+            color: #ff8f00;
+            margin-bottom: 5px;
+            font-size: 1rem;
+        }
+        
+        .key-points {
+            background-color: #e8f5e9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #4caf50;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .key-points h4 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .key-points ul {
+            padding-left: 20px;
+        }
+        
+        .key-points li {
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9rem;
+            border-top: 1px solid #eee;
+            background-color: #f9f9f9;
+        }
+        
+        .parameter-controls {
+            background-color: #f0f7ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border: 1px solid #bbdefb;
+        }
+        
+        .parameter-group {
+            margin-bottom: 12px;
+        }
+        
+        .parameter-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #1a237e;
+            font-size: 0.95rem;
+        }
+        
+        .parameter-slider {
+            width: 100%;
+            height: 6px;
+            -webkit-appearance: none;
+            background: linear-gradient(to right, #9fa8da, #3949ab);
+            border-radius: 3px;
+            outline: none;
+        }
+        
+        .parameter-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #1a237e;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .parameter-value {
+            font-weight: 600;
+            color: #3949ab;
+            margin-left: 10px;
+            font-size: 0.95rem;
+        }
+        
+        .stripe-display {
+            background-color: #0a1931;
+            height: 80px;
+            border-radius: 8px;
+            margin-top: 10px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #1a237e;
+        }
+        
+        .spacing-display {
+            background-color: #e8f5e9;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border: 1px solid #4caf50;
+            text-align: center;
+        }
+        
+        /* 习题区域样式 */
+        .exercise-area {
+            background-color: #f0f7ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #3949ab;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .exercise-area h4 {
+            color: #1a237e;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+        
+        .exercise-item {
+            background-color: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            border: 1px solid #c5cae9;
+        }
+        
+        .exercise-item p {
+            margin-bottom: 12px;
+            font-size: 1rem;
+            color: #333;
+        }
+        
+        .options {
+            margin: 10px 0;
+            padding-left: 10px;
+        }
+        
+        .options label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            cursor: pointer;
+        }
+        
+        .options input[type="radio"] {
+            margin-right: 8px;
+            cursor: pointer;
+        }
+        
+        .check-btn {
+            background-color: #3949ab;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+        
+        .check-btn:hover {
+            background-color: #303f9f;
+        }
+        
+        .answer-hint {
+            margin-top: 10px;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            display: none;
+        }
+        
+        .correct-answer {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #4caf50;
+        }
+        
+        .wrong-answer {
+            background-color: #ffebee;
+            color: #c62828;
+            border: 1px solid #f44336;
+        }
+        
+        /* 学情分析面板样式 */
+        .analytics-panel {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            max-width: 250px;
+            z-index: 100;
+            font-size: 13px;
+            line-height: 1.5;
+            border: 1px solid #673ab7;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        
+        .analytics-title {
+            color: #7e57c2;
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 14px;
+            border-bottom: 1px solid #7e57c2;
+            padding-bottom: 5px;
+        }
+        
+        .analytics-metric {
+            margin-bottom: 8px;
+        }
+        
+        .metric-label {
+            color: #bbdefb;
+            font-size: 12px;
+        }
+        
+        .metric-value {
+            color: #fff;
+            font-weight: bold;
+            font-size: 13px;
+        }
+        
+        /* 条纹预览样式 */
+        .stripe-preview-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        .stripe-preview-item {
+            position: absolute;
+            height: 100%;
+            width: 10px;
+            transition: left 0.5s ease-out;
+        }
+        
+        /* 减小信息面板尺寸 */
+        .info-panel {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 10px;
+            border-radius: 6px;
+            max-width: 180px;
+            z-index: 100;
+            font-size: 11px;
+            line-height: 1.3;
+            border: 1px solid #3949ab;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        .parameter-panel {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 10px;
+            border-radius: 6px;
+            max-width: 180px;
+            z-index: 100;
+            font-size: 11px;
+            line-height: 1.3;
+            border: 1px solid #4caf50;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        .info-title {
+            color: #ff9800;
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 12px;
+            border-bottom: 1px solid #ff9800;
+            padding-bottom: 3px;
+        }
+        
+        .parameter-title {
+            color: #4caf50;
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 12px;
+            border-bottom: 1px solid #4caf50;
+            padding-bottom: 3px;
+        }
+        
+        .zoom-hint {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #ff9800;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: bold;
+            border: 1px solid #ff9800;
+            display: none;
+            z-index: 100;
+        }
+        
+        @media (max-width: 1100px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            .animation-area, .explanation-area {
+                min-width: 100%;
+            }
+            
+            .animation-area {
+                order: 2;
+            }
+            
+            .explanation-area {
+                order: 1;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-microscope"></i> 劈尖干涉实验</h1>
+            <p class="subtitle">劈尖结构与干涉条纹 | 两表面竖直反射光线 | 参数对条纹间距的影响</p>
+        </header>
+        
+        <div class="content">
+            <div class="animation-area">
+                <div class="animation-container">
+                    <canvas id="animationCanvas"></canvas>
+                    <!-- 信息面板（减小尺寸） -->
+                    <div class="info-panel" id="infoPanel">
+                        <div class="info-title">教学信息</div>
+                        <div id="infoContent">
+                            <!-- 信息内容动态生成 -->
+                        </div>
+                    </div>
+                    <!-- 参数面板（减小尺寸） -->
+                    <div class="parameter-panel" id="parameterPanel">
+                        <div class="parameter-title">当前参数</div>
+                        <div id="parameterContent">
+                            <!-- 参数内容动态生成 -->
+                        </div>
+                    </div>
+                    <!-- 学情分析面板 -->
+                    <div class="analytics-panel" id="analyticsPanel">
+                        <div class="analytics-title">学情分析</div>
+                        <div class="analytics-metric">
+                            <span class="metric-label">练习正确率：</span>
+                            <span class="metric-value">0%</span>
+                        </div>
+                        <div class="analytics-metric">
+                            <span class="metric-label">参数调节次数：</span>
+                            <span class="metric-value">0</span>
+                        </div>
+                        <div class="analytics-metric">
+                            <span class="metric-label">常见困惑点：</span>
+                            <span class="metric-value">暂无</span>
+                        </div>
+                    </div>
+                    <div class="zoom-hint" id="zoomHint">
+                        提示：条纹已自动缩放显示
+                    </div>
+                </div>
+                
+                <div class="step-controls">
+                    <div class="step-buttons">
+                        <button class="control-button" id="playPauseBtn">
+                            <i class="fas fa-play"></i> 播放动画
+                        </button>
+                        <button class="control-button" id="restartBtn">
+                            <i class="fas fa-redo"></i> 重置
+                        </button>
+                    </div>
+                    
+                    <div class="step-indicator">
+                        <div class="step-dot active" data-step="1"></div>
+                    </div>
+                </div>
+                
+                <div class="parameter-controls">
+                    <h4 style="color: #1a237e; margin-bottom: 15px; font-size: 1.1rem;"><i class="fas fa-sliders-h"></i> 实验参数调整</h4>
+                    <div class="parameter-group">
+                        <label>劈尖角度 θ: <span id="angleValue" class="parameter-value">0.01 rad</span></label>
+                        <input type="range" min="0.005" max="0.03" step="0.001" value="0.01" class="parameter-slider" id="angleSlider">
+                    </div>
+                    <div class="parameter-group">
+                        <label>光波长 λ: <span id="wavelengthValue" class="parameter-value">632.8 nm (红光)</span></label>
+                        <input type="range" min="400" max="750" step="0.1" value="632.8" class="parameter-slider" id="wavelengthSlider">
+                    </div>
+                    
+                    <div class="spacing-display">
+                        <div style="font-weight: 600; color: #2e7d32; margin-bottom: 5px;">条纹间距公式 Δx = λ/(2θ)</div>
+                        <div style="font-size: 1.2rem; color: #1a237e; font-family: 'Cambria', serif;">当前条纹间距 Δx = <span id="spacingValue">31.64</span> μm</div>
+                        <div style="font-size: 0.9rem; color: #666; margin-top: 5px;">角度增大→条纹变密 | 波长增大→条纹变疏</div>
+                    </div>
+                    
+                    <div class="parameter-group">
+                        <label>条纹间距预览 (保留条纹预览):</label>
+                        <div class="stripe-display" id="stripePreview">
+                            <div class="stripe-preview-container" id="stripeContainer">
+                                <!-- 条纹预览将通过JS动态生成 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="explanation-area">
+                <div class="step-info">
+                    <div class="step-title" id="stepTitle">劈尖干涉实验</div>
+                    <div class="step-description" id="stepDescription">
+                        劈尖由两块玻璃板左侧接触、右侧垫高形成三角形空气层。平行光垂直入射，在上下表面反射形成两束光，在竖直方向上发生干涉。
+                    </div>
+                    
+                    <div class="formula-box" id="currentFormula">
+                        光程差公式：δ = 2d + λ/2<br>
+                        条纹间距公式：Δx = λ/(2θ)
+                    </div>
+                    
+                    <div class="physics-concept" id="thicknessIndicator">
+                        <div class="concept-title">两表面竖直反射光线：</div>
+                        上表面反射光无半波损失，竖直向上反射。<br>
+                        下表面反射光有半波损失(λ/2)，竖直向上反射。<br>
+                        两束光在竖直方向叠加形成干涉条纹。
+                    </div>
+                    
+                    <div class="physics-concept" id="halfWaveCondition">
+                        <div class="concept-title">干涉条件：</div>
+                        明纹：2d + λ/2 = kλ (k=1,2,3...)<br>
+                        暗纹：2d + λ/2 = (2k+1)λ/2 (k=0,1,2...)<br>
+                        (d为空气层厚度，θ为劈尖角度)
+                    </div>
+                </div>
+                
+                <div class="key-points">
+                    <h4><i class="fas fa-star"></i> 实验关键点</h4>
+                    <ul id="keyPoints">
+                        <li>左侧接触(d=0)，右侧垫高形成空气劈尖</li>
+                        <li>平行单色光垂直入射</li>
+                        <li>上下表面反射光均为竖直方向</li>
+                        <li>上表面反射无半波损失，下表面有</li>
+                        <li>条纹间距 Δx = λ/(2θ)</li>
+                        <li>角度增大→条纹变密，波长增大→条纹变疏</li>
+                    </ul>
+                </div>
+                
+                <!-- 添加习题区域 -->
+                <div class="exercise-area">
+                    <h4><i class="fas fa-question-circle"></i> 课堂练习</h4>
+                    <div class="exercise-item">
+                        <p><strong>习题1：</strong>当劈尖角度从0.01 rad增大到0.02 rad时，条纹间距会如何变化？</p>
+                        <div class="options">
+                            <label><input type="radio" name="q1" value="A"> A. 变为原来的一半</label><br>
+                            <label><input type="radio" name="q1" value="B"> B. 变为原来的两倍</label><br>
+                            <label><input type="radio" name="q1" value="C"> C. 不变</label>
+                        </div>
+                        <button class="check-btn" onclick="checkAnswer(1)">检查答案</button>
+                        <div class="answer-hint" id="answer1"></div>
+                    </div>
+                    
+                    <div class="exercise-item">
+                        <p><strong>习题2：</strong>如果用蓝光(λ=450nm)代替红光(λ=632.8nm)，条纹会如何变化？</p>
+                        <div class="options">
+                            <label><input type="radio" name="q2" value="A"> A. 条纹变密</label><br>
+                            <label><input type="radio" name="q2" value="B"> B. 条纹变疏</label><br>
+                            <label><input type="radio" name="q2" value="C"> C. 条纹消失</label>
+                        </div>
+                        <button class="check-btn" onclick="checkAnswer(2)">检查答案</button>
+                        <div class="answer-hint" id="answer2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>劈尖干涉实验教学动画 | 高中物理光学 | 等厚干涉：同一厚度对应同一级条纹</p>
+            <p>© 2023 物理教学资源 | 两表面竖直反射光线 | 调节参数实时观察条纹变化</p>
+        </footer>
+    </div>
+
+    <script>
+        // 动画状态管理
+        const state = {
+            currentStep: 1,
+            isAnimating: false,
+            animationId: null,
+            stepStartTime: null,
+            stepDuration: 10000,
+            animationProgress: 0,
+            canvas: null,
+            ctx: null,
+            canvasWidth: 0,
+            canvasHeight: 0,
+            // 实验参数
+            angle: 0.01,
+            wavelength: 632.8,
+            // 几何参数
+            contactX: 150,
+            contactY: 320,
+            wedgeLength: 400,
+            // 条纹参数
+            stripeSpacing: 0,
+            stripeSpacing_m: 0,
+            // 预览条纹
+            previewStripes: [],
+            // 自动缩放因子
+            zoomFactor: 1.0
+        };
+        
+        // 学情分析功能
+        const learningAnalytics = {
+            exerciseAttempts: 0,
+            correctAnswers: 0,
+            parameterAdjustments: 0,
+            commonMisunderstandings: [],
+            
+            recordExerciseAttempt: function(isCorrect, questionId, selectedAnswer) {
+                this.exerciseAttempts++;
+                if (isCorrect) {
+                    this.correctAnswers++;
+                } else {
+                    this.commonMisunderstandings.push({
+                        question: questionId,
+                        wrongAnswer: selectedAnswer,
+                        timestamp: new Date().toLocaleTimeString()
+                    });
+                }
+                this.updateAnalyticsDisplay();
+            },
+            
+            recordParameterChange: function() {
+                this.parameterAdjustments++;
+                this.updateAnalyticsDisplay();
+            },
+            
+            updateAnalyticsDisplay: function() {
+                const analyticsPanel = document.getElementById('analyticsPanel');
+                if (analyticsPanel) {
+                    const accuracy = this.exerciseAttempts > 0 ? 
+                        ((this.correctAnswers / this.exerciseAttempts) * 100).toFixed(1) : 0;
+                    
+                    analyticsPanel.innerHTML = `
+                        <div class="analytics-title">学情分析</div>
+                        <div class="analytics-metric">
+                            <span class="metric-label">练习正确率：</span>
+                            <span class="metric-value">${accuracy}%</span>
+                        </div>
+                        <div class="analytics-metric">
+                            <span class="metric-label">参数调节次数：</span>
+                            <span class="metric-value">${this.parameterAdjustments}</span>
+                        </div>
+                        <div class="analytics-metric">
+                            <span class="metric-label">常见困惑点：</span>
+                            <span class="metric-value">${this.getCommonMisunderstandings()}</span>
+                        </div>
+                    `;
+                }
+            },
+            
+            getCommonMisunderstandings: function() {
+                if (this.commonMisunderstandings.length === 0) return "暂无";
+                
+                const misunderstandings = [];
+                const q1Errors = this.commonMisunderstandings.filter(m => m.question === 1);
+                const q2Errors = this.commonMisunderstandings.filter(m => m.question === 2);
+                
+                if (q1Errors.length > 0) {
+                    misunderstandings.push("习题1：角度与条纹间距关系");
+                }
+                if (q2Errors.length > 0) {
+                    misunderstandings.push("习题2：波长对条纹影响");
+                }
+                
+                return misunderstandings.join("、");
+            }
+        };
+        
+        // DOM元素
+        let canvas, ctx, stepTitle, stepDescription, currentFormula, thicknessIndicator, halfWaveCondition, keyPoints;
+        let playPauseBtn, restartBtn;
+        let angleSlider, wavelengthSlider, angleValue, wavelengthValue, spacingValue, stripeContainer;
+        let infoPanel, infoContent, parameterPanel, parameterContent, zoomHint;
+        
+        // 初始化DOM元素引用
+        function initDOMElements() {
+            canvas = document.getElementById('animationCanvas');
+            ctx = canvas.getContext('2d');
+            stepTitle = document.getElementById('stepTitle');
+            stepDescription = document.getElementById('stepDescription');
+            currentFormula = document.getElementById('currentFormula');
+            thicknessIndicator = document.getElementById('thicknessIndicator');
+            halfWaveCondition = document.getElementById('halfWaveCondition');
+            keyPoints = document.getElementById('keyPoints');
+            playPauseBtn = document.getElementById('playPauseBtn');
+            restartBtn = document.getElementById('restartBtn');
+            angleSlider = document.getElementById('angleSlider');
+            wavelengthSlider = document.getElementById('wavelengthSlider');
+            angleValue = document.getElementById('angleValue');
+            wavelengthValue = document.getElementById('wavelengthValue');
+            spacingValue = document.getElementById('spacingValue');
+            stripeContainer = document.getElementById('stripeContainer');
+            infoPanel = document.getElementById('infoPanel');
+            infoContent = document.getElementById('infoContent');
+            parameterPanel = document.getElementById('parameterPanel');
+            parameterContent = document.getElementById('parameterContent');
+            zoomHint = document.getElementById('zoomHint');
+        }
+        
+        // 初始化Canvas
+        function initCanvas() {
+            const container = canvas.parentElement;
+            state.canvasWidth = container.clientWidth;
+            state.canvasHeight = container.clientHeight;
+            
+            canvas.width = state.canvasWidth;
+            canvas.height = state.canvasHeight;
+            
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+        }
+        
+        // 计算条纹间距并更新显示
+        function updateStripeSpacing() {
+            const lambda_m = state.wavelength * 1e-9;
+            state.stripeSpacing_m = lambda_m / (2 * state.angle);
+            
+            const deltaX_um = (state.stripeSpacing_m * 1e6).toFixed(2);
+            if (spacingValue) spacingValue.textContent = `${deltaX_um} μm`;
+            
+            const baseSpacing = 120;
+            state.stripeSpacing = baseSpacing * (state.stripeSpacing_m * 1e6) / 31.64;
+            
+            // 自动缩放因子调整
+            const maxStripes = Math.floor(400 / 20);
+            const currentStripes = Math.floor(400 / state.stripeSpacing);
+            
+            if (currentStripes > maxStripes) {
+                state.zoomFactor = Math.min(2.5, state.zoomFactor * 1.2);
+                if (zoomHint) zoomHint.style.display = 'block';
+            } else if (currentStripes < 3 && state.zoomFactor > 0.5) {
+                state.zoomFactor = Math.max(0.5, state.zoomFactor * 0.8);
+                if (zoomHint) zoomHint.style.display = 'block';
+            } else {
+                if (zoomHint) zoomHint.style.display = 'none';
+            }
+            
+            const effectiveSpacing = state.stripeSpacing * state.zoomFactor;
+            
+            // 更新条纹预览（保留条纹预览）
+            updateStripePreview(effectiveSpacing);
+            
+            // 更新信息面板（减小尺寸）
+            updateInfoPanel();
+            
+            // 更新参数面板（减小尺寸）
+            updateParameterPanel();
+            
+            // 重绘动画
+            drawAnimation(state.animationProgress);
+        }
+        
+        // 更新条纹预览（保留条纹预览）
+        function updateStripePreview(effectiveSpacing) {
+            if (!stripeContainer) return;
+            
+            stripeContainer.innerHTML = '';
+            state.previewStripes = [];
+            
+            const stripeCount = 15;
+            
+            for (let i = 0; i < stripeCount; i++) {
+                const stripe = document.createElement('div');
+                stripe.className = 'stripe-preview-item';
+                stripe.style.backgroundColor = i % 2 === 0 ? '#ffeb3b' : '#424242';
+                stripe.style.opacity = i % 2 === 0 ? '0.9' : '0.7';
+                stripe.style.boxShadow = i % 2 === 0 ? '0 0 5px #ffeb3b' : 'none';
+                stripe.style.left = `${i * effectiveSpacing}px`;
+                
+                stripeContainer.appendChild(stripe);
+                state.previewStripes.push(stripe);
+            }
+            
+            const label = document.createElement('div');
+            label.style.position = 'absolute';
+            label.style.bottom = '5px';
+            label.style.right = '10px';
+            label.style.color = '#fff';
+            label.style.fontSize = '11px';
+            label.style.fontWeight = 'bold';
+            label.style.backgroundColor = 'rgba(0,0,0,0.5)';
+            label.style.padding = '2px 5px';
+            label.style.borderRadius = '3px';
+            const deltaX_um = (state.stripeSpacing_m * 1e6).toFixed(2);
+            label.textContent = `间距Δx = ${deltaX_um} μm`;
+            stripeContainer.appendChild(label);
+        }
+        
+        // 更新信息面板（减小尺寸）
+        function updateInfoPanel() {
+            if (!infoContent) return;
+            
+            infoContent.innerHTML = `
+                空气劈尖结构<br>
+                平行光垂直入射<br>
+                上表面：无半波损失<br>
+                下表面：有半波损失<br>
+                Δx = λ/(2θ)
+            `;
+        }
+        
+        // 更新参数面板（减小尺寸）
+        function updateParameterPanel() {
+            if (!parameterContent) return;
+            
+            const deltaX_um = (state.stripeSpacing_m * 1e6).toFixed(2);
+            
+            let colorCode = '#f44336';
+            if (state.wavelength < 450) colorCode = '#8a2be2';
+            else if (state.wavelength < 500) colorCode = '#2196f3';
+            else if (state.wavelength < 570) colorCode = '#4caf50';
+            else if (state.wavelength < 590) colorCode = '#ffeb3b';
+            else if (state.wavelength < 620) colorCode = '#ff9800';
+            
+            parameterContent.innerHTML = `
+                θ: ${state.angle.toFixed(3)} rad<br>
+                λ: <span style="color:${colorCode}">${state.wavelength.toFixed(1)} nm</span><br>
+                Δx: ${deltaX_um} μm
+            `;
+        }
+        
+        // 更新实验参数
+        function updateParameters() {
+            state.angle = parseFloat(angleSlider.value);
+            state.wavelength = parseFloat(wavelengthSlider.value);
+            
+            if (angleValue) angleValue.textContent = `${state.angle.toFixed(3)} rad`;
+            
+            let colorName = '';
+            let colorCode = '#f44336';
+            
+            if (state.wavelength < 450) {
+                colorName = '紫光';
+                colorCode = '#8a2be2';
+            } else if (state.wavelength < 500) {
+                colorName = '蓝光';
+                colorCode = '#2196f3';
+            } else if (state.wavelength < 570) {
+                colorName = '绿光';
+                colorCode = '#4caf50';
+            } else if (state.wavelength < 590) {
+                colorName = '黄光';
+                colorCode = '#ffeb3b';
+            } else if (state.wavelength < 620) {
+                colorName = '橙光';
+                colorCode = '#ff9800';
+            } else {
+                colorName = '红光';
+                colorCode = '#f44336';
+            }
+            
+            if (wavelengthValue) {
+                wavelengthValue.innerHTML = `<span style="color:${colorCode}">${state.wavelength.toFixed(1)} nm (${colorName})</span>`;
+            }
+            
+            updateStripeSpacing();
+            
+            const effectiveSpacing = state.stripeSpacing * state.zoomFactor;
+            state.previewStripes.forEach((stripe, index) => {
+                if (stripe && stripe.style) {
+                    stripe.style.left = `${index * effectiveSpacing}px`;
+                }
+            });
+            
+            learningAnalytics.recordParameterChange();
+        }
+        
+        // 习题检查函数
+        function checkAnswer(questionNumber) {
+            const answerDiv = document.getElementById(`answer${questionNumber}`);
+            const radios = document.getElementsByName(`q${questionNumber}`);
+            let selectedAnswer = '';
+            
+            for (let radio of radios) {
+                if (radio.checked) {
+                    selectedAnswer = radio.value;
+                    break;
+                }
+            }
+            
+            if (!selectedAnswer) {
+                answerDiv.innerHTML = '<span style="color:#ff9800">请先选择一个答案</span>';
+                answerDiv.style.display = 'block';
+                return;
+            }
+            
+            let isCorrect = false;
+            let explanation = '';
+            
+            if (questionNumber === 1) {
+                isCorrect = selectedAnswer === 'A';
+                explanation = isCorrect ? 
+                    '正确！根据公式Δx = λ/(2θ)，当θ增大时，Δx减小，所以条纹间距变为原来的一半。' :
+                    '不正确。根据公式Δx = λ/(2θ)，当θ增大时，Δx减小，所以条纹间距变为原来的一半。';
+            } else if (questionNumber === 2) {
+                isCorrect = selectedAnswer === 'A';
+                explanation = isCorrect ?
+                    '正确！根据公式Δx = λ/(2θ)，当λ减小时，Δx减小，所以蓝光条纹比红光更密集。' :
+                    '不正确。蓝光波长比红光小，根据公式Δx = λ/(2θ)，波长减小会导致条纹间距减小，条纹变密。';
+            }
+            
+            answerDiv.innerHTML = explanation;
+            answerDiv.className = isCorrect ? 'answer-hint correct-answer' : 'answer-hint wrong-answer';
+            answerDiv.style.display = 'block';
+            
+            learningAnalytics.recordExerciseAttempt(isCorrect, questionNumber, selectedAnswer);
+        }
+        
+        // 计算当前角度下的楔形高度
+        function getWedgeHeight() {
+            return state.wedgeLength * Math.tan(state.angle) * 70;
+        }
+        
+        // 绘制动画 - 简化版本，直接显示所有内容
+        function drawAnimation(progress) {
+            if (!ctx) return;
+            
+            ctx.clearRect(0, 0, state.canvasWidth, state.canvasHeight);
+            
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            // 直接绘制所有内容，不依赖进度
+            drawAllElements();
+        }
+        
+        // 直接绘制所有元素
+        function drawAllElements() {
+            const wedgeHeight = getWedgeHeight();
+            
+            // 1. 绘制劈尖结构
+            drawWedgeStructure(wedgeHeight);
+            
+            // 2. 绘制入射光束和反射光束（同时显示）
+            drawLightBeams(wedgeHeight);
+            
+            // 3. 绘制角度标注
+            drawAngleAnnotation(wedgeHeight);
+            
+            // 4. 绘制等厚线
+            drawThicknessLines(wedgeHeight);
+            
+            // 5. 绘制说明文字
+            drawTextLabels(wedgeHeight);
+        }
+        
+        // 绘制劈尖结构
+        function drawWedgeStructure(wedgeHeight) {
+            const rightX = state.contactX + state.wedgeLength;
+            
+            // 绘制下玻璃板
+            ctx.fillStyle = 'rgba(120, 120, 120, 0.6)';
+            ctx.fillRect(state.contactX - 20, state.contactY, state.wedgeLength + 40, 18);
+            ctx.strokeStyle = '#333';
+            ctx.strokeRect(state.contactX - 20, state.contactY, state.wedgeLength + 40, 18);
+            
+            // 绘制上玻璃板
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(state.contactX, state.contactY);
+            ctx.lineTo(rightX, state.contactY - wedgeHeight);
+            ctx.lineTo(rightX, state.contactY - wedgeHeight - 18);
+            ctx.lineTo(state.contactX, state.contactY - 18);
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(120, 120, 120, 0.6)';
+            ctx.fill();
+            ctx.strokeStyle = '#333';
+            ctx.stroke();
+            ctx.restore();
+            
+            // 绘制楔形空气层
+            ctx.beginPath();
+            ctx.moveTo(state.contactX, state.contactY);
+            ctx.lineTo(rightX, state.contactY - wedgeHeight);
+            ctx.lineTo(rightX, state.contactY);
+            ctx.closePath();
+            
+            ctx.fillStyle = 'rgba(100, 150, 255, 0.15)';
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(100, 150, 255, 0.4)';
+            ctx.stroke();
+            
+            // 绘制接触端标记
+            ctx.fillStyle = '#d32f2f';
+            ctx.beginPath();
+            ctx.arc(state.contactX, state.contactY, 5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 标注
+            ctx.fillStyle = '#fff';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('空气劈尖', (state.contactX + rightX)/2, state.contactY - wedgeHeight/2);
+            
+            // 标注厚度变化
+            ctx.fillStyle = '#4caf50';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('厚度 d=0', state.contactX - 30, state.contactY + 10);
+            ctx.fillText(`厚度最大`, rightX + 35, state.contactY - wedgeHeight/2);
+            
+            // 绘制厚度箭头
+            ctx.strokeStyle = '#4caf50';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(state.contactX + 10, state.contactY - 5);
+            ctx.lineTo(rightX - 10, state.contactY - wedgeHeight + 5);
+            ctx.stroke();
+        }
+        
+        // 绘制光束（同时显示入射光和反射光）
+        function drawLightBeams(wedgeHeight) {
+            for (let i = 0; i < 3; i++) {
+                const incidentX = state.contactX + 50 + i * 100;
+                const thicknessFraction = (incidentX - state.contactX) / state.wedgeLength;
+                const incidentY = state.contactY - thicknessFraction * wedgeHeight;
+                
+                const beamLength = 80;
+                const airThickness = wedgeHeight * thicknessFraction;
+                
+                // 1. 入射光束（黄色）
+                ctx.strokeStyle = '#FFFF00';
+                ctx.lineWidth = 6;
+                ctx.beginPath();
+                ctx.moveTo(incidentX, incidentY - beamLength);
+                ctx.lineTo(incidentX, incidentY);
+                ctx.stroke();
+                
+                // 添加发光效果
+                ctx.shadowColor = '#FFFF00';
+                ctx.shadowBlur = 10;
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+                
+                // 绘制入射箭头
+                drawArrow(incidentX, incidentY - 20, incidentX, incidentY - 5, '#FFA500', 18);
+                drawArrow(incidentX, incidentY - 40, incidentX, incidentY - 25, '#FFA500', 18);
+                
+                // 标注入射点
+                ctx.fillStyle = '#FFA500';
+                ctx.beginPath();
+                ctx.arc(incidentX, incidentY, 6, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 2. 上表面反射光束（青色）- 无半波损失
+                ctx.strokeStyle = '#00FFFF';
+                ctx.lineWidth = 6;
+                ctx.beginPath();
+                ctx.moveTo(incidentX, incidentY);
+                ctx.lineTo(incidentX, incidentY - beamLength);
+                ctx.stroke();
+                
+                // 添加强烈的发光效果
+                ctx.shadowColor = '#00FFFF';
+                ctx.shadowBlur = 15;
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+                
+                // 绘制反射箭头
+                drawArrow(incidentX, incidentY, incidentX, incidentY - 15, '#00FFFF', 20);
+                drawArrow(incidentX, incidentY - 20, incidentX, incidentY - 35, '#00FFFF', 20);
+                
+                // 标注反射点和方向
+                ctx.fillStyle = '#00FFFF';
+                ctx.beginPath();
+                ctx.arc(incidentX, incidentY, 8, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 添加"反射"文字标注
+                ctx.fillStyle = '#00BFFF';
+                ctx.font = 'bold 14px Arial';
+                ctx.textAlign = 'left';
+                ctx.fillText('上表面反射', incidentX + 12, incidentY - beamLength/3);
+                ctx.fillText('无半波损失', incidentX + 12, incidentY - beamLength/2);
+                
+                // 3. 下表面反射光束（紫色）- 有半波损失
+                // 绘制入射光线穿过空气层到达下表面
+                ctx.strokeStyle = 'rgba(255, 255, 0, 0.7)';
+                ctx.lineWidth = 3;
+                ctx.setLineDash([]);
+                ctx.beginPath();
+                ctx.moveTo(incidentX, incidentY);
+                ctx.lineTo(incidentX, incidentY + airThickness);
+                ctx.stroke();
+                
+                // 绘制下表面反射光线（紫色）
+                ctx.strokeStyle = '#FF00FF';
+                ctx.lineWidth = 6;
+                ctx.beginPath();
+                ctx.moveTo(incidentX, incidentY + airThickness);
+                ctx.lineTo(incidentX, incidentY - beamLength + 20);
+                ctx.stroke();
+                
+                // 添加强烈的发光效果
+                ctx.shadowColor = '#FF00FF';
+                ctx.shadowBlur = 15;
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+                
+                // 绘制反射箭头
+                drawArrow(incidentX, incidentY + airThickness, incidentX, incidentY + airThickness - 15, '#FF00FF', 20);
+                drawArrow(incidentX, incidentY + airThickness - 20, incidentX, incidentY + airThickness - 35, '#FF00FF', 20);
+                
+                // 标注下表面反射点
+                ctx.fillStyle = '#FF00FF';
+                ctx.beginPath();
+                ctx.arc(incidentX, incidentY + airThickness, 8, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 添加"反射"文字标注
+                ctx.fillStyle = '#DA70D6';
+                ctx.font = 'bold 14px Arial';
+                ctx.textAlign = 'left';
+                ctx.fillText('下表面反射', incidentX + 12, incidentY - beamLength/3 + 40);
+                ctx.fillText('有半波损失(λ/2)', incidentX + 12, incidentY - beamLength/2 + 40);
+                
+                // 标注厚度（在劈尖内部，保持不变）
+                ctx.fillStyle = '#4caf50';
+                ctx.font = 'bold 12px Arial';
+                ctx.textAlign = 'right';
+                ctx.fillText(`d${i+1}`, incidentX - 5, incidentY + airThickness/2);
+            }
+            
+            // 添加整体说明
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('一束入射光分成两束反射光在竖直方向叠加产生干涉', state.contactX + state.wedgeLength/2, 120);
+            
+            // 标注入射光方向
+            ctx.fillStyle = '#FFA500';
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('平行单色光垂直入射', state.contactX + state.wedgeLength/2, state.contactY - wedgeHeight - 40);
+        }
+        
+        // 绘制角度标注
+        function drawAngleAnnotation(wedgeHeight) {
+            const angleCenterX = state.contactX + 40;
+            const angleCenterY = state.contactY;
+            const radius = 45;
+            
+            ctx.strokeStyle = '#9c27b0';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(angleCenterX, angleCenterY, radius, -Math.PI/2, -Math.PI/2 + state.angle, false);
+            ctx.stroke();
+            
+            ctx.fillStyle = '#9c27b0';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(`劈尖角度 θ = ${state.angle.toFixed(3)} rad`, angleCenterX + 30, angleCenterY - 15);
+        }
+        
+        // 绘制等厚线
+        function drawThicknessLines(wedgeHeight) {
+            const rightX = state.contactX + state.wedgeLength;
+            
+            for (let i = 1; i <= 5; i++) {
+                const thicknessFraction = i / 6;
+                const x = state.contactX + thicknessFraction * state.wedgeLength;
+                const y = state.contactY - thicknessFraction * wedgeHeight;
+                
+                ctx.strokeStyle = 'rgba(76, 175, 80, 0.6)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 3]);
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(rightX, y);
+                ctx.stroke();
+                
+                ctx.setLineDash([]);
+                ctx.strokeStyle = '#4caf50';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x, state.contactY);
+                ctx.stroke();
+            }
+        }
+        
+        // 绘制文本标签
+        function drawTextLabels(wedgeHeight) {
+            const rightX = state.contactX + state.wedgeLength;
+            
+            // "两表面反射光均为竖直方向"
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('两表面反射光均为竖直方向', state.contactX + state.wedgeLength/2, 50);
+            
+            // "等厚干涉：同一厚度对应同一级条纹"
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 15px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('等厚干涉：同一厚度对应同一级条纹', (state.contactX + rightX)/2, 85);
+        }
+        
+        // 绘制箭头
+        function drawArrow(fromX, fromY, toX, toY, color, headLength = 20) {
+            ctx.save();
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = 4;
+            
+            const angle = Math.atan2(toY - fromY, toX - fromX);
+            
+            // 绘制箭头线
+            ctx.beginPath();
+            ctx.moveTo(fromX, fromY);
+            ctx.lineTo(toX, toY);
+            ctx.stroke();
+            
+            // 绘制箭头头部
+            ctx.beginPath();
+            ctx.moveTo(toX, toY);
+            ctx.lineTo(
+                toX - headLength * Math.cos(angle - Math.PI / 6),
+                toY - headLength * Math.sin(angle - Math.PI / 6)
+            );
+            ctx.lineTo(
+                toX - headLength * Math.cos(angle + Math.PI / 6),
+                toY - headLength * Math.sin(angle + Math.PI / 6)
+            );
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.restore();
+        }
+        
+        // 开始动画
+        function startAnimation() {
+            if (state.isAnimating) return;
+            
+            state.isAnimating = true;
+            if (playPauseBtn) playPauseBtn.innerHTML = '<i class="fas fa-pause"></i> 暂停';
+            state.stepStartTime = Date.now();
+            
+            animate();
+        }
+        
+        // 暂停动画
+        function pauseAnimation() {
+            if (!state.isAnimating) return;
+            
+            state.isAnimating = false;
+            if (playPauseBtn) playPauseBtn.innerHTML = '<i class="fas fa-play"></i> 继续';
+            
+            if (state.animationId) {
+                cancelAnimationFrame(state.animationId);
+            }
+        }
+        
+        // 动画循环
+        function animate() {
+            if (!state.isAnimating) return;
+            
+            const currentTime = Date.now();
+            
+            if (!state.stepStartTime) {
+                state.stepStartTime = currentTime;
+            }
+            
+            const elapsed = currentTime - state.stepStartTime;
+            state.animationProgress = Math.min(elapsed / state.stepDuration, 1);
+            
+            drawAnimation(state.animationProgress);
+            
+            if (state.animationProgress < 1) {
+                state.animationId = requestAnimationFrame(animate);
+            } else {
+                state.isAnimating = false;
+                if (playPauseBtn) playPauseBtn.innerHTML = '<i class="fas fa-play"></i> 重新播放';
+            }
+        }
+        
+        // 重置动画
+        function restartAnimation() {
+            state.animationProgress = 0;
+            state.stepStartTime = null;
+            updateStripeSpacing();
+            
+            if (state.animationId) {
+                cancelAnimationFrame(state.animationId);
+                state.isAnimating = false;
+                if (playPauseBtn) playPauseBtn.innerHTML = '<i class="fas fa-play"></i> 播放动画';
+            }
+            
+            drawAnimation(0);
+            
+            setTimeout(() => {
+                startAnimation();
+            }, 300);
+        }
+        
+        // 设置事件监听器
+        function setupEventListeners() {
+            if (playPauseBtn) {
+                playPauseBtn.addEventListener('click', function() {
+                    if (state.isAnimating) {
+                        pauseAnimation();
+                    } else {
+                        startAnimation();
+                    }
+                });
+            }
+            
+            if (restartBtn) restartBtn.addEventListener('click', restartAnimation);
+            
+            if (angleSlider) angleSlider.addEventListener('input', updateParameters);
+            if (wavelengthSlider) wavelengthSlider.addEventListener('input', updateParameters);
+        }
+        
+        // 窗口大小调整时重新初始化Canvas
+        window.addEventListener('resize', function() {
+            initCanvas();
+            updateStripeSpacing();
+            drawAnimation(state.animationProgress);
+        });
+        
+        // 初始化应用
+        function initApp() {
+            initDOMElements();
+            initCanvas();
+            setupEventListeners();
+            updateStripeSpacing();
+            
+            setTimeout(() => {
+                startAnimation();
+            }, 500);
+        }
+        
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>

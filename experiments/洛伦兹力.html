@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>洛伦兹力模拟与学习系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            display: flex;
+            height: 100vh;
+            background-color: #f5f7fa;
+            color: #333;
+            overflow: hidden;
+        }
+        
+        .sidebar {
+            width: 380px;
+            background: linear-gradient(180deg, #2c3e50 0%, #1a2530 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+            overflow-y: auto;
+        }
+        
+        .sidebar-header {
+            margin-bottom: 20px;
+            text-align: center;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 15px;
+        }
+        
+        .sidebar-header h2 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+            color: #3498db;
+        }
+        
+        .sidebar-header p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .rule-box {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3498db;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        
+        .rule-box h3 {
+            color: #3498db;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            border-radius: 8px;
+        }
+        
+        .control-group h3 {
+            margin-bottom: 12px;
+            color: #3498db;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .control-group h3 i {
+            margin-right: 8px;
+            font-size: 1rem;
+        }
+        
+        .control-item {
+            margin-bottom: 12px;
+        }
+        
+        .control-item label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+        }
+        
+        .slider-container input[type="range"] {
+            flex-grow: 1;
+            margin-right: 10px;
+            -webkit-appearance: none;
+            height: 5px;
+            background: #4a6078;
+            border-radius: 3px;
+            outline: none;
+        }
+        
+        .slider-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #3498db;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        .slider-container .value {
+            width: 55px;
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 4px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+        
+        .charge-selector {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 12px;
+        }
+        
+        .charge-btn {
+            width: 48%;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: grab;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .charge-btn i {
+            font-size: 1.3rem;
+            margin-bottom: 5px;
+        }
+        
+        .positive {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+            color: white;
+        }
+        
+        .negative {
+            background: linear-gradient(135deg, #4d96ff, #6bc5ff);
+            color: white;
+        }
+        
+        .charge-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .charge-btn:active {
+            cursor: grabbing;
+            transform: translateY(0);
+        }
+        
+        .formula-box {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 12px;
+            margin-top: 15px;
+            text-align: center;
+            font-size: 1rem;
+            border: 1px solid rgba(52, 152, 219, 0.5);
+        }
+        
+        .formula-box p {
+            margin-bottom: 5px;
+            color: #3498db;
+            font-size: 0.9rem;
+        }
+        
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+        }
+        
+        .header {
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            color: #7f8c8d;
+            font-size: 1rem;
+        }
+        
+        .simulation-container {
+            flex-grow: 1;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            position: relative;
+            border: 2px solid #e0e6ed;
+        }
+        
+        #canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+        
+        .action-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #3498db, #2c80b4);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .action-btn i {
+            margin-right: 6px;
+            font-size: 0.9rem;
+        }
+        
+        .action-btn:hover {
+            background: linear-gradient(135deg, #2c80b4, #1f6a9c);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        /* 弹窗样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            width: 80%;
+            max-width: 800px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, #2c3e50, #1a2530);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .modal-header h2 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+        
+        .modal-body {
+            padding: 30px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        
+        .question {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .question:last-child {
+            border-bottom: none;
+        }
+        
+        .question h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+        
+        .options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .option {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .option:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .option.selected {
+            border-color: #3498db;
+            background-color: #e8f4fc;
+        }
+        
+        .option.correct {
+            border-color: #2ecc71;
+            background-color: #e8f7ef;
+        }
+        
+        .option.incorrect {
+            border-color: #e74c3c;
+            background-color: #fdedec;
+        }
+        
+        .modal-footer {
+            padding: 20px;
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .result {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            display: none;
+        }
+        
+        .result.correct {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .result.incorrect {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .explanation {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .explanation h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 12px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            max-width: 200px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            margin-right: 8px;
+            position: relative;
+        }
+        
+        .magnetic-field {
+            background: repeating-linear-gradient(
+                to right,
+                transparent,
+                transparent 8px,
+                black 8px,
+                black 10px
+            );
+        }
+        
+        .velocity {
+            background-color: #3498db;
+        }
+        
+        .force-text {
+            color: #2ecc71;
+            font-weight: bold;
+        }
+        
+        .particle {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        /* 力方向显示区域 */
+        .force-direction-box {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            max-width: 300px;
+            border-left: 4px solid #2ecc71;
+        }
+        
+        .force-direction-box h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .force-direction-box h3 i {
+            margin-right: 8px;
+            color: #2ecc71;
+        }
+        
+        .force-direction-content {
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        
+        .force-direction-item {
+            margin-bottom: 8px;
+        }
+        
+        .force-value {
+            font-weight: bold;
+            color: #2ecc71;
+        }
+        
+        .force-direction-desc {
+            font-weight: bold;
+            color: #2ecc71;
+        }
+        
+        .force-description {
+            color: #2c3e50;
+        }
+        
+        @media (max-width: 1200px) {
+            body {
+                flex-direction: column;
+                height: auto;
+                overflow: auto;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+            }
+            
+            .main-content {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <!-- 侧边栏 -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>洛伦兹力模拟器</h2>
+            <p>交互式物理模拟与学习系统</p>
+        </div>
+        
+        <div class="rule-box">
+            <h3>左手定则</h3>
+            <p>伸开左手，使拇指与其余四个手指垂直，并且都与手掌在同一平面内；让磁感线从掌心垂直进入，并且四指指向正电荷运动的方向，这时拇指所指的方向就是运动的正电荷在磁场中所受洛伦兹力的方向。</p>
+        </div>
+        
+        <div class="control-group">
+            <h3><i class="fas fa-sliders-h"></i> 磁场控制</h3>
+            <div class="control-item">
+                <label>磁场大小 B (T)</label>
+                <div class="slider-container">
+                    <input type="range" id="B-slider" min="0.1" max="5" step="0.1" value="2">
+                    <span class="value" id="B-value">2.0 T</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="control-group">
+            <h3><i class="fas fa-atom"></i> 电荷控制</h3>
+            <div class="control-item">
+                <label>电荷大小 q (C)</label>
+                <div class="slider-container">
+                    <input type="range" id="q-slider" min="-5" max="5" step="0.1" value="1">
+                    <span class="value" id="q-value">1.0 C</span>
+                </div>
+            </div>
+            
+            <div class="charge-selector">
+                <button class="charge-btn positive" id="positive-charge" draggable="true">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>正电荷</span>
+                </button>
+                <button class="charge-btn negative" id="negative-charge" draggable="true">
+                    <i class="fas fa-minus-circle"></i>
+                    <span>负电荷</span>
+                </button>
+            </div>
+        </div>
+        
+        <div class="control-group">
+            <h3><i class="fas fa-running"></i> 速度控制</h3>
+            <div class="control-item">
+                <label>速度大小 v (m/s)</label>
+                <div class="slider-container">
+                    <input type="range" id="v-slider" min="0.1" max="10" step="0.1" value="3">
+                    <span class="value" id="v-value">3.0 m/s</span>
+                </div>
+            </div>
+            
+            <div class="control-item">
+                <label>速度方向与磁场夹角 θ (°)</label>
+                <div class="slider-container">
+                    <input type="range" id="theta-slider" min="0" max="180" step="1" value="90">
+                    <span class="value" id="theta-value">90°</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="formula-box">
+            <p>洛伦兹力公式</p>
+            <div id="formula">F = qvBsinθ</div>
+            <p id="force-value">当前力：0.00 N</p>
+        </div>
+    </div>
+    
+    <!-- 主内容区域 -->
+    <div class="main-content">
+        <div class="header">
+            <h1>洛伦兹力模拟器</h1>
+            <p>拖拽电荷到磁场区域，观察洛伦兹力的变化</p>
+        </div>
+        
+        <div class="simulation-container">
+            <canvas id="canvas"></canvas>
+            
+            <!-- 力方向显示区域 -->
+            <div class="force-direction-box">
+                <h3><i class="fas fa-hand-point-up"></i> 洛伦兹力分析</h3>
+                <div class="force-direction-content" id="force-direction-content">
+                    <div class="force-direction-item">
+                        <span class="force-description">力大小：</span>
+                        <span class="force-value" id="force-display-value">0.00 N</span>
+                    </div>
+                    <div class="force-direction-item">
+                        <span class="force-description">方向：</span>
+                        <span class="force-direction-desc" id="force-direction-text">无洛伦兹力</span>
+                    </div>
+                    <div class="force-direction-item">
+                        <span class="force-description">判断依据：</span>
+                        <span id="force-judgment-text">-</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 图例 -->
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color magnetic-field"></div>
+                    <span>磁场方向 (竖直向上)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color velocity"></div>
+                    <span>速度方向 (蓝色)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="force-text">F</div>
+                    <span>洛伦兹力分析</span>
+                </div>
+                <div class="legend-item">
+                    <div class="particle" style="background-color: #ff6b6b;"></div>
+                    <span>正电荷</span>
+                </div>
+                <div class="legend-item">
+                    <div class="particle" style="background-color: #4d96ff;"></div>
+                    <span>负电荷</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <button class="action-btn" id="reset-btn">
+                <i class="fas fa-redo"></i> 重置模拟
+            </button>
+            <button class="action-btn" id="test-btn">
+                <i class="fas fa-graduation-cap"></i> 学习检测
+            </button>
+        </div>
+    </div>
+    
+    <!-- 学习检测弹窗 -->
+    <div class="modal" id="test-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>洛伦兹力学习检测</h2>
+                <p>完成以下5个问题，测试你对洛伦兹力的理解</p>
+            </div>
+            
+            <div class="modal-body">
+                <div class="question" id="q1">
+                    <h3>1. 洛伦兹力的计算公式是：</h3>
+                    <div class="options">
+                        <div class="option" data-answer="A">F = qE</div>
+                        <div class="option" data-answer="B">F = qvBsinθ</div>
+                        <div class="option" data-answer="C">F = ma</div>
+                        <div class="option" data-answer="D">F = Gm₁m₂/r²</div>
+                    </div>
+                    <div class="explanation">
+                        <h4>解析</h4>
+                        <p>洛伦兹力的计算公式为 F = qvBsinθ，其中 q 是电荷量，v 是电荷速度，B 是磁感应强度，θ 是速度与磁场方向的夹角。</p>
+                    </div>
+                </div>
+                
+                <div class="question" id="q2">
+                    <h3>2. 根据左手定则，当正电荷垂直进入磁场时，洛伦兹力方向：</h3>
+                    <div class="options">
+                        <div class="option" data-answer="A">与速度方向相同</div>
+                        <div class="option" data-answer="B">与速度方向相反</div>
+                        <div class="option" data-answer="C">垂直于速度和磁场所确定的平面</div>
+                        <div class="option" data-answer="D">与磁场方向相同</div>
+                    </div>
+                    <div class="explanation">
+                        <h4>解析</h4>
+                        <p>根据左手定则，洛伦兹力方向垂直于速度和磁场所确定的平面。对于正电荷，四指指向速度方向，磁感线垂直穿入掌心，拇指方向即为洛伦兹力方向。</p>
+                    </div>
+                </div>
+                
+                <div class="question" id="q3">
+                    <h3>3. 当电荷在磁场中静止时，洛伦兹力大小为：</h3>
+                    <div class="options">
+                        <div class="option" data-answer="A">最大值</div>
+                        <div class="option" data-answer="B">0</div>
+                        <div class="option" data-answer="C">与电荷量成正比</div>
+                        <div class="option" data-answer="D">与磁感应强度成正比</div>
+                    </div>
+                    <div class="explanation">
+                        <h4>解析</h4>
+                        <p>根据公式 F = qvBsinθ，当电荷静止时 v=0，因此洛伦兹力为0。洛伦兹力是磁场对运动电荷的作用力，静止电荷不受洛伦兹力。</p>
+                    </div>
+                </div>
+                
+                <div class="question" id="q4">
+                    <h3>4. 当电荷运动方向与磁场方向平行时，洛伦兹力大小为：</h3>
+                    <div class="options">
+                        <div class="option" data-answer="A">最大值</div>
+                        <div class="option" data-answer="B">0</div>
+                        <div class="option" data-answer="C">与速度大小无关</div>
+                        <div class="option" data-answer="D">与电荷量无关</div>
+                    </div>
+                    <div class="explanation">
+                        <h4>解析</h4>
+                        <p>根据公式 F = qvBsinθ，当电荷运动方向与磁场方向平行时，θ=0°或180°，sinθ=0，因此洛伦兹力为0。</p>
+                    </div>
+                </div>
+                
+                <div class="question" id="q5">
+                    <h3>5. 负电荷在磁场中运动时，洛伦兹力方向：</h3>
+                    <div class="options">
+                        <div class="option" data-answer="A">与正电荷相同</div>
+                        <div class="option" data-answer="B">与正电荷相反</div>
+                        <div class="option" data-answer="C">始终与速度方向相同</div>
+                        <div class="option" data-answer="D">始终与磁场方向相同</div>
+                    </div>
+                    <div class="explanation">
+                        <h4>解析</h4>
+                        <p>负电荷在磁场中运动时，洛伦兹力方向与正电荷相反。对于负电荷，四指应指向速度的反方向，或使用右手定则判断。</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <div class="result" id="test-result"></div>
+                <div>
+                    <button class="action-btn" id="submit-btn">提交答案</button>
+                    <button class="action-btn" id="close-btn" style="background: linear-gradient(135deg, #95a5a6, #7f8c8d);">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 初始化Canvas
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 设置Canvas尺寸
+        function resizeCanvas() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            draw();
+        }
+        
+        // 磁场线参数
+        const magneticFieldLines = [];
+        const MAGNETIC_FIELD_LINE_COUNT = 30;
+        const MAGNETIC_FIELD_LINE_SPACING = 25;
+        
+        // 初始化磁场线 - 竖直向上
+        function initMagneticFieldLines() {
+            magneticFieldLines.length = 0;
+            const startY = 50;
+            const endY = canvas.height - 50;
+            
+            for (let i = 0; i < MAGNETIC_FIELD_LINE_COUNT; i++) {
+                const x = 30 + i * MAGNETIC_FIELD_LINE_SPACING;
+                magneticFieldLines.push({
+                    x1: x,
+                    y1: endY,
+                    x2: x,
+                    y2: startY
+                });
+            }
+        }
+        
+        // 粒子对象
+        let particle = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            radius: 20,
+            charge: 1,
+            v: 3,
+            theta: 90,
+            isDragging: false
+        };
+        
+        // 获取DOM元素
+        const BSlider = document.getElementById('B-slider');
+        const BValue = document.getElementById('B-value');
+        const qSlider = document.getElementById('q-slider');
+        const qValue = document.getElementById('q-value');
+        const vSlider = document.getElementById('v-slider');
+        const vValue = document.getElementById('v-value');
+        const thetaSlider = document.getElementById('theta-slider');
+        const thetaValue = document.getElementById('theta-value');
+        const positiveChargeBtn = document.getElementById('positive-charge');
+        const negativeChargeBtn = document.getElementById('negative-charge');
+        const resetBtn = document.getElementById('reset-btn');
+        const testBtn = document.getElementById('test-btn');
+        const testModal = document.getElementById('test-modal');
+        const submitBtn = document.getElementById('submit-btn');
+        const closeBtn = document.getElementById('close-btn');
+        const forceValue = document.getElementById('force-value');
+        const forceDisplayValue = document.getElementById('force-display-value');
+        const forceDirectionText = document.getElementById('force-direction-text');
+        const forceJudgmentText = document.getElementById('force-judgment-text');
+        const formula = document.getElementById('formula');
+        
+        // 磁场大小B
+        let B = parseFloat(BSlider.value);
+        
+        // 更新显示值
+        function updateDisplayValues() {
+            BValue.textContent = B.toFixed(1) + ' T';
+            qValue.textContent = particle.charge.toFixed(1) + ' C';
+            vValue.textContent = particle.v.toFixed(1) + ' m/s';
+            thetaValue.textContent = particle.theta + '°';
+            
+            // 更新公式显示
+            formula.innerHTML = `F = qvBsinθ = ${particle.charge.toFixed(1)} × ${particle.v.toFixed(1)} × ${B.toFixed(1)} × sin(${particle.theta}°)`;
+            
+            // 计算并显示洛伦兹力
+            const force = calculateLorentzForce();
+            forceValue.textContent = `当前力：${force.toFixed(2)} N`;
+            forceDisplayValue.textContent = `${force.toFixed(2)} N`;
+            
+            // 更新力方向显示
+            updateForceDirectionDisplay();
+        }
+        
+        // 计算洛伦兹力
+        function calculateLorentzForce() {
+            // F = qvBsinθ
+            const thetaRad = particle.theta * Math.PI / 180;
+            return Math.abs(particle.charge * particle.v * B * Math.sin(thetaRad));
+        }
+        
+        // 更新力方向显示
+        function updateForceDirectionDisplay() {
+            const force = calculateLorentzForce();
+            
+            if (force < 0.01 || particle.theta === 0 || particle.theta === 180) {
+                // 力为0或很小的情况，或速度与磁场平行
+                forceDirectionText.textContent = "无洛伦兹力";
+                forceJudgmentText.textContent = "速度与磁场平行 (θ=0°或180°)";
+            } else {
+                // 根据电荷、速度和磁场方向判断洛伦兹力方向
+                const direction = getForceDirectionDescription();
+                forceDirectionText.textContent = direction;
+                
+                // 判断依据
+                const judgment = getForceJudgment();
+                forceJudgmentText.textContent = judgment;
+            }
+        }
+        
+        // 获取力方向描述
+        function getForceDirectionDescription() {
+            const theta = particle.theta;
+            
+            if (theta === 90) {
+                // 水平向右
+                return particle.charge > 0 ? "垂直屏幕向外" : "垂直屏幕向里";
+            } else if (theta === 270 || theta === -90) {
+                // 水平向左
+                return particle.charge > 0 ? "垂直屏幕向里" : "垂直屏幕向外";
+            } else if (theta > 0 && theta < 180) {
+                // 速度方向在右侧（0-180度之间，不包括0和180）
+                return particle.charge > 0 ? "垂直屏幕向外" : "垂直屏幕向里";
+            } else if (theta > 180 && theta < 360) {
+                // 速度方向在左侧（180-360度之间）
+                return particle.charge > 0 ? "垂直屏幕向里" : "垂直屏幕向外";
+            } else {
+                return "垂直于速度与磁场平面";
+            }
+        }
+        
+        // 获取力判断依据
+        function getForceJudgment() {
+            const theta = particle.theta;
+            
+            // 获取速度方向描述
+            let speedDirection = "";
+            if (theta === 0) {
+                speedDirection = "向上";
+            } else if (theta === 90) {
+                speedDirection = "向右";
+            } else if (theta === 180) {
+                speedDirection = "向下";
+            } else if (theta === 270 || theta === -90) {
+                speedDirection = "向左";
+            } else if (theta > 0 && theta < 90) {
+                speedDirection = "右上";
+            } else if (theta > 90 && theta < 180) {
+                speedDirection = "右下";
+            } else if (theta > 180 && theta < 270) {
+                speedDirection = "左下";
+            } else {
+                speedDirection = "左上";
+            }
+            
+            const chargeType = particle.charge > 0 ? "正" : "负";
+            
+            if (particle.charge > 0) {
+                return `正电荷，速度${speedDirection}，磁场向上，根据左手定则，力垂直屏幕向外`;
+            } else {
+                return `负电荷，速度${speedDirection}，磁场向上，根据左手定则反向，力垂直屏幕向里`;
+            }
+        }
+        
+        // 绘制函数 - 简化版，只绘制必要元素
+        function draw() {
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制背景
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制磁场线（黑色带箭头直线）- 竖直向上
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.fillStyle = '#000000';
+            
+            magneticFieldLines.forEach(line => {
+                // 绘制线
+                ctx.beginPath();
+                ctx.moveTo(line.x1, line.y1);
+                ctx.lineTo(line.x2, line.y2);
+                ctx.stroke();
+                
+                // 绘制箭头（向上）
+                const arrowSize = 8;
+                const arrowX = line.x1;
+                const arrowY = line.y2;
+                
+                ctx.beginPath();
+                ctx.moveTo(arrowX, arrowY);
+                ctx.lineTo(arrowX - arrowSize/2, arrowY + arrowSize);
+                ctx.lineTo(arrowX + arrowSize/2, arrowY + arrowSize);
+                ctx.closePath();
+                ctx.fill();
+            });
+            
+            // 绘制粒子
+            ctx.fillStyle = particle.charge > 0 ? '#ff6b6b' : '#4d96ff';
+            ctx.beginPath();
+            ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 绘制电荷符号
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = 'bold 20px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(particle.charge > 0 ? '+' : '−', particle.x, particle.y);
+            
+            // 绘制速度方向（蓝色带箭头直线）
+            const thetaRad = particle.theta * Math.PI / 180;
+            const velocityLength = 80;
+            
+            // 速度方向计算
+            const velocityDir = {
+                x: Math.sin(thetaRad),
+                y: -Math.cos(thetaRad)
+            };
+            
+            const velocityEndX = particle.x + velocityDir.x * velocityLength;
+            const velocityEndY = particle.y + velocityDir.y * velocityLength;
+            
+            ctx.strokeStyle = '#3498db';
+            ctx.lineWidth = 3;
+            ctx.fillStyle = '#3498db';
+            
+            ctx.beginPath();
+            ctx.moveTo(particle.x, particle.y);
+            ctx.lineTo(velocityEndX, velocityEndY);
+            ctx.stroke();
+            
+            // 绘制速度箭头
+            drawArrow(ctx, particle.x, particle.y, velocityEndX, velocityEndY, '#3498db');
+            
+            // 绘制速度标签
+            ctx.fillStyle = '#3498db';
+            ctx.font = 'bold 16px Arial';
+            
+            // 根据速度方向调整标签位置
+            let labelOffsetX = 15;
+            let labelOffsetY = 5;
+            
+            if (velocityDir.x < 0) {
+                labelOffsetX = -15;
+            }
+            
+            if (velocityDir.y < 0) {
+                labelOffsetY = -15;
+            }
+            
+            ctx.fillText('v', velocityEndX + labelOffsetX, velocityEndY + labelOffsetY);
+            
+            // 注意：移除了角度指示器（圈圈的东西）
+            
+            // 绘制方向说明文字
+            drawDirectionLabels();
+        }
+        
+        // 绘制方向说明文字
+        function drawDirectionLabels() {
+            ctx.fillStyle = '#000000';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'center';
+            
+            // 绘制磁场方向说明
+            ctx.fillText('磁场方向 ↑', canvas.width / 2, 30);
+            
+            // 绘制速度与磁场夹角说明
+            ctx.fillStyle = '#e74c3c';
+            ctx.fillText(`速度与磁场夹角: ${particle.theta}°`, canvas.width / 2, canvas.height - 20);
+            
+            // 绘制角度参考线说明
+            ctx.fillStyle = '#7f8c8d';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText('注: 0°=向上(与磁场同向), 90°=水平向右, 180°=向下', 20, canvas.height - 40);
+        }
+        
+        // 绘制箭头
+        function drawArrow(ctx, fromX, fromY, toX, toY, color) {
+            const headLength = 15;
+            const dx = toX - fromX;
+            const dy = toY - fromY;
+            const angle = Math.atan2(dy, dx);
+            
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            
+            // 绘制箭头头部
+            ctx.beginPath();
+            ctx.moveTo(toX, toY);
+            ctx.lineTo(toX - headLength * Math.cos(angle - Math.PI / 6), toY - headLength * Math.sin(angle - Math.PI / 6));
+            ctx.moveTo(toX, toY);
+            ctx.lineTo(toX - headLength * Math.cos(angle + Math.PI / 6), toY - headLength * Math.sin(angle + Math.PI / 6));
+            ctx.stroke();
+            
+            // 填充箭头头部
+            ctx.beginPath();
+            ctx.moveTo(toX, toY);
+            ctx.lineTo(toX - headLength * Math.cos(angle - Math.PI / 6), toY - headLength * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(toX - headLength * Math.cos(angle + Math.PI / 6), toY - headLength * Math.sin(angle + Math.PI / 6));
+            ctx.closePath();
+            ctx.fill();
+        }
+        
+        // 事件监听器
+        BSlider.addEventListener('input', function() {
+            B = parseFloat(this.value);
+            updateDisplayValues();
+            draw();
+        });
+        
+        qSlider.addEventListener('input', function() {
+            particle.charge = parseFloat(this.value);
+            updateDisplayValues();
+            draw();
+        });
+        
+        vSlider.addEventListener('input', function() {
+            particle.v = parseFloat(this.value);
+            updateDisplayValues();
+            draw();
+        });
+        
+        thetaSlider.addEventListener('input', function() {
+            particle.theta = parseInt(this.value);
+            updateDisplayValues();
+            draw();
+        });
+        
+        // 电荷选择按钮
+        positiveChargeBtn.addEventListener('click', function() {
+            particle.charge = Math.abs(particle.charge);
+            qSlider.value = particle.charge;
+            updateDisplayValues();
+            draw();
+        });
+        
+        negativeChargeBtn.addEventListener('click', function() {
+            particle.charge = -Math.abs(particle.charge);
+            qSlider.value = particle.charge;
+            updateDisplayValues();
+            draw();
+        });
+        
+        // 拖拽电荷功能
+        positiveChargeBtn.addEventListener('dragstart', function(e) {
+            e.dataTransfer.setData('text/plain', 'positive');
+        });
+        
+        negativeChargeBtn.addEventListener('dragstart', function(e) {
+            e.dataTransfer.setData('text/plain', 'negative');
+        });
+        
+        canvas.addEventListener('dragover', function(e) {
+            e.preventDefault();
+        });
+        
+        canvas.addEventListener('drop', function(e) {
+            e.preventDefault();
+            const chargeType = e.dataTransfer.getData('text/plain');
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            particle.x = x;
+            particle.y = y;
+            
+            if (chargeType === 'positive') {
+                particle.charge = Math.abs(particle.charge);
+            } else if (chargeType === 'negative') {
+                particle.charge = -Math.abs(particle.charge);
+            }
+            
+            qSlider.value = particle.charge;
+            updateDisplayValues();
+            draw();
+        });
+        
+        // 粒子拖拽功能
+        canvas.addEventListener('mousedown', function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const distance = Math.sqrt((x - particle.x) ** 2 + (y - particle.y) ** 2);
+            
+            if (distance <= particle.radius) {
+                particle.isDragging = true;
+            }
+        });
+        
+        canvas.addEventListener('mousemove', function(e) {
+            if (particle.isDragging) {
+                const rect = canvas.getBoundingClientRect();
+                particle.x = e.clientX - rect.left;
+                particle.y = e.clientY - rect.top;
+                draw();
+            }
+        });
+        
+        canvas.addEventListener('mouseup', function() {
+            particle.isDragging = false;
+        });
+        
+        canvas.addEventListener('mouseleave', function() {
+            particle.isDragging = false;
+        });
+        
+        // 重置按钮
+        resetBtn.addEventListener('click', function() {
+            particle.x = canvas.width / 2;
+            particle.y = canvas.height / 2;
+            particle.charge = 1;
+            particle.v = 3;
+            particle.theta = 90;
+            B = 2;
+            
+            BSlider.value = B;
+            qSlider.value = particle.charge;
+            vSlider.value = particle.v;
+            thetaSlider.value = particle.theta;
+            
+            updateDisplayValues();
+            draw();
+        });
+        
+        // 学习检测按钮
+        testBtn.addEventListener('click', function() {
+            testModal.style.display = 'flex';
+            resetTest();
+        });
+        
+        // 关闭弹窗按钮
+        closeBtn.addEventListener('click', function() {
+            testModal.style.display = 'none';
+        });
+        
+        // 提交答案按钮
+        submitBtn.addEventListener('click', function() {
+            checkAnswers();
+        });
+        
+        // 学习检测相关函数
+        const correctAnswers = {
+            'q1': 'B',
+            'q2': 'C',
+            'q3': 'B',
+            'q4': 'B',
+            'q5': 'B'
+        };
+        
+        // 重置测试
+        function resetTest() {
+            document.querySelectorAll('.option').forEach(option => {
+                option.classList.remove('selected', 'correct', 'incorrect');
+            });
+            
+            document.querySelectorAll('.explanation').forEach(explanation => {
+                explanation.style.display = 'none';
+            });
+            
+            const result = document.getElementById('test-result');
+            result.style.display = 'none';
+            result.className = 'result';
+            result.textContent = '';
+        }
+        
+        // 选择题选项点击事件
+        document.querySelectorAll('.option').forEach(option => {
+            option.addEventListener('click', function() {
+                const question = this.closest('.question');
+                question.querySelectorAll('.option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                this.classList.add('selected');
+            });
+        });
+        
+        // 检查答案
+        function checkAnswers() {
+            let correctCount = 0;
+            let totalCount = 0;
+            
+            Object.keys(correctAnswers).forEach(questionId => {
+                totalCount++;
+                const question = document.getElementById(questionId);
+                const selectedOption = question.querySelector('.option.selected');
+                
+                if (selectedOption) {
+                    const userAnswer = selectedOption.getAttribute('data-answer');
+                    const correctAnswer = correctAnswers[questionId];
+                    
+                    // 显示正确答案
+                    question.querySelectorAll('.option').forEach(option => {
+                        const answer = option.getAttribute('data-answer');
+                        if (answer === correctAnswer) {
+                            option.classList.add('correct');
+                        } else if (option === selectedOption && userAnswer !== correctAnswer) {
+                            option.classList.add('incorrect');
+                        }
+                    });
+                    
+                    // 显示解析
+                    question.querySelector('.explanation').style.display = 'block';
+                    
+                    if (userAnswer === correctAnswer) {
+                        correctCount++;
+                    }
+                } else {
+                    // 如果没有选择答案，显示正确答案
+                    question.querySelectorAll('.option').forEach(option => {
+                        const answer = option.getAttribute('data-answer');
+                        if (answer === correctAnswers[questionId]) {
+                            option.classList.add('correct');
+                        }
+                    });
+                    question.querySelector('.explanation').style.display = 'block';
+                }
+            });
+            
+            // 显示结果
+            const result = document.getElementById('test-result');
+            result.style.display = 'block';
+            result.textContent = `得分: ${correctCount}/${totalCount}`;
+            
+            if (correctCount === totalCount) {
+                result.classList.add('correct');
+            } else {
+                result.classList.add('incorrect');
+            }
+        }
+        
+        // 初始化
+        window.addEventListener('load', function() {
+            resizeCanvas();
+            initMagneticFieldLines();
+            updateDisplayValues();
+            draw();
+        });
+        
+        window.addEventListener('resize', function() {
+            resizeCanvas();
+            initMagneticFieldLines();
+            draw();
+        });
+        
+        // 使用MathJax渲染公式
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            },
+            startup: {
+                ready: () => {
+                    MathJax.startup.defaultReady();
+                    // 初始渲染公式
+                    formula.innerHTML = `F = qvB\\sin\\theta = ${particle.charge.toFixed(1)} \\times ${particle.v.toFixed(1)} \\times ${B.toFixed(1)} \\times \\sin(${particle.theta}^\\circ)`;
+                    MathJax.typeset([formula]);
+                }
+            }
+        };
+    </script>
+</body>
+</html>

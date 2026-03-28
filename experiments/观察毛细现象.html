@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>毛细现象观察与学习</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding: 20px;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+
+        h2 {
+            color: #34495e;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 8px;
+        }
+
+        /* 原理部分样式 */
+        .principle-content {
+            line-height: 1.8;
+            font-size: 16px;
+            color: #34495e;
+        }
+        .principle-content ul {
+            margin-left: 20px;
+        }
+
+        /* 实验区（示意图+操作面板并列） */
+        .experiment-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            justify-content: center;
+            align-items: flex-start;
+            margin: 20px 0;
+        }
+
+        /* 实验示意图样式 */
+        .experiment-diagrams {
+            flex: 1;
+            min-width: 300px;
+            text-align: center;
+        }
+        .diagram {
+            display: inline-block;
+            text-align: center;
+            max-width: 300px;
+        }
+        .diagram svg {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: white;
+        }
+        .diagram-caption {
+            margin-top: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* 操作面板样式 - 与示意图并列 */
+        .operation-panel {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: #e8f4fd;
+            border-radius: 8px;
+        }
+
+        /* 操作面板的水槽容器 - 完全匹配实验示意图的尺寸和样式 */
+        .capillary-container {
+            width: 280px;
+            height: 200px;
+            position: relative;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            overflow: hidden; /* 防止内容超出容器 */
+        }
+
+        /* 毛细管样式 - 两侧高度绝对一致，底部留空不接触水槽底部 */
+        .capillary-tube {
+            width: 40px;
+            height: 140px; /* 固定高度，两侧绝对一致 */
+            border-left: 2px solid #3498db;
+            border-right: 2px solid #3498db;
+            border-top: none;
+            border-bottom: none;
+            position: absolute;
+            left: 120px; /* 居中：(280-40)/2 */
+            top: 30px; /* 固定顶部位置，保证两侧高度一致 */
+            z-index: 2;
+            box-sizing: border-box;
+        }
+
+        /* 水槽（浅蓝色水面区域）- 明确水面位置 */
+        .water-trough {
+            position: absolute;
+            left: 20px;
+            right: 20px;
+            top: 120px; /* 水面位置（y=120px），以下为水槽液体 */
+            bottom: 20px;
+            background: #a0d2eb;
+            opacity: 0.8;
+            z-index: 1;
+        }
+
+        /* 管内液体 - 绝对保证在水面（y=120px）以上，越细越高 */
+        .liquid-level {
+            position: absolute;
+            bottom: 40px; /* 底部距离容器底部40px → 对应y=160px，远高于水面y=120px */
+            left: 0;
+            width: 100%;
+            height: 30px; /* 初始高度，全部在水面以上 */
+            background: #a0d2eb; /* 浅蓝色液体 */
+            opacity: 0.8;
+            z-index: 3;
+            overflow: hidden;
+            transition: height 0.5s ease; /* 平滑过渡 */
+        }
+
+        /* 下凹液面样式 - 匹配管径，始终在液柱顶部 */
+        .liquid-menisci {
+            position: absolute;
+            top: 0; /* 始终在液柱顶部 */
+            left: 0;
+            width: 100%;
+            height: 20px; /* 半圆高度为管径的一半 */
+            background: white; /* 半圆上方白色 */
+            z-index: 4;
+            border-radius: 50%; /* 半圆效果 */
+            transform: translateY(-50%); /* 向上偏移一半，形成下凹效果 */
+            transition: width 0.5s ease, height 0.5s ease; /* 平滑过渡 */
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background: #3498db;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        /* 知识检测按钮单独样式 - 放在最下方 */
+        .knowledge-test-btn {
+            display: block;
+            width: 200px;
+            margin: 30px auto 0;
+            padding: 12px 30px;
+            font-size: 18px;
+            background: #2ecc71;
+        }
+        .knowledge-test-btn:hover {
+            background: #27ae60;
+        }
+
+        /* 弹窗通用样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .modal-header {
+            padding: 15px 20px;
+            background: #3498db;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-body {
+            padding: 20px;
+            max-height: calc(80vh - 100px);
+            overflow-y: auto;
+        }
+
+        /* 答题弹窗样式 */
+        .question {
+            margin-bottom: 25px;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+
+        .question.unanswered {
+            border: 2px solid #e74c3c;
+            background: #fdedeb;
+        }
+
+        .question h3 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option {
+            padding: 10px 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .option:hover {
+            background: #e8f4fd;
+        }
+
+        .option.selected {
+            background: #3498db;
+            color: white;
+            border-color: #2980b9;
+        }
+
+        .option input[type="radio"] {
+            margin-right: 10px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        #submit-answers {
+            display: block;
+            margin: 20px auto 0;
+            padding: 12px 30px;
+            font-size: 18px;
+            background: #2ecc71;
+        }
+
+        #submit-answers:hover {
+            background: #27ae60;
+        }
+
+        /* 结果弹窗样式 */
+        .result-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+
+        .result-item.correct {
+            border-left: 5px solid #2ecc71;
+        }
+
+        .result-item.incorrect {
+            border-left: 5px solid #e74c3c;
+        }
+
+        .score-box {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #e8f4fd;
+            border-radius: 8px;
+        }
+
+        .score {
+            font-size: 48px;
+            font-weight: bold;
+            color: #3498db;
+            margin: 10px 0;
+        }
+
+        .analysis {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f1f9ff;
+            border-radius: 8px;
+        }
+
+        .your-answer {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .correct-answer {
+            color: #2ecc71;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <h1>毛细现象观察与学习</h1>
+
+        <!-- 原理讲解区域 -->
+        <div class="section">
+            <h2>毛细现象原理</h2>
+            <div class="principle-content">
+                <p>毛细现象（Capillarity）是指液体在细管状物体内侧，由于内聚力与附着力的差异、表面张力的作用，而引起的液面上升或下降的现象。</p>
+                <ul>
+                    <li>注意：为了实验方便，右图的操作面板的液面没有设置为凹面。</li>
+                    <li>管的内径越小，毛细现象越明显。</li>
+                    <li>液体表面张力形成向上的拉力，使管中液体向上运动，当重力与拉力平衡时，液面稳定在一定高度。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 实验区（示意图+操作面板并列） -->
+        <div class="section">
+            <h2>实验观察</h2>
+            <div class="experiment-area">
+                <!-- 实验示意图（优化力箭头：向管靠拢，向上倾斜） -->
+                <div class="experiment-diagrams">
+                    <div class="diagram">
+                        <svg width="280" height="200" viewBox="0 0 280 200">
+                            <!-- 玻璃管 - 上下不封口，底部留空 -->
+                            <line x1="120" y1="30" x2="120" y2="170" stroke="#3498db" stroke-width="2"/>
+                            <line x1="160" y1="30" x2="160" y2="170" stroke="#3498db" stroke-width="2"/>
+                            
+                            <!-- 水槽（浅蓝色水面区域） -->
+                            <rect x="20" y="120" width="240" height="60" fill="#a0d2eb" opacity="0.8"/>
+                            
+                            <!-- 管内液体（浅蓝色）+ 半圆向下凹液面 -->
+                            <rect x="120" y="80" width="40" height="90" fill="#a0d2eb" opacity="0.8"/>
+                            <circle cx="140" cy="80" r="20" fill="white" />
+                            
+                            <!-- 表面张力箭头（优化：向管靠拢，向上倾斜） -->
+                            <line x1="120" y1="80" x2="100" y2="40" stroke="red" stroke-width="2" marker-end="url(#arrowhead)"/>
+                            <line x1="160" y1="80" x2="180" y2="40" stroke="red" stroke-width="2" marker-end="url(#arrowhead)"/>
+                            <text x="90" y="35" font-size="14" fill="red">F</text>
+                            <text x="185" y="35" font-size="14" fill="red">F</text>
+                            <defs>
+                                <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0, 10 3.5, 0 7" fill="red"/>
+                                </marker>
+                            </defs>
+                        </svg>
+                        <div class="diagram-caption">图1 表面张力对管中液体形成向上的拉力的示意图</div>
+                    </div>
+                </div>
+
+                <!-- 操作面板（优化：管两侧等高，液柱始终高于水面） -->
+                <div class="operation-panel">
+                    <!-- 水槽容器 -->
+                    <div class="capillary-container">
+                        <!-- 水槽（浅蓝色水面） -->
+                        <div class="water-trough"></div>
+                        <!-- 毛细管 -->
+                        <div class="capillary-tube">
+                            <!-- 管内液体（始终高于水面） -->
+                            <div class="liquid-level"></div>
+                            <!-- 凹液面 -->
+                            <div class="liquid-menisci"></div>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <button id="change-tube">更换不同管径的毛细管</button>
+                        <button id="reset">重置实验</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 知识检测按钮 -->
+        <button id="knowledge-test" class="knowledge-test-btn">知识检测</button>
+    </div>
+
+    <!-- 答题弹窗 -->
+    <div class="modal" id="quiz-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>毛细现象知识检测</h2>
+                <button class="close-btn" id="close-quiz">&times;</button>
+            </div>
+            <div class="modal-body" id="quiz-body">
+                <!-- 题目1 -->
+                <div class="question" data-id="1">
+                    <h3>1. 下列哪种现象属于毛细现象？</h3>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q1" value="A"> A. 水从高处往低处流
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q1" value="B"> B. 纸巾吸墨水
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q1" value="C"> C. 冰块融化成水
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q1" value="D"> D. 水烧开产生水蒸气
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 题目2 -->
+                <div class="question" data-id="2">
+                    <h3>2. 毛细现象产生的主要原因是？</h3>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q2" value="A"> A. 重力作用
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q2" value="B"> B. 表面张力和附着力/内聚力
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q2" value="C"> C. 大气压力
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q2" value="D"> D. 分子热运动
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 题目3 -->
+                <div class="question" data-id="3">
+                    <h3>3. 对于润湿固体的液体，毛细管管径越小，液面会？</h3>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q3" value="A"> A. 上升越高
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q3" value="B"> B. 下降越低
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q3" value="C"> C. 保持不变
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q3" value="D"> D. 先上升后下降
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 题目4 -->
+                <div class="question" data-id="4">
+                    <h3>4. 为了保存地下水分，农民锄松土壤的目的是？</h3>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q4" value="A"> A. 增加土壤透气性
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q4" value="B"> B. 破坏土壤中的毛细管
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q4" value="C"> C. 增加土壤肥力
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q4" value="D"> D. 促进植物生长
+                        </label>
+                    </div>
+                </div>
+
+                <button id="submit-answers">提交答案</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 结果弹窗 -->
+    <div class="modal" id="result-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>检测结果</h2>
+                <button class="close-btn" id="close-result">&times;</button>
+            </div>
+            <div class="modal-body" id="result-body">
+                <div class="score-box">
+                    <h3>你的得分</h3>
+                    <div class="score" id="final-score">0</div>
+                    <p>总分：100分</p>
+                </div>
+
+                <div class="analysis" id="learning-analysis">
+                    <h3>学情分析</h3>
+                    <p id="analysis-text"></p>
+                </div>
+
+                <div id="answers-comparison">
+                    <!-- 答案对比会动态生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 定义正确答案
+        const correctAnswers = {
+            q1: "B",
+            q2: "B",
+            q3: "A",
+            q4: "B"
+        };
+
+        // 题目总数
+        const totalQuestions = Object.keys(correctAnswers).length;
+        // 每题分值
+        const scorePerQuestion = 100 / totalQuestions;
+
+        // DOM元素获取
+        const knowledgeTestBtn = document.getElementById('knowledge-test');
+        const quizModal = document.getElementById('quiz-modal');
+        const closeQuizBtn = document.getElementById('close-quiz');
+        const submitAnswersBtn = document.getElementById('submit-answers');
+        const resultModal = document.getElementById('result-modal');
+        const closeResultBtn = document.getElementById('close-result');
+        const quizBody = document.getElementById('quiz-body');
+        const finalScoreEl = document.getElementById('final-score');
+        const analysisTextEl = document.getElementById('analysis-text');
+        const answersComparisonEl = document.getElementById('answers-comparison');
+
+        // 操作面板交互
+        const changeTubeBtn = document.getElementById('change-tube');
+        const resetBtn = document.getElementById('reset');
+        const liquidLevel = document.querySelector('.liquid-level');
+        const capillaryTube = document.querySelector('.capillary-tube');
+        const liquidMenisci = document.querySelector('.liquid-menisci');
+        
+        // 毛细管管径列表（从粗到细）
+        let tubeDiameters = [40, 30, 20, 10]; 
+        let currentDiameterIndex = 0;
+        
+        // 液柱高度配置（确保所有高度都高于水面y=120px）
+        // 水面位置y=120px，液柱底部y=160px（容器高度200px - bottom:40px）
+        // 液柱高度：40→30px、30→50px、20→70px、10→90px（管径越细，高度越高）
+        const liquidHeights = [30, 50, 70, 90]; 
+
+        // 更换毛细管（严格保证：管径越小→高度越高，始终高于水面，不超操作面板）
+        changeTubeBtn.addEventListener('click', () => {
+            currentDiameterIndex = (currentDiameterIndex + 1) % tubeDiameters.length;
+            const newDiameter = tubeDiameters[currentDiameterIndex];
+            const newHeight = liquidHeights[currentDiameterIndex];
+            
+            // 1. 修改毛细管管径并居中（不超出容器）
+            capillaryTube.style.width = newDiameter + 'px';
+            capillaryTube.style.left = (280 - newDiameter) / 2 + 'px';
+            // 强制保持毛细管高度/位置不变，两侧绝对一致
+            capillaryTube.style.height = '140px';
+            capillaryTube.style.top = '30px';
+            
+            // 2. 设置液柱高度（绝对高于水面）
+            liquidLevel.style.height = newHeight + 'px';
+            // 固定液柱底部位置，确保始终高于水面
+            liquidLevel.style.bottom = '40px';
+            
+            // 3. 同步调整凹液面（匹配管径，不超出）
+            liquidMenisci.style.width = newDiameter + 'px';
+            liquidMenisci.style.height = (newDiameter / 2) + 'px';
+            liquidMenisci.style.left = '0';
+            liquidMenisci.style.top = '0';
+        });
+
+        // 重置实验（恢复初始状态）
+        resetBtn.addEventListener('click', () => {
+            currentDiameterIndex = 0;
+            const defaultDiameter = tubeDiameters[0];
+            const defaultHeight = liquidHeights[0];
+            
+            // 重置毛细管（管径、位置、高度全固定，两侧一致）
+            capillaryTube.style.width = defaultDiameter + 'px';
+            capillaryTube.style.left = (280 - defaultDiameter) / 2 + 'px';
+            capillaryTube.style.height = '140px';
+            capillaryTube.style.top = '30px';
+            
+            // 重置液柱（初始高度，绝对高于水面）
+            liquidLevel.style.height = defaultHeight + 'px';
+            liquidLevel.style.bottom = '40px';
+            
+            // 重置凹液面
+            liquidMenisci.style.width = defaultDiameter + 'px';
+            liquidMenisci.style.height = (defaultDiameter / 2) + 'px';
+            liquidMenisci.style.left = '0';
+            liquidMenisci.style.top = '0';
+        });
+
+        // 初始化实验
+        window.addEventListener('load', () => {
+            resetBtn.click(); 
+        });
+
+        // 打开答题弹窗
+        knowledgeTestBtn.addEventListener('click', () => {
+            quizModal.style.display = 'flex';
+            resetQuiz();
+        });
+
+        // 关闭答题弹窗
+        closeQuizBtn.addEventListener('click', () => {
+            quizModal.style.display = 'none';
+        });
+
+        // 关闭结果弹窗
+        closeResultBtn.addEventListener('click', () => {
+            resultModal.style.display = 'none';
+        });
+
+        // 点击选项时选中
+        document.querySelectorAll('.option').forEach(option => {
+            option.addEventListener('click', (e) => {
+                const radio = option.querySelector('input[type="radio"]');
+                radio.checked = true;
+                
+                const name = radio.getAttribute('name');
+                document.querySelectorAll(`input[name="${name}"]`).forEach(rad => {
+                    rad.closest('.option').classList.remove('selected');
+                });
+                option.classList.add('selected');
+            });
+        });
+
+        // 提交答案
+        submitAnswersBtn.addEventListener('click', () => {
+            const unansweredQuestions = [];
+            const allQuestions = document.querySelectorAll('.question');
+            
+            allQuestions.forEach(question => {
+                question.classList.remove('unanswered');
+            });
+
+            Object.keys(correctAnswers).forEach((qName, index) => {
+                const selectedOption = document.querySelector(`input[name="${qName}"]:checked`);
+                if (!selectedOption) {
+                    unansweredQuestions.push(allQuestions[index]);
+                }
+            });
+
+            if (unansweredQuestions.length > 0) {
+                unansweredQuestions.forEach(question => {
+                    question.classList.add('unanswered');
+                });
+                unansweredQuestions[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+
+            calculateScoreAndShowResult();
+        });
+
+        // 计算分数并显示结果
+        function calculateScoreAndShowResult() {
+            let score = 0;
+            const userAnswers = {};
+            
+            Object.keys(correctAnswers).forEach(qName => {
+                const selectedOption = document.querySelector(`input[name="${qName}"]:checked`);
+                userAnswers[qName] = selectedOption ? selectedOption.value : '';
+                
+                if (userAnswers[qName] === correctAnswers[qName]) {
+                    score += scorePerQuestion;
+                }
+            });
+
+            finalScoreEl.textContent = Math.round(score);
+            generateAnalysis(score);
+            generateAnswersComparison(userAnswers);
+            resultModal.style.display = 'flex';
+        }
+
+        // 生成学情分析
+        function generateAnalysis(score) {
+            let analysisText = '';
+            if (score === 100) {
+                analysisText = '优秀！你完全掌握了毛细现象的相关知识，对毛细现象的原理、影响因素和实际应用都有清晰的理解。';
+            } else if (score >= 75) {
+                analysisText = '良好！你基本掌握了毛细现象的核心知识，但仍有个别知识点需要巩固，建议重点复习答错的题目相关内容。';
+            } else if (score >= 50) {
+                analysisText = '及格！你对毛细现象有一定的了解，但还有较多知识点需要掌握，建议重新学习原理部分并加强练习。';
+            } else {
+                analysisText = '需要努力！你对毛细现象的知识掌握不足，建议重新阅读原理讲解，理解表面张力、附着力/内聚力与毛细现象的关系。';
+            }
+            analysisTextEl.textContent = analysisText;
+        }
+
+        // 生成答案对比
+        function generateAnswersComparison(userAnswers) {
+            answersComparisonEl.innerHTML = '';
+            
+            const questionTexts = {
+                q1: '下列哪种现象属于毛细现象？',
+                q2: '毛细现象产生的主要原因是？',
+                q3: '对于润湿固体的液体，毛细管管径越小，液面会？',
+                q4: '为了保存地下水分，农民锄松土壤的目的是？'
+            };
+
+            const optionTexts = {
+                q1: {
+                    A: '水从高处往低处流',
+                    B: '纸巾吸墨水',
+                    C: '冰块融化成水',
+                    D: '水烧开产生水蒸气'
+                },
+                q2: {
+                    A: '重力作用',
+                    B: '表面张力和附着力/内聚力',
+                    C: '大气压力',
+                    D: '分子热运动'
+                },
+                q3: {
+                    A: '上升越高',
+                    B: '下降越低',
+                    C: '保持不变',
+                    D: '先上升后下降'
+                },
+                q4: {
+                    A: '增加土壤透气性',
+                    B: '破坏土壤中的毛细管',
+                    C: '增加土壤肥力',
+                    D: '促进植物生长'
+                }
+            };
+
+            Object.keys(correctAnswers).forEach((qName, index) => {
+                const isCorrect = userAnswers[qName] === correctAnswers[qName];
+                const resultItem = document.createElement('div');
+                resultItem.className = `result-item ${isCorrect ? 'correct' : 'incorrect'}`;
+                
+                const questionNumber = index + 1;
+                const questionTitle = document.createElement('h3');
+                questionTitle.textContent = `${questionNumber}. ${questionTexts[qName]}`;
+                
+                const userAnswerEl = document.createElement('p');
+                userAnswerEl.innerHTML = `你的答案：<span class="your-answer">${userAnswers[qName]} - ${optionTexts[qName][userAnswers[qName]]}</span>`;
+                
+                const correctAnswerEl = document.createElement('p');
+                correctAnswerEl.innerHTML = `正确答案：<span class="correct-answer">${correctAnswers[qName]} - ${optionTexts[qName][correctAnswers[qName]]}</span>`;
+                
+                resultItem.appendChild(questionTitle);
+                resultItem.appendChild(userAnswerEl);
+                resultItem.appendChild(correctAnswerEl);
+                
+                answersComparisonEl.appendChild(resultItem);
+            });
+        }
+
+        // 重置答题状态
+        function resetQuiz() {
+            document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                radio.checked = false;
+                radio.closest('.option').classList.remove('selected');
+            });
+            
+            document.querySelectorAll('.question').forEach(question => {
+                question.classList.remove('unanswered');
+            });
+        }
+
+        // 点击模态框外部关闭
+        window.addEventListener('click', (e) => {
+            if (e.target === quizModal) {
+                quizModal.style.display = 'none';
+            }
+            if (e.target === resultModal) {
+                resultModal.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
+

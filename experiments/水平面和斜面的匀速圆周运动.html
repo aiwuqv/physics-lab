@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>水平面 / 斜面 匀速圆周运动（双临界修正）</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+        body {
+            background: linear-gradient(145deg, #e6f0f5 0%, #c9ddee 100%);
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .card {
+            max-width: 1300px;
+            width: 100%;
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(4px);
+            border-radius: 2.5rem;
+            box-shadow: 0 20px 40px rgba(0,20,40,0.4);
+            padding: 2rem 2rem 1.8rem;
+            border: 1px solid rgba(255,255,255,0.7);
+        }
+        h1 {
+            margin: 0 0 0.5rem 0;
+            font-weight: 500;
+            font-size: 2.2rem;
+            color: #0a2a44;
+            border-bottom: 3px solid #2a6f97;
+            padding-bottom: 10px;
+        }
+        .control-panel {
+            background: #ffffffcc;
+            border-radius: 28px;
+            padding: 1.5rem 1.8rem;
+            margin: 1.5rem 0 2rem;
+            box-shadow: inset 0 1px 4px #ffffff, 0 8px 18px rgba(0,40,70,0.1);
+            border: 1px solid #ffffff;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            align-items: flex-end;
+            justify-content: space-between;
+        }
+        .slider-group {
+            min-width: 150px;
+            flex: 1 1 160px;
+        }
+        .slider-group label {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            color: #0e3b5e;
+            margin-bottom: 6px;
+            font-size: 0.95rem;
+            letter-spacing: 0.3px;
+        }
+        .slider-group span {
+            background: #0a2a44;
+            color: white;
+            padding: 2px 12px;
+            border-radius: 40px;
+            font-size: 0.9rem;
+        }
+        input[type=range] {
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(90deg, #1e6f9f, #6bb3d9);
+            border-radius: 20px;
+            -webkit-appearance: none;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 4px 8px #0a2a4466;
+            border: 2px solid #0d4b6e;
+            cursor: pointer;
+        }
+        .scene-toggle {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            background: #e9f0f7;
+            padding: 10px 20px;
+            border-radius: 50px;
+        }
+        .scene-btn {
+            background: transparent;
+            border: 2px solid #2a6f97;
+            color: #2a6f97;
+            font-weight: 600;
+            font-size: 1rem;
+            padding: 8px 24px;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        .scene-btn.active {
+            background: #2a6f97;
+            color: white;
+            border-color: #144a6b;
+        }
+        .canvas-container {
+            background: #d9e9f5;
+            border-radius: 32px;
+            padding: 18px;
+            box-shadow: inset 0 -3px 8px #b0c4d9, 0 12px 22px rgba(0,20,30,0.25);
+            margin: 20px 0 20px;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: #b5d1e6;
+            border-radius: 20px;
+            border: 3px solid white;
+        }
+        .data-panel {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px 40px;
+            background: #102b3f;
+            padding: 1.2rem 2rem;
+            border-radius: 60px;
+            color: white;
+            margin: 25px 0 20px;
+            justify-content: space-evenly;
+            box-shadow: 0 10px 20px #00000030;
+        }
+        .data-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .data-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.7;
+        }
+        .data-value {
+            font-size: 1.8rem;
+            font-weight: 600;
+            line-height: 1.2;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .data-unit {
+            font-size: 0.9rem;
+            opacity: 0.6;
+            margin-left: 4px;
+        }
+        .warning {
+            color: #ffb347;
+            font-weight: 700;
+        }
+        .danger {
+            color: #ff6b6b;
+            font-weight: 700;
+        }
+        .conclusion {
+            background: #e4eefa;
+            border-left: 10px solid #1e5f86;
+            padding: 1rem 2rem;
+            border-radius: 50px 20px 20px 50px;
+            font-size: 1.05rem;
+            color: #021c2c;
+            box-shadow: 0 6px 14px #0000001a;
+            margin-top: 20px;
+        }
+        .conclusion p {
+            margin: 8px 0;
+        }
+        footer {
+            text-align: right;
+            opacity: 0.6;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+        .small-note {
+            font-size: 0.75rem;
+            opacity: 0.8;
+            margin-top: 2px;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+<div class="card">
+    <h1>水平面 / 斜面 匀速圆周运动（双临界）</h1>
+
+    <!-- 控制面板 -->
+    <div class="control-panel">
+        <div class="slider-group">
+            <label>转速 <span id="rpmValue">30.0 rpm</span></label>
+            <input type="range" id="rpm" min="0" max="120" value="30" step="1">
+        </div>
+        <div class="slider-group">
+            <label>半径 <span id="radiusValue">2.0 m</span></label>
+            <input type="range" id="radius" min="0.5" max="5.0" value="2.0" step="0.1">
+        </div>
+        <div class="slider-group">
+            <label>质量 <span id="massValue">1.0 kg</span></label>
+            <input type="range" id="mass" min="0.2" max="5.0" value="1.0" step="0.1">
+        </div>
+        <div class="slider-group">
+            <label>摩擦系数 <span id="muValue">0.5</span></label>
+            <input type="range" id="mu" min="0.0" max="1.2" value="0.5" step="0.01">
+        </div>
+        <div class="scene-toggle">
+            <button class="scene-btn active" id="sceneHorizontal">水平面</button>
+            <button class="scene-btn" id="sceneIncline">斜面 (30°)</button>
+        </div>
+    </div>
+
+    <!-- 动画区 + 受力示意图 -->
+    <div class="canvas-container">
+        <canvas id="mainCanvas" width="900" height="500"></canvas>
+    </div>
+
+    <!-- 数据区 (增加双临界显示) -->
+    <div class="data-panel">
+        <div class="data-item">
+            <span class="data-label">向心力</span>
+            <span class="data-value" id="centripetalForce">0.00</span>
+            <span class="data-unit">N</span>
+        </div>
+        <div class="data-item">
+            <span class="data-label">摩擦力</span>
+            <span class="data-value" id="frictionForce">0.00</span>
+            <span class="data-unit">N</span>
+        </div>
+        <div class="data-item">
+            <span class="data-label">临界范围</span>
+            <span class="data-value" id="criticalRange">0.0 - 0.0</span>
+            <span class="data-unit">rpm</span>
+        </div>
+        <div class="data-item">
+            <span class="data-label">状态</span>
+            <span class="data-value" id="slipStatus">⭕ 稳定</span>
+        </div>
+    </div>
+
+    <!-- 实验结论 -->
+    <div class="conclusion">
+        <p>🧪 <strong>实验结论</strong> ① 匀速圆周运动的向心力由合外力提供。</p>
+        <p>② 转速过大或过小（斜面）时，物体将滑动（离心或下滑）。</p>
+        <p>③ 斜面圆周运动由支持力、摩擦力与重力的合力提供向心力。</p>
+        <p class="small-note">✅ 斜面双临界：低于下限下滑，高于上限上滑，中间稳定。</p>
+    </div>
+    <footer>⚙️ 修正临界显示，摩擦力箭头：正值（内）沿斜面向上，负值（外）沿斜面向下。</footer>
+</div>
+
+<script>
+(function(){
+    // 固定参数
+    const canvas = document.getElementById('mainCanvas');
+    const ctx = canvas.getContext('2d');
+    const g = 9.8;                // 重力加速度 m/s²
+    const inclineAngle = 30 * Math.PI / 180;  // 斜面倾角 30°
+
+    // 画布中心与半径范围
+    const centerX = 450;   // 圆心画布X
+    const centerY = 250;   // 圆心画布Y
+    const baseRadius = 150; // 基础显示半径 (像素)，实际半径由滑块控制
+    const R_ref = 2.0;
+
+    // DOM 元素
+    const rpmInput = document.getElementById('rpm');
+    const radiusInput = document.getElementById('radius');
+    const massInput = document.getElementById('mass');
+    const muInput = document.getElementById('mu');
+    const rpmSpan = document.getElementById('rpmValue');
+    const radiusSpan = document.getElementById('radiusValue');
+    const massSpan = document.getElementById('massValue');
+    const muSpan = document.getElementById('muValue');
+    const centripetalSpan = document.getElementById('centripetalForce');
+    const frictionSpan = document.getElementById('frictionForce');
+    const criticalRangeSpan = document.getElementById('criticalRange');
+    const slipStatusSpan = document.getElementById('slipStatus');
+
+    const sceneHorizontalBtn = document.getElementById('sceneHorizontal');
+    const sceneInclineBtn = document.getElementById('sceneIncline');
+
+    // 状态变量
+    let rpm = 30;
+    let R = 2.0;
+    let m = 1.0;
+    let mu = 0.5;
+    let scene = 'horizontal';
+
+    // 动画相关
+    let angle = 0;
+    let lastTimestamp = null;
+    let animationFrame = null;
+
+    // 计算结果
+    let omega = 0;
+    let F_needed = 0;
+    let friction = 0;
+    let N = 0;
+    let sliding = false;
+    let slipDirection = ''; // 'down'下滑, 'up'上滑, ''稳定
+    let critOmegaLow = 0;    // 下滑临界 (最小角速度)
+    let critOmegaHigh = Infinity; // 上滑临界 (最大角速度)
+
+    // 更新滑块显示
+    function updateSliderReadouts() {
+        rpm = parseFloat(rpmInput.value);
+        R = parseFloat(radiusInput.value);
+        m = parseFloat(massInput.value);
+        mu = parseFloat(muInput.value);
+        rpmSpan.innerText = rpm.toFixed(1) + ' rpm';
+        radiusSpan.innerText = R.toFixed(1) + ' m';
+        massSpan.innerText = m.toFixed(1) + ' kg';
+        muSpan.innerText = mu.toFixed(2);
+    }
+
+    // 核心计算 (根据当前场景)
+    function computeForces() {
+        omega = rpm * (2 * Math.PI / 60);
+        F_needed = m * omega * omega * R;
+
+        if (scene === 'horizontal') {
+            // 水平面：摩擦力提供向心力
+            N = m * g;
+            let maxFriction = mu * N;
+            friction = F_needed;
+            if (F_needed <= maxFriction) {
+                sliding = false;
+                slipDirection = '';
+            } else {
+                sliding = true;
+                slipDirection = 'up'; // 离心滑动
+            }
+            // 临界角速度 ω_crit = sqrt(μ g / R)
+            if (mu > 0 && R > 0) {
+                critOmegaHigh = Math.sqrt(mu * g / R);
+            } else {
+                critOmegaHigh = Infinity;
+            }
+            critOmegaLow = 0; // 水平面无下滑临界
+            // 显示临界范围 (水平面只显示一个上限)
+            let critLowRpm = 0;
+            let critHighRpm = critOmegaHigh * 60 / (2 * Math.PI);
+            criticalRangeSpan.innerText = `≤ ${critHighRpm.toFixed(1)}`;
+        } else { 
+            // 斜面：双临界
+            let sinT = Math.sin(inclineAngle);
+            let cosT = Math.cos(inclineAngle);
+
+            // 计算当前支持力和摩擦力 (沿用之前正确的方程组)
+            N = m * (g * cosT + omega * omega * R * sinT);
+            friction = m * (g * sinT - omega * omega * R * cosT);
+
+            // 计算两个临界角速度 (详细推导见注释)
+            // 下滑临界 (f为正时 ≤ μN) 对应最小角速度
+            let crit1 = Infinity, crit2 = Infinity;
+            // 情形1: f ≥ 0  (g sinθ - ω²R cosθ ≥ 0)
+            let denom1 = R * (cosT + mu * sinT);
+            if (denom1 > 0) {
+                let x1 = (g * (sinT - mu * cosT)) / denom1;
+                if (x1 >= 0) crit1 = Math.sqrt(x1);
+            }
+            // 情形2: f < 0  (g sinθ - ω²R cosθ < 0)
+            let denom2 = R * (cosT - mu * sinT);
+            if (denom2 > 0) {
+                let x2 = (g * (mu * cosT + sinT)) / denom2;
+                if (x2 >= 0) crit2 = Math.sqrt(x2);
+            }
+            critOmegaLow = isFinite(crit1) ? crit1 : 0;
+            critOmegaHigh = isFinite(crit2) ? crit2 : Infinity;
+
+            // 判断滑动状态
+            if (friction >= 0) {
+                // f为正，需要 f ≤ μN，否则下滑
+                if (friction > mu * N) {
+                    sliding = true;
+                    slipDirection = 'down';
+                } else {
+                    sliding = false;
+                    slipDirection = '';
+                }
+            } else {
+                // f为负，需要 |f| ≤ μN，否则上滑
+                if (Math.abs(friction) > mu * N) {
+                    sliding = true;
+                    slipDirection = 'up';
+                } else {
+                    sliding = false;
+                    slipDirection = '';
+                }
+            }
+
+            // 显示临界范围 (两个值)
+            let critLowRpm = critOmegaLow * 60 / (2 * Math.PI);
+            let critHighRpm = critOmegaHigh * 60 / (2 * Math.PI);
+            if (!isFinite(critOmegaHigh)) critHighRpm = Infinity;
+            criticalRangeSpan.innerText = critLowRpm.toFixed(1) + ' - ' + 
+                (isFinite(critOmegaHigh) ? critHighRpm.toFixed(1) : '∞');
+        }
+
+        // 更新数据区
+        centripetalSpan.innerText = F_needed.toFixed(2);
+        frictionSpan.innerText = friction.toFixed(2) + (scene==='incline'?(friction>=0?' (内)':' (外)'):'');
+        // 状态文字
+        if (!sliding) {
+            slipStatusSpan.innerHTML = '⭕ 稳定';
+            slipStatusSpan.className = 'data-value';
+        } else {
+            if (slipDirection === 'down') {
+                slipStatusSpan.innerHTML = '⚠️ 下滑滑动';
+                slipStatusSpan.className = 'data-value warning';
+            } else {
+                slipStatusSpan.innerHTML = '⚠️ 上滑滑动';
+                slipStatusSpan.className = 'data-value warning';
+            }
+        }
+    }
+
+    // 绘制画布
+    function drawCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // 绘制轨道 (虚线圆)
+        let displayR = baseRadius * (R / R_ref);
+        ctx.beginPath();
+        ctx.strokeStyle = '#33333380';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.arc(centerX, centerY, displayR, 0, 2*Math.PI);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 画中心点
+        ctx.beginPath();
+        ctx.fillStyle = '#0a2a44';
+        ctx.arc(centerX, centerY, 6, 0, 2*Math.PI);
+        ctx.fill();
+        ctx.fillStyle = 'white';
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 3, 0, 2*Math.PI);
+        ctx.fill();
+
+        // 小球位置
+        let ballX = centerX + displayR * Math.cos(angle);
+        let ballY = centerY + displayR * Math.sin(angle);
+
+        // 画斜面指示线 (如果斜面模式)
+        if (scene === 'incline') {
+            ctx.beginPath();
+            ctx.strokeStyle = '#8B4513';
+            ctx.lineWidth = 4;
+            // 画一条通过圆心的倾斜直线，表示斜面方向（角度30°），视觉上从左下到右上或反之？
+            // 为使斜面直观：我们画一条线，其斜率对应 tan(30°)，且通过圆心。
+            let lineLen = 200;
+            let dx = lineLen * Math.cos(inclineAngle);   // 水平分量
+            let dy = lineLen * Math.sin(inclineAngle);   // 竖直分量（向下为正）
+            // 让线条通过圆心，并延伸
+            ctx.moveTo(centerX - dx, centerY - dy);
+            ctx.lineTo(centerX + dx, centerY + dy);
+            ctx.stroke();
+            ctx.font = 'bold 14px "Segoe UI"';
+            ctx.fillStyle = '#4a2c1a';
+            ctx.fillText('斜面30°', centerX+50, centerY-20);
+        }
+
+        // 画小球
+        ctx.beginPath();
+        ctx.fillStyle = '#d44c2f';
+        ctx.shadowColor = '#1a1a1a80';
+        ctx.shadowBlur = 12;
+        ctx.arc(ballX, ballY, 14, 0, 2*Math.PI);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // 绘制受力示意图
+        // 重力 (竖直向下)
+        drawArrow(ballX, ballY, ballX, ballY + 60 * (m*g/20), '#444444', 'G');
+
+        if (scene === 'horizontal') {
+            // 水平面: 摩擦力指向圆心，支持力竖直向上
+            let fMag = Math.min(F_needed, 50);
+            let dirX = centerX - ballX;
+            let dirY = centerY - ballY;
+            let len = Math.hypot(dirX, dirY);
+            if (len > 0) {
+                let unitX = dirX / len;
+                let unitY = dirY / len;
+                let arrowEndX = ballX + unitX * fMag * 2;
+                let arrowEndY = ballY + unitY * fMag * 2;
+                drawArrow(ballX, ballY, arrowEndX, arrowEndY, '#d46b4c', 'f');
+            }
+            // 支持力向上
+            drawArrow(ballX, ballY, ballX, ballY - 60 * (N/20), '#2e8b57', 'N');
+        } else {
+            // 斜面: 支持力垂直于斜面 (固定方向)
+            let sinT = Math.sin(inclineAngle);
+            let cosT = Math.cos(inclineAngle);
+            // 支持力方向：垂直于斜面向外（与竖直方向夹角θ，指向左上方）
+            let N_len = Math.min(N / 10, 70);
+            let N_angle = -inclineAngle; // 垂直于斜面指向外 (与竖直方向夹角 -θ)
+            let Nx = N_len * Math.sin(N_angle);
+            let Ny = -N_len * Math.cos(N_angle); // 竖直向上为负y
+            drawArrow(ballX, ballY, ballX + Nx, ballY + Ny, '#2e8b57', 'N');
+
+            // 摩擦力方向：沿斜面
+            let f_len = Math.min(Math.abs(friction) / 5, 50);
+            // 定义斜面方向单位向量 (沿斜面向下) 角度为 inclineAngle (指向右下方)
+            // 但摩擦力方向：当friction为正时，摩擦力沿斜面向内（指向圆心方向），即与斜面向下方向相反，所以角度为 inclineAngle + π
+            let f_angle;
+            if (friction >= 0) {
+                // 正摩擦力：沿斜面向内（指向上坡方向），即与斜面向下方向相反
+                f_angle = inclineAngle + Math.PI; // 指向左上方
+            } else {
+                // 负摩擦力：沿斜面向外（指向下坡方向）
+                f_angle = inclineAngle; // 指向右下方
+            }
+            let fx = f_len * Math.cos(f_angle);
+            let fy = f_len * Math.sin(f_angle);
+            drawArrow(ballX, ballY, ballX + fx, ballY + fy, '#d46b4c', 'f');
+        }
+
+        // 标注文字
+        ctx.font = 'bold 14px "Segoe UI"';
+        ctx.fillStyle = '#0a2a44';
+        ctx.fillText('小球', ballX+15, ballY-15);
+    }
+
+    // 辅助函数: 画箭头 (起点到终点，颜色，标签)
+    function drawArrow(fromX, fromY, toX, toY, color, label) {
+        ctx.beginPath();
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = 2;
+        ctx.moveTo(fromX, fromY);
+        ctx.lineTo(toX, toY);
+        ctx.stroke();
+        // 画箭头头
+        let angle = Math.atan2(toY - fromY, toX - fromX);
+        let arrowSize = 10;
+        let arrowX = toX - arrowSize * 0.5 * Math.cos(angle);
+        let arrowY = toY - arrowSize * 0.5 * Math.sin(angle);
+        ctx.beginPath();
+        ctx.moveTo(toX, toY);
+        ctx.lineTo(arrowX - arrowSize * 0.4 * Math.sin(angle), arrowY + arrowSize * 0.4 * Math.cos(angle));
+        ctx.lineTo(arrowX + arrowSize * 0.4 * Math.sin(angle), arrowY - arrowSize * 0.4 * Math.cos(angle));
+        ctx.closePath();
+        ctx.fill();
+        // 标标签
+        ctx.font = 'bold 12px "Segoe UI"';
+        ctx.fillStyle = color;
+        ctx.fillText(label, (fromX+toX)/2 + 5, (fromY+toY)/2 - 5);
+    }
+
+    // 动画循环
+    function animationLoop(now) {
+        if (!lastTimestamp) {
+            lastTimestamp = now;
+            animationFrame = requestAnimationFrame(animationLoop);
+            return;
+        }
+        let deltaSec = (now - lastTimestamp) / 1000;
+        lastTimestamp = now;
+
+        angle += omega * deltaSec;
+
+        computeForces();
+        drawCanvas();
+
+        animationFrame = requestAnimationFrame(animationLoop);
+    }
+
+    // 处理滑块输入
+    function handleInput() {
+        updateSliderReadouts();
+        computeForces();
+        drawCanvas();
+    }
+
+    // 切换场景
+    function setScene(sceneName) {
+        scene = sceneName;
+        if (scene === 'horizontal') {
+            sceneHorizontalBtn.classList.add('active');
+            sceneInclineBtn.classList.remove('active');
+        } else {
+            sceneInclineBtn.classList.add('active');
+            sceneHorizontalBtn.classList.remove('active');
+        }
+        computeForces();
+        drawCanvas();
+    }
+
+    // 绑定事件
+    rpmInput.addEventListener('input', handleInput);
+    radiusInput.addEventListener('input', handleInput);
+    massInput.addEventListener('input', handleInput);
+    muInput.addEventListener('input', handleInput);
+    sceneHorizontalBtn.addEventListener('click', () => setScene('horizontal'));
+    sceneInclineBtn.addEventListener('click', () => setScene('incline'));
+
+    // 初始化
+    updateSliderReadouts();
+    computeForces();
+    animationFrame = requestAnimationFrame(animationLoop);
+
+    window.addEventListener('beforeunload', () => {
+        if (animationFrame) cancelAnimationFrame(animationFrame);
+    });
+})();
+</script>
+</body>
+</html>

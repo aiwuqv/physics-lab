@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>碰撞类型物理模拟</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.2rem;
+        }
+        
+        .collision-section {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .collision-section:hover {
+            transform: translateY(-5px);
+        }
+        
+        .section-title {
+            color: #2980b9;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+        
+        .characteristics {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .characteristics h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .simulation-container {
+            background-color: #f1f2f6;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .simulation-title {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+        
+        .animation-area {
+            width: 100%;
+            height: 200px;
+            background-color: #2c3e50;
+            border-radius: 8px;
+            position: relative;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+        
+        .ball {
+            position: absolute;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            user-select: none;
+        }
+        
+        .ball-label {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .control-btn {
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .control-btn:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        .control-btn:active {
+            transform: translateY(0);
+        }
+        
+        .formula-box {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #e74c3c;
+            font-family: 'Cambria Math', 'Times New Roman', serif;
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+        
+        .formula {
+            margin-bottom: 10px;
+        }
+        
+        .derivation-box {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border: 2px solid #ddd;
+        }
+        
+        .derivation-step {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 5px;
+            border-left: 3px solid #3498db;
+        }
+        
+        .secondary-conclusions {
+            background-color: #e8f4fc;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border: 2px dashed #3498db;
+        }
+        
+        .conclusion-item {
+            margin-bottom: 8px;
+            padding-left: 10px;
+            border-left: 3px solid #3498db;
+        }
+        
+        .model-container {
+            margin-bottom: 30px;
+        }
+        
+        .quiz-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .quiz-content {
+            background-color: white;
+            width: 90%;
+            max-width: 700px;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .close-quiz {
+            font-size: 28px;
+            cursor: pointer;
+            color: #7f8c8d;
+            transition: color 0.3s;
+        }
+        
+        .close-quiz:hover {
+            color: #e74c3c;
+        }
+        
+        .quiz-question {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .quiz-options {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+        
+        .quiz-option {
+            padding: 12px 15px;
+            background-color: #f1f2f6;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .quiz-option:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .quiz-option.selected {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .quiz-option.correct-answer {
+            background-color: #2ecc71;
+            color: white;
+            border: 2px solid #27ae60;
+        }
+        
+        .quiz-option.wrong-answer {
+            background-color: #e74c3c;
+            color: white;
+            opacity: 0.7;
+        }
+        
+        .quiz-submit {
+            padding: 12px 25px;
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            display: block;
+            margin: 0 auto;
+            transition: background-color 0.3s;
+        }
+        
+        .quiz-submit:hover {
+            background-color: #27ae60;
+        }
+        
+        .quiz-result {
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .quiz-result.correct {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .quiz-result.incorrect {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .quiz-explanation {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .quiz-explanation h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .quiz-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .quiz-btn {
+            padding: 12px 25px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+        
+        .quiz-btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .quiz-progress {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        .question-status {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            line-height: 20px;
+            text-align: center;
+            border-radius: 50%;
+            margin: 0 5px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .question-status.unanswered {
+            background-color: #ecf0f1;
+            color: #7f8c8d;
+            border: 1px solid #bdc3c7;
+        }
+        
+        .question-status.correct {
+            background-color: #2ecc71;
+            color: white;
+        }
+        
+        .question-status.incorrect {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .question-status.current {
+            border: 2px solid #3498db;
+            transform: scale(1.2);
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .controls {
+                flex-wrap: wrap;
+            }
+            
+            .animation-area {
+                height: 150px;
+            }
+            
+            .formula-box {
+                font-size: 0.95rem;
+            }
+            
+            .quiz-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <header>
+            <h1>碰撞类型物理模拟</h1>
+            <p class="subtitle">探索完全非弹性碰撞、弹性碰撞和非弹性碰撞的物理规律</p>
+        </header>
+        
+        <!-- 情形一：完全非弹性碰撞 -->
+        <section class="collision-section" id="section1">
+            <h2 class="section-title">情形一：完全非弹性碰撞</h2>
+            
+            <div class="characteristics">
+                <h3>特点</h3>
+                <p>碰撞后两物体粘黏在一起，形变完全不能恢复，能量损失最大。</p>
+                <p>只满足动量守恒，不满足机械能（动能）守恒。</p>
+            </div>
+            
+            <!-- 完全非弹性碰撞模拟 -->
+            <div class="model-container">
+                <div class="simulation-container">
+                    <h3 class="simulation-title">完全非弹性碰撞模拟</h3>
+                    <div class="animation-area" id="animation1">
+                        <div class="ball" id="ball1-1" style="width: 60px; height: 60px; background-color: #e74c3c; left: 50px;">m₁</div>
+                        <div class="ball" id="ball1-2" style="width: 80px; height: 80px; background-color: #3498db; left: 300px;">m₂</div>
+                    </div>
+                    
+                    <div class="controls">
+                        <button class="control-btn" onclick="startAnimation('animation1')">开始</button>
+                        <button class="control-btn" onclick="pauseAnimation('animation1')">暂停</button>
+                        <button class="control-btn" onclick="resetAnimation('animation1')">重置</button>
+                    </div>
+                    
+                    <div class="formula-box">
+                        <div class="formula"><strong>动量守恒：</strong> \( m_1 v_1 + m_2 v_2 = (m_1 + m_2)v_{\text{共}} \)</div>
+                        <div class="formula"><strong>碰后共同速度：</strong> \( v_{\text{共}} = \frac{m_1 v_1 + m_2 v_2}{m_1 + m_2} \)</div>
+                        <div class="formula"><strong>动能损失：</strong> \( \Delta E_k = \frac{1}{2} \frac{m_1 m_2}{m_1 + m_2} (v_1 - v_2)^2 \)</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 动碰静模型 -->
+            <div class="model-container">
+                <div class="simulation-container">
+                    <h3 class="simulation-title">动碰静模型（完全非弹性碰撞）</h3>
+                    <div class="animation-area" id="animation1-static">
+                        <div class="ball" id="ball1-static-1" style="width: 60px; height: 60px; background-color: #e74c3c; left: 50px;">m₁</div>
+                        <div class="ball" id="ball1-static-2" style="width: 80px; height: 80px; background-color: #3498db; left: 400px;">m₂</div>
+                    </div>
+                    
+                    <div class="controls">
+                        <button class="control-btn" onclick="startAnimation('animation1-static')">开始</button>
+                        <button class="control-btn" onclick="pauseAnimation('animation1-static')">暂停</button>
+                        <button class="control-btn" onclick="resetAnimation('animation1-static')">重置</button>
+                    </div>
+                    
+                    <div class="formula-box">
+                        <div class="formula"><strong>碰撞前：</strong> 物体1速度 \( v_0 \)，物体2静止 \( v_2 = 0 \)</div>
+                        <div class="formula"><strong>碰后共同速度：</strong> \( v_{\text{共}} = \frac{m_1 v_0}{m_1 + m_2} \)</div>
+                        <div class="formula"><strong>损失能量：</strong> \( \Delta E_k = \frac{1}{2} \frac{m_1 m_2}{m_1 + m_2} v_0^2 \)</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 平均作用力推导 -->
+            <div class="model-container">
+                <div class="derivation-box">
+                    <h3 class="simulation-title">碰撞过程中平均作用力推导（完全非弹性碰撞）</h3>
+                    <div class="derivation-step">
+                        <strong>设定条件：</strong> 设碰撞时间极短，为 \( \Delta t \)
+                    </div>
+                    <div class="derivation-step">
+                        <strong>对物体1应用动量定理：</strong> \( -F\Delta t = m_1 v_{\text{共}} - m_1 v_1 \)
+                    </div>
+                    <div class="derivation-step">
+                        <strong>对物体2应用动量定理：</strong> \( F\Delta t = m_2 v_{\text{共}} - m_2 v_2 \)
+                    </div>
+                    <div class="derivation-step">
+                        <strong>联立方程可得：</strong> \( F\Delta t = \frac{m_1 m_2}{m_1 + m_2} (v_1 - v_2) \)
+                    </div>
+                    <div class="derivation-step">
+                        <strong>平均作用力冲量大小：</strong> \( I = F\Delta t = \frac{m_1 m_2}{m_1 + m_2} (v_1 - v_2) \)
+                    </div>
+                    <div class="derivation-step">
+                        <strong>平均作用力大小：</strong> \( F = \frac{m_1 m_2}{m_1 + m_2} \cdot \frac{v_1 - v_2}{\Delta t} \)
+                    </div>
+                </div>
+            </div>
+            
+            <button class="quiz-btn" onclick="openQuiz(1)">知识点考查</button>
+        </section>
+        
+        <!-- 情形二：弹性碰撞 -->
+        <section class="collision-section" id="section2">
+            <h2 class="section-title">情形二：弹性碰撞</h2>
+            
+            <div class="characteristics">
+                <h3>特点</h3>
+                <p>碰撞后形变能完全恢复，无能量损失。</p>
+                <p>既满足动量守恒，也满足机械能（动能）守恒。</p>
+            </div>
+            
+            <!-- 动碰动模型 -->
+            <div class="model-container">
+                <div class="simulation-container">
+                    <h3 class="simulation-title">动碰动模型</h3>
+                    <div class="animation-area" id="animation2-1">
+                        <div class="ball" id="ball2-1-1" style="width: 60px; height: 60px; background-color: #e74c3c; left: 50px;">m₁</div>
+                        <div class="ball" id="ball2-1-2" style="width: 80px; height: 80px; background-color: #3498db; left: 300px;">m₂</div>
+                    </div>
+                    
+                    <div class="controls">
+                        <button class="control-btn" onclick="startAnimation('animation2-1')">开始</button>
+                        <button class="control-btn" onclick="pauseAnimation('animation2-1')">暂停</button>
+                        <button class="control-btn" onclick="resetAnimation('animation2-1')">重置</button>
+                    </div>
+                    
+                    <div class="formula-box">
+                        <div class="formula"><strong>动量守恒：</strong> \( m_1v_1 + m_2v_2 = m_1v_1' + m_2v_2' \)</div>
+                        <div class="formula"><strong>动能守恒：</strong> \( \frac{1}{2}m_1v_1^2 + \frac{1}{2}m_2v_2^2 = \frac{1}{2}m_1v_1'^2 + \frac{1}{2}m_2v_2'^2 \)</div>
+                        <div class="formula"><strong>碰后速度：</strong> \( v_1' = \frac{(m_1 - m_2) v_1 + 2 m_2 v_2}{m_1 + m_2} \), \( v_2' = \frac{(m_2 - m_1) v_2 + 2 m_1 v_1}{m_1 + m_2} \)</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 动碰静模型 -->
+            <div class="model-container">
+                <div class="simulation-container">
+                    <h3 class="simulation-title">动碰静模型</h3>
+                    <div class="animation-area" id="animation2-2">
+                        <div class="ball" id="ball2-2-1" style="width: 60px; height: 60px; background-color: #e74c3c; left: 50px;">m₁</div>
+                        <div class="ball" id="ball2-2-2" style="width: 80px; height: 80px; background-color: #3498db; left: 400px;">m₂</div>
+                    </div>
+                    
+                    <div class="controls">
+                        <button class="control-btn" onclick="startAnimation('animation2-2')">开始</button>
+                        <button class="control-btn" onclick="pauseAnimation('animation2-2')">暂停</button>
+                        <button class="control-btn" onclick="resetAnimation('animation2-2')">重置</button>
+                    </div>
+                    
+                    <div class="formula-box">
+                        <div class="formula"><strong>碰后速度：</strong> \( v_1' = \frac{m_1 - m_2}{m_1 + m_2} v_0 \), \( v_2' = \frac{2m_1}{m_1 + m_2} v_0 \)</div>
+                        <div class="formula"><strong>其中 \( v_0 \) 为物体1的初速度，物体2初始静止</strong></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 平均作用力推导 -->
+            <div class="model-container">
+                <div class="derivation-box">
+                    <h3 class="simulation-title">碰撞过程中平均作用力推导（弹性碰撞）</h3>
+                    <div class="derivation-step">
+                        <strong>设定条件：</strong> 设碰撞时间极短，为 \( \Delta t \)
+                    </div>
+                    <div class="derivation-step">
+                        <strong>对物体1应用动量定理：</strong> \( -F\Delta t = m_1v_1' - m_1v_1 \)
+                    </div>
+                    <div class="derivation-step">
+                        <strong>对物体2应用动量定理：</strong> \( F\Delta t = m_2v_2' - m_2v_2 \)
+                    </div>
+                    <div class="derivation-step">
+                        <strong>联立方程可得：</strong> \( F\Delta t = \frac{2m_1m_2}{m_1+m_2}(v_1-v_2) \)
+                    </div>
+                    <div class="derivation-step">
+                        <strong>平均作用力冲量大小：</strong> \( I = F\Delta t = \frac{2m_1m_2}{m_1+m_2}(v_1-v_2) \)
+                    </div>
+                    <div class="derivation-step">
+                        <strong>平均作用力大小：</strong> \( F = \frac{2m_1m_2}{m_1+m_2} \cdot \frac{v_1-v_2}{\Delta t} \)
+                    </div>
+                    <div class="derivation-step">
+                        <strong>结论：</strong> 弹性碰撞的平均作用力是完全非弹性碰撞的2倍
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 常见二级结论 -->
+            <div class="secondary-conclusions">
+                <h3>常见二级结论（动碰静）</h3>
+                <div class="conclusion-item">1. 等质量 \( (m_1 = m_2) \)：速度交换，\( v_1' = 0, \quad v_2' = v_0 \)</div>
+                <div class="conclusion-item">2. 大碰小 \( (m_1 > m_2) \)：追着跑，\( v_1' < v_0 < v_2' \)</div>
+                <div class="conclusion-item">3. 小碰大 \( (m_1 < m_2) \)：被反弹，\( |v_1'| < v_0, \quad v_2' < v_0 \)</div>
+                <div class="conclusion-item">4. 极大碰极小 \( (m_1 \gg m_2) \)：大不变，小加倍，\( v_1' \approx v_0, \quad v_2' \approx 2v_0 \)</div>
+                <div class="conclusion-item">5. 极小碰极大 \( (m_1 \ll m_2) \)：大不变，小等速率反弹，\( v_1' \approx -v_0, \quad v_2' \approx 0 \)</div>
+            </div>
+            
+            <button class="quiz-btn" onclick="openQuiz(2)">知识点考查</button>
+        </section>
+        
+        <!-- 情形三：非弹性碰撞 -->
+        <section class="collision-section" id="section3">
+            <h2 class="section-title">情形三：非弹性碰撞</h2>
+            
+            <div class="characteristics">
+                <h3>特点</h3>
+                <p>介于弹性碰撞和完全非弹性碰撞之间，碰撞后形变不能完全恢复，有能量损失。</p>
+                <p>只满足动量守恒，不满足机械能（动能）守恒。</p>
+            </div>
+            
+            <div class="model-container">
+                <div class="simulation-container">
+                    <h3 class="simulation-title">非弹性碰撞模拟</h3>
+                    <div class="animation-area" id="animation3">
+                        <div class="ball" id="ball3-1" style="width: 60px; height: 60px; background-color: #e74c3c; left: 50px;">m₁</div>
+                        <div class="ball" id="ball3-2" style="width: 80px; height: 80px; background-color: #3498db; left: 300px;">m₂</div>
+                    </div>
+                    
+                    <div class="controls">
+                        <button class="control-btn" onclick="startAnimation('animation3')">开始</button>
+                        <button class="control-btn" onclick="pauseAnimation('animation3')">暂停</button>
+                        <button class="control-btn" onclick="resetAnimation('animation3')">重置</button>
+                    </div>
+                    
+                    <div class="formula-box">
+                        <div class="formula"><strong>动量守恒：</strong> \( m_1v_1 + m_2v_2 = m_1v_1' + m_2v_2' \)</div>
+                        <div class="formula"><strong>动能损失：</strong> \( \Delta E_k = \frac{1}{2}m_1v_1^2 + \frac{1}{2}m_2v_2^2 - \frac{1}{2}m_1v_1'^2 - \frac{1}{2}m_2v_2'^2 \)</div>
+                        <div class="formula"><strong>特点：</strong> 碰撞后两物体分开，但速度变化小于弹性碰撞，动能损失介于0和完全非弹性碰撞之间</div>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="quiz-btn" onclick="openQuiz(3)">知识点考查</button>
+        </section>
+        
+        <!-- 知识点考查弹窗 -->
+        <div class="quiz-modal" id="quizModal">
+            <div class="quiz-content">
+                <div class="quiz-header">
+                    <h2 id="quizTitle">知识点考查</h2>
+                    <span class="close-quiz" onclick="closeQuiz()">&times;</span>
+                </div>
+                
+                <!-- 进度指示器 -->
+                <div id="quizProgress" class="quiz-progress"></div>
+                
+                <div id="quizQuestions">
+                    <!-- 问题将动态加载 -->
+                </div>
+                
+                <div id="quizExplanation" class="quiz-explanation">
+                    <!-- 解析将动态加载 -->
+                </div>
+                
+                <div id="quizResult" class="quiz-result"></div>
+                
+                <div class="quiz-buttons">
+                    <button class="quiz-btn" onclick="prevQuestion()">上一题</button>
+                    <button class="quiz-btn" onclick="nextQuestion()">下一题</button>
+                    <button class="quiz-btn" onclick="submitQuiz()">提交答案</button>
+                </div>
+            </div>
+        </div>
+        
+        <footer class="footer">
+            <p>物理碰撞模拟系统 | 基于动量守恒定律 | 仅供学习使用</p>
+            <p>提示：点击"知识点考查"按钮测试你对碰撞物理规律的理解</p>
+        </footer>
+    </div>
+
+    <!-- 引入MathJax用于数学公式渲染 -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <script>
+        // 动画状态和参数
+        const animations = {
+            'animation1': { ball1: { x: 50, v: 2 }, ball2: { x: 300, v: -1 }, animationId: null, isRunning: false, isMerged: false },
+            'animation1-static': { ball1: { x: 50, v: 3 }, ball2: { x: 400, v: 0 }, animationId: null, isRunning: false, isMerged: false },
+            'animation2-1': { ball1: { x: 50, v: 3 }, ball2: { x: 300, v: -1.5 }, animationId: null, isRunning: false, isCollided: false },
+            'animation2-2': { ball1: { x: 50, v: 3 }, ball2: { x: 400, v: 0 }, animationId: null, isRunning: false, isCollided: false },
+            'animation3': { ball1: { x: 50, v: 2.5 }, ball2: { x: 300, v: -1 }, animationId: null, isRunning: false, isCollided: false }
+        };
+        
+        // 动画函数
+        function animate(animationId) {
+            const anim = animations[animationId];
+            if (!anim || !anim.isRunning) return;
+            
+            const areaWidth = document.getElementById(animationId).offsetWidth;
+            const isElastic = animationId.includes('animation2');
+            const isInelastic = animationId === 'animation3';
+            const isCompletelyInelastic = animationId.includes('animation1');
+            const isStatic = animationId === 'animation1-static';
+            
+            // 更新小球位置
+            anim.ball1.x += anim.ball1.v;
+            anim.ball2.x += anim.ball2.v;
+            
+            // 获取小球DOM元素
+            let ball1, ball2;
+            if (animationId === 'animation1') {
+                ball1 = document.getElementById('ball1-1');
+                ball2 = document.getElementById('ball1-2');
+            } else if (animationId === 'animation1-static') {
+                ball1 = document.getElementById('ball1-static-1');
+                ball2 = document.getElementById('ball1-static-2');
+            } else if (animationId === 'animation2-1') {
+                ball1 = document.getElementById('ball2-1-1');
+                ball2 = document.getElementById('ball2-1-2');
+            } else if (animationId === 'animation2-2') {
+                ball1 = document.getElementById('ball2-2-1');
+                ball2 = document.getElementById('ball2-2-2');
+            } else if (animationId === 'animation3') {
+                ball1 = document.getElementById('ball3-1');
+                ball2 = document.getElementById('ball3-2');
+            }
+            
+            // 边界碰撞检测
+            const ball1Width = parseInt(ball1.style.width);
+            const ball2Width = parseInt(ball2.style.width);
+            
+            if (anim.ball1.x <= 0) {
+                anim.ball1.x = 0;
+                anim.ball1.v = Math.abs(anim.ball1.v);
+            }
+            
+            if (anim.ball2.x + ball2Width >= areaWidth) {
+                anim.ball2.x = areaWidth - ball2Width;
+                anim.ball2.v = -Math.abs(anim.ball2.v);
+            }
+            
+            // 小球碰撞检测
+            const collisionDistance = (ball1Width + ball2Width) / 2;
+            const distance = Math.abs((anim.ball1.x + ball1Width/2) - (anim.ball2.x + ball2Width/2));
+            
+            if (distance <= collisionDistance && !anim.isCollided && !anim.isMerged) {
+                if (isCompletelyInelastic) {
+                    // 完全非弹性碰撞：粘在一起
+                    anim.isMerged = true;
+                    const m1 = ball1Width; // 小球1质量（与面积成正比）
+                    const m2 = ball2Width; // 小球2质量
+                    const combinedV = (m1 * anim.ball1.v + m2 * anim.ball2.v) / (m1 + m2);
+                    anim.ball1.v = combinedV;
+                    anim.ball2.v = combinedV;
+                    
+                    // 视觉上合并
+                    ball2.style.backgroundColor = '#9b59b6';
+                    if (!isStatic) ball1.style.opacity = '0.5';
+                } else if (isElastic) {
+                    // 弹性碰撞
+                    anim.isCollided = true;
+                    
+                    // 弹性碰撞公式计算新速度
+                    const m1 = ball1Width;
+                    const m2 = ball2Width;
+                    const v1 = anim.ball1.v;
+                    const v2 = anim.ball2.v;
+                    
+                    // 弹性碰撞速度公式
+                    const v1f = ((m1 - m2) * v1 + 2 * m2 * v2) / (m1 + m2);
+                    const v2f = ((m2 - m1) * v2 + 2 * m1 * v1) / (m1 + m2);
+                    
+                    anim.ball1.v = v1f;
+                    anim.ball2.v = v2f;
+                    
+                    // 碰撞后短暂改变颜色
+                    ball1.style.backgroundColor = '#f39c12';
+                    ball2.style.backgroundColor = '#f39c12';
+                    setTimeout(() => {
+                        if (animationId === 'animation2-1' || animationId === 'animation2-2') {
+                            ball1.style.backgroundColor = '#e74c3c';
+                            ball2.style.backgroundColor = '#3498db';
+                        }
+                        anim.isCollided = false;
+                    }, 300);
+                } else if (isInelastic) {
+                    // 非弹性碰撞
+                    anim.isCollided = true;
+                    
+                    // 非弹性碰撞：部分能量损失
+                    const m1 = ball1Width;
+                    const m2 = ball2Width;
+                    const v1 = anim.ball1.v;
+                    const v2 = anim.ball2.v;
+                    const e = 0.6; // 恢复系数，0<e<1
+                    
+                    // 非弹性碰撞速度公式
+                    const v1f = ((m1 - e * m2) * v1 + (1 + e) * m2 * v2) / (m1 + m2);
+                    const v2f = ((m2 - e * m1) * v2 + (1 + e) * m1 * v1) / (m1 + m2);
+                    
+                    anim.ball1.v = v1f;
+                    anim.ball2.v = v2f;
+                    
+                    // 碰撞后短暂改变颜色
+                    ball1.style.backgroundColor = '#e67e22';
+                    ball2.style.backgroundColor = '#e67e22';
+                    setTimeout(() => {
+                        ball1.style.backgroundColor = '#e74c3c';
+                        ball2.style.backgroundColor = '#3498db';
+                        anim.isCollided = false;
+                    }, 300);
+                }
+            }
+            
+            // 更新小球位置
+            ball1.style.left = anim.ball1.x + 'px';
+            ball2.style.left = anim.ball2.x + 'px';
+            
+            // 继续动画
+            anim.animationId = requestAnimationFrame(() => animate(animationId));
+        }
+        
+        // 控制函数
+        function startAnimation(animationId) {
+            const anim = animations[animationId];
+            if (!anim) return;
+            
+            if (!anim.isRunning) {
+                anim.isRunning = true;
+                animate(animationId);
+            }
+        }
+        
+        function pauseAnimation(animationId) {
+            const anim = animations[animationId];
+            if (!anim) return;
+            
+            anim.isRunning = false;
+            if (anim.animationId) {
+                cancelAnimationFrame(anim.animationId);
+                anim.animationId = null;
+            }
+        }
+        
+        function resetAnimation(animationId) {
+            pauseAnimation(animationId);
+            
+            const anim = animations[animationId];
+            if (!anim) return;
+            
+            // 重置位置和速度
+            if (animationId === 'animation1') {
+                anim.ball1.x = 50;
+                anim.ball1.v = 2;
+                anim.ball2.x = 300;
+                anim.ball2.v = -1;
+                anim.isMerged = false;
+                
+                const ball1 = document.getElementById('ball1-1');
+                const ball2 = document.getElementById('ball1-2');
+                ball1.style.opacity = '1';
+                ball1.style.left = anim.ball1.x + 'px';
+                ball2.style.left = anim.ball2.x + 'px';
+                ball1.style.backgroundColor = '#e74c3c';
+                ball2.style.backgroundColor = '#3498db';
+            } else if (animationId === 'animation1-static') {
+                anim.ball1.x = 50;
+                anim.ball1.v = 3;
+                anim.ball2.x = 400;
+                anim.ball2.v = 0;
+                anim.isMerged = false;
+                
+                const ball1 = document.getElementById('ball1-static-1');
+                const ball2 = document.getElementById('ball1-static-2');
+                ball1.style.opacity = '1';
+                ball1.style.left = anim.ball1.x + 'px';
+                ball2.style.left = anim.ball2.x + 'px';
+                ball1.style.backgroundColor = '#e74c3c';
+                ball2.style.backgroundColor = '#3498db';
+            } else if (animationId === 'animation2-1') {
+                anim.ball1.x = 50;
+                anim.ball1.v = 3;
+                anim.ball2.x = 300;
+                anim.ball2.v = -1.5;
+                anim.isCollided = false;
+                
+                const ball1 = document.getElementById('ball2-1-1');
+                const ball2 = document.getElementById('ball2-1-2');
+                ball1.style.left = anim.ball1.x + 'px';
+                ball2.style.left = anim.ball2.x + 'px';
+                ball1.style.backgroundColor = '#e74c3c';
+                ball2.style.backgroundColor = '#3498db';
+            } else if (animationId === 'animation2-2') {
+                anim.ball1.x = 50;
+                anim.ball1.v = 3;
+                anim.ball2.x = 400;
+                anim.ball2.v = 0;
+                anim.isCollided = false;
+                
+                const ball1 = document.getElementById('ball2-2-1');
+                const ball2 = document.getElementById('ball2-2-2');
+                ball1.style.left = anim.ball1.x + 'px';
+                ball2.style.left = anim.ball2.x + 'px';
+                ball1.style.backgroundColor = '#e74c3c';
+                ball2.style.backgroundColor = '#3498db';
+            } else if (animationId === 'animation3') {
+                anim.ball1.x = 50;
+                anim.ball1.v = 2.5;
+                anim.ball2.x = 300;
+                anim.ball2.v = -1;
+                anim.isCollided = false;
+                
+                const ball1 = document.getElementById('ball3-1');
+                const ball2 = document.getElementById('ball3-2');
+                ball1.style.left = anim.ball1.x + 'px';
+                ball2.style.left = anim.ball2.x + 'px';
+                ball1.style.backgroundColor = '#e74c3c';
+                ball2.style.backgroundColor = '#3498db';
+            }
+        }
+        
+        // 知识点考查系统
+        let currentQuizType = 1;
+        let currentQuestionIndex = 0;
+        let userAnswers = [];
+        let answerStatus = []; // 记录每道题的答题状态：-1=未答，0=错误，1=正确
+        
+        // 题库（包含解析）
+        const quizzes = {
+            1: [
+                {
+                    question: "完全非弹性碰撞的主要特点是什么？",
+                    options: [
+                        "碰撞后两物体粘在一起，形变完全不能恢复",
+                        "碰撞后形变能完全恢复，无能量损失",
+                        "碰撞后两物体以相同速度运动，但形变部分恢复",
+                        "碰撞后两物体交换速度"
+                    ],
+                    correct: 0,
+                    explanation: "完全非弹性碰撞的最大特点是碰撞后两物体粘在一起共同运动，形变完全不能恢复，能量损失最大。这是区分完全非弹性碰撞与其他碰撞类型的关键特征。"
+                },
+                {
+                    question: "在完全非弹性碰撞中，下列哪个物理量守恒？",
+                    options: [
+                        "动能",
+                        "动量",
+                        "动能和动量都守恒",
+                        "动能和动量都不守恒"
+                    ],
+                    correct: 1,
+                    explanation: "在完全非弹性碰撞中，只有动量守恒，动能不守恒且损失最大。动量守恒是碰撞过程的基本规律，适用于所有类型的碰撞。"
+                },
+                {
+                    question: "质量为2kg的物体以4m/s的速度与静止的3kg物体发生完全非弹性碰撞，碰后共同速度是多少？",
+                    options: [
+                        "1.6 m/s",
+                        "2.0 m/s",
+                        "2.4 m/s",
+                        "3.2 m/s"
+                    ],
+                    correct: 0,
+                    explanation: "根据完全非弹性碰撞公式：\( v_{\\text{共}} = \\frac{m_1 v_1 + m_2 v_2}{m_1 + m_2} = \\frac{2 \\times 4 + 3 \\times 0}{2 + 3} = \\frac{8}{5} = 1.6 \\, \\text{m/s} \)。"
+                }
+            ],
+            2: [
+                {
+                    question: "弹性碰撞的主要特点是什么？",
+                    options: [
+                        "碰撞后两物体粘在一起",
+                        "碰撞后形变能完全恢复，无能量损失",
+                        "碰撞后部分能量以热的形式散失",
+                        "碰撞后两物体以相同速度运动"
+                    ],
+                    correct: 1,
+                    explanation: "弹性碰撞的特点是形变能完全恢复，碰撞前后系统总动能不变，没有能量损失。这是理想化的碰撞模型，实际中完全弹性碰撞很少见。"
+                },
+                {
+                    question: "在弹性碰撞中，下列哪个物理量守恒？",
+                    options: [
+                        "动量",
+                        "动能",
+                        "动量和动能都守恒",
+                        "动量和动能都不守恒"
+                    ],
+                    correct: 2,
+                    explanation: "弹性碰撞中既满足动量守恒也满足动能守恒，这是弹性碰撞的两个基本方程，可以用来求解碰撞后的速度。"
+                },
+                {
+                    question: "质量相等的两个小球发生弹性正碰，结果会怎样？",
+                    options: [
+                        "两球粘在一起运动",
+                        "两球交换速度",
+                        "两球都静止",
+                        "两球以原速度的一半继续运动"
+                    ],
+                    correct: 1,
+                    explanation: "质量相等的两球发生弹性正碰时，会交换速度。这是弹性碰撞的一个重要特例，可以通过弹性碰撞公式推导得出：当 \( m_1 = m_2 \) 时，\( v_1' = v_2 \)，\( v_2' = v_1 \)。"
+                }
+            ],
+            3: [
+                {
+                    question: "非弹性碰撞介于哪两种碰撞之间？",
+                    options: [
+                        "完全非弹性碰撞和弹性碰撞",
+                        "完全非弹性碰撞和爆炸",
+                        "弹性碰撞和爆炸",
+                        "完全非弹性碰撞和完全弹性碰撞"
+                    ],
+                    correct: 0,
+                    explanation: "非弹性碰撞是介于完全非弹性碰撞（能量损失最大）和弹性碰撞（能量损失为零）之间的一种碰撞，有部分能量损失但不像完全非弹性碰撞那样损失最大。"
+                },
+                {
+                    question: "在非弹性碰撞中，下列哪个说法正确？",
+                    options: [
+                        "动能完全守恒",
+                        "动量不守恒",
+                        "有能量损失，但小于完全非弹性碰撞",
+                        "碰撞后两物体粘在一起"
+                    ],
+                    correct: 2,
+                    explanation: "非弹性碰撞中动量守恒，但动能有损失，且损失的能量介于0（弹性碰撞）和完全非弹性碰撞的最大损失之间。碰撞后两物体分开运动。"
+                },
+                {
+                    question: "与非弹性碰撞相比，弹性碰撞的特点是什么？",
+                    options: [
+                        "能量损失更大",
+                        "没有能量损失",
+                        "碰撞后两物体粘在一起",
+                        "动量不守恒"
+                    ],
+                    correct: 1,
+                    explanation: "弹性碰撞与非弹性碰撞的主要区别是：弹性碰撞没有动能损失，而非弹性碰撞有动能损失。两者都满足动量守恒定律。"
+                }
+            ]
+        };
+        
+        // 打开知识点考查弹窗
+        function openQuiz(quizType) {
+            currentQuizType = quizType;
+            currentQuestionIndex = 0;
+            const quizLength = quizzes[quizType].length;
+            userAnswers = new Array(quizLength).fill(-1);
+            answerStatus = new Array(quizLength).fill(-1); // -1表示未答
+            
+            const modal = document.getElementById('quizModal');
+            const title = document.getElementById('quizTitle');
+            
+            // 设置标题
+            if (quizType === 1) {
+                title.textContent = '完全非弹性碰撞知识点考查';
+            } else if (quizType === 2) {
+                title.textContent = '弹性碰撞知识点考查';
+            } else {
+                title.textContent = '非弹性碰撞知识点考查';
+            }
+            
+            // 显示弹窗
+            modal.style.display = 'flex';
+            
+            // 加载第一个问题
+            loadQuestion();
+        }
+        
+        // 关闭知识点考查弹窗
+        function closeQuiz() {
+            document.getElementById('quizModal').style.display = 'none';
+        }
+        
+        // 更新进度指示器
+        function updateProgress() {
+            const quiz = quizzes[currentQuizType];
+            const progressDiv = document.getElementById('quizProgress');
+            
+            let progressHtml = '';
+            for (let i = 0; i < quiz.length; i++) {
+                let statusClass = 'unanswered';
+                if (answerStatus[i] === 1) {
+                    statusClass = 'correct';
+                } else if (answerStatus[i] === 0) {
+                    statusClass = 'incorrect';
+                }
+                
+                let currentClass = (i === currentQuestionIndex) ? 'current' : '';
+                
+                progressHtml += `<span class="question-status ${statusClass} ${currentClass}" onclick="jumpToQuestion(${i})">${i+1}</span>`;
+            }
+            
+            progressDiv.innerHTML = progressHtml;
+        }
+        
+        // 跳转到指定题目
+        function jumpToQuestion(index) {
+            if (index >= 0 && index < quizzes[currentQuizType].length) {
+                currentQuestionIndex = index;
+                loadQuestion();
+            }
+        }
+        
+        // 加载问题
+        function loadQuestion() {
+            const quiz = quizzes[currentQuizType][currentQuestionIndex];
+            const questionsDiv = document.getElementById('quizQuestions');
+            const explanationDiv = document.getElementById('quizExplanation');
+            const resultDiv = document.getElementById('quizResult');
+            
+            // 更新进度指示器
+            updateProgress();
+            
+            let optionsHtml = '';
+            const userAnswer = userAnswers[currentQuestionIndex];
+            const isAnswered = userAnswer !== -1;
+            const isCorrect = answerStatus[currentQuestionIndex] === 1;
+            
+            quiz.options.forEach((option, index) => {
+                let className = 'quiz-option';
+                
+                if (isAnswered) {
+                    if (index === quiz.correct) {
+                        className += ' correct-answer';
+                    } else if (index === userAnswer && !isCorrect) {
+                        className += ' wrong-answer';
+                    }
+                } else if (index === userAnswer) {
+                    className += ' selected';
+                }
+                
+                optionsHtml += `
+                    <div class="${className}" ${!isAnswered ? `onclick="selectOption(${index})"` : 'style="cursor: default;"'}>
+                        ${String.fromCharCode(65 + index)}. ${option}
+                    </div>
+                `;
+            });
+            
+            questionsDiv.innerHTML = `
+                <div class="quiz-question">
+                    <h3>第 ${currentQuestionIndex + 1} 题（共 ${quizzes[currentQuizType].length} 题）</h3>
+                    <p>${quiz.question}</p>
+                </div>
+                <div class="quiz-options">
+                    ${optionsHtml}
+                </div>
+            `;
+            
+            // 如果已经答过此题，显示解析
+            if (isAnswered) {
+                showExplanation();
+            } else {
+                explanationDiv.style.display = 'none';
+                resultDiv.style.display = 'none';
+            }
+        }
+        
+        // 显示解析
+        function showExplanation() {
+            const quiz = quizzes[currentQuizType][currentQuestionIndex];
+            const userAnswer = userAnswers[currentQuestionIndex];
+            const isCorrect = answerStatus[currentQuestionIndex] === 1;
+            const explanationDiv = document.getElementById('quizExplanation');
+            const resultDiv = document.getElementById('quizResult');
+            
+            explanationDiv.innerHTML = `
+                <h4>题目解析</h4>
+                <p><strong>正确答案：</strong>${String.fromCharCode(65 + quiz.correct)}. ${quiz.options[quiz.correct]}</p>
+                <p><strong>你的答案：</strong>${userAnswer !== -1 ? `${String.fromCharCode(65 + userAnswer)}. ${quiz.options[userAnswer]}` : '未作答'} ${isCorrect ? '✓' : (userAnswer !== -1 ? '✗' : '')}</p>
+                <p><strong>解析：</strong>${quiz.explanation}</p>
+            `;
+            explanationDiv.style.display = 'block';
+            
+            if (isCorrect) {
+                resultDiv.className = 'quiz-result correct';
+                resultDiv.innerHTML = '<p>✓ 回答正确！</p>';
+            } else if (userAnswer !== -1) {
+                resultDiv.className = 'quiz-result incorrect';
+                resultDiv.innerHTML = '<p>✗ 回答错误</p>';
+            } else {
+                resultDiv.style.display = 'none';
+                return;
+            }
+            
+            resultDiv.style.display = 'block';
+            
+            // 重新渲染数学公式
+            if (window.MathJax) {
+                window.MathJax.typesetPromise([explanationDiv]).catch(err => console.log(err));
+            }
+        }
+        
+        // 选择答案
+        function selectOption(optionIndex) {
+            if (answerStatus[currentQuestionIndex] !== -1) return; // 已经答过此题
+            
+            // 移除之前的选择
+            const options = document.querySelectorAll('.quiz-option');
+            options.forEach(option => option.classList.remove('selected'));
+            
+            // 标记当前选择
+            options[optionIndex].classList.add('selected');
+            
+            // 保存答案
+            userAnswers[currentQuestionIndex] = optionIndex;
+        }
+        
+        // 上一题
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                loadQuestion();
+            }
+        }
+        
+        // 下一题
+        function nextQuestion() {
+            if (currentQuestionIndex < quizzes[currentQuizType].length - 1) {
+                currentQuestionIndex++;
+                loadQuestion();
+            }
+        }
+        
+        // 提交答案
+        function submitQuiz() {
+            const quiz = quizzes[currentQuizType][currentQuestionIndex];
+            const userAnswer = userAnswers[currentQuestionIndex];
+            
+            if (userAnswer === -1) {
+                alert('请先选择答案！');
+                return;
+            }
+            
+            // 检查答案是否正确
+            const isCorrect = userAnswer === quiz.correct;
+            answerStatus[currentQuestionIndex] = isCorrect ? 1 : 0;
+            
+            // 显示解析
+            showExplanation();
+            
+            // 更新进度指示器
+            updateProgress();
+            
+            // 如果还有未答的题目，自动跳到下一题
+            const nextUnansweredIndex = answerStatus.findIndex(status => status === -1);
+            if (nextUnansweredIndex !== -1 && nextUnansweredIndex !== currentQuestionIndex) {
+                // 延迟1秒后跳转到下一未答题目
+                setTimeout(() => {
+                    currentQuestionIndex = nextUnansweredIndex;
+                    loadQuestion();
+                }, 1000);
+            }
+        }
+        
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化所有动画到起始位置
+            resetAnimation('animation1');
+            resetAnimation('animation1-static');
+            resetAnimation('animation2-1');
+            resetAnimation('animation2-2');
+            resetAnimation('animation3');
+            
+            // 设置MathJax配置
+            if (window.MathJax) {
+                window.MathJax.typeset();
+            }
+        });
+    </script>
+</body>
+</html>

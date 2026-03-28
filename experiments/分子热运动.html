@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分子热运动模拟实验</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Microsoft YaHei", sans-serif;
+            background-color: #f5f8ff;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .experiment-desc {
+            line-height: 1.8;
+            color: #34495e;
+            margin-bottom: 30px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .control-panel {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            background-color: #3498db;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        button.stop {
+            background-color: #e74c3c;
+        }
+
+        button.stop:hover {
+            background-color: #c0392b;
+        }
+
+        /* 温度滑块样式 */
+        .temp-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #34495e;
+            font-size: 16px;
+        }
+
+        #tempSlider {
+            width: 200px;
+            height: 6px;
+            accent-color: #34495e;
+            cursor: pointer;
+        }
+
+        #tempValue {
+            width: 60px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        /* 知识检测按钮特殊样式 */
+        button.quiz-btn {
+            background-color: #2ecc71;
+        }
+
+        button.quiz-btn:hover {
+            background-color: #27ae60;
+        }
+
+        .canvas-box {
+            width: 100%;
+            height: 500px;
+            border: 2px solid #bdc3c7;
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: #fafafa;
+            margin: 0 auto;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #7f8c8d;
+        }
+
+        /* 知识检测弹窗样式 */
+        .quiz-modal {
+            display: none; /* 默认隐藏 */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .quiz-content {
+            background-color: #fff;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 700px;
+            padding: 30px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .quiz-title {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .question {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .question h3 {
+            color: #34495e;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-left: 15px;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .option:hover {
+            background-color: #f8f9fa;
+        }
+
+        .quiz-controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        /* 原有检测结果区域隐藏（移到答题详情弹窗） */
+        .quiz-result {
+            display: none;
+        }
+
+        /* 答题详情弹窗样式（层级高于原弹窗） */
+        .answer-detail-modal {
+            display: none; /* 默认隐藏 */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .answer-detail-content {
+            background-color: #fff;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            padding: 30px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .answer-detail-title {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        /* 新增：答题详情中的得分样式 */
+        .detail-score {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #e74c3c;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        /* 新增：答题详情中的学情分析样式 */
+        .detail-analysis {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #f5f5f5;
+            line-height: 1.8;
+            color: #34495e;
+        }
+
+        .detail-analysis h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .answer-item {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .answer-item h3 {
+            color: #34495e;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .answer-compare {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-left: 15px;
+        }
+
+        .your-answer, .correct-answer-item {
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        .your-answer {
+            background-color: #fef5f5;
+            border: 1px solid #fde2e2;
+        }
+
+        .correct-answer-item {
+            background-color: #f0fdf4;
+            border: 1px solid #d1fae5;
+        }
+
+        .text-green {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .text-red {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .answer-detail-controls {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <h1>分子热运动模拟实验</h1>
+        <div class="experiment-desc">
+            <p>1. 热运动是指微观粒子在无规则外力作用下的无规则运动，温度越高，运动越剧烈。</p>
+            <p>2. 本实验中，小球代表微观分子，点击「开始运动」可观察无规则运动；拖动滑块可调节温度（K，控制粒子运动速率）；点击「停止运动」可暂停模拟。</p>
+            <p>3. 实验现象：温度升高时，粒子运动的速度明显变快。</p>
+        </div>
+        <div class="control-panel">
+            <button id="startBtn">开始运动</button>
+            <div class="temp-control">
+                <span>温度：</span>
+                <input type="range" id="tempSlider" min="273" max="373" value="298">
+                <span id="tempValue">298 K</span>
+            </div>
+            <button id="stopBtn" class="stop">停止运动</button>
+            <button id="quizBtn" class="quiz-btn">知识检测</button>
+        </div>
+        <div class="canvas-box">
+            <canvas id="motionCanvas"></canvas>
+        </div>
+        <div class="footer">
+            分子热运动模拟实验 | HTML + CSS + JavaScript 实现
+        </div>
+    </div>
+
+    <!-- 知识检测弹窗 -->
+    <div class="quiz-modal" id="quizModal">
+        <div class="quiz-content">
+            <h2 class="quiz-title">分子热运动知识检测（总分100分）</h2>
+            <form id="quizForm">
+                <!-- 问题1 -->
+                <div class="question">
+                    <h3>1. 下列关于分子热运动的说法，正确的是（）</h3>
+                    <div class="options">
+                        <div class="option">
+                            <input type="radio" name="q1" value="A" id="q1a">
+                            <label for="q1a">A. 温度越低，分子热运动越剧烈</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" name="q1" value="B" id="q1b">
+                            <label for="q1b">B. 分子热运动是一种有规则的定向运动</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" name="q1" value="C" id="q1c">
+                            <label for="q1c">C. 温度越高，分子热运动越强</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" name="q1" value="D" id="q1d">
+                            <label for="q1d">D. 分子热运动只在气体中存在</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 问题2 -->
+                <div class="question">
+                    <h3>2. 本实验中，温度单位采用开尔文（K），绝对零度（0 K）对应的摄氏温度是（）</h3>
+                    <div class="options">
+                        <div class="option">
+                            <input type="radio" name="q2" value="A" id="q2a">
+                            <label for="q2a">A. 0 ℃</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" name="q2" value="B" id="q2b">
+                            <label for="q2b">B. -273.15 ℃</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" value="C" name="q2" id="q2c">
+                            <label for="q2c">C. 100 ℃</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" value="D" name="q2" id="q2d">
+                            <label for="q2d">D. 273.15 ℃</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 问题3 -->
+                <div class="question">
+                    <h3>3. 下列现象中，能直接反映分子热运动的是（）</h3>
+                    <div class="options">
+                        <div class="option">
+                            <input type="radio" name="q3" value="A" id="q3a">
+                            <label for="q3a">A. 春风拂过，柳枝摇曳</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" name="q3" value="B" id="q3b">
+                            <label for="q3b">B. 墨水滴入水中，逐渐扩散</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" name="q3" value="C" id="q3c">
+                            <label for="q3c">C. 汽车驶过，尘土飞扬</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" name="q3" value="D" id="q3d">
+                            <label for="q3d">D. 寒冬腊月，大雪纷飞</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 问题4 -->
+                <div class="question">
+                    <h3>4. 在本模拟实验中，提高温度（K）后，粒子的变化是（）</h3>
+                    <div class="options">
+                        <div class="option">
+                            <input type="radio" name="q4" value="A" id="q4a">
+                            <label for="q4a">A. 粒子数量减少</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" name="q4" value="B" id="q4b">
+                            <label for="q4b">B. 粒子颜色变浅</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" name="q4" value="C" id="q4c">
+                            <label for="q4c">C. 粒子运动速率加快</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" name="q4" value="D" id="q4d">
+                            <label for="q4d">D. 粒子会聚集在一起</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 问题5（替换B选项内容） -->
+                <div class="question">
+                    <h3>5. 关于分子热运动与温度的关系，下列表述错误的是（）</h3>
+                    <div class="options">
+                        <div class="option">
+                            <input type="radio" name="q5" value="A" id="q5a">
+                            <label for="q5a">A. 温度是分子平均动能的标志</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" name="q5" value="B" id="q5b">
+                            <label for="q5b">B. 分子热运动的剧烈程度与温度无关</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" name="q5" value="C" id="q5c">
+                            <label for="q5c">C. 绝对零度时，分子热运动并未完全停止</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" name="q5" value="D" id="q5d">
+                            <label for="q5d">D. 常温（25℃）对应的开尔文温度约为298 K</label>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <div class="quiz-controls">
+                <button id="submitQuizBtn">提交试卷</button>
+                <button id="closeQuizBtn" class="stop">关闭弹窗</button>
+            </div>
+
+            <!-- 检测结果区域（保留结构，移到答题详情弹窗展示） -->
+            <div class="quiz-result" id="quizResult">
+                <h2>检测结果</h2>
+                <div class="score" id="finalScore">你的得分：0 / 100 分</div>
+                <div class="correct-answers" id="correctAnswers">
+                    <strong>本次检测正确答案：</strong><br>
+                    1.C  2.B  3.B  4.C  5.B
+                </div>
+                <div class="analysis" id="scoreAnalysis">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 答题详情弹窗（包含得分、学情分析、答题对比） -->
+    <div class="answer-detail-modal" id="answerDetailModal">
+        <div class="answer-detail-content">
+            <h2 class="answer-detail-title">答题详情与检测结果</h2>
+            <!-- 新增：得分展示 -->
+            <div class="detail-score" id="detailFinalScore">你的得分：0 / 100 分</div>
+            <!-- 新增：学情分析展示 -->
+            <div class="detail-analysis" id="detailScoreAnalysis">
+                <h3>学情分析</h3>
+            </div>
+            <!-- 答题对比内容 -->
+            <div id="answerDetailContent">
+            </div>
+            <div class="answer-detail-controls">
+                <button id="closeAnswerDetailBtn" class="stop">关闭详情</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. 获取DOM元素和初始化参数
+        const canvas = document.getElementById('motionCanvas');
+        const ctx = canvas.getContext('2d');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const tempSlider = document.getElementById('tempSlider');
+        const tempValue = document.getElementById('tempValue');
+        const quizBtn = document.getElementById('quizBtn');
+        const quizModal = document.getElementById('quizModal');
+        const closeQuizBtn = document.getElementById('closeQuizBtn');
+        const submitQuizBtn = document.getElementById('submitQuizBtn');
+        const quizForm = document.getElementById('quizForm');
+        const quizResult = document.getElementById('quizResult');
+        const finalScore = document.getElementById('finalScore');
+        const correctAnswersDom = document.getElementById('correctAnswers');
+        const scoreAnalysis = document.getElementById('scoreAnalysis');
+        // 答题详情弹窗相关DOM（新增得分、学情分析DOM）
+        const answerDetailModal = document.getElementById('answerDetailModal');
+        const answerDetailContent = document.getElementById('answerDetailContent');
+        const closeAnswerDetailBtn = document.getElementById('closeAnswerDetailBtn');
+        const detailFinalScore = document.getElementById('detailFinalScore');
+        const detailScoreAnalysis = document.getElementById('detailScoreAnalysis');
+
+        // 画布尺寸（与容器同步）
+        canvas.width = document.querySelector('.canvas-box').offsetWidth;
+        canvas.height = document.querySelector('.canvas-box').offsetHeight;
+
+        // 粒子配置参数
+        let particles = []; // 粒子数组
+        const particleCount = 150; // 粒子数量
+        let speedFactor = mapKelvinToSpeed(parseInt(tempSlider.value)); 
+        let isRunning = false; // 是否正在运动
+        let animationId = null; // 动画请求ID
+
+        // 试题答案（每题20分，总分100分，第5题正确答案仍为B）
+        const correctAnswers = {
+            q1: "C",
+            q2: "B",
+            q3: "B",
+            q4: "C",
+            q5: "B"
+        };
+
+        // 试题题干映射
+        const questionTitles = {
+            q1: "下列关于分子热运动的说法，正确的是（）",
+            q2: "本实验中，温度单位采用开尔文（K），绝对零度（0 K）对应的摄氏温度是（）",
+            q3: "下列现象中，能直接反映分子热运动的是（）",
+            q4: "在本模拟实验中，提高温度（K）后，粒子的变化是（）",
+            q5: "关于分子热运动与温度的关系，下列表述错误的是（）"
+        };
+
+        // 选项内容映射（更新第5题B选项）
+        const optionContents = {
+            q1: {
+                A: "温度越低，分子热运动越剧烈",
+                B: "分子热运动是一种有规则的定向运动",
+                C: "温度越高，分子热运动越强",
+                D: "分子热运动只在气体中存在"
+            },
+            q2: {
+                A: "0 ℃",
+                B: "-273.15 ℃",
+                C: "100 ℃",
+                D: "273.15 ℃"
+            },
+            q3: {
+                A: "春风拂过，柳枝摇曳",
+                B: "墨水滴入水中，逐渐扩散",
+                C: "汽车驶过，尘土飞扬",
+                D: "寒冬腊月，大雪纷飞"
+            },
+            q4: {
+                A: "粒子数量减少",
+                B: "粒子颜色变浅",
+                C: "粒子运动速率加快",
+                D: "粒子会聚集在一起"
+            },
+            q5: {
+                A: "温度是分子平均动能的标志",
+                B: "分子热运动的剧烈程度与温度无关", 
+                C: "绝对零度时，分子热运动并未完全停止",
+                D: "常温（25℃）对应的开尔文温度约为298 K"
+            }
+        };
+
+        // 2. 工具函数：将开尔文温度（273-373）映射为速度因子（1-10）
+        function mapKelvinToSpeed(kelvin) {
+            return ((kelvin - 273) / (373 - 273)) * 9 + 1;
+        }
+
+        // 3. 粒子类（定义粒子属性和方法）
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * speedFactor;
+                this.vy = (Math.random() - 0.5) * speedFactor;
+                this.radius = Math.random() * 3 + 2;
+                this.color = `rgba(${Math.floor(Math.random() * 100 + 155)}, 
+                                    ${Math.floor(Math.random() * 100 + 155)}, 
+                                    ${Math.floor(Math.random() * 100 + 155)}, 
+                                    0.8)`;
+            }
+
+            update() {
+                this.vx += (Math.random() - 0.5) * 0.5;
+                this.vy += (Math.random() - 0.5) * 0.5;
+
+                const maxSpeed = speedFactor + 3;
+                this.vx = Math.max(-maxSpeed, Math.min(maxSpeed, this.vx));
+                this.vy = Math.max(-maxSpeed, Math.min(maxSpeed, this.vy));
+
+                this.x += this.vx;
+                this.y += this.vy;
+
+                if (this.x < this.radius) {
+                    this.x = this.radius;
+                    this.vx = -this.vx * 0.9;
+                } else if (this.x > canvas.width - this.radius) {
+                    this.x = canvas.width - this.radius;
+                    this.vx = -this.vx * 0.9;
+                }
+
+                if (this.y < this.radius) {
+                    this.y = this.radius;
+                    this.vy = -this.vy * 0.9;
+                } else if (this.y > canvas.height - this.radius) {
+                    this.y = canvas.height - this.radius;
+                    this.vy = -this.vy * 0.9;
+                }
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.closePath();
+            }
+        }
+
+        // 4. 初始化粒子数组
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        // 5. 动画循环（更新并绘制所有粒子）
+        function animate() {
+            if (!isRunning) return;
+
+            ctx.fillStyle = 'rgba(250, 250, 250, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+
+            animationId = requestAnimationFrame(animate);
+        }
+
+        // 生成答题详情内容（包含得分、学情分析、答题对比）
+        function generateAnswerDetail(score, analysisText) {
+            // 1. 更新答题详情弹窗中的得分
+            detailFinalScore.textContent = `你的得分：${score} / 100 分`;
+
+            // 2. 更新答题详情弹窗中的学情分析
+            detailScoreAnalysis.innerHTML = `<h3>学情分析</h3>${analysisText}`;
+
+            // 3. 构建答题对比HTML
+            let detailHtml = '';
+            for (let [qId, correctAns] of Object.entries(correctAnswers)) {
+                const qNum = qId.slice(1);
+                const selectedOption = document.querySelector(`input[name="${qId}"]:checked`);
+                const yourAns = selectedOption ? selectedOption.value : "未作答";
+                const isCorrect = yourAns === correctAns;
+
+                detailHtml += `
+                <div class="answer-item">
+                    <h3>第${qNum}题：${questionTitles[qId]}</h3>
+                    <div class="answer-compare">
+                        <div class="your-answer">
+                            你的选择：<span class="${isCorrect ? 'text-green' : 'text-red'}">${yourAns}${yourAns !== "未作答" ? "：" + optionContents[qId][yourAns] : ""}</span>
+                        </div>
+                        <div class="correct-answer-item">
+                            正确答案：<span class="text-green">${correctAns}：${optionContents[qId][correctAns]}</span>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }
+
+            // 4. 插入内容并显示弹窗
+            answerDetailContent.innerHTML = detailHtml;
+            answerDetailModal.style.display = 'flex';
+        }
+
+        // 批改试卷并生成结果
+        function gradeQuiz() {
+            let score = 0;
+            let wrongQuestions = [];
+
+            // 遍历所有题目，判断对错
+            for (let [qId, correctAns] of Object.entries(correctAnswers)) {
+                const selectedOption = document.querySelector(`input[name="${qId}"]:checked`);
+                if (selectedOption) {
+                    if (selectedOption.value === correctAns) {
+                        score += 20;
+                    } else {
+                        wrongQuestions.push(qId);
+                    }
+                }
+            }
+
+            // 生成学情分析文本
+            let analysisText = '';
+            if (score === 100) {
+                analysisText = `
+                <p>🎉 优秀！你完全掌握了分子热运动的核心知识。</p>
+                <p>学情总结：</p>
+                <p>1. 你对分子热运动与温度的关系理解透彻，能准确区分宏观运动与微观分子热运动。</p>
+                <p>2. 你熟悉开尔文温度的相关常识，掌握了绝对零度的物理意义。</p>
+                <p>3. 建议：可以进一步深入学习分子动理论的其他内容，如分子间作用力等。</p>
+                `;
+            } else if (score >= 60 && score < 100) {
+                analysisText = `
+                <p>👍 合格！你基本掌握了分子热运动的核心知识，但仍有提升空间。</p>
+                <p>学情总结：</p>
+                <p>1. 你对分子热运动的基本概念有清晰认知，能正确判断部分核心知识点。</p>
+                <p>2. 错误题目：${wrongQuestions.map(q => `第${q.slice(1)}题`).join('、')}，建议对照正确答案针对性复习相关知识点。</p>
+                <p>3. 重点巩固：${wrongQuestions.includes('q2') ? '开尔文温度与摄氏温度的转换；' : ''}${wrongQuestions.includes('q5') ? '分子热运动与温度的定量关系；' : ''}${wrongQuestions.includes('q3') ? '宏观现象与微观分子热运动的区分；' : ''}</p>
+                <p>4. 建议：多结合实验现象理解知识点，加深记忆。</p>
+                `;
+            } else {
+                analysisText = `
+                <p>⚠️ 未合格！你需要重新学习分子热运动的相关知识。</p>
+                <p>学情总结：</p>
+                <p>1. 你对分子热运动的核心概念理解不够透彻，需要重点夯实基础。</p>
+                <p>2. 错误题目较多（${wrongQuestions.length}题），建议对照正确答案重新梳理知识点，结合模拟实验加深理解。</p>
+                <p>3. 重点复习：</p>
+                <p>   - 分子热运动的无规则性与温度的关系；</p>
+                <p>   - 开尔文温度的基本常识（绝对零度、与摄氏温度的转换）；</p>
+                <p>   - 宏观运动与微观分子热运动的区别。</p>
+                <p>4. 建议：先熟悉模拟实验的现象，再结合理论知识巩固，重新完成检测。</p>
+                `;
+            }
+
+            // 调用生成答题详情函数（传入得分和学情分析）
+            generateAnswerDetail(score, analysisText);
+        }
+
+        // 7. 绑定事件
+        // 开始运动
+        startBtn.addEventListener('click', () => {
+            if (isRunning) return;
+            isRunning = true;
+            initParticles();
+            animate();
+        });
+
+        // 温度滑块事件
+        tempSlider.addEventListener('input', () => {
+            const currentKelvin = parseInt(tempSlider.value);
+            tempValue.textContent = `${currentKelvin} K`;
+            speedFactor = mapKelvinToSpeed(currentKelvin);
+
+            if (isRunning) {
+                particles.forEach(particle => {
+                    particle.vx = (Math.random() - 0.5) * speedFactor;
+                    particle.vy = (Math.random() - 0.5) * speedFactor;
+                });
+            }
+        });
+
+        // 停止运动
+        stopBtn.addEventListener('click', () => {
+            isRunning = false;
+            cancelAnimationFrame(animationId);
+        });
+
+        // 打开知识检测弹窗
+        quizBtn.addEventListener('click', () => {
+            quizModal.style.display = 'flex';
+            quizForm.reset();
+        });
+
+        // 关闭知识检测弹窗
+        closeQuizBtn.addEventListener('click', () => {
+            quizModal.style.display = 'none';
+        });
+
+        // 提交试卷
+        submitQuizBtn.addEventListener('click', () => {
+            const allAnswered = Object.keys(correctAnswers).every(qId => {
+                return document.querySelector(`input[name="${qId}"]:checked`);
+            });
+
+            if (!allAnswered) {
+                alert('请完成所有题目后再提交试卷！');
+                return;
+            }
+
+            gradeQuiz();
+        });
+
+        // 点击知识检测弹窗外部关闭
+        quizModal.addEventListener('click', (e) => {
+            if (e.target === quizModal) {
+                quizModal.style.display = 'none';
+            }
+        });
+
+        // 关闭答题详情弹窗
+        closeAnswerDetailBtn.addEventListener('click', () => {
+            answerDetailModal.style.display = 'none';
+        });
+
+        // 点击答题详情弹窗外部关闭
+        answerDetailModal.addEventListener('click', (e) => {
+            if (e.target === answerDetailModal) {
+                answerDetailModal.style.display = 'none';
+            }
+        });
+
+        // 窗口大小变化时同步画布尺寸
+        window.addEventListener('resize', () => {
+            canvas.width = document.querySelector('.canvas-box').offsetWidth;
+            canvas.height = document.querySelector('.canvas-box').offsetHeight;
+            if (isRunning) {
+                initParticles();
+            }
+        });
+
+        // 初始化
+        window.onload = () => {
+            initParticles();
+            particles.forEach(particle => {
+                particle.draw();
+            });
+            tempValue.textContent = `${tempSlider.value} K`;
+        };
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,2291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>路端电压与负载关系模拟实验</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            max-width: 1600px;
+            margin: 0 auto;
+            gap: 20px;
+        }
+        
+        .header {
+            flex: 0 0 100%;
+            background: linear-gradient(to right, #2c3e50, #4a6491);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .circuit-container {
+            flex: 1;
+            min-width: 700px;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #circuit-canvas {
+            width: 100%;
+            height: 500px;
+            border-radius: 10px;
+            background: #f8f9fa;
+            display: block;
+        }
+        
+        .control-panel {
+            flex: 0 0 400px;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-title i {
+            color: #3498db;
+        }
+        
+        .slider-container {
+            margin-bottom: 20px;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .slider-label .param-name {
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .slider-label .value {
+            color: #e74c3c;
+            font-weight: 700;
+            background: #fff;
+            padding: 2px 10px;
+            border-radius: 15px;
+            border: 1px solid #eee;
+            min-width: 60px;
+            text-align: center;
+        }
+        
+        .slider {
+            width: 100%;
+            height: 10px;
+            border-radius: 5px;
+            background: linear-gradient(to right, #ecf0f1, #bdc3c7);
+            outline: none;
+            -webkit-appearance: none;
+            transition: all 0.3s;
+        }
+        
+        .slider:hover {
+            background: linear-gradient(to right, #3498db, #2980b9);
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            border: 3px solid #3498db;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s;
+        }
+        
+        .slider::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+            box-shadow: 0 3px 12px rgba(52, 152, 219, 0.4);
+        }
+        
+        .display-panel {
+            background: linear-gradient(to bottom right, #f8f9fa, #e9ecef);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 10px;
+            border-left: 5px solid #3498db;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        
+        .display-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px dashed #ced4da;
+        }
+        
+        .display-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        
+        .display-label {
+            font-weight: 600;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .display-label i {
+            color: #3498db;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .display-value {
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: #e74c3c;
+            background: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            border: 1px solid #eee;
+            min-width: 100px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        
+        .formula-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 10px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .formula-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotate(30deg);
+        }
+        
+        .formula-title {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        
+        .formula {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        
+        .formula-calculation {
+            font-size: 1.3rem;
+            opacity: 0.95;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            position: relative;
+        }
+        
+        #graph-container {
+            width: 100%;
+            height: 300px;
+            margin-top: 10px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            background: white;
+            position: relative;
+        }
+        
+        #graph-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        .button-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn:active {
+            transform: translateY(-1px);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(to right, #3498db, #2980b9);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(to right, #2980b9, #2573a7);
+            box-shadow: 0 7px 20px rgba(52, 152, 219, 0.3);
+        }
+        
+        .btn-success {
+            background: linear-gradient(to right, #2ecc71, #27ae60);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: linear-gradient(to right, #27ae60, #219955);
+            box-shadow: 0 7px 20px rgba(46, 204, 113, 0.3);
+        }
+        
+        .btn-info {
+            background: linear-gradient(to right, #9b59b6, #8e44ad);
+            color: white;
+        }
+        
+        .btn-info:hover {
+            background: linear-gradient(to right, #8e44ad, #7d3c98);
+            box-shadow: 0 7px 20px rgba(155, 89, 182, 0.3);
+        }
+        
+        .circuit-controls {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            gap: 15px;
+            z-index: 10;
+        }
+        
+        .circuit-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: white;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: #2c3e50;
+            transition: all 0.3s;
+        }
+        
+        .circuit-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .circuit-btn.active {
+            background: #3498db;
+            color: white;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(3px);
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            position: relative;
+            animation: modalAppear 0.3s ease-out;
+        }
+        
+        @keyframes modalAppear {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            font-size: 2rem;
+            color: #e74c3c;
+            cursor: pointer;
+            transition: color 0.3s;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        
+        .close-modal:hover {
+            color: #c0392b;
+            background: #f5f5f5;
+        }
+        
+        .question-container {
+            margin-bottom: 25px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .question-container:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        
+        .question {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 1.1rem;
+            line-height: 1.5;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .option {
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1rem;
+        }
+        
+        .option:hover {
+            background-color: #f1f8ff;
+            border-color: #c0d9f5;
+            transform: translateX(5px);
+        }
+        
+        .option.selected {
+            border-color: #3498db;
+            background-color: #ebf5fb;
+            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.2);
+        }
+        
+        .option.correct {
+            border-color: #2ecc71;
+            background-color: #eafaf1;
+            box-shadow: 0 2px 8px rgba(46, 204, 113, 0.2);
+        }
+        
+        .option.incorrect {
+            border-color: #e74c3c;
+            background-color: #fdedec;
+            box-shadow: 0 2px 8px rgba(231, 76, 60, 0.2);
+        }
+        
+        .explanation {
+            margin-top: 15px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            display: none;
+            color: #2c3e50;
+            line-height: 1.6;
+            border-left: 4px solid #9b59b6;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .explanation.show {
+            display: block;
+        }
+        
+        .explanation strong {
+            color: #9b59b6;
+        }
+        
+        .footer {
+            flex: 0 0 100%;
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        
+        .footer a {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .slider-knob {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+            border: 3px solid white;
+            transition: transform 0.1s, box-shadow 0.3s;
+            font-size: 1.2rem;
+        }
+        
+        .slider-knob:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        }
+        
+        .slider-knob:active {
+            transform: scale(0.95);
+        }
+        
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            pointer-events: none;
+            z-index: 100;
+            white-space: nowrap;
+            transform: translateY(-100%);
+            margin-top: -10px;
+        }
+        
+        .data-point {
+            position: absolute;
+            background: #e74c3c;
+            color: white;
+            font-size: 0.8rem;
+            padding: 3px 8px;
+            border-radius: 10px;
+            pointer-events: none;
+            z-index: 5;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .update-animation {
+            animation: pulse 0.5s ease-in-out;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .graph-label {
+            position: absolute;
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+        
+        .graph-title {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 5px 15px;
+            border-radius: 20px;
+            z-index: 5;
+        }
+        
+        @media (max-width: 1200px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .circuit-container, .control-panel {
+                min-width: 100%;
+            }
+            
+            .circuit-container {
+                height: 500px;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-bolt"></i> 路端电压与负载关系模拟实验</h1>
+            <p>通过交互式电路理解路端电压公式 U = E - Ir。拖动滑动变阻器滑片改变负载，观察电压表、电流表示数变化，验证公式并完成习题。</p>
+        </div>
+        
+        <div class="circuit-container">
+            <canvas id="circuit-canvas" width="700" height="500"></canvas>
+            <div class="circuit-controls">
+                <button class="circuit-btn" id="reset-slider" title="重置滑动变阻器">
+                    <i class="fas fa-sliders-h"></i>
+                </button>
+                <button class="circuit-btn" id="toggle-switch" title="切换开关状态">
+                    <i class="fas fa-power-off"></i>
+                </button>
+                <button class="circuit-btn" id="auto-sweep" title="自动扫描">
+                    <i class="fas fa-play"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="control-panel">
+            <div>
+                <h2 class="section-title"><i class="fas fa-sliders-h"></i> 参数控制</h2>
+                
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <div class="param-name">
+                            <i class="fas fa-battery-full"></i> 电源电动势 E
+                        </div>
+                        <div class="value" id="e-value">12.0 V</div>
+                    </div>
+                    <input type="range" min="1" max="24" step="0.1" value="12" class="slider" id="e-slider">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #7f8c8d; margin-top: 5px;">
+                        <span>1V</span><span>24V</span>
+                    </div>
+                </div>
+                
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <div class="param-name">
+                            <i class="fas fa-resistance"></i> 电源内阻 r
+                        </div>
+                        <div class="value" id="r-value">1.0 Ω</div>
+                    </div>
+                    <input type="range" min="0.1" max="5" step="0.1" value="1.0" class="slider" id="r-slider">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #7f8c8d; margin-top: 5px;">
+                        <span>0.1Ω</span><span>5Ω</span>
+                    </div>
+                </div>
+                
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <div class="param-name">
+                            <i class="fas fa-resistor"></i> 定值电阻 R
+                        </div>
+                        <div class="value" id="r1-value">5.0 Ω</div>
+                    </div>
+                    <input type="range" min="1" max="20" step="0.5" value="5.0" class="slider" id="r1-slider">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #7f8c8d; margin-top: 5px;">
+                        <span>1Ω</span><span>20Ω</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <h2 class="section-title"><i class="fas fa-chart-line"></i> 实时数据</h2>
+                <div class="display-panel">
+                    <div class="display-item">
+                        <div class="display-label">
+                            <i class="fas fa-bolt"></i> 路端电压 U
+                        </div>
+                        <div class="display-value" id="voltage-display">7.20 V</div>
+                    </div>
+                    <div class="display-item">
+                        <div class="display-label">
+                            <i class="fas fa-tachometer-alt"></i> 电流 I
+                        </div>
+                        <div class="display-value" id="current-display">0.80 A</div>
+                    </div>
+                    <div class="display-item">
+                        <div class="display-label">
+                            <i class="fas fa-link"></i> 总电阻 R总
+                        </div>
+                        <div class="display-value" id="total-resistance-display">9.00 Ω</div>
+                    </div>
+                    <div class="display-item">
+                        <div class="display-label">
+                            <i class="fas fa-external-link-alt"></i> 负载电阻 R外
+                        </div>
+                        <div class="display-value" id="external-resistance-display">8.00 Ω</div>
+                    </div>
+                    <div class="display-item">
+                        <div class="display-label">
+                            <i class="fas fa-battery-quarter"></i> 内电压 U内
+                        </div>
+                        <div class="display-value" id="internal-voltage-display">0.80 V</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <h2 class="section-title"><i class="fas fa-calculator"></i> 公式验证</h2>
+                <div class="formula-container">
+                    <div class="formula-title">闭合电路欧姆定律</div>
+                    <div class="formula">U = E - I·r</div>
+                    <div class="formula-calculation" id="formula-calculation">
+                        7.20 = 12.0 - 0.80×1.0
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <h2 class="section-title"><i class="fas fa-chart-area"></i> U-I 关系图</h2>
+                <div id="graph-container">
+                    <canvas id="graph-canvas" width="400" height="300"></canvas>
+                    <div class="graph-title">路端电压-电流关系图 (U-I图)</div>
+                </div>
+            </div>
+            
+            <div class="button-container">
+                <button class="btn btn-primary" id="exercise-btn">
+                    <i class="fas fa-question-circle"></i> 开始习题
+                </button>
+                <button class="btn btn-success" id="reset-btn">
+                    <i class="fas fa-redo"></i> 重置实验
+                </button>
+                <button class="btn btn-info" id="data-btn">
+                    <i class="fas fa-database"></i> 数据记录
+                </button>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p><i class="fas fa-info-circle"></i> 路端电压实验模拟器 | 闭合电路欧姆定律: U = E - Ir | 拖动滑动变阻器滑片改变负载电阻，观察路端电压变化</p>
+            <p style="margin-top: 10px;">提示：定值电阻R与滑动变阻器串联，电压表测量路端电压，电流表测量总电流</p>
+        </div>
+    </div>
+    
+    <!-- 习题模态框 -->
+    <div class="modal" id="exercise-modal">
+        <div class="modal-content">
+            <span class="close-modal" id="close-modal">&times;</span>
+            <h2 style="color: #2c3e50; margin-bottom: 20px; text-align: center;">
+                <i class="fas fa-graduation-cap"></i> 路端电压与负载关系习题
+            </h2>
+            <p style="text-align: center; margin-bottom: 25px; color: #7f8c8d;">
+                完成以下5道习题，测试你对路端电压公式的理解。点击选项选择答案。
+            </p>
+            
+            <div id="questions-container">
+                <!-- 习题将通过JavaScript动态生成 -->
+            </div>
+            
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="btn btn-primary" id="submit-answers" style="padding: 12px 30px;">
+                    <i class="fas fa-check-circle"></i> 提交答案
+                </button>
+                <button class="btn btn-success" id="show-all-explanations" style="padding: 12px 30px; margin-left: 15px;">
+                    <i class="fas fa-lightbulb"></i> 显示所有解析
+                </button>
+            </div>
+            
+            <div id="score-display" style="text-align: center; margin-top: 25px; font-size: 1.2rem; font-weight: bold; display: none;"></div>
+        </div>
+    </div>
+    
+    <!-- 数据记录模态框 -->
+    <div class="modal" id="data-modal">
+        <div class="modal-content">
+            <span class="close-modal" id="close-data-modal">&times;</span>
+            <h2 style="color: #2c3e50; margin-bottom: 20px; text-align: center;">
+                <i class="fas fa-database"></i> 实验数据记录
+            </h2>
+            <p style="text-align: center; margin-bottom: 25px; color: #7f8c8d;">
+                以下记录了不同负载电阻下的路端电压和电流数据
+            </p>
+            
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                    <thead>
+                        <tr style="background: #3498db; color: white;">
+                            <th style="padding: 12px; text-align: center;">序号</th>
+                            <th style="padding: 12px; text-align: center;">滑动变阻器 (Ω)</th>
+                            <th style="padding: 12px; text-align: center;">R外 (Ω)</th>
+                            <th style="padding: 12px; text-align: center;">I (A)</th>
+                            <th style="padding: 12px; text-align: center;">U (V)</th>
+                            <th style="padding: 12px; text-align: center;">U内 (V)</th>
+                            <th style="padding: 12px; text-align: center;">验证 U = E - Ir</th>
+                        </tr>
+                    </thead>
+                    <tbody id="data-table-body">
+                        <!-- 数据将通过JavaScript动态生成 -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn btn-primary" id="export-data" style="padding: 10px 25px;">
+                    <i class="fas fa-download"></i> 导出数据
+                </button>
+                <button class="btn btn-success" id="clear-data" style="padding: 10px 25px; margin-left: 15px;">
+                    <i class="fas fa-trash"></i> 清空记录
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Font Awesome图标库 -->
+    <script>
+        // 动态加载Font Awesome图标
+        const faCSS = document.createElement('link');
+        faCSS.rel = 'stylesheet';
+        faCSS.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+        document.head.appendChild(faCSS);
+    </script>
+
+    <script>
+        // 电路模拟参数
+        let E = 12.0;  // 电动势
+        let r = 1.0;   // 内阻
+        let R_fixed = 5.0;  // 定值电阻
+        let R_variable = 10.0;  // 滑动变阻器当前值（0-20Ω）- 从中间开始
+        let isSwitchClosed = true;
+        let isAutoSweeping = false;
+        let autoSweepInterval = null;
+        
+        // 数据记录
+        let dataRecords = [];
+        
+        // 画布和上下文
+        let circuitCanvas, circuitCtx;
+        let graphCanvas, graphCtx;
+        
+        // 习题数据
+        const questions = [
+            {
+                question: "根据路端电压公式 U = E - Ir，当外电路断开时（负载电阻无穷大），路端电压U等于多少？",
+                options: [
+                    "A. 0",
+                    "B. E/2",
+                    "C. E",
+                    "D. Ir"
+                ],
+                correct: 2,
+                explanation: "当外电路断开时，电流 I = 0，代入公式 U = E - Ir = E - 0 = E，所以路端电压等于电源电动势。"
+            },
+            {
+                question: "当电路发生短路时（负载电阻为0），路端电压U等于多少？",
+                options: [
+                    "A. E",
+                    "B. E/2",
+                    "C. 0",
+                    "D. 无法确定"
+                ],
+                correct: 2,
+                explanation: "当电路短路时，外电阻 R = 0，根据全电路欧姆定律 I = E/(r+0) = E/r，路端电压 U = I×0 = 0。"
+            },
+            {
+                question: "电源电动势E=12V，内阻r=2Ω，当外电路电阻R=2Ω时，路端电压U为多少？",
+                options: [
+                    "A. 12V",
+                    "B. 6V",
+                    "C. 4V",
+                    "D. 0V"
+                ],
+                correct: 1,
+                explanation: "根据全电路欧姆定律，I = E/(R+r) = 12/(2+2) = 3A，路端电压 U = I×R = 3×2 = 6V。或者用公式 U = E - Ir = 12 - 3×2 = 6V。"
+            },
+            {
+                question: "关于电源的U-I图像（路端电压-电流关系），下列哪项描述是正确的？",
+                options: [
+                    "A. 是一条水平直线",
+                    "B. 是一条向上倾斜的直线",
+                    "C. 是一条向下倾斜的直线",
+                    "D. 是一条抛物线"
+                ],
+                correct: 2,
+                explanation: "根据公式 U = E - Ir，U与I是一次函数关系，图像是一条直线，斜率为 -r（负数），所以是一条向下倾斜的直线。纵截距为E，横截距为E/r。"
+            },
+            {
+                question: "在晚上用电高峰时，白炽灯比深夜时暗一些，主要原因是什么？",
+                options: [
+                    "A. 电源电动势降低了",
+                    "B. 电源内阻增大了",
+                    "C. 外电路总电阻减小，路端电压降低",
+                    "D. 灯泡电阻增大了"
+                ],
+                correct: 2,
+                explanation: "用电高峰时，并联的用电器增多，外电路总电阻减小，总电流增大，内电压 Ir 增大，导致路端电压 U = E - Ir 降低，所以灯泡变暗。"
+            }
+        ];
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initCanvas();
+            initGraph();
+            initSliders();
+            initExercises();
+            initDataTable();
+            updateCircuit();
+            drawCircuit();
+            drawGraph();
+            
+            // 记录初始数据
+            recordData();
+        });
+        
+        // 初始化画布
+        function initCanvas() {
+            circuitCanvas = document.getElementById('circuit-canvas');
+            circuitCtx = circuitCanvas.getContext('2d');
+            
+            // 设置画布样式
+            circuitCanvas.style.cursor = 'default';
+            
+            // 设置滑动变阻器拖拽
+            initSliderDrag();
+            
+            // 初始化电路控制按钮
+            document.getElementById('reset-slider').addEventListener('click', function() {
+                R_variable = 10.0;
+                updateCircuit();
+                drawCircuit();
+                drawGraph();
+                recordData();
+            });
+            
+            document.getElementById('toggle-switch').addEventListener('click', function() {
+                isSwitchClosed = !isSwitchClosed;
+                updateCircuit();
+                drawCircuit();
+                drawGraph();
+                recordData();
+                
+                // 更新按钮样式
+                const icon = this.querySelector('i');
+                if (isSwitchClosed) {
+                    icon.className = 'fas fa-power-off';
+                    this.classList.add('active');
+                } else {
+                    icon.className = 'fas fa-plug';
+                    this.classList.remove('active');
+                }
+            });
+            
+            document.getElementById('auto-sweep').addEventListener('click', function() {
+                isAutoSweeping = !isAutoSweeping;
+                
+                if (isAutoSweeping) {
+                    // 开始自动扫描
+                    this.classList.add('active');
+                    this.querySelector('i').className = 'fas fa-pause';
+                    
+                    let direction = 1; // 1表示增加，-1表示减少
+                    autoSweepInterval = setInterval(() => {
+                        R_variable += direction * 0.5;
+                        
+                        if (R_variable >= 20) {
+                            R_variable = 20;
+                            direction = -1;
+                        } else if (R_variable <= 0) {
+                            R_variable = 0;
+                            direction = 1;
+                        }
+                        
+                        updateCircuit();
+                        drawCircuit();
+                        drawGraph();
+                        recordData();
+                    }, 100);
+                } else {
+                    // 停止自动扫描
+                    this.classList.remove('active');
+                    this.querySelector('i').className = 'fas fa-play';
+                    clearInterval(autoSweepInterval);
+                }
+            });
+        }
+        
+        // 初始化图表
+        function initGraph() {
+            graphCanvas = document.getElementById('graph-canvas');
+            graphCtx = graphCanvas.getContext('2d');
+            
+            // 调整画布大小
+            const container = document.getElementById('graph-container');
+            graphCanvas.width = container.clientWidth;
+            graphCanvas.height = container.clientHeight;
+        }
+        
+        // 绘制电路 - 串联电路
+        function drawCircuit() {
+            // 清空画布
+            circuitCtx.clearRect(0, 0, circuitCanvas.width, circuitCanvas.height);
+            
+            // 设置背景
+            circuitCtx.fillStyle = '#f8f9fa';
+            circuitCtx.fillRect(0, 0, circuitCanvas.width, circuitCanvas.height);
+            
+            // 绘制网格背景
+            drawGrid();
+            
+            // 绘制电线
+            drawWires();
+            
+            // 绘制电池和内阻
+            drawBattery();
+            
+            // 绘制开关S（串联在电路中）
+            drawSwitch();
+            
+            // 绘制电流表A（串联在电路中）
+            drawAmmeter();
+            
+            // 绘制定值电阻R（串联）
+            drawFixedResistor();
+            
+            // 绘制滑动变阻器（与定值电阻串联）- 改为左右滑动
+            drawVariableResistor();
+            
+            // 绘制电压表V（并联测量路端电压）
+            drawVoltmeter();
+            
+            // 绘制标签
+            drawLabels();
+        }
+        
+        // 绘制网格背景
+        function drawGrid() {
+            circuitCtx.strokeStyle = 'rgba(0, 0, 0, 0.05)';
+            circuitCtx.lineWidth = 1;
+            
+            // 绘制垂直线
+            for (let x = 0; x < circuitCanvas.width; x += 20) {
+                circuitCtx.beginPath();
+                circuitCtx.moveTo(x, 0);
+                circuitCtx.lineTo(x, circuitCanvas.height);
+                circuitCtx.stroke();
+            }
+            
+            // 绘制水平线
+            for (let y = 0; y < circuitCanvas.height; y += 20) {
+                circuitCtx.beginPath();
+                circuitCtx.moveTo(0, y);
+                circuitCtx.lineTo(circuitCanvas.width, y);
+                circuitCtx.stroke();
+            }
+        }
+        
+        // 绘制电线 - 电压表连接线改为黑色实线
+        function drawWires() {
+            circuitCtx.strokeStyle = '#2c3e50';
+            circuitCtx.lineWidth = 3;
+            circuitCtx.lineCap = 'round';
+            
+            // 主电路路径：电池→开关→电流表→定值电阻→滑动变阻器→回到电池
+            circuitCtx.beginPath();
+            
+            // 从电池正极开始
+            circuitCtx.moveTo(120, 200);  // 电池正极
+            
+            // 向上到开关
+            circuitCtx.lineTo(120, 150);
+            circuitCtx.lineTo(200, 150);  // 开关位置
+            
+            // 开关到电流表
+            circuitCtx.lineTo(280, 150);  // 电流表位置
+            
+            // 电流表到定值电阻
+            circuitCtx.lineTo(360, 150);  // 定值电阻左侧
+            
+            // 定值电阻到滑动变阻器
+            circuitCtx.lineTo(440, 150);  // 定值电阻到滑动变阻器
+            
+            // 滑动变阻器到右侧 - 删除了第一条黑线，直接从定值电阻到滑动变阻器主体
+            circuitCtx.lineTo(480, 150);  // 直接连接到滑动变阻器右侧
+            
+            // 右侧向下
+            circuitCtx.lineTo(480, 300);
+            
+            // 底部向左回到电池负极
+            circuitCtx.lineTo(120, 300);
+            circuitCtx.lineTo(120, 250);  // 电池负极
+            
+            circuitCtx.stroke();
+            
+            // 电压表连接线（黑色实线，并联在定值电阻+滑动变阻器两端测量路端电压）
+            circuitCtx.strokeStyle = '#2c3e50';
+            circuitCtx.lineWidth = 2;
+            
+            // 电压表正极接在电流表和定值电阻之间
+            circuitCtx.beginPath();
+            circuitCtx.moveTo(320, 150);
+            circuitCtx.lineTo(320, 250);
+            circuitCtx.stroke();
+            
+            // 电压表负极接在滑动变阻器之后
+            circuitCtx.beginPath();
+            circuitCtx.moveTo(460, 150);
+            circuitCtx.lineTo(460, 250);
+            circuitCtx.stroke();
+            
+            // 连接点
+            drawConnectionPoints();
+        }
+        
+        // 绘制连接点
+        function drawConnectionPoints() {
+            circuitCtx.fillStyle = '#2c3e50';
+            
+            // 关键连接点
+            const points = [
+                [120, 200], [120, 150], [200, 150], [280, 150], 
+                [360, 150], [440, 150], [480, 150], [480, 300], 
+                [120, 300], [120, 250], [320, 150], [460, 150]
+            ];
+            
+            points.forEach(point => {
+                circuitCtx.beginPath();
+                circuitCtx.arc(point[0], point[1], 4, 0, Math.PI * 2);
+                circuitCtx.fill();
+            });
+        }
+        
+        // 绘制电池和内阻
+        function drawBattery() {
+            // 电池主体
+            circuitCtx.fillStyle = '#e74c3c';
+            circuitCtx.fillRect(80, 200, 80, 50);
+            circuitCtx.strokeStyle = '#c0392b';
+            circuitCtx.lineWidth = 2;
+            circuitCtx.strokeRect(80, 200, 80, 50);
+            
+            // 电池正极（+）
+            circuitCtx.fillStyle = '#2c3e50';
+            circuitCtx.fillRect(100, 190, 40, 10);
+            
+            // 电池负极（-）
+            circuitCtx.fillRect(100, 250, 40, 10);
+            
+            // 电池标签
+            circuitCtx.fillStyle = 'white';
+            circuitCtx.font = 'bold 20px Arial';
+            circuitCtx.textAlign = 'center';
+            circuitCtx.textBaseline = 'middle';
+            circuitCtx.fillText('E', 120, 225);
+            
+            // 内阻标签
+            circuitCtx.fillStyle = '#2c3e50';
+            circuitCtx.font = 'bold 16px Arial';
+            circuitCtx.fillText('r', 160, 225);
+            
+            // 绘制内阻符号（波浪线）
+            circuitCtx.strokeStyle = '#2c3e50';
+            circuitCtx.lineWidth = 2;
+            circuitCtx.beginPath();
+            circuitCtx.moveTo(145, 220);
+            for (let i = 0; i < 3; i++) {
+                circuitCtx.bezierCurveTo(
+                    150 + i*5, 215,
+                    155 + i*5, 225,
+                    160 + i*5, 220
+                );
+            }
+            circuitCtx.stroke();
+        }
+        
+        // 绘制开关S
+        function drawSwitch() {
+            // 开关底座
+            circuitCtx.fillStyle = '#7f8c8d';
+            circuitCtx.beginPath();
+            circuitCtx.arc(200, 150, 15, 0, Math.PI * 2);
+            circuitCtx.fill();
+            circuitCtx.strokeStyle = '#2c3e50';
+            circuitCtx.lineWidth = 2;
+            circuitCtx.stroke();
+            
+            // 开关手柄
+            circuitCtx.save();
+            circuitCtx.translate(200, 150);
+            
+            if (isSwitchClosed) {
+                // 闭合状态 - 水平（接通）
+                circuitCtx.rotate(0);
+                circuitCtx.fillStyle = '#2ecc71';  // 绿色表示接通
+            } else {
+                // 断开状态 - 向上倾斜
+                circuitCtx.rotate(-Math.PI / 6);
+                circuitCtx.fillStyle = '#e74c3c';  // 红色表示断开
+            }
+            
+            circuitCtx.fillRect(-15, -3, 30, 6);
+            
+            circuitCtx.restore();
+            
+            // 开关标签
+            circuitCtx.fillStyle = '#2c3e50';
+            circuitCtx.font = 'bold 16px Arial';
+            circuitCtx.textAlign = 'center';
+            circuitCtx.fillText('S', 200, 130);
+        }
+        
+        // 绘制电流表A
+        function drawAmmeter() {
+            // 电流表外壳（圆形）
+            circuitCtx.fillStyle = '#e74c3c';
+            circuitCtx.beginPath();
+            circuitCtx.arc(280, 150, 20, 0, Math.PI * 2);
+            circuitCtx.fill();
+            circuitCtx.strokeStyle = '#c0392b';
+            circuitCtx.lineWidth = 2;
+            circuitCtx.stroke();
+            
+            // 电流表标签
+            circuitCtx.fillStyle = 'white';
+            circuitCtx.font = 'bold 18px Arial';
+            circuitCtx.textAlign = 'center';
+            circuitCtx.textBaseline = 'middle';
+            circuitCtx.fillText('A', 280, 150);
+            
+            // 当前值显示
+            const current = isSwitchClosed ? calculateCurrent() : '0.00';
+            circuitCtx.fillStyle = '#2c3e50';
+            circuitCtx.font = '14px Arial';
+            circuitCtx.fillText(`${current}A`, 280, 180);
+        }
+        
+        // 计算总电流（串联电路）
+        function calculateCurrent() {
+            if (!isSwitchClosed) return 0;
+            
+            // 计算串联总电阻
+            const R_total = R_fixed + R_variable + r;
+            
+            // 计算总电流
+            return (E / R_total).toFixed(2);
+        }
+        
+        // 绘制定值电阻R
+        function drawFixedResistor() {
+            // 电阻主体（矩形）
+            circuitCtx.fillStyle = '#f1c40f';
+            circuitCtx.fillRect(340, 130, 40, 40);
+            circuitCtx.strokeStyle = '#8e44ad';
+            circuitCtx.lineWidth = 3;
+            circuitCtx.strokeRect(340, 130, 40, 40);
+            
+            // 电阻色环
+            circuitCtx.strokeStyle = '#8e44ad';
+            circuitCtx.lineWidth = 4;
+            
+            for (let i = 0; i < 4; i++) {
+                circuitCtx.beginPath();
+                circuitCtx.moveTo(345 + i * 8, 130);
+                circuitCtx.lineTo(345 + i * 8, 170);
+                circuitCtx.stroke();
+            }
+            
+            // 电阻标签
+            circuitCtx.fillStyle = '#2c3e50';
+            circuitCtx.font = 'bold 16px Arial';
+            circuitCtx.textAlign = 'center';
+            circuitCtx.fillText('R', 360, 120);
+            
+            // 电阻值显示
+            circuitCtx.fillStyle = '#7f8c8d';
+            circuitCtx.font = '14px Arial';
+            circuitCtx.fillText(`${R_fixed.toFixed(1)}Ω`, 360, 175);
+        }
+        
+        // 绘制滑动变阻器 - 改为左右滑动
+        function drawVariableResistor() {
+            // 电阻主体（矩形）- 位置调整
+            circuitCtx.fillStyle = '#f1c40f';
+            circuitCtx.fillRect(440, 130, 40, 40);
+            circuitCtx.strokeStyle = '#8e44ad';
+            circuitCtx.lineWidth = 3;
+            circuitCtx.strokeRect(440, 130, 40, 40);
+            
+            // 电阻色环
+            circuitCtx.strokeStyle = '#8e44ad';
+            circuitCtx.lineWidth = 4;
+            
+            for (let i = 0; i < 4; i++) {
+                circuitCtx.beginPath();
+                circuitCtx.moveTo(445 + i * 8, 130);
+                circuitCtx.lineTo(445 + i * 8, 170);
+                circuitCtx.stroke();
+            }
+            
+            // 滑动轨道（水平轨道，在电阻下方）
+            circuitCtx.fillStyle = '#bdc3c7';
+            circuitCtx.fillRect(435, 175, 50, 10);
+            circuitCtx.strokeStyle = '#7f8c8d';
+            circuitCtx.lineWidth = 2;
+            circuitCtx.strokeRect(435, 175, 50, 10);
+            
+            // 滑片位置 (R_variable从0到20对应x从440到480)
+            const sliderX = 440 + (R_variable / 20) * 40;
+            
+            // 滑片连线（从滑片到滑动变阻器主体）- 虚线
+            circuitCtx.strokeStyle = '#3498db';
+            circuitCtx.lineWidth = 1;
+            circuitCtx.setLineDash([2, 2]);
+            circuitCtx.beginPath();
+            circuitCtx.moveTo(sliderX, 180);
+            circuitCtx.lineTo(sliderX, 150);
+            circuitCtx.stroke();
+            circuitCtx.setLineDash([]);
+            
+            // 滑片（在轨道上，缩小一点）
+            circuitCtx.fillStyle = '#3498db';
+            circuitCtx.beginPath();
+            circuitCtx.arc(sliderX, 180, 6, 0, Math.PI * 2);
+            circuitCtx.fill();
+            circuitCtx.strokeStyle = '#2980b9';
+            circuitCtx.lineWidth = 2;
+            circuitCtx.stroke();
+            
+            // 滑片箭头（改为左右箭头）
+            circuitCtx.fillStyle = 'white';
+            circuitCtx.font = 'bold 10px Arial';
+            circuitCtx.textAlign = 'center';
+            circuitCtx.textBaseline = 'middle';
+            circuitCtx.fillText('↔', sliderX, 180);
+            
+            // 电阻标签
+            circuitCtx.fillStyle = '#2c3e50';
+            circuitCtx.font = 'bold 16px Arial';
+            circuitCtx.textAlign = 'center';
+            circuitCtx.fillText('滑动变阻器', 460, 120);
+            
+            // 电阻值显示
+            circuitCtx.fillStyle = '#7f8c8d';
+            circuitCtx.font = '14px Arial';
+            circuitCtx.fillText(`${R_variable.toFixed(1)}Ω`, 460, 195);
+        }
+        
+        // 绘制电压表V
+        function drawVoltmeter() {
+            // 电压表外壳（矩形）
+            circuitCtx.fillStyle = '#2ecc71';
+            circuitCtx.fillRect(290, 250, 140, 60);
+            circuitCtx.strokeStyle = '#27ae60';
+            circuitCtx.lineWidth = 2;
+            circuitCtx.strokeRect(290, 250, 140, 60);
+            
+            // 电压表标签
+            circuitCtx.fillStyle = 'white';
+            circuitCtx.font = 'bold 24px Arial';
+            circuitCtx.textAlign = 'center';
+            circuitCtx.textBaseline = 'middle';
+            circuitCtx.fillText('V', 360, 280);
+            
+            // 当前值显示
+            const voltage = isSwitchClosed ? calculateVoltage() : E.toFixed(2);
+            circuitCtx.fillStyle = '#2c3e50';
+            circuitCtx.font = '16px Arial';
+            circuitCtx.fillText(`${voltage}V`, 360, 320);
+        }
+        
+        // 计算路端电压（串联电路）
+        function calculateVoltage() {
+            if (!isSwitchClosed) return E;
+            
+            // 计算串联总电阻
+            const R_total = R_fixed + R_variable + r;
+            
+            // 计算总电流
+            const current = E / R_total;
+            
+            // 计算路端电压（定值电阻+滑动变阻器两端电压）
+            return (current * (R_fixed + R_variable)).toFixed(2);
+        }
+        
+        // 绘制标签
+        function drawLabels() {
+            circuitCtx.fillStyle = '#2c3e50';
+            circuitCtx.font = 'bold 18px Arial';
+            circuitCtx.textAlign = 'center';
+            
+            // 电路标题
+            circuitCtx.fillText('路端电压测量电路（串联负载）', circuitCanvas.width / 2, 30);
+            
+            // 状态指示
+            circuitCtx.fillStyle = isSwitchClosed ? '#27ae60' : '#e74c3c';
+            circuitCtx.font = '16px Arial';
+            circuitCtx.fillText(isSwitchClosed ? '电路状态: 闭合' : '电路状态: 断开', circuitCanvas.width / 2, 60);
+            
+            // 公式显示
+            circuitCtx.fillStyle = '#3498db';
+            circuitCtx.font = 'italic 16px Arial';
+            circuitCtx.fillText(`U = E - I·r = ${E.toFixed(1)} - I×${r.toFixed(1)}`, circuitCanvas.width / 2, 90);
+            
+            // 电路说明
+            circuitCtx.fillStyle = '#7f8c8d';
+            circuitCtx.font = '14px Arial';
+            circuitCtx.fillText('定值电阻R与滑动变阻器串联，电压表测量路端电压（R+滑动变阻器两端）', circuitCanvas.width / 2, 450);
+            circuitCtx.fillText('左右拖动滑动变阻器上的蓝色滑片改变阻值，观察路端电压变化', circuitCanvas.width / 2, 475);
+        }
+        
+        // 绘制图表
+        function drawGraph() {
+            // 清空画布
+            graphCtx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
+            
+            // 设置背景
+            graphCtx.fillStyle = '#f8f9fa';
+            graphCtx.fillRect(0, 0, graphCanvas.width, graphCanvas.height);
+            
+            // 绘制坐标轴
+            drawAxes();
+            
+            // 绘制理论曲线
+            drawTheoreticalCurve();
+            
+            // 绘制实验曲线
+            drawExperimentalCurve();
+            
+            // 绘制当前工作点
+            drawCurrentPoint();
+            
+            // 绘制特殊点
+            drawSpecialPoints();
+            
+            // 绘制图例（放在右下角，不遮挡图像）
+            drawLegend();
+        }
+        
+        // 绘制坐标轴
+        function drawAxes() {
+            const padding = {left: 60, right: 20, top: 30, bottom: 50};
+            const graphWidth = graphCanvas.width - padding.left - padding.right;
+            const graphHeight = graphCanvas.height - padding.top - padding.bottom;
+            
+            // 保存绘图状态
+            graphCtx.save();
+            
+            // 绘制坐标轴
+            graphCtx.strokeStyle = '#2c3e50';
+            graphCtx.lineWidth = 2;
+            
+            // X轴
+            graphCtx.beginPath();
+            graphCtx.moveTo(padding.left, padding.top + graphHeight);
+            graphCtx.lineTo(padding.left + graphWidth, padding.top + graphHeight);
+            graphCtx.stroke();
+            
+            // Y轴
+            graphCtx.beginPath();
+            graphCtx.moveTo(padding.left, padding.top);
+            graphCtx.lineTo(padding.left, padding.top + graphHeight);
+            graphCtx.stroke();
+            
+            // X轴箭头
+            graphCtx.beginPath();
+            graphCtx.moveTo(padding.left + graphWidth, padding.top + graphHeight);
+            graphCtx.lineTo(padding.left + graphWidth - 8, padding.top + graphHeight - 5);
+            graphCtx.lineTo(padding.left + graphWidth - 8, padding.top + graphHeight + 5);
+            graphCtx.closePath();
+            graphCtx.fillStyle = '#2c3e50';
+            graphCtx.fill();
+            
+            // Y轴箭头
+            graphCtx.beginPath();
+            graphCtx.moveTo(padding.left, padding.top);
+            graphCtx.lineTo(padding.left - 5, padding.top + 8);
+            graphCtx.lineTo(padding.left + 5, padding.top + 8);
+            graphCtx.closePath();
+            graphCtx.fill();
+            
+            // X轴标签
+            graphCtx.fillStyle = '#2c3e50';
+            graphCtx.font = 'bold 14px Arial';
+            graphCtx.textAlign = 'center';
+            graphCtx.textBaseline = 'top';
+            graphCtx.fillText('电流 I (A)', padding.left + graphWidth / 2, padding.top + graphHeight + 25);
+            
+            // Y轴标签
+            graphCtx.save();
+            graphCtx.translate(20, padding.top + graphHeight / 2);
+            graphCtx.rotate(-Math.PI / 2);
+            graphCtx.textAlign = 'center';
+            graphCtx.fillText('路端电压 U (V)', 0, 0);
+            graphCtx.restore();
+            
+            // X轴刻度
+            const maxI = Math.max(E / r, 1); // 确保至少显示1A
+            for (let i = 0; i <= maxI; i += maxI / 5) {
+                const x = padding.left + (i / maxI) * graphWidth;
+                
+                // 刻度线
+                graphCtx.beginPath();
+                graphCtx.moveTo(x, padding.top + graphHeight - 5);
+                graphCtx.lineTo(x, padding.top + graphHeight + 5);
+                graphCtx.stroke();
+                
+                // 刻度值
+                graphCtx.fillText(i.toFixed(1), x, padding.top + graphHeight + 10);
+            }
+            
+            // Y轴刻度
+            for (let u = 0; u <= E; u += E / 5) {
+                const y = padding.top + graphHeight - (u / E) * graphHeight;
+                
+                // 刻度线
+                graphCtx.beginPath();
+                graphCtx.moveTo(padding.left - 5, y);
+                graphCtx.lineTo(padding.left + 5, y);
+                graphCtx.stroke();
+                
+                // 刻度值
+                graphCtx.textAlign = 'right';
+                graphCtx.textBaseline = 'middle';
+                graphCtx.fillText(u.toFixed(1), padding.left - 10, y);
+            }
+            
+            graphCtx.restore();
+        }
+        
+        // 绘制理论曲线
+        function drawTheoreticalCurve() {
+            const padding = {left: 60, right: 20, top: 30, bottom: 50};
+            const graphWidth = graphCanvas.width - padding.left - padding.right;
+            const graphHeight = graphCanvas.height - padding.top - padding.bottom;
+            const maxI = Math.max(E / r, 1);
+            
+            graphCtx.strokeStyle = '#3498db';
+            graphCtx.lineWidth = 3;
+            graphCtx.setLineDash([5, 5]);
+            
+            graphCtx.beginPath();
+            
+            for (let i = 0; i <= maxI; i += maxI / 100) {
+                const u = E - i * r;
+                const x = padding.left + (i / maxI) * graphWidth;
+                const y = padding.top + graphHeight - (u / E) * graphHeight;
+                
+                if (i === 0) {
+                    graphCtx.moveTo(x, y);
+                } else {
+                    graphCtx.lineTo(x, y);
+                }
+            }
+            
+            graphCtx.stroke();
+            graphCtx.setLineDash([]);
+        }
+        
+        // 绘制实验曲线
+        function drawExperimentalCurve() {
+            const padding = {left: 60, right: 20, top: 30, bottom: 50};
+            const graphWidth = graphCanvas.width - padding.left - padding.right;
+            const graphHeight = graphCanvas.height - padding.top - padding.bottom;
+            const maxI = Math.max(E / r, 1);
+            
+            graphCtx.strokeStyle = '#2ecc71';
+            graphCtx.lineWidth = 2;
+            
+            graphCtx.beginPath();
+            
+            // 生成实验数据点（基于滑动变阻器的变化）
+            for (let r_var = 0; r_var <= 20; r_var += 0.5) {
+                // 计算串联总电阻
+                const R_total = R_fixed + r_var + r;
+                
+                // 计算总电流和路端电压
+                const i = E / R_total;
+                const u = i * (R_fixed + r_var);
+                
+                const x = padding.left + (i / maxI) * graphWidth;
+                const y = padding.top + graphHeight - (u / E) * graphHeight;
+                
+                if (r_var === 0) {
+                    graphCtx.moveTo(x, y);
+                } else {
+                    graphCtx.lineTo(x, y);
+                }
+            }
+            
+            graphCtx.stroke();
+        }
+        
+        // 绘制当前工作点
+        function drawCurrentPoint() {
+            if (!isSwitchClosed) return;
+            
+            const padding = {left: 60, right: 20, top: 30, bottom: 50};
+            const graphWidth = graphCanvas.width - padding.left - padding.right;
+            const graphHeight = graphCanvas.height - padding.top - padding.bottom;
+            const maxI = Math.max(E / r, 1);
+            
+            // 计算串联总电阻
+            const R_total = R_fixed + R_variable + r;
+            
+            // 计算总电流和路端电压
+            const currentI = E / R_total;
+            const currentU = currentI * (R_fixed + R_variable);
+            
+            const x = padding.left + (currentI / maxI) * graphWidth;
+            const y = padding.top + graphHeight - (currentU / E) * graphHeight;
+            
+            // 绘制点
+            graphCtx.fillStyle = '#e74c3c';
+            graphCtx.beginPath();
+            graphCtx.arc(x, y, 6, 0, Math.PI * 2);
+            graphCtx.fill();
+            graphCtx.strokeStyle = 'white';
+            graphCtx.lineWidth = 2;
+            graphCtx.stroke();
+            
+            // 绘制标签（放在点旁边，不遮挡）
+            graphCtx.fillStyle = '#e74c3c';
+            graphCtx.font = 'bold 12px Arial';
+            graphCtx.textAlign = 'left';
+            graphCtx.textBaseline = 'bottom';
+            
+            // 根据位置调整标签位置，避免遮挡
+            if (x > graphCanvas.width / 2) {
+                graphCtx.textAlign = 'right';
+                graphCtx.fillText(`滑动变阻器=${R_variable.toFixed(1)}Ω`, x - 10, y - 5);
+                graphCtx.fillText(`I=${currentI.toFixed(2)}A`, x - 10, y + 10);
+                graphCtx.fillText(`U=${currentU.toFixed(2)}V`, x - 10, y + 25);
+            } else {
+                graphCtx.fillText(`滑动变阻器=${R_variable.toFixed(1)}Ω`, x + 10, y - 5);
+                graphCtx.fillText(`I=${currentI.toFixed(2)}A`, x + 10, y + 10);
+                graphCtx.fillText(`U=${currentU.toFixed(2)}V`, x + 10, y + 25);
+            }
+        }
+        
+        // 绘制特殊点
+        function drawSpecialPoints() {
+            const padding = {left: 60, right: 20, top: 30, bottom: 50};
+            const graphWidth = graphCanvas.width - padding.left - padding.right;
+            const graphHeight = graphCanvas.height - padding.top - padding.bottom;
+            const maxI = Math.max(E / r, 1);
+            
+            // 开路点 (I=0, U=E)
+            graphCtx.fillStyle = '#9b59b6';
+            graphCtx.beginPath();
+            graphCtx.arc(padding.left, padding.top + graphHeight - graphHeight, 6, 0, Math.PI * 2);
+            graphCtx.fill();
+            graphCtx.strokeStyle = 'white';
+            graphCtx.lineWidth = 2;
+            graphCtx.stroke();
+            
+            // 开路点标签（放在左上角）
+            graphCtx.fillStyle = '#9b59b6';
+            graphCtx.font = 'bold 12px Arial';
+            graphCtx.textAlign = 'left';
+            graphCtx.textBaseline = 'bottom';
+            graphCtx.fillText('开路点 (I=0)', padding.left + 10, padding.top + 15);
+            graphCtx.fillText(`U=E=${E.toFixed(1)}V`, padding.left + 10, padding.top + 30);
+            
+            // 短路点 (I=E/r, U=0)
+            graphCtx.fillStyle = '#9b59b6';
+            graphCtx.beginPath();
+            const shortCircuitX = padding.left + ((E/r) / maxI) * graphWidth;
+            graphCtx.arc(shortCircuitX, padding.top + graphHeight, 6, 0, Math.PI * 2);
+            graphCtx.fill();
+            graphCtx.strokeStyle = 'white';
+            graphCtx.stroke();
+            
+            // 短路点标签（放在右下角）
+            graphCtx.textAlign = 'right';
+            graphCtx.textBaseline = 'top';
+            graphCtx.fillText('短路点 (U=0)', shortCircuitX - 10, padding.top + graphHeight - 30);
+            graphCtx.fillText(`I=E/r=${(E/r).toFixed(1)}A`, shortCircuitX - 10, padding.top + graphHeight - 15);
+        }
+        
+        // 绘制图例（放在右下角）
+        function drawLegend() {
+            const padding = {left: 60, right: 20, top: 30, bottom: 50};
+            const legendWidth = 180;
+            const legendHeight = 110;
+            const legendX = graphCanvas.width - legendWidth - 15;
+            const legendY = graphCanvas.height - legendHeight - 15;
+            
+            // 图例背景
+            graphCtx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+            graphCtx.fillRect(legendX, legendY, legendWidth, legendHeight);
+            graphCtx.strokeStyle = '#ddd';
+            graphCtx.lineWidth = 1;
+            graphCtx.strokeRect(legendX, legendY, legendWidth, legendHeight);
+            
+            graphCtx.font = 'bold 12px Arial';
+            graphCtx.textAlign = 'left';
+            graphCtx.textBaseline = 'middle';
+            graphCtx.fillStyle = '#2c3e50';
+            
+            // 理论曲线图例
+            graphCtx.strokeStyle = '#3498db';
+            graphCtx.lineWidth = 3;
+            graphCtx.setLineDash([5, 5]);
+            graphCtx.beginPath();
+            graphCtx.moveTo(legendX + 10, legendY + 20);
+            graphCtx.lineTo(legendX + 40, legendY + 20);
+            graphCtx.stroke();
+            graphCtx.setLineDash([]);
+            
+            graphCtx.fillText('理论曲线: U = E - Ir', legendX + 50, legendY + 20);
+            
+            // 实验曲线图例
+            graphCtx.strokeStyle = '#2ecc71';
+            graphCtx.lineWidth = 2;
+            graphCtx.beginPath();
+            graphCtx.moveTo(legendX + 10, legendY + 40);
+            graphCtx.lineTo(legendX + 40, legendY + 40);
+            graphCtx.stroke();
+            
+            graphCtx.fillText('实验曲线', legendX + 50, legendY + 40);
+            
+            // 当前工作点图例
+            graphCtx.fillStyle = '#e74c3c';
+            graphCtx.beginPath();
+            graphCtx.arc(legendX + 25, legendY + 60, 4, 0, Math.PI * 2);
+            graphCtx.fill();
+            graphCtx.strokeStyle = 'white';
+            graphCtx.lineWidth = 1;
+            graphCtx.stroke();
+            
+            graphCtx.fillStyle = '#2c3e50';
+            graphCtx.fillText('当前工作点', legendX + 50, legendY + 60);
+            
+            // 特殊点图例
+            graphCtx.fillStyle = '#9b59b6';
+            graphCtx.beginPath();
+            graphCtx.arc(legendX + 25, legendY + 80, 4, 0, Math.PI * 2);
+            graphCtx.fill();
+            graphCtx.strokeStyle = 'white';
+            graphCtx.stroke();
+            
+            graphCtx.fillStyle = '#2c3e50';
+            graphCtx.fillText('特殊点 (开路/短路)', legendX + 50, legendY + 80);
+            
+            // 斜率信息（放在图例下方）
+            graphCtx.fillStyle = '#3498db';
+            graphCtx.font = 'italic 11px Arial';
+            graphCtx.fillText(`斜率 = -r = -${r.toFixed(1)}Ω`, legendX + 10, legendY + 100);
+        }
+        
+        // 初始化滑动变阻器拖拽（改为左右拖拽）
+        function initSliderDrag() {
+            circuitCanvas.addEventListener('mousedown', function(e) {
+                const rect = circuitCanvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                // 检查是否点击了滑片区域（滑动变阻器下方区域）
+                // 滑片位置 (R_variable从0到20对应x从440到480)
+                const sliderX = 440 + (R_variable / 20) * 40;
+                const distance = Math.sqrt((x - sliderX) ** 2 + (y - 180) ** 2);
+                
+                if (distance <= 15) {
+                    // 开始拖拽
+                    document.addEventListener('mousemove', dragSlider);
+                    document.addEventListener('mouseup', stopDragSlider);
+                    circuitCanvas.style.cursor = 'grabbing';
+                }
+            });
+            
+            function dragSlider(e) {
+                const rect = circuitCanvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                
+                // 限制滑片范围（滑动变阻器轨道范围）
+                let newX = Math.max(440, Math.min(480, x));
+                
+                // 计算新的电阻值
+                R_variable = ((newX - 440) / 40) * 20;
+                
+                updateCircuit();
+                drawCircuit();
+                drawGraph();
+            }
+            
+            function stopDragSlider() {
+                document.removeEventListener('mousemove', dragSlider);
+                document.removeEventListener('mouseup', stopDragSlider);
+                circuitCanvas.style.cursor = 'default';
+                
+                // 记录数据
+                recordData();
+            }
+        }
+        
+        // 更新电路计算和显示（串联电路）
+        function updateCircuit() {
+            // 计算电路参数
+            let current, voltage, totalResistance, externalResistance, internalVoltage;
+            
+            if (isSwitchClosed) {
+                // 计算串联总电阻
+                externalResistance = R_fixed + R_variable;
+                totalResistance = externalResistance + r;
+                current = E / totalResistance;
+                voltage = current * externalResistance;
+                internalVoltage = current * r;
+            } else {
+                // 开关断开
+                current = 0;
+                voltage = E;
+                externalResistance = Infinity;
+                totalResistance = Infinity;
+                internalVoltage = 0;
+            }
+            
+            // 添加更新动画
+            const displays = [
+                'voltage-display',
+                'current-display', 
+                'total-resistance-display',
+                'external-resistance-display',
+                'internal-voltage-display'
+            ];
+            
+            displays.forEach(id => {
+                const element = document.getElementById(id);
+                element.classList.add('update-animation');
+                setTimeout(() => {
+                    element.classList.remove('update-animation');
+                }, 500);
+            });
+            
+            // 更新显示
+            document.getElementById('voltage-display').textContent = `${voltage.toFixed(2)} V`;
+            document.getElementById('current-display').textContent = `${current.toFixed(2)} A`;
+            document.getElementById('total-resistance-display').textContent = 
+                isSwitchClosed ? `${totalResistance.toFixed(2)} Ω` : "∞";
+            document.getElementById('external-resistance-display').textContent = 
+                isSwitchClosed ? `${externalResistance.toFixed(2)} Ω` : "∞";
+            document.getElementById('internal-voltage-display').textContent = `${internalVoltage.toFixed(2)} V`;
+            
+            // 更新公式验证
+            document.getElementById('formula-calculation').innerHTML = 
+                `${voltage.toFixed(2)} = ${E.toFixed(1)} - ${current.toFixed(2)}×${r.toFixed(1)}`;
+        }
+        
+        // 记录数据
+        function recordData() {
+            if (!isSwitchClosed) return;
+            
+            // 计算电路参数
+            const externalResistance = R_fixed + R_variable;
+            const totalResistance = externalResistance + r;
+            const current = E / totalResistance;
+            const voltage = current * externalResistance;
+            const internalVoltage = current * r;
+            
+            // 检查是否已存在相似记录（避免重复记录）
+            const similarRecord = dataRecords.find(record => 
+                Math.abs(record.R_variable - R_variable) < 0.1
+            );
+            
+            if (!similarRecord) {
+                dataRecords.push({
+                    R_variable: R_variable,
+                    externalResistance: externalResistance,
+                    current: current,
+                    voltage: voltage,
+                    internalVoltage: internalVoltage,
+                    timestamp: new Date().toLocaleTimeString()
+                });
+                
+                // 保持最多50条记录
+                if (dataRecords.length > 50) {
+                    dataRecords.shift();
+                }
+            }
+        }
+        
+        // 初始化滑块
+        function initSliders() {
+            // E滑块
+            document.getElementById('e-slider').addEventListener('input', function() {
+                E = parseFloat(this.value);
+                document.getElementById('e-value').textContent = `${E.toFixed(1)} V`;
+                updateCircuit();
+                drawCircuit();
+                drawGraph();
+                recordData();
+            });
+            
+            // r滑块
+            document.getElementById('r-slider').addEventListener('input', function() {
+                r = parseFloat(this.value);
+                document.getElementById('r-value').textContent = `${r.toFixed(1)} Ω`;
+                updateCircuit();
+                drawCircuit();
+                drawGraph();
+                recordData();
+            });
+            
+            // R滑块
+            document.getElementById('r1-slider').addEventListener('input', function() {
+                R_fixed = parseFloat(this.value);
+                document.getElementById('r1-value').textContent = `${R_fixed.toFixed(1)} Ω`;
+                updateCircuit();
+                drawCircuit();
+                drawGraph();
+                recordData();
+            });
+            
+            // 重置按钮
+            document.getElementById('reset-btn').addEventListener('click', function() {
+                // 停止自动扫描
+                if (isAutoSweeping) {
+                    isAutoSweeping = false;
+                    clearInterval(autoSweepInterval);
+                    document.getElementById('auto-sweep').classList.remove('active');
+                    document.getElementById('auto-sweep').querySelector('i').className = 'fas fa-play';
+                }
+                
+                // 重置所有参数
+                E = 12.0;
+                r = 1.0;
+                R_fixed = 5.0;
+                R_variable = 10.0;
+                isSwitchClosed = true;
+                
+                // 重置滑块位置
+                document.getElementById('e-slider').value = E;
+                document.getElementById('r-slider').value = r;
+                document.getElementById('r1-slider').value = R_fixed;
+                
+                // 更新显示
+                document.getElementById('e-value').textContent = `${E.toFixed(1)} V`;
+                document.getElementById('r-value').textContent = `${r.toFixed(1)} Ω`;
+                document.getElementById('r1-value').textContent = `${R_fixed.toFixed(1)} Ω`;
+                
+                // 更新开关按钮
+                document.getElementById('toggle-switch').querySelector('i').className = 'fas fa-power-off';
+                document.getElementById('toggle-switch').classList.add('active');
+                
+                updateCircuit();
+                drawCircuit();
+                drawGraph();
+                recordData();
+            });
+            
+            // 习题按钮
+            document.getElementById('exercise-btn').addEventListener('click', function() {
+                document.getElementById('exercise-modal').style.display = 'flex';
+            });
+            
+            // 数据按钮
+            document.getElementById('data-btn').addEventListener('click', function() {
+                document.getElementById('data-modal').style.display = 'flex';
+                updateDataTable();
+            });
+            
+            // 关闭模态框
+            document.getElementById('close-modal').addEventListener('click', function() {
+                document.getElementById('exercise-modal').style.display = 'none';
+            });
+            
+            document.getElementById('close-data-modal').addEventListener('click', function() {
+                document.getElementById('data-modal').style.display = 'none';
+            });
+            
+            // 点击模态框外部关闭
+            window.addEventListener('click', function(event) {
+                if (event.target == document.getElementById('exercise-modal')) {
+                    document.getElementById('exercise-modal').style.display = 'none';
+                }
+                if (event.target == document.getElementById('data-modal')) {
+                    document.getElementById('data-modal').style.display = 'none';
+                }
+            });
+        }
+        
+        // 初始化数据表
+        function initDataTable() {
+            // 导出数据按钮
+            document.getElementById('export-data').addEventListener('click', function() {
+                exportData();
+            });
+            
+            // 清空数据按钮
+            document.getElementById('clear-data').addEventListener('click', function() {
+                dataRecords = [];
+                updateDataTable();
+            });
+        }
+        
+        // 更新数据表
+        function updateDataTable() {
+            const tableBody = document.getElementById('data-table-body');
+            tableBody.innerHTML = '';
+            
+            // 按滑动变阻器阻值排序
+            const sortedRecords = [...dataRecords].sort((a, b) => a.R_variable - b.R_variable);
+            
+            sortedRecords.forEach((record, index) => {
+                const row = document.createElement('tr');
+                row.style.borderBottom = '1px solid #eee';
+                row.style.backgroundColor = index % 2 === 0 ? '#f8f9fa' : 'white';
+                
+                // 验证公式
+                const calculatedU = E - record.current * r;
+                const formulaValid = Math.abs(record.voltage - calculatedU) < 0.01;
+                
+                row.innerHTML = `
+                    <td style="padding: 10px; text-align: center; font-weight: bold;">${index + 1}</td>
+                    <td style="padding: 10px; text-align: center;">${record.R_variable.toFixed(1)}</td>
+                    <td style="padding: 10px; text-align: center;">${record.externalResistance.toFixed(1)}</td>
+                    <td style="padding: 10px; text-align: center; color: #e74c3c;">${record.current.toFixed(3)}</td>
+                    <td style="padding: 10px; text-align: center; color: #27ae60;">${record.voltage.toFixed(3)}</td>
+                    <td style="padding: 10px; text-align: center; color: #3498db;">${record.internalVoltage.toFixed(3)}</td>
+                    <td style="padding: 10px; text-align: center;">
+                        <span style="color: ${formulaValid ? '#2ecc71' : '#e74c3c'}; font-weight: bold;">
+                            ${formulaValid ? '✓ 验证通过' : '✗ 验证失败'}
+                        </span>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+            
+            if (sortedRecords.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="padding: 30px; text-align: center; color: #7f8c8d;">
+                            <i class="fas fa-database" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
+                            暂无数据记录<br>请调节滑动变阻器或电路参数以生成数据
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+        
+        // 导出数据
+        function exportData() {
+            if (dataRecords.length === 0) {
+                alert('暂无数据可导出');
+                return;
+            }
+            
+            // 创建CSV内容
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+            csvContent += "序号,滑动变阻器(Ω),R外(Ω),I(A),U(V),U内(V),验证结果,记录时间\n";
+            
+            const sortedRecords = [...dataRecords].sort((a, b) => a.R_variable - b.R_variable);
+            
+            sortedRecords.forEach((record, index) => {
+                const calculatedU = E - record.current * r;
+                const formulaValid = Math.abs(record.voltage - calculatedU) < 0.01;
+                const validation = formulaValid ? "验证通过" : "验证失败";
+                
+                csvContent += `${index + 1},${record.R_variable.toFixed(2)},${record.externalResistance.toFixed(2)},${record.current.toFixed(3)},${record.voltage.toFixed(3)},${record.internalVoltage.toFixed(3)},${validation},${record.timestamp}\n`;
+            });
+            
+            // 添加摘要信息
+            csvContent += `\n实验摘要\n`;
+            csvContent += `电源电动势 E,${E.toFixed(1)} V\n`;
+            csvContent += `电源内阻 r,${r.toFixed(1)} Ω\n`;
+            csvContent += `定值电阻 R,${R_fixed.toFixed(1)} Ω\n`;
+            csvContent += `数据记录总数,${dataRecords.length}\n`;
+            csvContent += `导出时间,${new Date().toLocaleString()}\n`;
+            
+            // 创建下载链接
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `路端电压实验数据_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        // 初始化习题
+        function initExercises() {
+            const container = document.getElementById('questions-container');
+            
+            questions.forEach((q, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question-container';
+                questionDiv.id = `question-${index}`;
+                
+                let optionsHtml = '';
+                q.options.forEach((option, optIndex) => {
+                    optionsHtml += `
+                        <div class="option" data-question="${index}" data-option="${optIndex}">
+                            ${option}
+                        </div>
+                    `;
+                });
+                
+                questionDiv.innerHTML = `
+                    <div class="question">${index + 1}. ${q.question}</div>
+                    <div class="options">${optionsHtml}</div>
+                    <div class="explanation" id="explanation-${index}">
+                        <strong>解析：</strong>${q.explanation}
+                    </div>
+                `;
+                
+                container.appendChild(questionDiv);
+            });
+            
+            // 选项点击事件
+            document.querySelectorAll('.option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const questionId = this.getAttribute('data-question');
+                    const optionId = parseInt(this.getAttribute('data-option'));
+                    
+                    // 清除同一问题其他选项的选择状态
+                    document.querySelectorAll(`.option[data-question="${questionId}"]`).forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    
+                    // 标记当前选项为选中
+                    this.classList.add('selected');
+                    
+                    // 存储用户的选择
+                    questions[questionId].userAnswer = optionId;
+                });
+            });
+            
+            // 提交答案按钮
+            document.getElementById('submit-answers').addEventListener('click', function() {
+                let score = 0;
+                const totalQuestions = questions.length;
+                
+                // 检查每个问题
+                questions.forEach((q, index) => {
+                    const explanation = document.getElementById(`explanation-${index}`);
+                    const options = document.querySelectorAll(`.option[data-question="${index}"]`);
+                    
+                    // 重置样式
+                    options.forEach(opt => {
+                        opt.classList.remove('correct', 'incorrect');
+                    });
+                    
+                    // 如果用户已回答
+                    if (q.userAnswer !== undefined) {
+                        if (q.userAnswer === q.correct) {
+                            score++;
+                            options[q.userAnswer].classList.add('correct');
+                        } else {
+                            options[q.userAnswer].classList.add('incorrect');
+                            options[q.correct].classList.add('correct');
+                        }
+                        
+                        // 显示解析
+                        explanation.classList.add('show');
+                    }
+                });
+                
+                // 显示得分
+                const scoreDisplay = document.getElementById('score-display');
+                const percentage = (score / totalQuestions) * 100;
+                let message = '';
+                let color = '';
+                
+                if (percentage >= 80) {
+                    message = `优秀！你的得分是 ${score}/${totalQuestions} (${percentage.toFixed(0)}%)`;
+                    color = '#2ecc71';
+                } else if (percentage >= 60) {
+                    message = `良好！你的得分是 ${score}/${totalQuestions} (${percentage.toFixed(0)}%)`;
+                    color = '#3498db';
+                } else {
+                    message = `加油！你的得分是 ${score}/${totalQuestions} (${percentage.toFixed(0)}%)`;
+                    color = '#e74c3c';
+                }
+                
+                scoreDisplay.innerHTML = `<span style="color: ${color}">${message}</span>`;
+                scoreDisplay.style.display = 'block';
+                
+                // 滚动到得分显示
+                scoreDisplay.scrollIntoView({ behavior: 'smooth' });
+            });
+            
+            // 显示所有解析按钮
+            document.getElementById('show-all-explanations').addEventListener('click', function() {
+                questions.forEach((q, index) => {
+                    const explanation = document.getElementById(`explanation-${index}`);
+                    const options = document.querySelectorAll(`.option[data-question="${index}"]`);
+                    
+                    // 显示正确答案
+                    options[q.correct].classList.add('correct');
+                    
+                    // 如果用户有错误答案，标记出来
+                    if (q.userAnswer !== undefined && q.userAnswer !== q.correct) {
+                        options[q.userAnswer].classList.add('incorrect');
+                    }
+                    
+                    // 显示解析
+                    explanation.classList.add('show');
+                });
+                
+                // 显示得分信息
+                const scoreDisplay = document.getElementById('score-display');
+                scoreDisplay.innerHTML = `<span style="color: #3498db;">已显示所有题目解析，请对照学习。</span>`;
+                scoreDisplay.style.display = 'block';
+                scoreDisplay.scrollIntoView({ behavior: 'smooth' });
+            });
+        }
+    </script>
+</body>
+</html>

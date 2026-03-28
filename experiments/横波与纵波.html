@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>机械波 · 横波与纵波传播实验</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
+        body {
+            background: linear-gradient(145deg, #1c4c6e 0%, #0f334a 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .card {
+            max-width: 1300px;
+            width: 100%;
+            background: rgba(240, 250, 255, 0.9);
+            backdrop-filter: blur(8px);
+            border-radius: 56px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+            padding: 28px 30px;
+            border: 2px solid rgba(255, 255, 255, 0.7);
+        }
+        h1 {
+            font-size: 2.6rem;
+            font-weight: 600;
+            margin: 0 0 5px 0;
+            color: #022c44;
+        }
+        .sub {
+            color: #1d5377;
+            margin-bottom: 25px;
+            font-style: italic;
+            background: #c4e2ff;
+            display: inline-block;
+            padding: 6px 32px;
+            border-radius: 60px;
+        }
+        .dashboard {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+        /* 控制面板 */
+        .control-panel {
+            background: #e2f0fc;
+            border-radius: 48px;
+            padding: 25px 20px;
+            box-shadow: inset 0 2px 8px #ffffff, 0 12px 24px #1b405a;
+            border: 1px solid #ffffff;
+        }
+        .control-panel h3 {
+            margin: 0 0 20px 0;
+            color: #0c3857;
+            font-size: 1.7rem;
+            border-bottom: 3px solid #b0cde0;
+            padding-bottom: 8px;
+        }
+        .mode-switch {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            background: #b9d4ed;
+            border-radius: 60px;
+            padding: 6px;
+        }
+        .mode-btn {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 12px 0;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #0a3e5c;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        .mode-btn.active {
+            background: #ffffff;
+            box-shadow: 0 4px 10px #2f6991;
+            color: #001f33;
+        }
+        .slider-group {
+            margin-bottom: 22px;
+        }
+        .slider-group label {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            color: #104369;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+        .value-badge {
+            background: #1e628b;
+            color: white;
+            padding: 4px 16px;
+            border-radius: 40px;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+        }
+        input[type=range] {
+            width: 100%;
+            height: 8px;
+            background: #8db5d2;
+            border-radius: 20px;
+            -webkit-appearance: none;
+            margin: 8px 0;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            background: #f0a55a;
+            border-radius: 50%;
+            box-shadow: 0 4px 8px #0b3147;
+            border: 2px solid white;
+            cursor: pointer;
+        }
+        .info-box {
+            background: #bed9f0;
+            border-radius: 36px;
+            padding: 16px;
+            text-align: center;
+            font-size: 1.1rem;
+            margin-top: 20px;
+        }
+        /* 动画区 */
+        .canvas-area {
+            background: #cde3f7;
+            border-radius: 48px;
+            padding: 20px;
+            box-shadow: inset 0 -4px 12px #8db1cc, 0 16px 28px #123b52;
+            border: 2px solid #ffffff;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: #dbeefb;
+            border-radius: 36px;
+            box-shadow: 0 0 0 4px #a1bedb, inset 0 0 0 2px #2d577b;
+        }
+        .data-row {
+            background: #e2f0fa;
+            border-radius: 40px;
+            padding: 18px 20px;
+            margin-top: 18px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            font-weight: 600;
+            color: #013352;
+        }
+        .data-item {
+            background: #ffffffd6;
+            border-radius: 60px;
+            padding: 14px 8px;
+            text-align: center;
+            box-shadow: inset 0 2px 8px #c1dfff;
+        }
+        .data-item span {
+            font-family: 'Courier New', monospace;
+            background: #1a4b70;
+            color: #fff2b5;
+            padding: 6px 16px;
+            border-radius: 40px;
+            margin-left: 8px;
+            font-size: 1.2rem;
+        }
+        /* 底部结论 */
+        .conclusion {
+            background: #0f344b;
+            border-radius: 40px;
+            padding: 22px 32px;
+            margin-top: 25px;
+            color: #f0efd8;
+            box-shadow: inset 0 3px 12px #5d8fb0, 0 12px 24px #021520;
+        }
+        .conclusion h3 {
+            font-size: 1.9rem;
+            color: #ffd894;
+            margin: 0 0 16px 0;
+        }
+        .conclusion p {
+            margin: 10px 0;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .conc-tag {
+            background: #2e6392;
+            padding: 5px 24px;
+            border-radius: 40px;
+            font-family: monospace;
+            color: #ffd98c;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+<div class="card">
+    <h1>🌊 机械波传播 · 横波与纵波</h1>
+    <div class="sub">质点只振动 · 不随波迁移 · 波长/频率/波速关系</div>
+
+    <div class="dashboard">
+        <!-- 控制面板 -->
+        <div class="control-panel">
+            <h3>⚙️ 波动参数</h3>
+            <div class="mode-switch" id="modeSwitch">
+                <button class="mode-btn active" id="transverseBtn">🌊 横波</button>
+                <button class="mode-btn" id="longitudinalBtn">〰️ 纵波</button>
+            </div>
+            <div class="slider-group">
+                <label>频率 f <span class="value-badge" id="freqVal">1.0 Hz</span></label>
+                <input type="range" id="freqSlider" min="0.3" max="3.0" value="1.0" step="0.1">
+            </div>
+            <div class="slider-group">
+                <label>振幅 A <span class="value-badge" id="ampVal">1.0</span></label>
+                <input type="range" id="ampSlider" min="0.3" max="2.5" value="1.0" step="0.1">
+            </div>
+            <div class="slider-group">
+                <label>波速 v <span class="value-badge" id="velVal">2.0 m/s</span></label>
+                <input type="range" id="velSlider" min="0.8" max="5.0" value="2.0" step="0.2">
+            </div>
+            <div class="info-box">
+                <div>🔹 质点只振动，不随波迁移</div>
+                <div>🔸 波长 λ = v / f</div>
+                <div>⚡ 当前波长 <span id="lambdaDisplay">2.00</span> m</div>
+            </div>
+        </div>
+
+        <!-- 动画区 + 数据 -->
+        <div class="canvas-area">
+            <canvas id="waveCanvas" width="800" height="320"></canvas>
+            <div class="data-row">
+                <div class="data-item">波长 λ <span id="lambdaVal">2.00</span> m</div>
+                <div class="data-item">频率 f <span id="freqValData">1.0</span> Hz</div>
+                <div class="data-item">波速 v <span id="velValData">2.0</span> m/s</div>
+                <div class="data-item">质点状态 <span id="particleState">位移 0.0</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部实验结论 -->
+    <div class="conclusion">
+        <h3>📌 实验结论 · 机械波</h3>
+        <p><span class="conc-tag">①</span> 机械波传播时，质点只在平衡位置振动，并不随波迁移。</p>
+        <p><span class="conc-tag">②</span> 波速由介质决定，与频率无关 (v = λf 仅描述数值关系)。</p>
+        <p><span class="conc-tag">③</span> 横波质点振动方向与波传播方向垂直；纵波质点振动方向与波传播方向平行。</p>
+    </div>
+</div>
+
+<script>
+(function() {
+    // ----- 画布与元素 -----
+    const canvas = document.getElementById('waveCanvas');
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width, height = canvas.height;
+
+    // 模式切换按钮
+    const transverseBtn = document.getElementById('transverseBtn');
+    const longitudinalBtn = document.getElementById('longitudinalBtn');
+    let waveMode = 'transverse'; // 'transverse' 或 'longitudinal'
+
+    // 滑块
+    const freqSlider = document.getElementById('freqSlider');
+    const ampSlider = document.getElementById('ampSlider');
+    const velSlider = document.getElementById('velSlider');
+    const freqVal = document.getElementById('freqVal');
+    const ampVal = document.getElementById('ampVal');
+    const velVal = document.getElementById('velVal');
+    const lambdaDisplay = document.getElementById('lambdaDisplay');
+    const lambdaVal = document.getElementById('lambdaVal');
+    const freqValData = document.getElementById('freqValData');
+    const velValData = document.getElementById('velValData');
+    const particleState = document.getElementById('particleState');
+
+    // 参数
+    let freq = 1.0;        // Hz
+    let amp = 1.0;         // 振幅 (无单位相对值)
+    let v = 2.0;           // 波速 m/s
+    let lambda = v / freq; // 波长
+
+    // 动画时间
+    let time = 0.0;
+    let animFrame = null;
+    let animActive = true;
+
+    // 质点数量与间隔
+    const numPoints = 35;
+    const startX = 100;
+    const endX = 700;
+    const stepX = (endX - startX) / (numPoints - 1);
+    // 平衡位置y
+    const baseY = 180;
+
+    // 更新滑块显示
+    function updateSliderReadout() {
+        freq = parseFloat(freqSlider.value);
+        amp = parseFloat(ampSlider.value);
+        v = parseFloat(velSlider.value);
+        freqVal.innerText = freq.toFixed(1) + ' Hz';
+        ampVal.innerText = amp.toFixed(1);
+        velVal.innerText = v.toFixed(1) + ' m/s';
+        lambda = v / freq;
+        lambdaDisplay.innerText = lambda.toFixed(2);
+        lambdaVal.innerText = lambda.toFixed(2);
+        freqValData.innerText = freq.toFixed(1);
+        velValData.innerText = v.toFixed(1);
+    }
+
+    // 计算某个质点的位移 (基于时间)
+    function getDisplacement(x, t) {
+        // 波动方程: y = A * sin(kx - ωt)   (向右传播)
+        let k = 2 * Math.PI / lambda;   // 波数
+        let omega = 2 * Math.PI * freq;
+        return amp * Math.sin(k * (x - startX) - omega * t);
+    }
+
+    // 更新质点状态 (显示中间质点的位移)
+    function updateParticleState() {
+        let midIndex = Math.floor(numPoints / 2);
+        let x = startX + midIndex * stepX;
+        let disp = getDisplacement(x, time);
+        if (waveMode === 'transverse') {
+            particleState.innerText = `y = ${disp.toFixed(2)}`;
+        } else {
+            // 纵波显示水平位移
+            particleState.innerText = `Δx = ${disp.toFixed(2)}`;
+        }
+    }
+
+    // 绘制画布
+    function draw() {
+        ctx.clearRect(0, 0, width, height);
+
+        // 背景
+        ctx.fillStyle = '#e6f3ff';
+        ctx.fillRect(0, 0, width, height);
+
+        // 画传播方向箭头
+        ctx.beginPath();
+        ctx.strokeStyle = '#2d5f8b';
+        ctx.lineWidth = 2;
+        ctx.moveTo(650, 40);
+        ctx.lineTo(680, 40);
+        ctx.stroke();
+        ctx.fillStyle = '#2d5f8b';
+        ctx.beginPath();
+        ctx.moveTo(680, 40);
+        ctx.lineTo(670, 35);
+        ctx.lineTo(670, 45);
+        ctx.fill();
+        ctx.font = 'bold 14px "Segoe UI"';
+        ctx.fillStyle = '#01447e';
+        ctx.fillText('传播方向 →', 550, 35);
+
+        // 画平衡位置参考线 (横波用)
+        if (waveMode === 'transverse') {
+            ctx.beginPath();
+            ctx.strokeStyle = '#a0b8d0';
+            ctx.setLineDash([4, 4]);
+            ctx.moveTo(startX-20, baseY);
+            ctx.lineTo(endX+20, baseY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        // 绘制所有质点
+        for (let i = 0; i < numPoints; i++) {
+            let x0 = startX + i * stepX;        // 平衡位置x
+            let disp = getDisplacement(x0, time);
+
+            let drawX, drawY;
+            if (waveMode === 'transverse') {
+                // 横波: 上下振动
+                drawX = x0;
+                drawY = baseY + disp * 30;       // 振幅缩放30px
+            } else {
+                // 纵波: 左右振动 (水平位移)
+                drawX = x0 + disp * 25;           // 水平偏移形成疏密
+                drawY = baseY;
+            }
+
+            // 画质点小球
+            ctx.beginPath();
+            ctx.arc(drawX, drawY, 6, 0, 2*Math.PI);
+            ctx.fillStyle = '#c44b3c';
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#a13d2f';
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // 如果是纵波，在平衡位置画浅色参考点
+            if (waveMode === 'longitudinal') {
+                ctx.beginPath();
+                ctx.arc(x0, baseY, 3, 0, 2*Math.PI);
+                ctx.fillStyle = '#a0b8d0';
+                ctx.globalAlpha = 0.6;
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        // 如果是纵波，额外画疏密标注
+        if (waveMode === 'longitudinal') {
+            ctx.font = 'bold 16px "Segoe UI"';
+            ctx.fillStyle = '#024e7b';
+            ctx.fillText('密部', 220, baseY-25);
+            ctx.fillText('疏部', 520, baseY-25);
+        } else {
+            ctx.font = 'bold 16px "Segoe UI"';
+            ctx.fillStyle = '#024e7b';
+            ctx.fillText('波峰', 300, baseY-60);
+            ctx.fillText('波谷', 500, baseY+50);
+        }
+
+        // 更新质点状态文本
+        updateParticleState();
+    }
+
+    // 物理更新
+    function update() {
+        if (animActive) {
+            time += 0.03; // 时间步长
+        }
+        draw();
+    }
+
+    // 动画循环
+    function animate() {
+        update();
+        animFrame = requestAnimationFrame(animate);
+    }
+
+    // 启动
+    animFrame = requestAnimationFrame(animate);
+
+    // 滑块事件
+    function slidersChanged() {
+        updateSliderReadout();
+    }
+
+    freqSlider.addEventListener('input', slidersChanged);
+    ampSlider.addEventListener('input', slidersChanged);
+    velSlider.addEventListener('input', slidersChanged);
+
+    // 模式切换
+    transverseBtn.addEventListener('click', () => {
+        waveMode = 'transverse';
+        transverseBtn.classList.add('active');
+        longitudinalBtn.classList.remove('active');
+    });
+    longitudinalBtn.addEventListener('click', () => {
+        waveMode = 'longitudinal';
+        longitudinalBtn.classList.add('active');
+        transverseBtn.classList.remove('active');
+    });
+
+    // 初始化
+    updateSliderReadout();
+    draw();
+
+    // 可选：添加暂停/启动（为简化，默认一直动，但可以加一个隐藏按钮，这里不加）
+})();
+</script>
+</body>
+</html>

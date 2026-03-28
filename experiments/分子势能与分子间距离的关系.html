@@ -1,0 +1,1146 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分子势能可视化</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
+        body {
+            background-color: #f5f7fa;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #3498db;
+            margin: 20px 0 15px;
+            font-size: 20px;
+        }
+        .knowledge-point {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #e8f4fd;
+            border-radius: 8px;
+        }
+        .knowledge-point p {
+            margin: 8px 0;
+            color: #34495e;
+        }
+        /* 知识检测按钮 */
+        .knowledge-test-btn {
+            display: block;
+            width: 200px;
+            height: 50px;
+            line-height: 50px;
+            text-align: center;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 20px auto;
+            transition: background 0.3s;
+        }
+        .knowledge-test-btn:hover {
+            background: #2980b9;
+        }
+        /* 弹窗遮罩 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        /* 答题弹窗 */
+        .quiz-modal {
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            position: relative;
+            overflow-y: auto;
+        }
+        /* 结果弹窗（加宽适配学情分析+解析） */
+        .result-modal {
+            width: 90%;
+            max-width: 1000px;
+            max-height: 85vh;
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            position: relative;
+            overflow-y: auto;
+        }
+        /* 关闭按钮 */
+        .close-modal-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background 0.2s;
+        }
+        .close-modal-btn:hover {
+            background: #c0392b;
+        }
+        /* 题目样式 */
+        .quiz-item {
+            margin-bottom: 25px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .quiz-item.unanswered {
+            border-color: #e74c3c;
+            background-color: #fdedeb;
+        }
+        .quiz-title {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        .quiz-options {
+            margin-left: 20px;
+        }
+        .quiz-option {
+            margin-bottom: 10px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        .quiz-option:hover {
+            background-color: #f1f9ff;
+        }
+        .quiz-option input {
+            margin-right: 10px;
+        }
+        /* 提交按钮 */
+        .submit-quiz-btn {
+            display: block;
+            width: 180px;
+            height: 48px;
+            line-height: 48px;
+            text-align: center;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 30px auto;
+            transition: background 0.3s;
+        }
+        .submit-quiz-btn:hover {
+            background: #218838;
+        }
+        /* 结果弹窗样式 */
+        .score-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+        .score-value {
+            font-size: 48px;
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 10px;
+        }
+        .score-text {
+            font-size: 20px;
+            color: #2c3e50;
+        }
+        /* 学情分析样式（结果弹窗内） */
+        .study-analysis {
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f0f8ff;
+            border: 1px solid #3498db;
+            border-radius: 8px;
+        }
+        .study-analysis-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2980b9;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed #3498db;
+        }
+        .study-analysis-item {
+            margin-bottom: 10px;
+            padding-left: 15px;
+            border-left: 3px solid #3498db;
+        }
+        /* 答题解析样式 */
+        .answer-analysis {
+            margin-top: 20px;
+        }
+        .answer-analysis-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #eee;
+        }
+        .answer-item {
+            margin-bottom: 25px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .answer-correct {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .answer-incorrect {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .your-answer, .correct-answer {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .your-answer {
+            background-color: #f8f9fa;
+        }
+        .correct-answer {
+            background-color: #e8f4fd;
+        }
+        .option-correct {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .option-incorrect {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        /* 分子交互区域样式 */
+        .molecule-interactive {
+            width: 100%;
+            height: 400px;
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            margin: 30px 0;
+            position: relative;
+            overflow: hidden;
+            background-color: #f8fbff;
+        }
+        /* 右上角势能显示面板 */
+        .force-value-panel {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255,255,255,0.9);
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            z-index: 20;
+            font-weight: bold;
+            min-width: 220px;
+        }
+        .data-collect-btn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 20;
+            transition: background 0.3s;
+        }
+        .data-collect-btn:hover {
+            background: #218838;
+        }
+        .force-value-item {
+            margin: 5px 0;
+            font-size: 16px;
+        }
+        .force-type {
+            color: #2c3e50;
+        }
+        .force-magnitude {
+            font-size: 18px;
+            margin-left: 8px;
+        }
+        .molecule {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #6fa8dc, #2980b9);
+            position: absolute;
+            top: 170px;
+            cursor: move;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            user-select: none;
+            z-index: 10;
+        }
+        #molecule1 {
+            left: 150px;
+        }
+        #molecule2 {
+            left: 450px;
+        }
+        .distance-label {
+            position: absolute;
+            top: 220px;
+            color: #2c3e50;
+            font-weight: bold;
+            font-size: 16px;
+            z-index: 8;
+            background: rgba(255,255,255,0.8);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        /* 数据表格和曲线图样式 */
+        .data-section {
+            margin: 40px 0;
+        }
+        .data-table-wrap {
+            margin: 20px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .data-table {
+            width: 100%;
+        }
+        .data-table th {
+            background-color: #2980b9;
+            color: white;
+        }
+        .clear-data-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            margin: 10px 0;
+            transition: background 0.3s;
+        }
+        .clear-data-btn:hover {
+            background: #c0392b;
+        }
+        .delete-row-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .delete-row-btn:hover {
+            background: #bb2d3b;
+        }
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            margin: 20px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            background: white;
+            position: relative;
+        }
+        /* 势能相关样式 */
+        .potential-label {
+            position: absolute;
+            top: 250px;
+            color: #9b59b6;
+            font-weight: bold;
+            font-size: 16px;
+            z-index: 8;
+            background: rgba(255,255,255,0.8);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+    </style>
+    <!-- 引入Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.2.1/dist/chartjs-plugin-annotation.min.js"></script>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <h1>分子势能与分子间距关系可视化</h1>
+
+        <!-- 知识讲解模块（已移除主页学情分析） -->
+        <div class="knowledge-point">
+            <h2>一、核心物理规律</h2>
+            <p>1. 分子势能与分子间距的关系：</p>
+            <p>&nbsp;&nbsp;- 分子势能的变化与分子间作用力做功相关：引力做正功，势能减小；斥力做正功，势能增大；</p>
+            <p>&nbsp;&nbsp;- 取r→∞时分子势能为0，则r=r₀（60px）时势能最小（约为-4.2×10⁻¹⁰J）；</p>
+            <p>&nbsp;&nbsp;- 分子势能曲线是分子间作用力的积分曲线，作用力为势能曲线的斜率负值（F = -dEp/dr）；</p>
+            <p>&nbsp;&nbsp;- 当r < r₀（60px）时，分子势能随间距减小呈<strong>指数增长</strong>（斥力主导区域）；</p>
+            <p>&nbsp;&nbsp;- 当r > r₀时，分子势能随间距增大逐渐趋近于0（引力主导区域）。</p>
+        </div>
+
+        <!-- 知识检测按钮 -->
+        <button class="knowledge-test-btn" id="knowledgeTestBtn">知识检测</button>
+
+        <!-- 分子交互区域 -->
+        <div class="molecule-interactive" id="moleculeContainer">
+            <!-- 右上角势能显示面板 -->
+            <div class="force-value-panel" id="forceValuePanel">
+                <div class="force-value-item">
+                    <span class="force-type">分子间距：</span>
+                    <span class="force-magnitude" id="currentDistance">60px</span>
+                </div>
+                <div class="force-value-item">
+                    <span class="force-type">分子势能：</span>
+                    <span class="force-magnitude" id="currentPotentialEnergy" style="color: #9b59b6;">-420（模拟值）</span>
+                </div>
+                <div class="force-value-item">
+                    <span class="force-type">平衡距离 r₀：</span>
+                    <span class="force-magnitude">60px (对应10⁻¹⁰m)</span>
+                </div>
+            </div>
+            
+            <!-- 取数按钮 -->
+            <button class="data-collect-btn" id="collectDataBtn">采集当前数据</button>
+            
+            <div class="molecule" id="molecule1">分子1</div>
+            <div class="molecule" id="molecule2">分子2</div>
+            <div class="distance-label" id="distanceLabel"></div>
+            <div class="potential-label" id="potentialLabel"></div>
+        </div>
+
+        <!-- 数据表格和曲线图区域 -->
+        <div class="data-section">
+            <h2>二、实验数据记录与势能曲线</h2>
+            
+            <!-- 数据表格 -->
+            <div class="data-table-wrap">
+                <button class="clear-data-btn" id="clearDataBtn">清空数据</button>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>分子间距 (px)</th>
+                            <th>分子势能（模拟值）</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTableBody">
+                        <tr>
+                            <td colspan="4" style="color: #7f8c8d;">暂无采集数据，请拖动分子后点击"采集当前数据"按钮</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- 势能曲线图容器 -->
+            <div class="chart-container">
+                <canvas id="potentialDistanceChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- 答题弹窗 -->
+    <div class="modal-overlay" id="quizModalOverlay">
+        <div class="quiz-modal" id="quizModal">
+            <button class="close-modal-btn" id="closeQuizModalBtn">×</button>
+            <h2 style="text-align: center; margin-bottom: 30px; color: #2c3e50;">分子势能知识检测</h2>
+            <div id="quizContent">
+                <!-- 题目会通过JS动态生成 -->
+            </div>
+            <button class="submit-quiz-btn" id="submitQuizBtn">提交答案</button>
+        </div>
+    </div>
+
+    <!-- 结果弹窗（包含学情分析+答题解析） -->
+    <div class="modal-overlay" id="resultModalOverlay">
+        <div class="result-modal" id="resultModal">
+            <button class="close-modal-btn" id="closeResultModalBtn">×</button>
+            <div id="resultContent">
+                <!-- 结果+学情分析+解析会通过JS动态生成 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // ========== 分子势能可视化核心逻辑 ==========
+            // 元素获取
+            const molecule1 = document.getElementById('molecule1');
+            const molecule2 = document.getElementById('molecule2');
+            const distanceLabel = document.getElementById('distanceLabel');
+            const potentialLabel = document.getElementById('potentialLabel');
+            const container = document.getElementById('moleculeContainer');
+            
+            // 显示面板元素
+            const currentDistance = document.getElementById('currentDistance');
+            const currentPotentialEnergy = document.getElementById('currentPotentialEnergy');
+            
+            // 数据采集相关
+            const collectDataBtn = document.getElementById('collectDataBtn');
+            const clearDataBtn = document.getElementById('clearDataBtn');
+            const dataTableBody = document.getElementById('dataTableBody');
+            let dataList = []; 
+            let potentialChart = null;
+            
+            // 物理参数
+            const r0 = 60; // 平衡距离（px）
+            const r10 = 10 * r0; // 10r0
+            const potentialMin = -420; // r0处势能最小值（模拟值）
+            const potentialInfinite = 0; // 无限远处势能
+            const repulsionEnd = 30; // 斥力区结束点（30px）
+            const expFactor = 4; // 指数增长系数（从8降低到4，增长更平缓）
+            
+            // 计算分子势能（修改版：0-30px势能为0，30-60px指数增长）
+            function calculatePotentialEnergy(distance) {
+                if (distance <= 0) return 0;
+                
+                // 0-30px区间：势能直接设为0
+                if (distance < repulsionEnd) {
+                    return 0;
+                }
+                // r0(60px)处势能最小
+                else if (Math.abs(distance - r0) < 1) {
+                    return potentialMin;
+                } 
+                // 30px到60px区间：平缓指数增长
+                else if (distance >= repulsionEnd && distance < r0) {
+                    const ratio = (r0 - distance) / (r0 - repulsionEnd); // 30px时ratio=1，60px时ratio=0
+                    const repulsionFactor = Math.exp(ratio * expFactor); 
+                    return Math.round(potentialMin + repulsionFactor * 50);
+                }
+                // 10r0以上：势能趋近于0
+                else if (distance >= r10) {
+                    return potentialInfinite;
+                } 
+                // 60px到600px区间：引力区，势能从最小值趋近于0
+                else {
+                    const attractionFactor = (distance - r0) / (r10 - r0);
+                    const potential = potentialMin + (potentialInfinite - potentialMin) * (1 - Math.exp(-attractionFactor * 5));
+                    return Math.round(potential);
+                }
+            }
+            
+            // 拖动功能
+            function makeDraggable(element) {
+                let isDragging = false;
+                let offsetX, offsetY;
+                
+                element.addEventListener('mousedown', startDrag);
+                element.addEventListener('touchstart', startDrag, { passive: true });
+                
+                function startDrag(e) {
+                    isDragging = true;
+                    const clientX = e.clientX || e.touches[0].clientX;
+                    const clientY = e.clientY || e.touches[0].clientY;
+                    const rect = element.getBoundingClientRect();
+                    offsetX = clientX - rect.left;
+                    offsetY = clientY - rect.top;
+                    
+                    document.addEventListener('mousemove', drag);
+                    document.addEventListener('touchmove', drag, { passive: true });
+                    document.addEventListener('mouseup', stopDrag);
+                    document.addEventListener('touchend', stopDrag);
+                }
+                
+                function drag(e) {
+                    if (!isDragging) return;
+                    e.preventDefault();
+                    const clientX = e.clientX || e.touches[0].clientX;
+                    const clientY = e.clientY || e.touches[0].clientY;
+                    const containerRect = container.getBoundingClientRect();
+                    
+                    let newX = clientX - offsetX - containerRect.left;
+                    let newY = clientY - offsetY - containerRect.top;
+                    
+                    newX = Math.max(0, Math.min(containerRect.width - element.offsetWidth, newX));
+                    newY = Math.max(0, Math.min(containerRect.height - element.offsetHeight, newY));
+                    
+                    element.style.left = newX + 'px';
+                    element.style.top = newY + 'px';
+                    
+                    updatePotentialDisplay();
+                }
+                
+                function stopDrag() {
+                    isDragging = false;
+                    document.removeEventListener('mousemove', drag);
+                    document.removeEventListener('touchmove', drag);
+                    document.removeEventListener('mouseup', stopDrag);
+                    document.removeEventListener('touchend', stopDrag);
+                }
+            }
+            
+            // 更新势能显示
+            function updatePotentialDisplay() {
+                const rect1 = molecule1.getBoundingClientRect();
+                const rect2 = molecule2.getBoundingClientRect();
+                const containerRect = container.getBoundingClientRect();
+                
+                const x1 = rect1.left + rect1.width/2 - containerRect.left;
+                const y1 = rect1.top + rect1.height/2 - containerRect.top;
+                const x2 = rect2.left + rect2.width/2 - containerRect.left;
+                const y2 = rect2.top + rect2.height/2 - containerRect.top;
+                
+                const dx = x2 - x1;
+                const dy = y2 - y1;
+                let distance = Math.sqrt(dx*dx + dy*dy);
+                
+                // 势能计算
+                const potentialEnergy = calculatePotentialEnergy(distance);
+                
+                // 更新标签
+                const realScale = (distance / r0).toFixed(2);
+                distanceLabel.style.left = (x1 + dx/2 - 30) + 'px';
+                distanceLabel.textContent = `距离: ${Math.round(distance)}px (${realScale}×10⁻¹⁰m，r₀=60px)`;
+                
+                potentialLabel.style.left = (x1 + dx/2 - 30) + 'px';
+                potentialLabel.textContent = `势能: ${potentialEnergy}（模拟值）`;
+                
+                // 更新面板
+                currentDistance.textContent = `${Math.round(distance)}px (${realScale}r₀)`;
+                currentPotentialEnergy.textContent = potentialEnergy;
+                
+                // 存储当前数据
+                window.currentMoleculeData = {
+                    distance: Math.round(distance),
+                    potentialEnergy: potentialEnergy
+                };
+            }
+            
+            // 采集数据
+            collectDataBtn.addEventListener('click', function() {
+                const data = window.currentMoleculeData;
+                if (!data) return;
+                
+                dataList.push({
+                    id: dataList.length + 1,
+                    distance: data.distance,
+                    potentialEnergy: data.potentialEnergy
+                });
+                
+                // 排序并重新编号
+                dataList.sort((a, b) => a.distance - b.distance);
+                dataList.forEach((item, index) => item.id = index + 1);
+                
+                updateDataTable();
+                updatePotentialDistanceChart();
+                
+                alert(`数据采集成功！\n间距：${data.distance}px | 势能：${data.potentialEnergy}`);
+            });
+            
+            // 清空数据
+            clearDataBtn.addEventListener('click', function() {
+                if (confirm('确定要清空所有采集的数据吗？')) {
+                    dataList = [];
+                    dataTableBody.innerHTML = '<tr><td colspan="4" style="color: #7f8c8d;">暂无采集数据，请拖动分子后点击"采集当前数据"按钮</td></tr>';
+                    
+                    if (potentialChart) potentialChart.destroy();
+                    potentialChart = null;
+                    
+                    alert('所有数据已清空！');
+                }
+            });
+            
+            // 删除单行数据
+            dataTableBody.addEventListener('click', function(e) {
+                if (e.target.classList.contains('delete-row-btn')) {
+                    const index = parseInt(e.target.getAttribute('data-index'));
+                    if (confirm('确定要删除这条数据吗？')) {
+                        dataList.splice(index, 1);
+                        dataList.forEach((item, idx) => item.id = idx + 1);
+                        updateDataTable();
+                        updatePotentialDistanceChart();
+                        alert('数据已删除！');
+                    }
+                }
+            });
+            
+            // 更新数据表格
+            function updateDataTable() {
+                dataTableBody.innerHTML = '';
+                
+                if (dataList.length === 0) {
+                    const emptyRow = document.createElement('tr');
+                    emptyRow.innerHTML = `<td colspan="4" style="color: #7f8c8d;">暂无采集数据，请拖动分子后点击"采集当前数据"按钮</td>`;
+                    dataTableBody.appendChild(emptyRow);
+                    return;
+                }
+                
+                dataList.forEach((item, index) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${item.id}</td>
+                        <td>${item.distance}</td>
+                        <td>${item.potentialEnergy}</td>
+                        <td><button class="delete-row-btn" data-index="${index}">删除</button></td>
+                    `;
+                    dataTableBody.appendChild(row);
+                });
+            }
+            
+            // 更新势能曲线图
+            function updatePotentialDistanceChart() {
+                const ctx = document.getElementById('potentialDistanceChart').getContext('2d');
+                
+                if (potentialChart) potentialChart.destroy();
+                
+                const chartDataPoints = dataList.map(item => ({
+                    x: item.distance,
+                    y: item.potentialEnergy
+                }));
+                
+                const maxX = Math.max(...dataList.map(item => item.distance), r10);
+                const maxY = Math.max(...dataList.map(item => item.potentialEnergy), 100);
+                const minY = Math.min(...dataList.map(item => item.potentialEnergy), -500);
+                
+                potentialChart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [{
+                            label: '分子势能（模拟值，r→∞时势能=0）',
+                            data: chartDataPoints,
+                            borderColor: '#9b59b6',
+                            backgroundColor: 'rgba(155, 89, 182, 0.6)',
+                            borderWidth: 2,
+                            pointRadius: 6,
+                            pointHoverRadius: 8,
+                            showLine: true,
+                            tension: 0.4,
+                            fill: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: '分子间距 (px) (1px = 1/60 ×10⁻¹⁰m)',
+                                    font: { size: 14, weight: 'bold' }
+                                },
+                                grid: { display: true, color: 'rgba(0,0,0,0.05)' },
+                                min: 0,
+                                max: maxX + 10,
+                                ticks: { stepSize: 20 }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: '分子势能（模拟值）',
+                                    font: { size: 14, weight: 'bold' }
+                                },
+                                grid: { display: true, color: 'rgba(0,0,0,0.05)' },
+                                min: minY - 50,
+                                max: maxY + 50,
+                                ticks: { stepSize: 50 }
+                            }
+                        },
+                        plugins: {
+                            annotation: {
+                                annotations: {
+                                    line1: {
+                                        type: 'line',
+                                        yMin: 0,
+                                        yMax: 0,
+                                        borderColor: '#000',
+                                        borderWidth: 2,
+                                        label: {
+                                            display: true,
+                                            content: '势能=0（无限远）',
+                                            position: 'end'
+                                        }
+                                    },
+                                    line2: {
+                                        type: 'line',
+                                        xMin: r0,
+                                        xMax: r0,
+                                        borderColor: '#7f8c8d',
+                                        borderWidth: 1,
+                                        borderDash: [5, 5],
+                                        label: {
+                                            display: true,
+                                            content: 'r₀=60px（势能最小值）',
+                                            position: 'top'
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // 初始化分子拖动
+            makeDraggable(molecule1);
+            makeDraggable(molecule2);
+            
+            // 初始更新
+            updatePotentialDisplay();
+
+            // ========== 知识检测+结果弹窗（含学情分析） ==========
+            // 题目数据
+            const quizQuestions = [
+                {
+                    id: 1,
+                    title: '当分子间距从60px（r₀）减小到30px时，分子势能的变化趋势是？',
+                    options: [
+                        { id: '1a', text: '线性增长' },
+                        { id: '1b', text: '平缓指数增长' },
+                        { id: '1c', text: '指数减小' },
+                        { id: '1d', text: '保持不变' }
+                    ],
+                    correctAnswer: '1b',
+                    score: 20
+                },
+                {
+                    id: 2,
+                    title: '取 r→∞ 时分子势能为0，下列关于分子势能的说法正确的是？',
+                    options: [
+                        { id: '2a', text: 'r = 60px 时势能最大' },
+                        { id: '2b', text: 'r = 60px 时势能最小且为正值' },
+                        { id: '2c', text: 'r = 60px 时势能最小且为负值' },
+                        { id: '2d', text: '势能始终为正值' }
+                    ],
+                    correctAnswer: '2c',
+                    score: 20
+                },
+                {
+                    id: 3,
+                    title: '分子势能曲线的斜率负值代表什么物理量？',
+                    options: [
+                        { id: '3a', text: '分子动能' },
+                        { id: '3b', text: '分子间作用力' },
+                        { id: '3c', text: '分子质量' },
+                        { id: '3d', text: '分子体积' }
+                    ],
+                    correctAnswer: '3b',
+                    score: 20
+                },
+                {
+                    id: 4,
+                    title: '当分子间距 r > 600px（10r₀）时，分子势能的取值接近？',
+                    options: [
+                        { id: '4a', text: '-4.2×10⁻¹⁰J' },
+                        { id: '4b', text: '0' },
+                        { id: '4c', text: '100J' },
+                        { id: '4d', text: '无限大' }
+                    ],
+                    correctAnswer: '4b',
+                    score: 20
+                },
+                {
+                    id: 5,
+                    title: '分子势能的变化与分子间作用力做功的关系，下列说法正确的是？',
+                    options: [
+                        { id: '5a', text: '引力做正功，势能增大' },
+                        { id: '5b', text: '斥力做正功，势能减小' },
+                        { id: '5c', text: '引力做正功，势能减小' },
+                        { id: '5d', text: '无论引力还是斥力做功，势能都增大' }
+                    ],
+                    correctAnswer: '5c',
+                    score: 20
+                }
+            ];
+
+            // 学情分析数据（独立抽离，便于维护）
+            const studyAnalysisData = `
+                <div class="study-analysis">
+                    <div class="study-analysis-title">学情分析与针对性学习建议</div>
+                    <div class="study-analysis-item">
+                        <p><strong>核心易错点</strong>：混淆分子势能与分子动能的变化规律，误将r₀处认为是势能为0的点，忽略斥力区势能的指数增长特性。</p>
+                    </div>
+                    <div class="study-analysis-item">
+                        <p><strong>知识重难点</strong>：理解“F = -dEp/dr”的物理意义，即分子间作用力为势能曲线的斜率负值；掌握不同间距区间（r<r₀、r=r₀、r>r₀）的势能变化与作用力的对应关系。</p>
+                    </div>
+                    <div class="study-analysis-item">
+                        <p><strong>针对性学习建议</strong>：1. 结合互动模型多次拖动分子，直观感受间距变化对势能的影响，重点观察60px到30px的势能变化；2. 采集多组不同间距的势能数据，绘制曲线并总结曲线特征；3. 结合错题重新理解做功与势能变化的核心逻辑，突破作用力与势能曲线的关系考点。</p>
+                    </div>
+                    <div class="study-analysis-item">
+                        <p><strong>能力提升目标</strong>：能根据分子间距快速判断势能变化趋势，能通过势能曲线分析分子间作用力的大小和方向，能灵活运用做功与势能变化的关系解决实际物理问题。</p>
+                    </div>
+                </div>
+            `;
+
+            // 元素获取
+            const knowledgeTestBtn = document.getElementById('knowledgeTestBtn');
+            const quizModalOverlay = document.getElementById('quizModalOverlay');
+            const closeQuizModalBtn = document.getElementById('closeQuizModalBtn');
+            const quizContent = document.getElementById('quizContent');
+            const submitQuizBtn = document.getElementById('submitQuizBtn');
+            const resultModalOverlay = document.getElementById('resultModalOverlay');
+            const closeResultModalBtn = document.getElementById('closeResultModalBtn');
+            const resultContent = document.getElementById('resultContent');
+
+            // 生成题目
+            function generateQuizQuestions() {
+                let html = '';
+                quizQuestions.forEach(question => {
+                    html += `
+                        <div class="quiz-item" id="quiz-${question.id}">
+                            <div class="quiz-title">${question.id}. ${question.title}</div>
+                            <div class="quiz-options">
+                    `;
+                    
+                    question.options.forEach(option => {
+                        html += `
+                            <div class="quiz-option">
+                                <input type="radio" name="quiz-${question.id}" id="${option.id}" value="${option.id}">
+                                <label for="${option.id}">${option.text}</label>
+                            </div>
+                        `;
+                    });
+                    
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                });
+                quizContent.innerHTML = html;
+            }
+
+            // 检查是否所有题目都已作答
+            function checkAllAnswered() {
+                let allAnswered = true;
+                let firstUnansweredId = null;
+                
+                quizQuestions.forEach(question => {
+                    const selectedOption = document.querySelector(`input[name="quiz-${question.id}"]:checked`);
+                    const quizItem = document.getElementById(`quiz-${question.id}`);
+                    
+                    if (!selectedOption) {
+                        allAnswered = false;
+                        quizItem.classList.add('unanswered');
+                        if (!firstUnansweredId) firstUnansweredId = question.id;
+                    } else {
+                        quizItem.classList.remove('unanswered');
+                    }
+                });
+                
+                if (!allAnswered && firstUnansweredId) {
+                    document.getElementById(`quiz-${firstUnansweredId}`).scrollIntoView({ behavior: 'smooth' });
+                    alert('请回答所有题目后再提交！');
+                }
+                
+                return allAnswered;
+            }
+
+            // 计算得分并生成结果（含学情分析+答题解析）
+            function calculateScore() {
+                let totalScore = 0;
+                let resultHtml = `
+                    <div class="score-header">
+                        <div class="score-value">0</div>
+                        <div class="score-text">请稍候，正在计算结果并生成学情分析...</div>
+                    </div>
+                `;
+                resultContent.innerHTML = resultHtml;
+                
+                setTimeout(() => {
+                    totalScore = 0;
+                    let answersHtml = '';
+                    
+                    // 计算得分并生成答题解析
+                    quizQuestions.forEach(question => {
+                        const selectedOption = document.querySelector(`input[name="quiz-${question.id}"]:checked`);
+                        const isCorrect = selectedOption && selectedOption.value === question.correctAnswer;
+                        
+                        if (isCorrect) totalScore += question.score;
+                        
+                        // 构建选项解析
+                        let optionsHtml = '';
+                        question.options.forEach(option => {
+                            let optionClass = '';
+                            let optionMark = '';
+                            if (option.id === question.correctAnswer) {
+                                optionClass = 'option-correct';
+                                optionMark = ' ✔';
+                            } else if (selectedOption && option.id === selectedOption.value && option.id !== question.correctAnswer) {
+                                optionClass = 'option-incorrect';
+                                optionMark = ' ✘';
+                            }
+                            optionsHtml += `
+                                <div class="quiz-option ${optionClass}">
+                                    <label>${option.text}${optionMark}</label>
+                                </div>
+                            `;
+                        });
+                        
+                        // 构建单题解析
+                        answersHtml += `
+                            <div class="answer-item">
+                                <div class="quiz-title">${question.id}. ${question.title}</div>
+                                <div class="quiz-options">${optionsHtml}</div>
+                                <div class="${isCorrect ? 'answer-correct' : 'answer-incorrect'}">
+                                    ${isCorrect ? '回答正确' : '回答错误'}
+                                </div>
+                                <div class="your-answer">
+                                    <strong>你的答案：</strong> ${selectedOption ? selectedOption.nextElementSibling.textContent : '未作答'}
+                                </div>
+                                <div class="correct-answer">
+                                    <strong>正确答案：</strong> ${question.options.find(opt => opt.id === question.correctAnswer).text}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    // 生成最终结果：得分 + 学情分析 + 答题解析
+                    resultHtml = `
+                        <div class="score-header">
+                            <div class="score-value">${totalScore}</div>
+                            <div class="score-text">
+                                ${totalScore === 100 ? '满分！你完全掌握了分子势能的核心知识' : 
+                                  totalScore >= 80 ? '优秀！你对分子势能的知识掌握得很好' : 
+                                  totalScore >= 60 ? '良好！继续针对薄弱点巩固即可' : '仍需努力！建议结合学情分析重点学习核心知识点'}
+                            </div>
+                        </div>
+                        ${studyAnalysisData}
+                        <div class="answer-analysis">
+                            <div class="answer-analysis-title">答题详细解析</div>
+                            ${answersHtml}
+                        </div>
+                    `;
+                    
+                    resultContent.innerHTML = resultHtml;
+                }, 800);
+                
+                return totalScore;
+            }
+
+            // 打开答题弹窗
+            knowledgeTestBtn.addEventListener('click', function() {
+                generateQuizQuestions();
+                quizModalOverlay.style.display = 'flex';
+            });
+
+            // 关闭答题弹窗
+            closeQuizModalBtn.addEventListener('click', function() {
+                quizModalOverlay.style.display = 'none';
+            });
+
+            // 关闭结果弹窗
+            closeResultModalBtn.addEventListener('click', function() {
+                resultModalOverlay.style.display = 'none';
+            });
+
+            // 点击遮罩关闭弹窗
+            quizModalOverlay.addEventListener('click', function(e) {
+                if (e.target === quizModalOverlay) quizModalOverlay.style.display = 'none';
+            });
+            resultModalOverlay.addEventListener('click', function(e) {
+                if (e.target === resultModalOverlay) resultModalOverlay.style.display = 'none';
+            });
+
+            // 提交答案
+            submitQuizBtn.addEventListener('click', function() {
+                if (!checkAllAnswered()) return;
+                calculateScore();
+                quizModalOverlay.style.display = 'none';
+                resultModalOverlay.style.display = 'flex';
+            });
+
+            // 初始化
+            updatePotentialDisplay();
+        });
+    </script>
+</body>
+</html>
+

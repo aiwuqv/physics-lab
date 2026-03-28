@@ -1,0 +1,1781 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多普勒效应交互模拟</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 20px 0;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .visualization {
+            flex: 1;
+            min-width: 600px;
+            height: 500px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+        
+        #threeCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        .controls {
+            flex: 0 0 350px;
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+        
+        .control-group {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+        }
+        
+        .control-group h3 {
+            margin-top: 0;
+            color: #4fc3f7;
+        }
+        
+        .control-item {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input[type="range"], select {
+            width: 100%;
+            padding: 5px;
+            border-radius: 5px;
+            border: none;
+            background: rgba(255,255,255,0.9);
+        }
+        
+        button {
+            background: #4fc3f7;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-weight: bold;
+        }
+        
+        button:hover {
+            background: #29b6f6;
+        }
+        
+        .data-display {
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        .data-table th, .data-table td {
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 8px;
+            text-align: center;
+        }
+        
+        .data-table th {
+            background: rgba(79, 195, 247, 0.3);
+        }
+        
+        .language-selector {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+        
+        .explanation {
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+        
+        .quiz-section {
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+        
+        .quiz-question {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+        }
+        
+        .quiz-options {
+            margin: 10px 0;
+        }
+        
+        .quiz-option {
+            margin: 5px 0;
+        }
+        
+        .quiz-option input {
+            margin-right: 10px;
+        }
+        
+        .results {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(76, 175, 80, 0.2);
+            border-radius: 5px;
+            display: none;
+        }
+        
+        @media (max-width: 1000px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            .visualization {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <header>
+            <h1 id="title">多普勒效应交互模拟</h1>
+            <p id="subtitle">通过3D可视化探索声波传播与频率变化</p>
+        </header>
+        
+        <div class="language-selector">
+            <select id="languageSelect">
+                <option value="zh-CN">中文</option>
+                <option value="en">English</option>
+                <option value="fr">Français</option>
+                <option value="de">Deutsch</option>
+            </select>
+        </div>
+        
+        <div class="content">
+            <div class="visualization">
+                <div id="threeCanvas"></div>
+            </div>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <h3 id="mediumTitle">环境介质</h3>
+                    <div class="control-item">
+                        <label for="mediumSelect" id="mediumLabel">选择介质:</label>
+                        <select id="mediumSelect">
+                            <option value="air" id="airOption">空气 (343 m/s)</option>
+                            <option value="water" id="waterOption">水 (1482 m/s)</option>
+                            <option value="steel" id="steelOption">钢 (5960 m/s)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3 id="sourceTitle">声源参数</h3>
+                    <div class="control-item">
+                        <label for="frequencySlider" id="freqLabel">初始频率 (Hz):</label>
+                        <input type="range" id="frequencySlider" min="20" max="2000" value="440" step="10">
+                        <span id="frequencyValue">440 Hz</span>
+                    </div>
+                    <div class="control-item">
+                        <label for="sourceSpeedSlider" id="speedLabel">声源速度 (m/s):</label>
+                        <input type="range" id="sourceSpeedSlider" min="-100" max="100" value="0" step="1">
+                        <span id="sourceSpeedValue">0 m/s</span>
+                    </div>
+                    <div class="control-item">
+                        <label for="waveSpeedSlider" id="waveSpeedLabel">波速调节:</label>
+                        <input type="range" id="waveSpeedSlider" min="0.1" max="2" value="1" step="0.1">
+                        <span id="waveSpeedValue">1.0x</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3 id="observerTitle">观察者参数</h3>
+                    <div class="control-item">
+                        <label for="observerSpeedSlider" id="obsSpeedLabel">观察者速度 (m/s):</label>
+                        <input type="range" id="observerSpeedSlider" min="-50" max="50" value="0" step="1">
+                        <span id="observerSpeedValue">0 m/s</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3 id="simulationTitle">模拟控制</h3>
+                    <button id="startBtn" id="startButton">开始模拟</button>
+                    <button id="pauseBtn" id="pauseButton">暂停模拟</button>
+                    <button id="resetBtn" id="resetButton">重置</button>
+                </div>
+                
+                <div class="control-group">
+                    <h3 id="trajectoryTitle">运动轨迹</h3>
+                    <div class="control-item">
+                        <label for="sourceTrajectory" id="sourceTrajectoryLabel">声源轨迹:</label>
+                        <select id="sourceTrajectory">
+                            <option value="linear" id="linearOption">直线运动</option>
+                            <option value="circular" id="circularOption">圆形运动</option>
+                            <option value="sinusoidal" id="sinusoidalOption">正弦运动</option>
+                            <option value="figure8" id="figure8Option">8字形运动</option>
+                            <option value="spiral" id="spiralOption">螺旋运动</option>
+                        </select>
+                    </div>
+                    <div class="control-item">
+                        <label for="observerTrajectory" id="observerTrajectoryLabel">观察者轨迹:</label>
+                        <select id="observerTrajectory">
+                            <option value="linear" id="linearOption2">直线运动</option>
+                            <option value="circular" id="circularOption2">圆形运动</option>
+                            <option value="sinusoidal" id="sinusoidalOption2">正弦运动</option>
+                            <option value="figure8" id="figure8Option2">8字形运动</option>
+                            <option value="spiral" id="spiralOption2">螺旋运动</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="data-display">
+            <h3 id="dataTitle">实验数据记录</h3>
+            <div style="display: flex; flex-wrap: wrap; gap: 20px;">
+                <div style="flex: 1; min-width: 500px;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th id="timeHeader">时间 (s)</th>
+                                <th id="obsFreqHeader">发射频率 (Hz)</th>
+                                <th id="calcFreqHeader">观测频率 (Hz)</th>
+                                <th id="diffHeader">差异</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataTable">
+                            <!-- Data will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                <div style="flex: 1; min-width: 500px;">
+                    <canvas id="frequencyChart" width="500" height="300"></canvas>
+                    <div style="margin-top: 10px;">
+                        <button id="exportDataBtn">导出数据</button>
+                        <button id="clearDataBtn">清空数据</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="explanation">
+            <h3 id="principleTitle">多普勒效应原理解释</h3>
+            <div id="principleExplanation">
+                <p><strong>什么是多普勒效应？</strong></p>
+                <p>多普勒效应是指波源和观察者之间有相对运动时，观察者接收到的波的频率与波源发射的频率不同的现象。当波源向观察者靠近时，观察者接收到的频率会变高；当波源远离观察者时，观察者接收到的频率会变低。</p>
+                <p><strong>公式：</strong> f' = f * (v + vo) / (v + vs)</p>
+                <p>其中：f' 是观察频率，f 是发射频率，v 是波速，vo 是观察者速度，vs 是声源速度</p>
+            </div>
+        </div>
+        
+        <div class="quiz-section">
+            <h3 id="quizTitle">知识检测</h3>
+            <div id="quizContainer">
+                <!-- Quiz questions will be generated by JavaScript -->
+            </div>
+            <button id="checkAnswersBtn" id="checkButton">检查答案</button>
+            <div id="results" class="results"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // 语言翻译映射
+        const translations = {
+            'zh-CN': {
+                title: '多普勒效应交互模拟',
+                subtitle: '通过3D可视化探索声波传播与频率变化',
+                mediumTitle: '环境介质',
+                mediumLabel: '选择介质:',
+                airOption: '空气 (343 m/s)',
+                waterOption: '水 (1482 m/s)',
+                steelOption: '钢 (5960 m/s)',
+                sourceTitle: '声源参数',
+                freqLabel: '初始频率 (Hz):',
+                speedLabel: '声源速度 (m/s):',
+                waveSpeedLabel: '波速调节:',
+                observerTitle: '观察者参数',
+                obsSpeedLabel: '观察者速度 (m/s):',
+                simulationTitle: '模拟控制',
+                startButton: '开始模拟',
+                pauseButton: '暂停模拟',
+                resetButton: '重置',
+                trajectoryTitle: '运动轨迹',
+                sourceTrajectoryLabel: '声源轨迹:',
+                observerTrajectoryLabel: '观察者轨迹:',
+                linearOption: '直线运动',
+                circularOption: '圆形运动',
+                sinusoidalOption: '正弦运动',
+                figure8Option: '8字形运动',
+                spiralOption: '螺旋运动',
+                linearOption2: '直线运动',
+                circularOption2: '圆形运动',
+                sinusoidalOption2: '正弦运动',
+                figure8Option2: '8字形运动',
+                spiralOption2: '螺旋运动',
+                dataTitle: '实验数据记录',
+                timeHeader: '时间 (s)',
+                obsFreqHeader: '发射频率 (Hz)',
+                calcFreqHeader: '观测频率 (Hz)',
+                diffHeader: '差异',
+                exportDataBtn: '导出数据',
+                clearDataBtn: '清空数据',
+                principleTitle: '多普勒效应原理解释',
+                principleExplanation: `
+                    <p><strong>什么是多普勒效应？</strong></p>
+                    <p>多普勒效应是指波源和观察者之间有相对运动时，观察者接收到的波的频率与波源发射的频率不同的现象。当波源向观察者靠近时，观察者接收到的频率会变高；当波源远离观察者时，观察者接收到的频率会变低。</p>
+                    <p><strong>公式：</strong> f' = f * (v + vo) / (v + vs)</p>
+                    <p>其中：f' 是观察频率，f 是发射频率，v 是波速，vo 是观察者速度，vs 是声源速度</p>
+                `,
+                quizTitle: '知识检测',
+                checkButton: '检查答案'
+            },
+            'en': {
+                title: 'Doppler Effect Interactive Simulation',
+                subtitle: 'Explore sound wave propagation and frequency changes through 3D visualization',
+                mediumTitle: 'Medium',
+                mediumLabel: 'Select Medium:',
+                airOption: 'Air (343 m/s)',
+                waterOption: 'Water (1482 m/s)',
+                steelOption: 'Steel (5960 m/s)',
+                sourceTitle: 'Source Parameters',
+                freqLabel: 'Initial Frequency (Hz):',
+                speedLabel: 'Source Speed (m/s):',
+                waveSpeedLabel: 'Wave Speed Factor:',
+                observerTitle: 'Observer Parameters',
+                obsSpeedLabel: 'Observer Speed (m/s):',
+                simulationTitle: 'Simulation Control',
+                startButton: 'Start Simulation',
+                pauseButton: 'Pause Simulation',
+                resetButton: 'Reset',
+                trajectoryTitle: 'Motion Trajectory',
+                sourceTrajectoryLabel: 'Source Trajectory:',
+                observerTrajectoryLabel: 'Observer Trajectory:',
+                linearOption: 'Linear Motion',
+                circularOption: 'Circular Motion',
+                sinusoidalOption: 'Sinusoidal Motion',
+                figure8Option: 'Figure-8 Motion',
+                spiralOption: 'Spiral Motion',
+                linearOption2: 'Linear Motion',
+                circularOption2: 'Circular Motion',
+                sinusoidalOption2: 'Sinusoidal Motion',
+                figure8Option2: 'Figure-8 Motion',
+                spiralOption2: 'Spiral Motion',
+                dataTitle: 'Experimental Data Record',
+                timeHeader: 'Time (s)',
+                obsFreqHeader: 'Emitted Frequency (Hz)',
+                calcFreqHeader: 'Observed Frequency (Hz)',
+                diffHeader: 'Difference',
+                exportDataBtn: 'Export Data',
+                clearDataBtn: 'Clear Data',
+                principleTitle: 'Doppler Effect Principle Explanation',
+                principleExplanation: `
+                    <p><strong>What is the Doppler Effect?</strong></p>
+                    <p>The Doppler effect is the phenomenon where the frequency of waves received by an observer is different from the frequency emitted by the source when there is relative motion between the source and the observer. When the source moves toward the observer, the observed frequency increases; when the source moves away, the observed frequency decreases.</p>
+                    <p><strong>Formula:</strong> f' = f * (v + vo) / (v + vs)</p>
+                    <p>Where: f' is observed frequency, f is emitted frequency, v is wave speed, vo is observer velocity, vs is source velocity</p>
+                `,
+                quizTitle: 'Knowledge Test',
+                checkButton: 'Check Answers'
+            },
+            'fr': {
+                title: 'Simulation Interactive de l\'Effet Doppler',
+                subtitle: 'Explorer la propagation des ondes sonores et les changements de fréquence par visualisation 3D',
+                mediumTitle: 'Milieu',
+                mediumLabel: 'Sélectionner le Milieu:',
+                airOption: 'Air (343 m/s)',
+                waterOption: 'Eau (1482 m/s)',
+                steelOption: 'Acier (5960 m/s)',
+                sourceTitle: 'Paramètres de la Source',
+                freqLabel: 'Fréquence Initiale (Hz):',
+                speedLabel: 'Vitesse de la Source (m/s):',
+                waveSpeedLabel: 'Facteur de Vitesse des Ondes:',
+                observerTitle: 'Paramètres de l\'Observateur',
+                obsSpeedLabel: 'Vitesse de l\'Observateur (m/s):',
+                simulationTitle: 'Contrôle de la Simulation',
+                startButton: 'Démarrer la Simulation',
+                pauseButton: 'Pause',
+                resetButton: 'Réinitialiser',
+                trajectoryTitle: 'Trajectoire de Mouvement',
+                sourceTrajectoryLabel: 'Trajectoire de la Source:',
+                observerTrajectoryLabel: 'Trajectoire de l\'Observateur:',
+                linearOption: 'Mouvement Linéaire',
+                circularOption: 'Mouvement Circulaire',
+                sinusoidalOption: 'Mouvement Sinusoidal',
+                figure8Option: 'Mouvement en forme de 8',
+                spiralOption: 'Mouvement Spiral',
+                linearOption2: 'Mouvement Linéaire',
+                circularOption2: 'Mouvement Circulaire',
+                sinusoidalOption2: 'Mouvement Sinusoidal',
+                figure8Option2: 'Mouvement en forme de 8',
+                spiralOption2: 'Mouvement Spiral',
+                dataTitle: 'Enregistrement des Données Expérimentales',
+                timeHeader: 'Temps (s)',
+                obsFreqHeader: 'Fréquence Émise (Hz)',
+                calcFreqHeader: 'Fréquence Observée (Hz)',
+                diffHeader: 'Différence',
+                exportDataBtn: 'Exporter les Données',
+                clearDataBtn: 'Effacer les Données',
+                principleTitle: 'Explication du Principe de l\'Effet Doppler',
+                principleExplanation: `
+                    <p><strong>Qu\'est-ce que l'Effet Doppler ?</strong></p>
+                    <p>L'effet Doppler est le phénomène selon lequel la fréquence des ondes reçues par un observateur est différente de la fréquence émise par la source lorsqu'il y a un mouvement relatif entre la source et l'observateur. Lorsque la source se rapproche de l'observateur, la fréquence observée augmente ; lorsqu'elle s'éloigne, la fréquence observée diminue.</p>
+                    <p><strong>Formule :</strong> f' = f * (v + vo) / (v + vs)</p>
+                    <p>Où : f' est la fréquence observée, f est la fréquence émise, v est la vitesse de l'onde, vo est la vitesse de l'observateur, vs est la vitesse de la source</p>
+                `,
+                quizTitle: 'Test de Connaissances',
+                checkButton: 'Vérifier les Réponses'
+            },
+            'de': {
+                title: 'Doppler-Effekt Interaktive Simulation',
+                subtitle: 'Schallwellen-Propagation und Frequenzänderungen durch 3D-Visualisierung erforschen',
+                mediumTitle: 'Medium',
+                mediumLabel: 'Medium auswählen:',
+                airOption: 'Luft (343 m/s)',
+                waterOption: 'Wasser (1482 m/s)',
+                steelOption: 'Stahl (5960 m/s)',
+                sourceTitle: 'Quellenparameter',
+                freqLabel: 'Anfangsfrequenz (Hz):',
+                speedLabel: 'Quellengeschwindigkeit (m/s):',
+                waveSpeedLabel: 'Wellengeschwindigkeitsfaktor:',
+                observerTitle: 'Beobachterparameter',
+                obsSpeedLabel: 'Beobachtergeschwindigkeit (m/s):',
+                simulationTitle: 'Simulationskontrolle',
+                startButton: 'Simulation starten',
+                pauseButton: 'Pause',
+                resetButton: 'Zurücksetzen',
+                trajectoryTitle: 'Bewegungsbahn',
+                sourceTrajectoryLabel: 'Quellenbahn:',
+                observerTrajectoryLabel: 'Beobachterbahn:',
+                linearOption: 'Lineare Bewegung',
+                circularOption: 'Kreisförmige Bewegung',
+                sinusoidalOption: 'Sinusförmige Bewegung',
+                figure8Option: 'Achterbahn-Bewegung',
+                spiralOption: 'Spiralbewegung',
+                linearOption2: 'Lineare Bewegung',
+                circularOption2: 'Kreisförmige Bewegung',
+                sinusoidalOption2: 'Sinusförmige Bewegung',
+                figure8Option2: 'Achterbahn-Bewegung',
+                spiralOption2: 'Spiralbewegung',
+                dataTitle: 'Experimentelle Datenaufzeichnung',
+                timeHeader: 'Zeit (s)',
+                obsFreqHeader: 'Emittierte Frequenz (Hz)',
+                calcFreqHeader: 'Beobachtete Frequenz (Hz)',
+                diffHeader: 'Unterschied',
+                exportDataBtn: 'Daten exportieren',
+                clearDataBtn: 'Daten löschen',
+                principleTitle: 'Erklärung des Doppler-Effekts',
+                principleExplanation: `
+                    <p><strong>Was ist der Doppler-Effekt?</strong></p>
+                    <p>Der Doppler-Effekt ist das Phänomen, bei dem sich die Frequenz einer Welle, die von einem Beobachter empfangen wird, von der Frequenz unterscheidet, die von der Quelle ausgesendet wird, wenn sich Quelle und Beobachter relativ zueinander bewegen. Wenn sich die Quelle auf den Beobachter zubewegt, erhöht sich die beobachtete Frequenz; wenn sich die Quelle vom Beobachter entfernt, verringert sich die beobachtete Frequenz.</p>
+                    <p><strong>Formel:</strong> f' = f * (v + vo) / (v + vs)</p>
+                    <p>Wobei: f' ist die beobachtete Frequenz, f ist die emittierte Frequenz, v ist die Wellengeschwindigkeit, vo ist die Beobachtergeschwindigkeit, vs ist die Quellengeschwindigkeit</p>
+                `,
+                quizTitle: 'Wissensprüfung',
+                checkButton: 'Antworten überprüfen'
+            }
+        };
+
+        // 当前语言
+        let currentLanguage = 'zh-CN';
+        
+        // 更新界面语言
+        function updateLanguage(lang) {
+            currentLanguage = lang;
+            const t = translations[lang];
+            
+            document.getElementById('title').textContent = t.title;
+            document.getElementById('subtitle').textContent = t.subtitle;
+            document.querySelector('.control-group:nth-child(1) h3').textContent = t.mediumTitle;
+            document.querySelector('.control-group:nth-child(1) label').textContent = t.mediumLabel;
+            document.querySelectorAll('#mediumSelect option')[0].textContent = t.airOption;
+            document.querySelectorAll('#mediumSelect option')[1].textContent = t.waterOption;
+            document.querySelectorAll('#mediumSelect option')[2].textContent = t.steelOption;
+            document.querySelector('.control-group:nth-child(2) h3').textContent = t.sourceTitle;
+            document.querySelectorAll('.control-group:nth-child(2) label')[0].textContent = t.freqLabel;
+            document.querySelectorAll('.control-group:nth-child(2) label')[1].textContent = t.speedLabel;
+            document.querySelector('.control-group:nth-child(3) h3').textContent = t.observerTitle;
+            document.querySelectorAll('.control-group:nth-child(3) label')[0].textContent = t.obsSpeedLabel;
+            document.querySelector('.control-group:nth-child(4) h3').textContent = t.simulationTitle;
+            document.getElementById('startBtn').textContent = t.startButton;
+            document.getElementById('pauseBtn').textContent = t.pauseButton;
+            document.getElementById('resetBtn').textContent = t.resetButton;
+            document.querySelector('.control-group:nth-child(5) h3').textContent = t.trajectoryTitle;
+            document.querySelectorAll('.control-group:nth-child(5) label')[0].textContent = t.sourceTrajectoryLabel;
+            document.querySelectorAll('.control-group:nth-child(5) label')[1].textContent = t.observerTrajectoryLabel;
+            document.querySelectorAll('#sourceTrajectory option')[0].textContent = t.linearOption;
+            document.querySelectorAll('#sourceTrajectory option')[1].textContent = t.circularOption;
+            document.querySelectorAll('#sourceTrajectory option')[2].textContent = t.sinusoidalOption;
+            document.querySelectorAll('#observerTrajectory option')[0].textContent = t.linearOption2;
+            document.querySelectorAll('#observerTrajectory option')[1].textContent = t.circularOption2;
+            document.querySelectorAll('#observerTrajectory option')[2].textContent = t.sinusoidalOption2;
+            document.querySelector('.data-display h3').textContent = t.dataTitle;
+            document.querySelectorAll('.data-table th')[0].textContent = t.timeHeader;
+            document.querySelectorAll('.data-table th')[1].textContent = t.obsFreqHeader;
+            document.querySelectorAll('.data-table th')[2].textContent = t.calcFreqHeader;
+            document.querySelectorAll('.data-table th')[3].textContent = t.diffHeader;
+            document.getElementById('exportDataBtn').textContent = t.exportDataBtn;
+            document.getElementById('clearDataBtn').textContent = t.clearDataBtn;
+            document.querySelector('.explanation h3').textContent = t.principleTitle;
+            document.getElementById('principleExplanation').innerHTML = t.principleExplanation;
+            document.querySelector('.quiz-section h3').textContent = t.quizTitle;
+            document.getElementById('checkAnswersBtn').textContent = t.checkButton;
+        }
+
+        // Three.js 3D场景设置
+        let scene, camera, renderer;
+        let source, observer, waves = [];
+        let clock = new THREE.Clock();
+        let waveGroup = new THREE.Group();
+        let sourceTrajectoryPoints = [];
+        let observerTrajectoryPoints = [];
+        let trajectoryLines = { source: null, observer: null };
+        
+        // 轨迹可视化相关
+        const MAX_TRAJECTORY_POINTS = 200;
+
+        // 初始化Three.js场景
+        function initScene() {
+            // 创建场景
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0c1b33);
+            
+            // 创建相机
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 10, 20);
+            camera.lookAt(0, 0, 0);
+            
+            // 创建渲染器
+            const container = document.getElementById('threeCanvas');
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+            
+            // 添加光源
+            const ambientLight = new THREE.AmbientLight(0x404040, 1.5);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+            directionalLight.position.set(5, 10, 7);
+            directionalLight.castShadow = true;
+            scene.add(directionalLight);
+            
+            // 添加网格地面
+            const gridHelper = new THREE.GridHelper(30, 30, 0x444444, 0x222222);
+            scene.add(gridHelper);
+            
+            // 创建声源（红色球体）
+            const sourceGeometry = new THREE.SphereGeometry(0.5, 32, 32);
+            const sourceMaterial = new THREE.MeshPhongMaterial({ color: 0xff5722 });
+            source = new THREE.Mesh(sourceGeometry, sourceMaterial);
+            source.position.set(-5, 0, 0);
+            scene.add(source);
+            
+            // 为声源添加标签
+            const sourceLabelDiv = document.createElement('div');
+            sourceLabelDiv.id = 'sourceLabel';
+            sourceLabelDiv.textContent = '波源';
+            sourceLabelDiv.style.position = 'absolute';
+            sourceLabelDiv.style.color = 'white';
+            sourceLabelDiv.style.fontSize = '16px';
+            sourceLabelDiv.style.fontWeight = 'bold';
+            sourceLabelDiv.style.pointerEvents = 'none';
+            sourceLabelDiv.style.textShadow = '1px 1px 1px black';
+            document.getElementById('threeCanvas').appendChild(sourceLabelDiv);
+            
+            // 创建观察者（绿色球体）
+            const observerGeometry = new THREE.SphereGeometry(0.5, 32, 32);
+            const observerMaterial = new THREE.MeshPhongMaterial({ color: 0x4caf50 });
+            observer = new THREE.Mesh(observerGeometry, observerMaterial);
+            observer.position.set(5, 0, 0);
+            scene.add(observer);
+            
+            // 为观察者添加标签
+            const observerLabelDiv = document.createElement('div');
+            observerLabelDiv.id = 'observerLabel';
+            observerLabelDiv.textContent = '观察者';
+            observerLabelDiv.style.position = 'absolute';
+            observerLabelDiv.style.color = 'white';
+            observerLabelDiv.style.fontSize = '16px';
+            observerLabelDiv.style.fontWeight = 'bold';
+            observerLabelDiv.style.pointerEvents = 'none';
+            observerLabelDiv.style.textShadow = '1px 1px 1px black';
+            document.getElementById('threeCanvas').appendChild(observerLabelDiv);
+            
+            // 创建波的容器
+            scene.add(waveGroup);
+            
+            // 添加坐标轴助手
+            const axesHelper = new THREE.AxesHelper(5);
+            scene.add(axesHelper);
+            
+            // 监听窗口大小变化
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function onWindowResize() {
+            const container = document.getElementById('threeCanvas');
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+
+        // 物理参数
+        const params = {
+            medium: 'air',
+            speedOfSound: 343, // m/s
+            frequency: 440, // Hz
+            wavelength: 343/440, // m
+            sourceSpeed: 0, // m/s
+            observerSpeed: 0, // m/s
+            sourcePosition: { x: -5, y: 0, z: 0 },
+            observerPosition: { x: 5, y: 0, z: 0 },
+            time: 0,
+            running: false,
+            sourceTrajectory: 'linear',
+            observerTrajectory: 'linear'
+        };
+
+        // 波类
+        class Wave {
+            constructor(position, startTime) {
+                this.position = { ...position };
+                this.startTime = startTime;
+                this.radius = 0;
+                this.maxRadius = 30; // 最大半径
+                
+                // 根据生成时间计算颜色，使不同波前颜色差异更大
+                const hue = (startTime * 50) % 360; // 增大系数使颜色差异更明显
+                const color = new THREE.Color(`hsl(${hue}, 100%, 70%)`);
+                
+                // 创建波前球体
+                const waveGeometry = new THREE.SphereGeometry(this.radius, 32, 32);
+                const waveMaterial = new THREE.MeshBasicMaterial({
+                    color: color,
+                    wireframe: true,
+                    transparent: true,
+                    opacity: 0.8
+                });
+                this.mesh = new THREE.Mesh(waveGeometry, waveMaterial);
+                this.mesh.position.set(position.x, position.y, position.z);
+                waveGroup.add(this.mesh);
+                
+                // 创建波前的线框圆环，使其在2D平面上更明显
+                const circleGeometry = new THREE.RingGeometry(0.1, this.radius, 32);
+                const circleMaterial = new THREE.MeshBasicMaterial({ 
+                    color: color, 
+                    side: THREE.DoubleSide,
+                    transparent: true,
+                    opacity: 0.4,
+                    wireframe: false
+                });
+                this.circleMesh = new THREE.Mesh(circleGeometry, circleMaterial);
+                this.circleMesh.position.set(position.x, position.y, position.z);
+                this.circleMesh.rotation.x = Math.PI / 2; // 使圆环与XZ平面平行
+                waveGroup.add(this.circleMesh);
+                
+                // 创建边界线，增强视觉区分度
+                const edgeGeometry = new THREE.RingGeometry(this.radius - 0.05, this.radius + 0.05, 32);
+                const edgeMaterial = new THREE.MeshBasicMaterial({ 
+                    color: 0x000000, // 黑色边界线
+                    side: THREE.DoubleSide,
+                    transparent: true,
+                    opacity: 0.8,
+                    wireframe: false
+                });
+                this.edgeMesh = new THREE.Mesh(edgeGeometry, edgeMaterial);
+                this.edgeMesh.position.set(position.x, position.y, position.z);
+                this.edgeMesh.rotation.x = Math.PI / 2; // 使圆环与XZ平面平行
+                waveGroup.add(this.edgeMesh);
+            }
+            
+            update(deltaTime, speedOfSound) {
+                // 波的传播速度取决于介质和波速因子
+                this.radius += speedOfSound * params.waveSpeedFactor * 0.01 * deltaTime;
+                
+                // 更新波前大小
+                this.mesh.scale.set(this.radius, this.radius, this.radius);
+                
+                // 更新圆环几何体
+                this.circleMesh.geometry.dispose(); // 清理旧几何体
+                this.circleMesh.geometry = new THREE.RingGeometry(0.1, this.radius, 32);
+                
+                // 更新边界线几何体
+                this.edgeMesh.geometry.dispose(); // 清理旧几何体
+                this.edgeMesh.geometry = new THREE.RingGeometry(this.radius - 0.05, this.radius + 0.05, 32);
+                
+                // 调整透明度随半径增加而减小，保持更好的可见性
+                const opacity = Math.max(0.3, 0.8 - (this.radius / this.maxRadius) * 0.5); // 最小透明度设为0.3
+                this.mesh.material.opacity = opacity;
+                this.circleMesh.material.opacity = Math.max(0.4, 0.6 - (this.radius / this.maxRadius) * 0.3); // 最小透明度设为0.4
+                this.edgeMesh.material.opacity = Math.max(0.5, 0.8 - (this.radius / this.maxRadius) * 0.4); // 边界线保持较高透明度
+                
+                // 如果波变得太大，则标记为移除
+                return this.radius > this.maxRadius;
+            }
+            
+            removeFromScene() {
+                waveGroup.remove(this.mesh);
+                waveGroup.remove(this.circleMesh);
+                waveGroup.remove(this.edgeMesh);
+            }
+        }
+
+        // 计算轨迹位置
+        function calculateTrajectoryPosition(time, trajectoryType, basePosition, speed) {
+            switch(trajectoryType) {
+                case 'linear':
+                    // 线性运动：根据速度移动
+                    return {
+                        x: basePosition.x + (speed * 0.01 * time),
+                        y: basePosition.y,
+                        z: basePosition.z
+                    };
+                case 'circular':
+                    // 圆周运动
+                    const radius = 5;
+                    return {
+                        x: basePosition.x + radius * Math.cos(time * 0.5),
+                        y: basePosition.y + 2 * Math.sin(time * 0.3),
+                        z: basePosition.z + radius * Math.sin(time * 0.5)
+                    };
+                case 'sinusoidal':
+                    // 正弦运动
+                    return {
+                        x: basePosition.x + speed * 0.01 * time,
+                        y: basePosition.y + 2 * Math.sin(time * 1.5),
+                        z: basePosition.z + 1.5 * Math.cos(time * 1.2)
+                    };
+                case 'figure8':
+                    // 8字形运动
+                    return {
+                        x: basePosition.x + 4 * Math.sin(time * 0.5),
+                        y: basePosition.y,
+                        z: basePosition.z + 2 * Math.sin(time * 1.0) * Math.cos(time * 0.5)
+                    };
+                case 'spiral':
+                    // 螺旋运动
+                    const spiralRadius = 0.5 * time;
+                    return {
+                        x: basePosition.x + spiralRadius * Math.cos(time * 0.8),
+                        y: basePosition.y + 0.5 * time,
+                        z: basePosition.z + spiralRadius * Math.sin(time * 0.8)
+                    };
+                default:
+                    return { ...basePosition };
+            }
+        }
+
+        // 更新介质
+        function updateMedium() {
+            const medium = document.getElementById('mediumSelect').value;
+            switch(medium) {
+                case 'air':
+                    params.speedOfSound = 343;
+                    break;
+                case 'water':
+                    params.speedOfSound = 1482;
+                    break;
+                case 'steel':
+                    params.speedOfSound = 5960;
+                    break;
+            }
+            params.wavelength = params.speedOfSound / params.frequency;
+        }
+
+        // 初始化事件监听器
+        function initEventListeners() {
+            // 介质选择
+            document.getElementById('mediumSelect').addEventListener('change', function() {
+                updateMedium();
+                updateFrequencyDisplay();
+            });
+            
+            // 频率滑块
+            const freqSlider = document.getElementById('frequencySlider');
+            const freqValue = document.getElementById('frequencyValue');
+            freqSlider.addEventListener('input', function() {
+                params.frequency = parseInt(this.value);
+                freqValue.textContent = params.frequency + ' Hz';
+                params.wavelength = params.speedOfSound / params.frequency;
+            });
+            
+            // 声源速度滑块
+            const sourceSpeedSlider = document.getElementById('sourceSpeedSlider');
+            const sourceSpeedValue = document.getElementById('sourceSpeedValue');
+            sourceSpeedSlider.addEventListener('input', function() {
+                params.sourceSpeed = parseInt(this.value);
+                sourceSpeedValue.textContent = params.sourceSpeed + ' m/s';
+            });
+            
+            // 波速调节滑块
+            const waveSpeedSlider = document.getElementById('waveSpeedSlider');
+            const waveSpeedValue = document.getElementById('waveSpeedValue');
+            waveSpeedSlider.addEventListener('input', function() {
+                params.waveSpeedFactor = parseFloat(this.value);
+                waveSpeedValue.textContent = params.waveSpeedFactor.toFixed(1) + 'x';
+            });
+            params.waveSpeedFactor = 1.0; // 默认波速因子
+            
+            // 观察者速度滑块
+            const observerSpeedSlider = document.getElementById('observerSpeedSlider');
+            const observerSpeedValue = document.getElementById('observerSpeedValue');
+            observerSpeedSlider.addEventListener('input', function() {
+                params.observerSpeed = parseInt(this.value);
+                observerSpeedValue.textContent = params.observerSpeed + ' m/s';
+            });
+            
+            // 轨迹选择
+            document.getElementById('sourceTrajectory').addEventListener('change', function() {
+                params.sourceTrajectory = this.value;
+            });
+            
+            document.getElementById('observerTrajectory').addEventListener('change', function() {
+                params.observerTrajectory = this.value;
+            });
+            
+            // 控制按钮
+            document.getElementById('startBtn').addEventListener('click', startSimulation);
+            document.getElementById('pauseBtn').addEventListener('click', pauseSimulation);
+            document.getElementById('resetBtn').addEventListener('click', resetSimulation);
+            
+            // 语言选择
+            document.getElementById('languageSelect').addEventListener('change', function() {
+                updateLanguage(this.value);
+            });
+            
+            // 数据导出和清空按钮
+            document.getElementById('exportDataBtn').addEventListener('click', exportData);
+            document.getElementById('clearDataBtn').addEventListener('click', clearData);
+            
+            // 测验检查按钮
+            document.getElementById('checkAnswersBtn').addEventListener('click', checkQuizAnswers);
+        }
+
+        // 更新频率显示
+        function updateFrequencyDisplay() {
+            const freqSlider = document.getElementById('frequencySlider');
+            const freqValue = document.getElementById('frequencyValue');
+            freqSlider.value = params.frequency;
+            freqValue.textContent = params.frequency + ' Hz';
+        }
+
+        // 开始模拟
+        function startSimulation() {
+            params.running = true;
+        }
+
+        // 暂停模拟
+        function pauseSimulation() {
+            params.running = false;
+        }
+
+        // 重置模拟
+        function resetSimulation() {
+            params.running = false;
+            params.sourcePosition = { x: -5, y: 0, z: 0 };
+            params.observerPosition = { x: 5, y: 0, z: 0 };
+            params.time = 0;
+            
+            // 重置3D对象位置
+            source.position.set(-5, 0, 0);
+            observer.position.set(5, 0, 0);
+            
+            // 清除所有波
+            while(waveGroup.children.length > 0) {
+                waveGroup.remove(waveGroup.children[0]);
+            }
+            waves = [];
+            
+            // 清除数据表
+            document.getElementById('dataTable').innerHTML = '';
+            
+            // 重置轨迹点
+            sourceTrajectoryPoints = [];
+            observerTrajectoryPoints = [];
+            if (trajectoryLines.source) scene.remove(trajectoryLines.source);
+            if (trajectoryLines.observer) scene.remove(trajectoryLines.observer);
+            trajectoryLines.source = null;
+            trajectoryLines.observer = null;
+            
+            // 清除轨迹线
+            updateTrajectoryLines();
+        }
+
+        // 动画循环
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            const deltaTime = clock.getDelta();
+            
+            if (params.running) {
+                update(deltaTime);
+            }
+            
+            // 更新标签位置
+            updateLabels();
+            
+            renderer.render(scene, camera);
+        }
+        
+        // 更新标签位置
+        function updateLabels() {
+            // 获取声源在屏幕上的位置
+            const sourceVector = source.position.clone();
+            sourceVector.project(camera);
+            
+            const sourceLabel = document.getElementById('sourceLabel');
+            if (sourceLabel) {
+                const container = document.getElementById('threeCanvas');
+                const containerRect = container.getBoundingClientRect();
+                
+                const x = Math.round((0.5 + sourceVector.x * 0.5) * containerRect.width);
+                const y = Math.round((0.5 - sourceVector.y * 0.5) * containerRect.height);
+                
+                sourceLabel.style.left = (x - sourceLabel.offsetWidth / 2) + 'px';
+                sourceLabel.style.top = (y - 30) + 'px'; // 稍微向上偏移，避免遮挡球体
+            }
+            
+            // 获取观察者在屏幕上的位置
+            const observerVector = observer.position.clone();
+            observerVector.project(camera);
+            
+            const observerLabel = document.getElementById('observerLabel');
+            if (observerLabel) {
+                const container = document.getElementById('threeCanvas');
+                const containerRect = container.getBoundingClientRect();
+                
+                const x = Math.round((0.5 + observerVector.x * 0.5) * containerRect.width);
+                const y = Math.round((0.5 - observerVector.y * 0.5) * containerRect.height);
+                
+                observerLabel.style.left = (x - observerLabel.offsetWidth / 2) + 'px';
+                observerLabel.style.top = (y - 30) + 'px'; // 稍微向上偏移，避免遮挡球体
+            }
+        }
+
+        // 更新物理状态
+        function update(deltaTime) {
+            params.time += deltaTime;
+            
+            // 计算新位置
+            const newSourcePos = calculateTrajectoryPosition(params.time, params.sourceTrajectory, 
+                {x: -5, y: 0, z: 0}, params.sourceSpeed);
+            const newObserverPos = calculateTrajectoryPosition(params.time, params.observerTrajectory, 
+                {x: 5, y: 0, z: 0}, params.observerSpeed);
+            
+            // 更新位置
+            params.sourcePosition = newSourcePos;
+            params.observerPosition = newObserverPos;
+            
+            // 更新3D对象位置
+            source.position.set(newSourcePos.x, newSourcePos.y, newSourcePos.z);
+            observer.position.set(newObserverPos.x, newObserverPos.y, newObserverPos.z);
+            
+            // 添加轨迹点
+            addTrajectoryPoint(newSourcePos, newObserverPos);
+            
+            // 生成新的波（根据频率，降低生成频率以便更好地观察）
+            // 为了更好地观察，使用固定的波生成间隔
+            params.waveGenerationInterval = 0.5; // 每0.5秒生成一个波
+            params.lastWaveTime = params.lastWaveTime || 0;
+            
+            if (params.time - params.lastWaveTime >= params.waveGenerationInterval) {
+                waves.push(new Wave(params.sourcePosition, params.time));
+                params.lastWaveTime = params.time;
+            }
+            
+            // 更新所有波
+            for (let i = waves.length - 1; i >= 0; i--) {
+                const shouldRemove = waves[i].update(deltaTime, params.speedOfSound);
+                if (shouldRemove) {
+                    waves[i].removeFromScene();
+                    waves.splice(i, 1);
+                }
+            }
+            
+            // 计算观测频率（多普勒效应）
+            const calculatedFreq = calculateDopplerFrequency();
+            
+            // 记录数据
+            recordData(params.time, calculatedFreq);
+        }
+        
+        // 添加轨迹点
+        function addTrajectoryPoint(sourcePos, observerPos) {
+            // 添加声源轨迹点
+            sourceTrajectoryPoints.push(new THREE.Vector3(sourcePos.x, sourcePos.y, sourcePos.z));
+            if (sourceTrajectoryPoints.length > MAX_TRAJECTORY_POINTS) {
+                sourceTrajectoryPoints.shift();
+            }
+            
+            // 添加观察者轨迹点
+            observerTrajectoryPoints.push(new THREE.Vector3(observerPos.x, observerPos.y, observerPos.z));
+            if (observerTrajectoryPoints.length > MAX_TRAJECTORY_POINTS) {
+                observerTrajectoryPoints.shift();
+            }
+            
+            // 更新轨迹线
+            updateTrajectoryLines();
+        }
+        
+        // 更新轨迹线
+        function updateTrajectoryLines() {
+            // 更新声源轨迹线
+            if (sourceTrajectoryPoints.length > 1) {
+                if (trajectoryLines.source) {
+                    scene.remove(trajectoryLines.source);
+                }
+                
+                const sourceGeometry = new THREE.BufferGeometry().setFromPoints(sourceTrajectoryPoints);
+                const sourceMaterial = new THREE.LineBasicMaterial({ color: 0xff5722, transparent: true, opacity: 0.7 });
+                trajectoryLines.source = new THREE.Line(sourceGeometry, sourceMaterial);
+                scene.add(trajectoryLines.source);
+            }
+            
+            // 更新观察者轨迹线
+            if (observerTrajectoryPoints.length > 1) {
+                if (trajectoryLines.observer) {
+                    scene.remove(trajectoryLines.observer);
+                }
+                
+                const observerGeometry = new THREE.BufferGeometry().setFromPoints(observerTrajectoryPoints);
+                const observerMaterial = new THREE.LineBasicMaterial({ color: 0x4caf50, transparent: true, opacity: 0.7 });
+                trajectoryLines.observer = new THREE.Line(observerGeometry, observerMaterial);
+                scene.add(trajectoryLines.observer);
+            }
+        }
+
+        // 计算多普勒频率
+        function calculateDopplerFrequency() {
+            // 计算声源和观察者之间的距离
+            const dx = params.observerPosition.x - params.sourcePosition.x;
+            const dy = params.observerPosition.y - params.sourcePosition.y;
+            const dz = params.observerPosition.z - params.sourcePosition.z;
+            const distance = Math.sqrt(dx*dx + dy*dy + dz*dz);
+            
+            // 如果距离太小，返回原频率
+            if (distance < 0.1) {
+                return params.frequency;
+            }
+            
+            // 计算相对速度
+            // 获取当前轨迹的瞬时速度向量
+            const dt = 0.01; // 小的时间增量
+            
+            // 计算声源的速度向量
+            const sourcePosNow = calculateTrajectoryPosition(params.time, params.sourceTrajectory, 
+                {x: -5, y: 0, z: 0}, params.sourceSpeed);
+            const sourcePosNext = calculateTrajectoryPosition(params.time + dt, params.sourceTrajectory, 
+                {x: -5, y: 0, z: 0}, params.sourceSpeed);
+            
+            const sourceVel = {
+                x: (sourcePosNext.x - sourcePosNow.x) / dt,
+                y: (sourcePosNext.y - sourcePosNow.y) / dt,
+                z: (sourcePosNext.z - sourcePosNow.z) / dt
+            };
+            
+            // 计算观察者的速度向量
+            const observerPosNow = calculateTrajectoryPosition(params.time, params.observerTrajectory, 
+                {x: 5, y: 0, z: 0}, params.observerSpeed);
+            const observerPosNext = calculateTrajectoryPosition(params.time + dt, params.observerTrajectory, 
+                {x: 5, y: 0, z: 0}, params.observerSpeed);
+            
+            const observerVel = {
+                x: (observerPosNext.x - observerPosNow.x) / dt,
+                y: (observerPosNext.y - observerPosNow.y) / dt,
+                z: (observerPosNext.z - observerPosNow.z) / dt
+            };
+            
+            // 计算从声源指向观察者的单位向量
+            const directionVector = {
+                x: dx / distance,
+                y: dy / distance,
+                z: dz / distance
+            };
+            
+            // 计算声源和观察者在连线方向上的速度分量
+            const sourceVelocityAlongLine = sourceVel.x * directionVector.x + 
+                                         sourceVel.y * directionVector.y + 
+                                         sourceVel.z * directionVector.z;
+            
+            const observerVelocityAlongLine = observerVel.x * directionVector.x + 
+                                            observerVel.y * directionVector.y + 
+                                            observerVel.z * directionVector.z;
+            
+            // 多普勒效应公式: f' = f * (v + vo) / (v + vs)
+            // 其中 v 是波速，vo 是观察者沿连线方向的速度（朝向声源为正），vs 是声源沿连线方向的速度（远离观察者为正）
+            const v = params.speedOfSound;
+            const f = params.frequency;
+            
+            // 确保分母不为零
+            if (Math.abs(v - sourceVelocityAlongLine) > 0.001) {
+                const observedFreq = f * (v + observerVelocityAlongLine) / (v - sourceVelocityAlongLine);
+                return observedFreq;
+            }
+            
+            return params.frequency; // 默认返回原频率
+        }
+
+        // 数据存储数组
+        let dataLog = [];
+        
+        // 记录数据
+        function recordData(time, calculatedFreq) {
+            const table = document.getElementById('dataTable');
+            
+            // 限制表格行数，保留最新的50行
+            if (table.rows.length >= 50) {
+                table.deleteRow(0);
+            }
+            
+            const row = table.insertRow();
+            const timeCell = row.insertCell(0);
+            const obsFreqCell = row.insertCell(1);
+            const calcFreqCell = row.insertCell(2);
+            const diffCell = row.insertCell(3);
+            
+            timeCell.textContent = time.toFixed(2);
+            obsFreqCell.textContent = params.frequency.toFixed(2); // 实际发射频率
+            calcFreqCell.textContent = calculatedFreq.toFixed(2); // 计算的观测频率
+            diffCell.textContent = Math.abs(params.frequency - calculatedFreq).toFixed(2);
+            
+            // 添加到数据日志
+            dataLog.push({
+                time: time,
+                emittedFreq: params.frequency,
+                observedFreq: calculatedFreq,
+                difference: Math.abs(params.frequency - calculatedFreq)
+            });
+            
+            // 更新图表
+            updateFrequencyChart();
+        }
+        
+        // 更新频率图表
+        function updateFrequencyChart() {
+            if (dataLog.length === 0) return;
+            
+            const canvas = document.getElementById('frequencyChart');
+            const ctx = canvas.getContext('2d');
+            
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 设置图表参数
+            const padding = 40;
+            const chartWidth = canvas.width - 2 * padding;
+            const chartHeight = canvas.height - 2 * padding;
+            
+            // 找到数据范围
+            const times = dataLog.map(d => d.time);
+            const emittedFreqs = dataLog.map(d => d.emittedFreq);
+            const observedFreqs = dataLog.map(d => d.observedFreq);
+            
+            const minTime = Math.min(...times);
+            const maxTime = Math.max(...times);
+            const minFreq = Math.min(Math.min(...emittedFreqs), Math.min(...observedFreqs));
+            const maxFreq = Math.max(Math.max(...emittedFreqs), Math.max(...observedFreqs));
+            
+            // 添加一些余量
+            const freqRange = maxFreq - minFreq;
+            const adjustedMinFreq = minFreq - freqRange * 0.1;
+            const adjustedMaxFreq = maxFreq + freqRange * 0.1;
+            
+            // 绘制坐标轴
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, canvas.height - padding);
+            ctx.lineTo(canvas.width - padding, canvas.height - padding);
+            ctx.strokeStyle = 'white';
+            ctx.stroke();
+            
+            // 绘制标签
+            ctx.fillStyle = 'white';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('时间 (s)', canvas.width / 2, canvas.height - 10);
+            ctx.save();
+            ctx.translate(15, canvas.height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('频率 (Hz)', 0, 0);
+            ctx.restore();
+            
+            // 绘制发射频率线
+            ctx.beginPath();
+            ctx.moveTo(padding, canvas.height - padding);
+            for (let i = 0; i < dataLog.length; i++) {
+                const x = padding + (dataLog[i].time - minTime) / (maxTime - minTime) * chartWidth;
+                const y = canvas.height - padding - (dataLog[i].emittedFreq - adjustedMinFreq) / (adjustedMaxFreq - adjustedMinFreq) * chartHeight;
+                
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.strokeStyle = '#FF5722'; // 红色 - 发射频率
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // 绘制观测频率线
+            ctx.beginPath();
+            ctx.moveTo(padding, canvas.height - padding);
+            for (let i = 0; i < dataLog.length; i++) {
+                const x = padding + (dataLog[i].time - minTime) / (maxTime - minTime) * chartWidth;
+                const y = canvas.height - padding - (dataLog[i].observedFreq - adjustedMinFreq) / (adjustedMaxFreq - adjustedMinFreq) * chartHeight;
+                
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.strokeStyle = '#4CAF50'; // 绿色 - 观测频率
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // 绘制图例
+            ctx.fillStyle = '#FF5722';
+            ctx.fillRect(padding + 10, padding + 10, 15, 10);
+            ctx.fillStyle = 'white';
+            ctx.fillText('发射频率', padding + 30, padding + 20);
+            
+            ctx.fillStyle = '#4CAF50';
+            ctx.fillRect(padding + 150, padding + 10, 15, 10);
+            ctx.fillStyle = 'white';
+            ctx.fillText('观测频率', padding + 170, padding + 20);
+        }
+        
+        // 导出数据
+        function exportData() {
+            if (dataLog.length === 0) {
+                alert('没有数据可导出');
+                return;
+            }
+            
+            let csvContent = '时间(s),发射频率(Hz),观测频率(Hz),差异(Hz)\n';
+            dataLog.forEach(d => {
+                csvContent += `${d.time},${d.emittedFreq},${d.observedFreq},${d.difference}\n`;
+            });
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'doppler_effect_data.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        // 清空数据
+        function clearData() {
+            dataLog = [];
+            document.getElementById('dataTable').innerHTML = '';
+            
+            // 清空图表
+            const canvas = document.getElementById('frequencyChart');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // 生成测验题目
+        function generateQuiz() {
+            const quizContainer = document.getElementById('quizContainer');
+            quizContainer.innerHTML = '';
+                    
+            const questions = [
+                {
+                    id: 1,
+                    type: 'multiple-choice',
+                    question: '多普勒效应描述的是什么现象？',
+                    options: [
+                        '波的反射现象',
+                        '波源和观察者相对运动时频率的变化',
+                        '波的干涉现象',
+                        '波的衍射现象'
+                    ],
+                    correct: 1
+                },
+                {
+                    id: 2,
+                    type: 'multiple-choice',
+                    question: '当声源向观察者靠近时，观察者听到的声音频率会：',
+                    options: [
+                        '变低',
+                        '不变',
+                        '变高',
+                        '先变高后变低'
+                    ],
+                    correct: 2
+                },
+                {
+                    id: 3,
+                    type: 'multiple-choice',
+                    question: '在空气中，声速大约是：',
+                    options: [
+                        '300 m/s',
+                        '343 m/s',
+                        '400 m/s',
+                        '500 m/s'
+                    ],
+                    correct: 1
+                },
+                {
+                    id: 4,
+                    type: 'true-false',
+                    question: '多普勒效应只适用于声波，不适用于光波。',
+                    options: ['正确', '错误'],
+                    correct: 1
+                },
+                {
+                    id: 5,
+                    type: 'fill-in',
+                    question: '多普勒效应的频率公式是 f\' = f * (v + vo) / (___) (请填入表达式)',
+                    answer: 'v + vs'
+                },
+                {
+                    id: 6,
+                    type: 'multiple-choice',
+                    question: '如果一辆鸣笛的汽车从你身边快速驶过，你会听到声音的音调如何变化？',
+                    options: [
+                        '一直变高',
+                        '一直变低',
+                        '先变高后变低',
+                        '先变低后变高'
+                    ],
+                    correct: 2
+                },
+                {
+                    id: 7,
+                    type: 'multiple-choice',
+                    question: '多普勒效应在以下哪个领域没有应用？',
+                    options: [
+                        '天文学',
+                        '医学超声检查',
+                        '雷达测速',
+                        '以上都有应用'
+                    ],
+                    correct: 3
+                },
+                {
+                    id: 8,
+                    type: 'fill-in',
+                    question: '当波源静止，观察者朝波源运动时，观察者接收到的频率会___（变大/变小/不变）',
+                    answer: '变大'
+                }
+            ];
+                    
+            questions.forEach(q => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'quiz-question';
+                        
+                const questionText = document.createElement('p');
+                questionText.innerHTML = `<strong>问题 ${q.id}:</strong> ${q.question}`;
+                questionDiv.appendChild(questionText);
+                        
+                if (q.type === 'multiple-choice' || q.type === 'true-false') {
+                    const optionsDiv = document.createElement('div');
+                    optionsDiv.className = 'quiz-options';
+                            
+                    q.options.forEach((option, index) => {
+                        const optionDiv = document.createElement('div');
+                        optionDiv.className = 'quiz-option';
+                                
+                        const input = document.createElement('input');
+                        input.type = 'radio';
+                        input.name = `question-${q.id}`;
+                        input.value = index;
+                        input.id = `q${q.id}-option${index}`;
+                                
+                        const label = document.createElement('label');
+                        label.htmlFor = `q${q.id}-option${index}`;
+                        label.textContent = option;
+                                
+                        optionDiv.appendChild(input);
+                        optionDiv.appendChild(label);
+                        optionsDiv.appendChild(optionDiv);
+                    });
+                            
+                    questionDiv.appendChild(optionsDiv);
+                } else if (q.type === 'fill-in') {
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.id = `q${q.id}-answer`;
+                    input.placeholder = '请输入答案';
+                    input.style.width = '100%';
+                    input.style.padding = '8px';
+                    input.style.marginTop = '5px';
+                    input.style.borderRadius = '4px';
+                    input.style.border = '1px solid #ccc';
+                            
+                    questionDiv.appendChild(input);
+                }
+                        
+                quizContainer.appendChild(questionDiv);
+            });
+        }
+
+        // 用户答题记录
+        let userAnswers = [];
+        let quizStartTime = null;
+        
+        // 检查测验答案
+        function checkQuizAnswers() {
+            if (!quizStartTime) {
+                quizStartTime = new Date();
+            }
+            
+            const resultsDiv = document.getElementById('results');
+            let correct = 0;
+            let total = 8;
+            
+            // 重置用户答案记录
+            userAnswers = [];
+            
+            // 问题1
+            const q1 = document.querySelector('input[name="question-1"]:checked');
+            const isQ1Correct = q1 && parseInt(q1.value) === 1;
+            if (isQ1Correct) correct++;
+            userAnswers.push({
+                questionId: 1,
+                userAnswer: q1 ? q1.value : null,
+                correct: isQ1Correct,
+                correctAnswer: 1
+            });
+            
+            // 问题2
+            const q2 = document.querySelector('input[name="question-2"]:checked');
+            const isQ2Correct = q2 && parseInt(q2.value) === 2;
+            if (isQ2Correct) correct++;
+            userAnswers.push({
+                questionId: 2,
+                userAnswer: q2 ? q2.value : null,
+                correct: isQ2Correct,
+                correctAnswer: 2
+            });
+            
+            // 问题3
+            const q3 = document.querySelector('input[name="question-3"]:checked');
+            const isQ3Correct = q3 && parseInt(q3.value) === 1;
+            if (isQ3Correct) correct++;
+            userAnswers.push({
+                questionId: 3,
+                userAnswer: q3 ? q3.value : null,
+                correct: isQ3Correct,
+                correctAnswer: 1
+            });
+            
+            // 问题4
+            const q4 = document.querySelector('input[name="question-4"]:checked');
+            const isQ4Correct = q4 && parseInt(q4.value) === 1;
+            if (isQ4Correct) correct++;
+            userAnswers.push({
+                questionId: 4,
+                userAnswer: q4 ? q4.value : null,
+                correct: isQ4Correct,
+                correctAnswer: 1
+            });
+            
+            // 问题5
+            const q5 = document.getElementById('q5-answer');
+            const isQ5Correct = q5 && q5.value.trim().toLowerCase() === 'v + vs';
+            if (isQ5Correct) correct++;
+            userAnswers.push({
+                questionId: 5,
+                userAnswer: q5 ? q5.value : null,
+                correct: isQ5Correct,
+                correctAnswer: 'v + vs'
+            });
+            
+            // 问题6
+            const q6 = document.querySelector('input[name="question-6"]:checked');
+            const isQ6Correct = q6 && parseInt(q6.value) === 2;
+            if (isQ6Correct) correct++;
+            userAnswers.push({
+                questionId: 6,
+                userAnswer: q6 ? q6.value : null,
+                correct: isQ6Correct,
+                correctAnswer: 2
+            });
+            
+            // 问题7
+            const q7 = document.querySelector('input[name="question-7"]:checked');
+            const isQ7Correct = q7 && parseInt(q7.value) === 3;
+            if (isQ7Correct) correct++;
+            userAnswers.push({
+                questionId: 7,
+                userAnswer: q7 ? q7.value : null,
+                correct: isQ7Correct,
+                correctAnswer: 3
+            });
+            
+            // 问题8
+            const q8 = document.getElementById('q8-answer');
+            const isQ8Correct = q8 && q8.value.trim().toLowerCase() === '变大';
+            if (isQ8Correct) correct++;
+            userAnswers.push({
+                questionId: 8,
+                userAnswer: q8 ? q8.value : null,
+                correct: isQ8Correct,
+                correctAnswer: '变大'
+            });
+            
+            const score = Math.round((correct / total) * 100);
+            const endTime = new Date();
+            const timeTaken = Math.round((endTime - quizStartTime) / 1000); // 秒
+            
+            resultsDiv.innerHTML = `
+                <h4>测验结果</h4>
+                <p>您答对了 ${correct} 道题，共 ${total} 道题</p>
+                <p>得分: ${score}%</p>
+                <p>用时: ${timeTaken} 秒</p>
+                ${generateDetailedFeedback(score, userAnswers)}
+                <div style="margin-top: 15px;">
+                    <button id="showReportBtn">查看学习报告</button>
+                    <button id="retryQuizBtn">重做测验</button>
+                </div>
+            `;
+            resultsDiv.style.display = 'block';
+            
+            // 添加事件监听器
+            document.getElementById('showReportBtn').addEventListener('click', showLearningReport);
+            document.getElementById('retryQuizBtn').addEventListener('click', resetQuiz);
+        }
+        
+        // 生成详细反馈
+        function generateDetailedFeedback(score, answers) {
+            let feedback = '';
+            
+            if (score >= 80) {
+                feedback = '<p style="color: #4CAF50;">优秀！您对多普勒效应有很好的理解。</p>';
+            } else if (score >= 60) {
+                feedback = '<p style="color: #FFC107;">良好！您对多普勒效应有一定理解，但还有提升空间。</p>';
+            } else {
+                feedback = '<p style="color: #F44336;">需要加强！建议重新学习多普勒效应的相关知识。</p>';
+            }
+            
+            // 错题分析
+            feedback += '<div style="margin-top: 10px;"><h5>错题分析:</h5><ul>';
+            answers.forEach((ans, index) => {
+                if (!ans.correct) {
+                    feedback += `<li>第${index + 1}题: 答案错误</li>`;
+                }
+            });
+            feedback += '</ul></div>';
+            
+            return feedback;
+        }
+        
+        // 显示学习报告
+        function showLearningReport() {
+            // 计算各知识点掌握情况
+            const knowledgeAreas = {
+                '基本概念': 0,
+                '频率变化规律': 0,
+                '物理公式': 0,
+                '应用范围': 0
+            };
+            
+            // 按知识点分类题目
+            const knowledgeMap = [
+                '基本概念',  // 问题1
+                '频率变化规律',  // 问题2
+                '物理常数',  // 问题3
+                '应用范围',  // 问题4
+                '物理公式',  // 问题5
+                '实际应用',  // 问题6
+                '应用范围',  // 问题7
+                '频率变化规律'  // 问题8
+            ];
+            
+            // 统计各知识点正确率
+            const knowledgeResults = {};
+            userAnswers.forEach((ans, index) => {
+                const area = knowledgeMap[index];
+                if (!knowledgeResults[area]) {
+                    knowledgeResults[area] = { correct: 0, total: 0 };
+                }
+                knowledgeResults[area].total++;
+                if (ans.correct) {
+                    knowledgeResults[area].correct++;
+                }
+            });
+            
+            // 生成报告内容
+            let reportContent = '<h4>学习报告</h4><div style="margin-top: 10px;">';
+            
+            for (const [area, result] of Object.entries(knowledgeResults)) {
+                const percentage = Math.round((result.correct / result.total) * 100);
+                let level = '';
+                if (percentage >= 80) level = '掌握';
+                else if (percentage >= 60) level = '基本掌握';
+                else level = '需要加强';
+                
+                reportContent += `
+                    <div style="margin-bottom: 8px;">
+                        <strong>${area}:</strong> 
+                        正确率 ${percentage}% (${result.correct}/${result.total}) - 
+                        <span style="color: ${percentage >= 60 ? '#4CAF50' : '#F44336'}">${level}</span>
+                    </div>
+                `;
+            }
+            
+            reportContent += '</div>';
+            
+            // 添加学习建议
+            reportContent += '<div style="margin-top: 15px;"><h5>学习建议:</h5><ul>';
+            for (const [area, result] of Object.entries(knowledgeResults)) {
+                const percentage = Math.round((result.correct / result.total) * 100);
+                if (percentage < 60) {
+                    switch(area) {
+                        case '基本概念':
+                            reportContent += '<li>建议重新学习多普勒效应的基本概念和定义</li>';
+                            break;
+                        case '频率变化规律':
+                            reportContent += '<li>建议通过模拟实验加深对频率变化规律的理解</li>';
+                            break;
+                        case '物理公式':
+                            reportContent += '<li>建议熟悉多普勒效应的物理公式及其应用</li>';
+                            break;
+                        case '应用范围':
+                            reportContent += '<li>建议了解多普勒效应在不同领域的应用</li>';
+                            break;
+                    }
+                }
+            }
+            reportContent += '</ul></div>';
+            
+            document.getElementById('results').innerHTML = reportContent;
+        }
+        
+        // 重置测验
+        function resetQuiz() {
+            // 清空用户选择
+            document.querySelectorAll('input[type="radio"]:checked').forEach(radio => radio.checked = false);
+            document.querySelectorAll('input[type="text"]').forEach(input => input.value = '');
+            
+            // 隐藏结果
+            document.getElementById('results').style.display = 'none';
+            
+            // 重置计时器
+            quizStartTime = new Date();
+        }
+
+        // 初始化
+        function init() {
+            initScene();
+            initEventListeners();
+            updateMedium();
+            generateQuiz();
+            animate();
+        }
+
+        // 启动应用
+        window.onload = init;
+    </script>
+</body>
+</html>

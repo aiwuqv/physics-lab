@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>开普勒三定律虚拟实验</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #000;
+            color: white;
+            font-family: Arial, sans-serif;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(0, 0, 30, 0.8);
+            border-radius: 10px;
+            padding: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #4A90E2;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            animation: glow 2s infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { text-shadow: 0 0 5px #fff, 0 0 10px #4A90E2; }
+            to { text-shadow: 0 0 10px #fff, 0 0 20px #4A90E2, 0 0 30px #4A90E2; }
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #6BABDF;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+        }
+        
+        .canvas-container {
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        canvas {
+            background: #000;
+            border: 1px solid #444;
+            border-radius: 5px;
+            margin: 0 auto;
+        }
+        
+        .controls {
+            margin: 20px 0;
+            text-align: center;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        button {
+            background: #4A90E2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            background: #3a7bc8;
+            transform: scale(1.05);
+        }
+        
+        .law-selector {
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .law-button {
+            background: #5D9BEB;
+            margin: 0 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .law-button.active {
+            background: #FF6B6B;
+            font-weight: bold;
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(255, 107, 107, 0.5);
+        }
+        
+        .info {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(100, 100, 150, 0.3);
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .physics-principles {
+            margin: 20px auto;
+            padding: 15px;
+            background: rgba(50, 100, 150, 0.4);
+            border-radius: 8px;
+            max-width: 1000px;
+        }
+        
+        .physics-principles h3 {
+            color: #4A90E2;
+            text-align: center;
+            margin-top: 0;
+            font-size: 1.5em;
+        }
+        
+        .principle {
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(80, 120, 160, 0.3);
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .principle:hover {
+            background: rgba(100, 140, 180, 0.4);
+            transform: translateX(5px);
+        }
+        
+        .principle h4 {
+            color: #6BABDF;
+            margin-top: 0;
+            font-size: 1.2em;
+        }
+        
+        .principle p {
+            margin: 8px 0;
+        }
+        
+        .principle strong {
+            background: rgba(100, 150, 200, 0.4);
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        
+        .formula {
+            font-family: 'Cambria Math', serif;
+            font-size: 1.2em;
+            text-align: center;
+            margin: 10px 0;
+            color: #FFD700;
+            animation: formulaGlow 3s infinite alternate;
+        }
+        
+        @keyframes formulaGlow {
+            from { text-shadow: 0 0 5px #FFD700; }
+            to { text-shadow: 0 0 10px #FFD700, 0 0 20px #FFD700; }
+        }
+        
+        .planet-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(80, 80, 120, 0.5);
+            border-radius: 5px;
+            min-height: 50px;
+            text-align: center;
+        }
+        
+        .timeline {
+            width: 100%;
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            margin: 15px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, #4A90E2, #FF6B6B);
+            width: 0%;
+            transition: width 0.1s;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(100, 100, 150, 0.3);
+            border-radius: 5px;
+        }
+        
+        .slider-label {
+            min-width: 150px;
+            text-align: right;
+        }
+        
+        input[type="range"] {
+            width: 300px;
+            height: 8px;
+            -webkit-appearance: none;
+            background: #333;
+            border-radius: 4px;
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #4A90E2;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: #FF6B6B;
+            transform: scale(1.2);
+        }
+        
+        .law-description {
+            display: none;
+            padding: 15px;
+            margin: 15px 0;
+            background: rgba(70, 130, 180, 0.3);
+            border-radius: 8px;
+            border-left: 4px solid #4A90E2;
+            animation: fadeInUp 0.5s ease;
+        }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .law-description.active {
+            display: block;
+        }
+        
+        .quiz-btn {
+            background: #FF6B6B;
+        }
+        
+        .quiz-btn:hover {
+            background: #FF5252;
+        }
+        
+        .ellipse-demo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        
+        .ellipse-item {
+            text-align: center;
+            min-width: 200px;
+        }
+        
+        .area-demo {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 20px 0;
+        }
+        
+        .area-item {
+            text-align: center;
+        }
+        
+        .focus-point {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #FF4444;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .focus-label {
+            position: absolute;
+            color: #FF4444;
+            font-size: 12px;
+            transform: translate(-50%, -50%);
+            top: -20px;
+        }
+        
+        /* 动画效果 */
+        .orbit-line {
+            stroke: rgba(100, 200, 255, 0.3);
+            stroke-width: 1;
+            fill: none;
+            animation: orbitAnimation 5s linear infinite;
+        }
+        
+        @keyframes orbitAnimation {
+            0% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+            100% { opacity: 0.3; }
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <h1>开普勒三定律虚拟实验</h1>
+        <div class="subtitle">探索行星运动的奥秘</div>
+        
+        <div class="physics-principles">
+            <h3>物理学原理</h3>
+            
+            <div class="principle">
+                <h4>开普勒第一定律（椭圆轨道定律）</h4>
+                <p><strong>内容：</strong>所有行星绕太阳运动的轨道都是椭圆，太阳处在椭圆的一个焦点上。</p>
+                <div class="formula">椭圆方程: (x²/a²) + (y²/b²) = 1</div>
+                <p>这一定律打破了行星轨道必须是圆形的传统观念，揭示了行星运动的真实轨道形状。</p>
+            </div>
+            
+            <div class="principle">
+                <h4>开普勒第二定律（面积速度定律）</h4>
+                <p><strong>内容：</strong>对于每一个行星而言，太阳和行星的连线在相等的时间内扫过相等的面积。</p>
+                <div class="formula">面积速度: dA/dt = 常数</div>
+                <p>这一定律表明行星在其轨道上的运动不是匀速的，靠近太阳时运动较快，远离太阳时运动较慢。</p>
+            </div>
+            
+            <div class="principle">
+                <h4>开普勒第三定律（周期定律）</h4>
+                <p><strong>内容：</strong>所有行星的轨道半长轴的三次方跟公转周期的二次方的比值都相等。</p>
+                <div class="formula">a³/T² = 常数 或 T² ∝ a³</div>
+                <p>这一定律揭示了行星轨道大小与其公转周期之间的关系，是计算天体距离和周期的重要工具。</p>
+            </div>
+        </div>
+        
+        <div class="law-selector">
+            <button class="law-button active" onclick="selectLaw(1)">第一定律：椭圆轨道</button>
+            <button class="law-button" onclick="selectLaw(2)">第二定律：面积速度</button>
+            <button class="law-button" onclick="selectLaw(3)">第三定律：周期关系</button>
+        </div>
+        
+        <div id="law1Description" class="law-description active">
+            <h4>第一定律演示说明</h4>
+            <p>在椭圆轨道中，太阳位于椭圆的一个焦点上。椭圆有两个焦点，但只有其中一个焦点上有太阳。行星在椭圆轨道上运动，距离太阳的距离不断变化，最近点称为近日点，最远点称为远日点。</p>
+        </div>
+        
+        <div id="law2Description" class="law-description">
+            <h4>第二定律演示说明</h4>
+            <p>行星与太阳的连线在相等时间内扫过相等面积。这意味着行星在近日点附近运动速度快，在远日点附近运动速度慢。这是角动量守恒的结果。</p>
+        </div>
+        
+        <div id="law3Description" class="law-description">
+            <h4>第三定律演示说明</h4>
+            <p>不同轨道半长轴的行星具有不同的公转周期。轨道越大，公转周期越长。具体关系是半长轴的三次方与周期的二次方之比为常数。</p>
+        </div>
+        
+        <div class="canvas-container">
+            <canvas id="keplerCanvas" width="800" height="600"></canvas>
+        </div>
+        
+        <div class="timeline">
+            <div class="progress" id="progressBar"></div>
+        </div>
+        
+        <div class="controls">
+            <button onclick="toggleAnimation()" id="animationBtn">开始动画</button>
+            <button onclick="resetView()">重置视图</button>
+            <button onclick="switchDemo()">切换演示</button>
+            <button onclick="openQuiz()" class="quiz-btn">知识检测</button>
+        </div>
+        
+        <div class="slider-container">
+            <span class="slider-label">动画速度:</span>
+            <input type="range" id="speedSlider" min="0.1" max="2" step="0.1" value="1" onchange="updateSpeed()">
+        </div>
+        
+        <div class="planet-info" id="planetInfo">
+            开普勒三定律演示：点击定律按钮查看不同定律的演示
+        </div>
+        
+        <div class="info">
+            <h3>开普勒定律的历史意义</h3>
+            <p>开普勒三定律是德国天文学家约翰内斯·开普勒基于丹麦天文学家第谷·布拉赫的大量观测数据，通过数学分析得出的行星运动定律。这三定律不仅准确描述了行星运动规律，更为牛顿发现万有引力定律奠定了基础。</p>
+            <p>开普勒第一定律于1609年发表，第二、三定律于1609年和1619年相继发表。这些定律至今仍是天体力学的基础，广泛应用于航天器轨道设计和天体物理学研究中。</p>
+        </div>
+    </div>
+    
+    <!-- 知识检测模态窗口 -->
+    <div id="quizModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center;">
+        <div class="modal-content" style="background: #2c3e50; padding: 25px; border-radius: 10px; width: 500px; max-width: 90%; max-height: 80vh; overflow-y: auto; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.5);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2 style="color: #ecf0f1; margin: 0;">开普勒三定律知识检测</h2>
+                <button onclick="closeQuiz()" style="background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;">&times;</button>
+            </div>
+            <div id="quizContent">
+                <div id="question1" class="question" style="margin-bottom: 15px; padding: 10px; background: #34495e; border-radius: 5px;">
+                    <strong>1. 开普勒第三定律的数学表达式是什么？</strong><br>
+                    <label style="display: block; margin: 8px 0;"><input type="radio" name="q1" value="A"> A. a²/T³ = 常数</label>
+                    <label style="display: block; margin: 8px 0;"><input type="radio" name="q1" value="B"> B. a³/T² = 常数</label>
+                    <label style="display: block; margin: 8px 0;"><input type="radio" name="q1" value="C"> C. a/T = 常数</label>
+                    <label style="display: block; margin: 8px 0;"><input type="radio" name="q1" value="D"> D. T²/a³ = 常数</label>
+                </div>
+                
+                <div id="question2" class="question" style="margin-bottom: 15px; padding: 10px; background: #34495e; border-radius: 5px;">
+                    <strong>2. 根据开普勒第三定律，轨道半长轴越大的行星，其公转周期如何变化？</strong><br>
+                    <label style="display: block; margin: 8px 0;"><input type="radio" name="q2" value="A"> A. 越短</label>
+                    <label style="display: block; margin: 8px 0;"><input type="radio" name="q2" value="B"> B. 越长</label>
+                    <label style="display: block; margin: 8px 0;"><input type="radio" name="q2" value="C"> C. 不变</label>
+                    <label style="display: block; margin: 8px 0;"><input type="radio" name="q2" value="D"> D. 随机变化</label>
+                </div>
+                
+                <div id="question3" class="question" style="margin-bottom: 15px; padding: 10px; background: #34495e; border-radius: 5px;">
+                    <strong>3. 开普勒第三定律又被称为：</strong><br>
+                    <label style="display: block; margin: 8px 0;"><input type="radio" name="q3" value="A"> A. 椭圆定律</label>
+                    <label style="display: block; margin: 8px 0;"><input type="radio" name="q3" value="B"> B. 面积定律</label>
+                    <label style="display: block; margin: 8px 0;"><input type="radio" name="q3" value="C"> C. 周期定律</label>
+                    <label style="display: block; margin: 8px 0;"><input type="radio" name="q3" value="D"> D. 万有引力定律</label>
+                </div>
+                
+                <div id="question4" class="question" style="margin-bottom: 15px; padding: 10px; background: #34495e; border-radius: 5px;">
+                    <strong>4. 开普勒第三定律揭示了什么关系？</strong><br>
+                    <label style="display: block; margin: 8px 0;"><input type="radio" name="q4" value="A"> A. 行星轨道形状与太阳位置的关系</label>
+                    <label style="display: block; margin: 8px 0;"><input type="radio" name="q4" value="B"> B. 行星运动速度与距离的关系</label>
+                    <label style="display: block; margin: 8px 0;"><input type="radio" name="q4" value="C"> C. 行星轨道大小与公转周期的关系</label>
+                    <label style="display: block; margin: 8px 0;"><input type="radio" name="q4" value="D"> D. 行星质量与轨道的关系</label>
+                </div>
+                
+                <div id="question5" class="question" style="margin-bottom: 15px; padding: 10px; background: #34495e; border-radius: 5px;">
+                    <strong>5. 如果某行星的轨道半长轴是地球的4倍，根据开普勒第三定律，它的公转周期大约是地球的多少倍？</strong><br>
+                    <label style="display: block; margin: 8px 0;"><input type="radio" name="q5" value="A"> A. 2倍</label>
+                    <label style="display: block; margin: 8px 0;"><input type="radio" name="q5" value="B"> B. 4倍</label>
+                    <label style="display: block; margin: 8px 0;"><input type="radio" name="q5" value="C"> C. 8倍</label>
+                    <label style="display: block; margin: 8px 0;"><input type="radio" name="q5" value="D"> D. 16倍</label>
+                </div>
+                
+                <button onclick="checkAnswers()" style="background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; margin-right: 10px;">提交答案</button>
+                <button onclick="closeQuiz()" style="background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 16px;">取消</button>
+                
+                <div id="result" style="margin-top: 15px; padding: 10px; display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('keplerCanvas');
+        const ctx = canvas.getContext('2d');
+        const planetInfo = document.getElementById('planetInfo');
+        const progressBar = document.getElementById('progressBar');
+        
+        // 当前选中的定律
+        let currentLaw = 1;
+        
+        // 椭圆轨道参数
+        const ellipseParams = {
+            a: 200, // 半长轴
+            b: 120, // 半短轴
+            cx: canvas.width / 2, // 中心x
+            cy: canvas.height / 2, // 中心y
+            angle: 0, // 当前角度
+            speed: 0.01, // 角速度
+            focusOffset: 0, // 焦点偏移
+            time: 0, // 时间计数器
+            trail: [] // 行星轨迹
+        };
+        
+        // 计算焦距 c = sqrt(a² - b²)
+        ellipseParams.focusOffset = Math.sqrt(Math.pow(ellipseParams.a, 2) - Math.pow(ellipseParams.b, 2));
+        
+        // 太阳系行星数据（实际天文数据按比例缩放）
+        // 半长轴单位：AU（天文单位），周期单位：地球年
+        const planets = [
+            { name: "水星", a: 80, period: 0.24, color: "#B7B8B9", angle: 0, real_a: 0.387 },  // 实际半长轴0.387 AU
+            { name: "金星", a: 110, period: 0.62, color: "#E7CDCD", angle: Math.PI/3, real_a: 0.723 },  // 实际半长轴0.723 AU
+            { name: "地球", a: 140, period: 1.0, color: "#6B93D6", angle: Math.PI/2, real_a: 1.0 },  // 实际半长轴1.0 AU
+            { name: "火星", a: 180, period: 1.88, color: "#C1440E", angle: Math.PI, real_a: 1.524 },  // 实际半长轴1.524 AU
+            { name: "木星", a: 240, period: 11.86, color: "#D8CA9D", angle: 3*Math.PI/2, real_a: 5.203 }  // 实际半长轴5.203 AU
+        ];
+        
+        // 面积演示数据（第二定律）
+        const areaDemo = {
+            points: [],
+            maxPoints: 20,
+            sweepAreas: [],
+            maxAreas: 5
+        };
+        
+        let animationRunning = false;
+        let animationId = null;
+        let animationSpeed = 1;
+        
+        // 选择定律
+        function selectLaw(lawNum) {
+            currentLaw = lawNum;
+            
+            // 更新按钮状态
+            document.querySelectorAll('.law-button').forEach((btn, index) => {
+                if(index + 1 === lawNum) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            
+            // 显示对应描述
+            document.querySelectorAll('.law-description').forEach(desc => {
+                desc.classList.remove('active');
+            });
+            document.getElementById(`law${lawNum}Description`).classList.add('active');
+            
+            // 更新信息显示
+            switch(currentLaw) {
+                case 1:
+                    planetInfo.textContent = "开普勒第一定律：行星轨道是椭圆，太阳在椭圆的一个焦点上";
+                    break;
+                case 2:
+                    planetInfo.textContent = "开普勒第二定律：行星与太阳连线在相等时间内扫过相等面积";
+                    break;
+                case 3:
+                    planetInfo.textContent = "开普勒第三定律：轨道半长轴的三次方与公转周期的二次方之比为常数";
+                    break;
+            }
+            
+            // 重置视图
+            resetView();
+        }
+        
+        // 绘制椭圆
+        function drawEllipse(a, b, cx, cy, rotation = 0) {
+            ctx.beginPath();
+            for(let t = 0; t <= 2 * Math.PI; t += 0.01) {
+                const x = cx + a * Math.cos(t) * Math.cos(rotation) - b * Math.sin(t) * Math.sin(rotation);
+                const y = cy + a * Math.cos(t) * Math.sin(rotation) + b * Math.sin(t) * Math.cos(rotation);
+                
+                if(t === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.closePath();
+        }
+        
+        // 绘制带有动画效果的椭圆
+        function drawAnimatedEllipse(a, b, cx, cy, rotation = 0, dashPattern = []) {
+            ctx.beginPath();
+            if(dashPattern.length > 0) {
+                ctx.setLineDash(dashPattern);
+            }
+            for(let t = 0; t <= 2 * Math.PI; t += 0.01) {
+                const x = cx + a * Math.cos(t) * Math.cos(rotation) - b * Math.sin(t) * Math.sin(rotation);
+                const y = cy + a * Math.cos(t) * Math.sin(rotation) + b * Math.sin(t) * Math.cos(rotation);
+                
+                if(t === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.closePath();
+            ctx.setLineDash([]); // 重置虚线设置
+        }
+        
+        // 绘制椭圆轨道（第一定律演示）
+        function drawKeplerFirstLaw() {
+            // 清空画布
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制星空背景
+            drawStars();
+            
+            // 太阳位于画布中心
+            const sunX = canvas.width / 2;
+            const sunY = canvas.height / 2;
+            
+            // 重新计算椭圆中心，使太阳成为椭圆的一个焦点
+            const ellipseCenterX = sunX + ellipseParams.focusOffset; // 椭圆中心相对于太阳右移焦距
+            const ellipseCenterY = sunY;
+            
+            // 绘制椭圆轨道（带动画效果）
+            drawAnimatedEllipse(ellipseParams.a, ellipseParams.b, ellipseCenterX, ellipseCenterY);
+            // 使用渐变色绘制轨道
+            const orbitGradient = ctx.createLinearGradient(
+                ellipseCenterX - ellipseParams.a, ellipseCenterY,
+                ellipseCenterX + ellipseParams.a, ellipseCenterY
+            );
+            orbitGradient.addColorStop(0, 'rgba(100, 200, 255, 0.3)');
+            orbitGradient.addColorStop(0.5, 'rgba(255, 100, 100, 0.5)');
+            orbitGradient.addColorStop(1, 'rgba(100, 200, 255, 0.3)');
+            ctx.strokeStyle = orbitGradient;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // 绘制太阳（位于椭圆的一个焦点，即画布中心）
+            ctx.beginPath();
+            ctx.arc(sunX, sunY, 18, 0, Math.PI * 2);
+            const sunGradient = ctx.createRadialGradient(
+                sunX, sunY, 0,
+                sunX, sunY, 18
+            );
+            sunGradient.addColorStop(0, '#FFFFFF');
+            sunGradient.addColorStop(0.5, '#FDB813');
+            sunGradient.addColorStop(1, '#FF4400');
+            ctx.fillStyle = sunGradient;
+            ctx.fill();
+            
+            // 太阳光晕效果
+            ctx.beginPath();
+            ctx.arc(sunX, sunY, 25, 0, Math.PI * 2);
+            const sunHalo = ctx.createRadialGradient(
+                sunX, sunY, 18,
+                sunX, sunY, 25
+            );
+            sunHalo.addColorStop(0, 'rgba(253, 184, 19, 0.5)');
+            sunHalo.addColorStop(1, 'rgba(253, 184, 19, 0)');
+            ctx.fillStyle = sunHalo;
+            ctx.fill();
+            
+            // 标记太阳
+            ctx.fillStyle = 'white';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('太阳', sunX, sunY - 30);
+            
+            // 计算行星当前位置（相对于椭圆中心）
+            const planetX = ellipseCenterX + ellipseParams.a * Math.cos(ellipseParams.angle);
+            const planetY = ellipseCenterY + ellipseParams.b * Math.sin(ellipseParams.angle);
+            
+            // 绘制行星轨迹（尾迹效果）
+            if (ellipseParams.trail) {
+                ctx.beginPath();
+                ctx.moveTo(ellipseParams.trail[0].x, ellipseParams.trail[0].y);
+                for (let i = 1; i < ellipseParams.trail.length; i++) {
+                    ctx.lineTo(ellipseParams.trail[i].x, ellipseParams.trail[i].y);
+                }
+                ctx.strokeStyle = 'rgba(255, 255, 100, 0.3)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+            
+            // 绘制行星
+            ctx.beginPath();
+            ctx.arc(planetX, planetY, 12, 0, Math.PI * 2);
+            const planetGradient = ctx.createRadialGradient(
+                planetX, planetY, 0,
+                planetX, planetY, 12
+            );
+            planetGradient.addColorStop(0, '#FFFF00');
+            planetGradient.addColorStop(0.7, '#FFAA00');
+            planetGradient.addColorStop(1, '#CC6600');
+            ctx.fillStyle = planetGradient;
+            ctx.fill();
+            
+            // 绘制行星光环效果
+            ctx.beginPath();
+            ctx.arc(planetX, planetY, 15, 0, Math.PI * 2);
+            const haloGradient = ctx.createRadialGradient(
+                planetX, planetY, 12,
+                planetX, planetY, 15
+            );
+            haloGradient.addColorStop(0, 'rgba(255, 200, 0, 0.5)');
+            haloGradient.addColorStop(1, 'rgba(255, 200, 0, 0)');
+            ctx.fillStyle = haloGradient;
+            ctx.fill();
+            
+            // 绘制行星名称
+            ctx.fillStyle = 'white';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('行星', planetX, planetY - 25);
+            
+            // 绘制太阳-行星连线
+            ctx.beginPath();
+            ctx.moveTo(sunX, sunY);
+            ctx.lineTo(planetX, planetY);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // 显示轨道参数
+            ctx.fillStyle = 'white';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText(`半长轴 (a): ${ellipseParams.a.toFixed(0)} px`, 20, 30);
+            ctx.fillText(`半短轴 (b): ${ellipseParams.b.toFixed(0)} px`, 20, 60);
+            ctx.fillText(`焦距 (c): ${ellipseParams.focusOffset.toFixed(0)} px`, 20, 90);
+            ctx.fillText(`离心率 (e): ${(ellipseParams.focusOffset/ellipseParams.a).toFixed(2)}`, 20, 120);
+            
+            // 计算行星到太阳的距离
+            const planetToSunDist = Math.sqrt(Math.pow(planetX - sunX, 2) + Math.pow(planetY - sunY, 2));
+            ctx.fillText(`当前距离: ${planetToSunDist.toFixed(0)} px`, 20, 150);
+        }
+        
+        // 绘制面积演示（第二定律）
+        function drawKeplerSecondLaw() {
+            // 清空画布
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制星空背景
+            drawStars();
+            
+            // 太阳位于画布中心
+            const sunX = canvas.width / 2;
+            const sunY = canvas.height / 2;
+            
+            // 重新计算椭圆中心，使太阳成为椭圆的一个焦点
+            const ellipseCenterX = sunX + ellipseParams.focusOffset; // 椭圆中心相对于太阳右移焦距
+            const ellipseCenterY = sunY;
+            
+            // 绘制椭圆轨道
+            drawAnimatedEllipse(ellipseParams.a, ellipseParams.b, ellipseCenterX, ellipseCenterY, 0, [5, 5]);
+            ctx.strokeStyle = 'rgba(100, 200, 255, 0.4)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // 绘制太阳（焦点，位于画布中心）
+            ctx.beginPath();
+            ctx.arc(sunX, sunY, 18, 0, Math.PI * 2);
+            const sunGradient = ctx.createRadialGradient(
+                sunX, sunY, 0,
+                sunX, sunY, 18
+            );
+            sunGradient.addColorStop(0, '#FFFFFF');
+            sunGradient.addColorStop(0.3, '#FDB813');
+            sunGradient.addColorStop(0.7, '#FF8C00');
+            sunGradient.addColorStop(1, '#FF4400');
+            ctx.fillStyle = sunGradient;
+            ctx.fill();
+            
+            // 太阳光晕效果
+            ctx.beginPath();
+            ctx.arc(sunX, sunY, 25, 0, Math.PI * 2);
+            const sunHalo = ctx.createRadialGradient(
+                sunX, sunY, 18,
+                sunX, sunY, 25
+            );
+            sunHalo.addColorStop(0, 'rgba(253, 184, 19, 0.5)');
+            sunHalo.addColorStop(1, 'rgba(253, 184, 19, 0)');
+            ctx.fillStyle = sunHalo;
+            ctx.fill();
+            
+            // 标记太阳
+            ctx.fillStyle = 'white';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('太阳', sunX, sunY - 30);
+            
+            // 计算行星当前位置（相对于椭圆中心）
+            const planetX = ellipseCenterX + ellipseParams.a * Math.cos(ellipseParams.angle);
+            const planetY = ellipseCenterY + ellipseParams.b * Math.sin(ellipseParams.angle);
+            
+            // 绘制行星轨迹线
+            if(areaDemo.points.length > 1) {
+                ctx.beginPath();
+                ctx.moveTo(areaDemo.points[0].x, areaDemo.points[0].y);
+                for(let i = 1; i < areaDemo.points.length; i++) {
+                    ctx.lineTo(areaDemo.points[i].x, areaDemo.points[i].y);
+                }
+                ctx.strokeStyle = 'rgba(255, 100, 100, 0.6)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+            
+            // 绘制行星
+            ctx.beginPath();
+            ctx.arc(planetX, planetY, 12, 0, Math.PI * 2);
+            const planetGradient = ctx.createRadialGradient(
+                planetX, planetY, 0,
+                planetX, planetY, 12
+            );
+            planetGradient.addColorStop(0, '#FFFF00');
+            planetGradient.addColorStop(0.7, '#FFAA00');
+            planetGradient.addColorStop(1, '#CC6600');
+            ctx.fillStyle = planetGradient;
+            ctx.fill();
+            
+            // 行星光晕效果
+            ctx.beginPath();
+            ctx.arc(planetX, planetY, 15, 0, Math.PI * 2);
+            const planetHalo = ctx.createRadialGradient(
+                planetX, planetY, 12,
+                planetX, planetY, 15
+            );
+            planetHalo.addColorStop(0, 'rgba(255, 200, 0, 0.5)');
+            planetHalo.addColorStop(1, 'rgba(255, 200, 0, 0)');
+            ctx.fillStyle = planetHalo;
+            ctx.fill();
+            
+            // 绘制太阳-行星连线
+            ctx.beginPath();
+            ctx.moveTo(sunX, sunY);
+            ctx.lineTo(planetX, planetY);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // 绘制扫过的面积（可视化面积相等规律）
+            if(areaDemo.points.length > 2) {
+                // 绘制从太阳到行星轨迹的填充区域
+                ctx.beginPath();
+                ctx.moveTo(sunX, sunY);
+                for(let i = 0; i < areaDemo.points.length; i++) {
+                    ctx.lineTo(areaDemo.points[i].x, areaDemo.points[i].y);
+                }
+                ctx.closePath();
+                ctx.fillStyle = 'rgba(100, 255, 100, 0.15)';
+                ctx.fill();
+                
+                // 可视化相等面积规律：显示两个不同位置但面积相等的扇形
+                if(areaDemo.points.length > 20) {
+                    // 选择相隔较远的两个区域来展示面积相等
+                    const section1Start = Math.max(0, areaDemo.points.length - 15);
+                    const section1End = Math.max(0, areaDemo.points.length - 10);
+                    const section2Start = Math.max(0, areaDemo.points.length - 30);
+                    const section2End = Math.max(0, areaDemo.points.length - 25);
+                    
+                    if(section1Start < section1End && section2Start < section2End) {
+                        // 绘制第一个扇形区域（可能在不同位置）
+                        ctx.beginPath();
+                        ctx.moveTo(sunX, sunY);
+                        for(let i = section1Start; i <= section1End && i < areaDemo.points.length; i++) {
+                            ctx.lineTo(areaDemo.points[i].x, areaDemo.points[i].y);
+                        }
+                        ctx.closePath();
+                        ctx.fillStyle = 'rgba(255, 100, 100, 0.4)'; // 红色表示
+                        ctx.fill();
+                        
+                        // 绘制第二个扇形区域
+                        ctx.beginPath();
+                        ctx.moveTo(sunX, sunY);
+                        for(let i = section2Start; i <= section2End && i < areaDemo.points.length; i++) {
+                            ctx.lineTo(areaDemo.points[i].x, areaDemo.points[i].y);
+                        }
+                        ctx.closePath();
+                        ctx.fillStyle = 'rgba(100, 100, 255, 0.4)'; // 蓝色表示
+                        ctx.fill();
+                        
+                        // 添加说明文字
+                        ctx.fillStyle = 'yellow';
+                        ctx.font = '14px Arial';
+                        ctx.fillText('红色区域：相等时间段扫过', 20, 150);
+                        ctx.fillText('蓝色区域：相等时间段扫过', 20, 170);
+                        ctx.fillStyle = 'lightgreen';
+                        ctx.fillText('两个区域面积相等（开普勒第二定律）', 20, 190);
+                    }
+                }
+            }
+            
+            // 显示速度信息
+            ctx.fillStyle = 'white';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'left';
+            
+            // 计算行星速度（根据椭圆轨道特性，近日点快，远日点慢）
+            const distFromSun = Math.sqrt(Math.pow(planetX - sunX, 2) + Math.pow(planetY - sunY, 2));
+            // 根据角动量守恒，面积速度恒定，所以速度与距离成反比
+            const velocity = 500 / distFromSun; // 简化的速度计算
+            
+            // 计算椭圆轨道的偏心率
+            const eccentricity = ellipseParams.focusOffset / ellipseParams.a;
+            
+            ctx.fillText(`距离太阳: ${distFromSun.toFixed(0)} px`, 20, 30);
+            ctx.fillText(`相对速度: ${velocity.toFixed(2)}`, 20, 60);
+            ctx.fillText(`椭圆偏心率: ${eccentricity.toFixed(2)}`, 20, 90);
+            ctx.fillText(`面积定律: 相等时间内扫过相等面积`, 20, 120);
+        }
+        
+        // 绘制第三定律演示
+        function drawKeplerThirdLaw() {
+            // 清空画布
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制星空背景
+            drawStars();
+            
+            // 绘制太阳在中心
+            const sunX = canvas.width / 2;
+            const sunY = canvas.height / 2;
+            
+            // 绘制太阳
+            ctx.beginPath();
+            ctx.arc(sunX, sunY, 30, 0, Math.PI * 2);
+            const sunGradient = ctx.createRadialGradient(
+                sunX, sunY, 0,
+                sunX, sunY, 30
+            );
+            sunGradient.addColorStop(0, '#FFFFFF');
+            sunGradient.addColorStop(0.3, '#FDB813');
+            sunGradient.addColorStop(0.7, '#FF8C00');
+            sunGradient.addColorStop(1, '#FF4400');
+            ctx.fillStyle = sunGradient;
+            ctx.fill();
+            
+            // 太阳光晕效果
+            ctx.beginPath();
+            ctx.arc(sunX, sunY, 40, 0, Math.PI * 2);
+            const sunHalo = ctx.createRadialGradient(
+                sunX, sunY, 30,
+                sunX, sunY, 40
+            );
+            sunHalo.addColorStop(0, 'rgba(253, 184, 19, 0.5)');
+            sunHalo.addColorStop(1, 'rgba(253, 184, 19, 0)');
+            ctx.fillStyle = sunHalo;
+            ctx.fill();
+            
+            // 标记太阳
+            ctx.fillStyle = 'white';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('太阳', sunX, sunY - 50);
+            
+            // 绘制不同轨道的行星
+            planets.forEach(planet => {
+                // 绘制轨道
+                drawAnimatedEllipse(planet.a, planet.a * 0.8, sunX, sunY); // 轻微椭圆
+                ctx.strokeStyle = `rgba(${parseInt(planet.color.slice(1,3), 16)}, ${parseInt(planet.color.slice(3,5), 16)}, ${parseInt(planet.color.slice(5,7), 16)}, 0.3)`;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                
+                // 计算行星位置
+                const planetX = sunX + planet.a * Math.cos(planet.angle);
+                const planetY = sunY + planet.a * 0.8 * Math.sin(planet.angle); // 轻微椭圆
+                
+                // 绘制行星轨迹（如果需要）
+                if (!planet.trail) planet.trail = [];
+                planet.trail.push({x: planetX, y: planetY});
+                if (planet.trail.length > 50) {
+                    planet.trail.shift();
+                }
+                
+                // 绘制行星轨迹
+                if (planet.trail.length > 1) {
+                    ctx.beginPath();
+                    ctx.moveTo(planet.trail[0].x, planet.trail[0].y);
+                    for (let i = 1; i < planet.trail.length; i++) {
+                        ctx.lineTo(planet.trail[i].x, planet.trail[i].y);
+                    }
+                    ctx.strokeStyle = `${planet.color}80`; // 半透明
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+                
+                // 绘制行星
+                ctx.beginPath();
+                ctx.arc(planetX, planetY, 8, 0, Math.PI * 2);  // 调整行星大小
+                const planetGradient = ctx.createRadialGradient(
+                    planetX, planetY, 0,
+                    planetX, planetY, 8
+                );
+                planetGradient.addColorStop(0, '#FFFFFF');
+                planetGradient.addColorStop(1, planet.color);
+                ctx.fillStyle = planetGradient;
+                ctx.fill();
+                
+                // 行星光晕效果
+                ctx.beginPath();
+                ctx.arc(planetX, planetY, 11, 0, Math.PI * 2);
+                const planetHalo = ctx.createRadialGradient(
+                    planetX, planetY, 8,
+                    planetX, planetY, 11
+                );
+                planetHalo.addColorStop(0, `${planet.color}80`);
+                planetHalo.addColorStop(1, `${planet.color}00`);
+                ctx.fillStyle = planetHalo;
+                ctx.fill();
+                
+                // 绘制行星名称
+                ctx.fillStyle = 'white';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(planet.name, planetX, planetY - 18);
+            });
+            
+            // 显示第三定律信息
+            ctx.fillStyle = 'white';
+            ctx.font = '18px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText('开普勒第三定律: a³/T² = 常数', 20, 30);
+            ctx.fillText('轨道越大，周期越长 (T² ∝ a³)', 20, 60);
+            
+            // 显示太阳系行星的真实数据
+            ctx.fillText('太阳系行星的真实轨道数据（半长轴以AU为单位，周期以地球年为单位）:', 20, 90);
+            
+            let yPos = 120;
+            planets.forEach(planet => {
+                const ratio = Math.pow(planet.real_a, 3) / Math.pow(planet.period, 2);  // 使用真实半长轴计算比值
+                ctx.fillStyle = planet.color;
+                ctx.fillText(`${planet.name}: a=${planet.real_a}AU, T=${planet.period}年, a³/T²=${ratio.toFixed(3)}`, 20, yPos);
+                yPos += 25;
+            });
+            
+            // 计算并显示常数的平均值
+            const ratios = planets.map(planet => Math.pow(planet.real_a, 3) / Math.pow(planet.period, 2));
+            const averageRatio = ratios.reduce((sum, val) => sum + val, 0) / ratios.length;
+            
+            ctx.fillStyle = 'yellow';
+            ctx.fillText(`理论常数 a³/T² ≈ ${averageRatio.toFixed(3)}`, 20, yPos);
+            yPos += 30;
+            
+            // 添加动画说明
+            ctx.fillStyle = 'lightgreen';
+            ctx.font = '14px Arial';
+            ctx.fillText('内侧行星运动快，外侧行星运动慢 - 符合开普勒第三定律', 20, yPos);
+        }
+        
+        // 绘制星空背景
+        function drawStars() {
+            // 创建固定的星星背景
+            if (!window.stars) {
+                window.stars = [];
+                for (let i = 0; i < 200; i++) {
+                    window.stars.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        size: Math.random() * 1.5,
+                        opacity: 0.3 + Math.random() * 0.7,
+                        twinkleSpeed: 0.01 + Math.random() * 0.02 // 闪烁速度
+                    });
+                }
+            }
+            
+            // 绘制星星
+            window.stars.forEach((star, index) => {
+                // 更新星星闪烁效果
+                star.opacity = 0.3 + 0.4 * Math.abs(Math.sin(Date.now() * star.twinkleSpeed * 0.001 + index));
+                
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
+                ctx.fill();
+                
+                // 对于较大的星星，添加闪烁效果
+                if (star.size > 1.0) {
+                    ctx.beginPath();
+                    ctx.arc(star.x, star.y, star.size * 1.5, 0, Math.PI * 2);
+                    const starHalo = ctx.createRadialGradient(
+                        star.x, star.y, star.size,
+                        star.x, star.y, star.size * 1.5
+                    );
+                    starHalo.addColorStop(0, `rgba(255, 255, 255, ${star.opacity * 0.5})`);
+                    starHalo.addColorStop(1, `rgba(255, 255, 255, 0)`);
+                    ctx.fillStyle = starHalo;
+                    ctx.fill();
+                }
+            });
+        }
+        
+        // 主绘图函数
+        function draw() {
+            switch(currentLaw) {
+                case 1:
+                    drawKeplerFirstLaw();
+                    break;
+                case 2:
+                    drawKeplerSecondLaw();
+                    break;
+                case 3:
+                    drawKeplerThirdLaw();
+                    break;
+            }
+        }
+        
+        // 更新动画
+        function updateAnimation() {
+            switch(currentLaw) {
+                case 1:
+                    ellipseParams.angle += ellipseParams.speed * animationSpeed;
+                    
+                    // 更新行星轨迹
+                    const sunX = canvas.width / 2;
+                    const sunY = canvas.height / 2;
+                    const ellipseCenterX = sunX + ellipseParams.focusOffset; // 椭圆中心相对于太阳右移焦距
+                    const ellipseCenterY = sunY;
+                    
+                    const planetX = ellipseCenterX + ellipseParams.a * Math.cos(ellipseParams.angle);
+                    const planetY = ellipseCenterY + ellipseParams.b * Math.sin(ellipseParams.angle);
+                    
+                    ellipseParams.trail.push({x: planetX, y: planetY});
+                    if (ellipseParams.trail.length > 100) {
+                        ellipseParams.trail.shift();
+                    }
+                    break;
+                case 2:
+                    // 根据椭圆位置调整速度（近日点快，远日点慢），符合面积定律
+                    const sunX2 = canvas.width / 2;
+                    const sunY2 = canvas.height / 2;
+                    const ellipseCenterX2 = sunX2 + ellipseParams.focusOffset; // 椭圆中心相对于太阳右移焦距
+                    const ellipseCenterY2 = sunY2;
+                    
+                    // 计算行星到太阳（焦点）的距离
+                    const planetX2 = ellipseCenterX2 + ellipseParams.a * Math.cos(ellipseParams.angle);
+                    const planetY2 = ellipseCenterY2 + ellipseParams.b * Math.sin(ellipseParams.angle);
+                    const distToSun = Math.sqrt(Math.pow(planetX2 - sunX2, 2) + Math.pow(planetY2 - sunY2, 2));
+                    
+                    // 根据开普勒第二定律，行星在相等时间内扫过相等面积
+                    // 面积速度恒定，所以行星角速度与距离的平方成反比
+                    const varSpeed = ellipseParams.speed * 100 / (distToSun * 0.5 + 10); // 调整系数使速度变化更明显
+                    ellipseParams.angle += varSpeed * animationSpeed;
+                    
+                    // 更新面积演示轨迹
+                    const areaPlanetX = ellipseCenterX2 + ellipseParams.a * Math.cos(ellipseParams.angle);
+                    const areaPlanetY = ellipseCenterY2 + ellipseParams.b * Math.sin(ellipseParams.angle);
+                    areaDemo.points.push({x: areaPlanetX, y: areaPlanetY});
+                    if(areaDemo.points.length > areaDemo.maxPoints) {
+                        areaDemo.points.shift();
+                    }
+                    break;
+                case 3:
+                    planets.forEach(planet => {
+                        // 根据开普勒第三定律 T² ∝ a³，即 T ∝ a^(3/2)
+                        // 所以角速度 ω ∝ 1/T ∝ 1/a^(3/2)
+                        // 这确保了 a³/T² 比值为常数
+                        // 使用实际周期来计算角速度，使动画更符合真实情况
+                        const adjustedSpeed = 0.05 / planet.period;  // 角速度与周期成反比
+                        planet.angle += adjustedSpeed * animationSpeed;
+                    });
+                    break;
+            }
+            
+            // 更新进度条
+            const progress = (ellipseParams.angle % (2 * Math.PI)) / (2 * Math.PI) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+        
+        // 动画循环
+        function animate() {
+            updateAnimation();
+            draw();
+            
+            if (animationRunning) {
+                animationId = requestAnimationFrame(animate);
+            }
+        }
+        
+        // 切换动画
+        function toggleAnimation() {
+            animationRunning = !animationRunning;
+            const btn = document.getElementById('animationBtn');
+            
+            if (animationRunning) {
+                btn.textContent = '暂停动画';
+                animate();
+            } else {
+                btn.textContent = '开始动画';
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                    animationId = null;
+                }
+            }
+        }
+        
+        // 重置视图
+        function resetView() {
+            ellipseParams.angle = 0;
+            ellipseParams.trail = [];
+            planets.forEach(planet => {
+                planet.angle = Math.random() * 2 * Math.PI;
+                planet.trail = [];
+            });
+            areaDemo.points = [];
+            progressBar.style.width = '0%';
+            draw();
+        }
+        
+        // 切换演示模式
+        function switchDemo() {
+            if (currentLaw === 1) {
+                selectLaw(2);
+            } else if (currentLaw === 2) {
+                selectLaw(3);
+            } else {
+                selectLaw(1);
+            }
+        }
+        
+        // 更新动画速度
+        function updateSpeed() {
+            animationSpeed = parseFloat(document.getElementById('speedSlider').value);
+        }
+        
+        // 初始化
+        draw();
+        
+        // 知识检测功能
+        function openQuiz() {
+            document.getElementById('quizModal').style.display = 'flex';
+        }
+        
+        function closeQuiz() {
+            document.getElementById('quizModal').style.display = 'none';
+            // 重置选择
+            const radios = document.querySelectorAll('input[type="radio"]');
+            radios.forEach(radio => radio.checked = false);
+            
+            // 隐藏结果
+            document.getElementById('result').style.display = 'none';
+        }
+        
+        function checkAnswers() {
+            // 正确答案
+            const correctAnswers = {
+                q1: 'B',  // a³/T² = 常数
+                q2: 'B',  // 越长
+                q3: 'C',  // 周期定律
+                q4: 'C',  // 行星轨道大小与公转周期的关系
+                q5: 'C'   // 8倍 (因为4³=64, √64=8)
+            };
+            
+            let score = 0;
+            let total = Object.keys(correctAnswers).length;
+            
+            // 检查每个问题的答案
+            for (const question in correctAnswers) {
+                const selectedOption = document.querySelector(`input[name=${question}]:checked`);
+                if (selectedOption && selectedOption.value === correctAnswers[question]) {
+                    score++;
+                }
+            }
+            
+            // 显示结果
+            const resultDiv = document.getElementById('result');
+            
+            // 学情分析
+            let analysis = '';
+            let advice = '';
+            let strengths = [];
+            let weaknesses = [];
+            
+            if (score === total) {
+                analysis = '太棒了！你完全掌握了开普勒第三定律的知识！';
+                advice = '继续保持，你已经很好地理解了开普勒第三定律的核心概念。';
+            } else if (score >= total * 0.8) {
+                analysis = '很好！你对开普勒第三定律有很好的理解。';
+                advice = '你掌握了大部分知识点，可以再复习一下薄弱环节。';
+            } else if (score >= total * 0.6) {
+                analysis = '还不错！你对基本概念有一定了解。';
+                advice = '建议加强对开普勒第三定律的理解，特别是公式 a³/T² = 常数的应用。';
+                weaknesses.push('开普勒第三定律的数学表达式');
+                weaknesses.push('行星轨道与周期的关系');
+            } else {
+                analysis = '需要加强学习，回顾一下开普勒第三定律的基本知识吧！';
+                advice = '请仔细复习开普勒第三定律的概念：所有行星轨道半长轴的立方与公转周期的平方比值相等。';
+                weaknesses.push('开普勒第三定律的基本概念');
+                weaknesses.push('行星轨道与周期的关系');
+                weaknesses.push('开普勒第三定律的应用');
+            }
+            
+            // 确定优点
+            if (score > 0) {
+                strengths.push('对开普勒定律有一定的认识');
+            }
+            if (score >= 3) {
+                strengths.push('理解开普勒第三定律的基本概念');
+            }
+            
+            resultDiv.innerHTML = `
+                <div style="padding: 10px; border-radius: 5px; background: ${score === total ? '#27ae60' : score >= total * 0.6 ? '#f39c12' : '#e74c3c'};">
+                    <h3 style="color: white; margin: 0;">你的得分: ${score}/${total}</h3>
+                    <p style="color: white; margin: 10px 0;">${analysis}</p>
+                    <p style="color: white; margin: 10px 0;"><strong>学情分析与建议：</strong> ${advice}</p>
+                    
+                    <div style="margin-top: 10px; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 4px;">
+                        <p style="color: white; margin: 5px 0;"><strong>知识点回顾：</strong></p>
+                        <ul style="color: white; margin: 5px 0; padding-left: 20px;">
+                            <li>开普勒第三定律: a³/T² = 常数，其中a为轨道半长轴，T为公转周期</li>
+                            <li>轨道越大，周期越长 (T² ∝ a³)</li>
+                            <li>开普勒第三定律又称为周期定律</li>
+                            <li>这一定律揭示了行星轨道大小与公转周期的关系</li>
+                            <li>可用于计算行星的轨道或周期</li>
+                        </ul>
+                    </div>
+                    
+                    ${strengths.length > 0 ? `
+                    <div style="margin-top: 10px; padding: 8px; background: rgba(46, 204, 113, 0.2); border-radius: 4px;">
+                        <p style="color: white; margin: 5px 0;"><strong>你的优势：</strong></p>
+                        <ul style="color: white; margin: 5px 0; padding-left: 20px;">
+                            ${strengths.map(item => `<li>${item}</li>`).join('')}
+                        </ul>
+                    </div>
+                    ` : ''}
+                    
+                    ${weaknesses.length > 0 ? `
+                    <div style="margin-top: 10px; padding: 8px; background: rgba(231, 76, 60, 0.2); border-radius: 4px;">
+                        <p style="color: white; margin: 5px 0;"><strong>需要加强的地方：</strong></p>
+                        <ul style="color: white; margin: 5px 0; padding-left: 20px;">
+                            ${weaknesses.map(item => `<li>${item}</li>`).join('')}
+                        </ul>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+            resultDiv.style.display = 'block';
+            
+            // 滚动到结果部分
+            resultDiv.scrollIntoView({behavior: 'smooth'});
+        }
+        
+        // 页面加载完成后设置初始信息
+        window.onload = function() {
+            planetInfo.textContent = "开普勒第一定律：行星轨道是椭圆，太阳在椭圆的一个焦点上";
+        };
+        
+        // 添加键盘事件监听，ESC键关闭模态框
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && document.getElementById('quizModal').style.display === 'flex') {
+                closeQuiz();
+            }
+        });
+    </script>
+</body>
+</html>

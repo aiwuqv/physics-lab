@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>楞次定律模拟实验</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            max-width: 1400px;
+            margin: 0 auto;
+            gap: 20px;
+        }
+        
+        header {
+            width: 100%;
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #4a6fa5;
+            position: relative;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            color: #4a6fa5;
+            font-size: 1.1rem;
+        }
+        
+        /* 线圈区域 */
+        .coil-container {
+            flex: 1;
+            min-width: 400px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .coil-area {
+            position: relative;
+            width: 300px;
+            height: 500px;
+            margin: 20px auto;
+        }
+        
+        .coil {
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 400px;
+        }
+        
+        .coil-line {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-radius: 50% / 10px;
+            background-image: repeating-linear-gradient(
+                to bottom,
+                #4a6fa5 0px,
+                #4a6fa5 8px,
+                transparent 8px,
+                transparent 16px
+            );
+            background-size: 100% 16px;
+        }
+        
+        /* 线圈箭头容器 */
+        .coil-arrows-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        /* 线圈箭头样式 */
+        .coil-arrow {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: transparent;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+        }
+        
+        .coil-arrow::before {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .coil-arrow.left::before {
+            border-width: 8px 12px 8px 0;
+            border-color: transparent #e74c3c transparent transparent;
+            left: 0;
+        }
+        
+        .coil-arrow.right::before {
+            border-width: 8px 0 8px 12px;
+            border-color: transparent transparent transparent #3498db;
+            right: 0;
+        }
+        
+        .current-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        
+        .current-label {
+            font-size: 1.2rem;
+            color: #2c3e50;
+            font-weight: bold;
+            margin-top: 10px;
+            padding: 8px 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            transition: all 0.5s ease;
+        }
+        
+        /* 磁铁区域 */
+        .magnets-container {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+        }
+        
+        .magnet {
+            width: 120px;
+            height: 180px;
+            border-radius: 10px;
+            position: relative;
+            cursor: grab;
+            margin: 20px auto;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s;
+        }
+        
+        .magnet:active {
+            cursor: grabbing;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .magnet.ns {
+            background: linear-gradient(to bottom, #e74c3c 0%, #e74c3c 50%, #3498db 50%, #3498db 100%);
+        }
+        
+        .magnet.sn {
+            background: linear-gradient(to bottom, #3498db 0%, #3498db 50%, #e74c3c 50%, #e74c3c 100%);
+        }
+        
+        .magnet-label {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.3rem;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        
+        .n-pole {
+            top: 20%;
+            transform: translateY(-50%);
+        }
+        
+        .s-pole {
+            bottom: 20%;
+            transform: translateY(50%);
+        }
+        
+        .magnet-instruction {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 0.95rem;
+            color: #555;
+            padding: 8px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        /* 定律区域 */
+        .law-container {
+            width: 100%;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            margin-top: 20px;
+        }
+        
+        .law-title {
+            color: #2c3e50;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #4a6fa5;
+            padding-bottom: 8px;
+            display: inline-block;
+        }
+        
+        .law-content {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            color: #444;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            border-left: 5px solid #4a6fa5;
+        }
+        
+        /* 按钮区域 */
+        .controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            background-color: #4a6fa5;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: #3a5a80;
+            transform: translateY(-2px);
+        }
+        
+        .reset-btn {
+            background-color: #e74c3c;
+        }
+        
+        .reset-btn:hover {
+            background-color: #c0392b;
+        }
+        
+        /* 弹窗 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #aaa;
+            transition: color 0.3s;
+        }
+        
+        .close-btn:hover {
+            color: #333;
+        }
+        
+        .question {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .question:last-child {
+            border-bottom: none;
+        }
+        
+        .question-title {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+        
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .option {
+            padding: 12px 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+        
+        .option:hover {
+            background-color: #e9ecef;
+        }
+        
+        .option.selected {
+            border-color: #4a6fa5;
+            background-color: #e3f2fd;
+        }
+        
+        .option.correct {
+            border-color: #27ae60;
+            background-color: #d5f4e6;
+        }
+        
+        .option.incorrect {
+            border-color: #e74c3c;
+            background-color: #fadbd8;
+        }
+        
+        .explanation {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            display: none;
+            border-left: 4px solid #4a6fa5;
+        }
+        
+        .explanation.show {
+            display: block;
+        }
+        
+        .submit-btn {
+            display: block;
+            margin: 30px auto 10px;
+            background-color: #4a6fa5;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .submit-btn:hover {
+            background-color: #3a5a80;
+        }
+        
+        .results {
+            text-align: center;
+            font-size: 1.3rem;
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+        }
+        
+        .results.show {
+            display: block;
+        }
+        
+        .score {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #4a6fa5;
+            margin-bottom: 10px;
+        }
+        
+        /* 拖拽指示器 */
+        .coil-dropzone {
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 160px;
+            height: 400px;
+            border: 2px dashed #4a6fa5;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #4a6fa5;
+            font-size: 1.1rem;
+            font-weight: bold;
+            pointer-events: none;
+            transition: all 0.3s;
+            z-index: 5;
+            background-color: rgba(74, 111, 165, 0.05);
+        }
+        
+        .coil-dropzone.active {
+            border-color: #e74c3c;
+            color: #e74c3c;
+            background-color: rgba(231, 76, 60, 0.05);
+            animation: dropzone-pulse 1s infinite;
+        }
+        
+        /* 磁铁插入位置 */
+        .magnet-inserted {
+            position: absolute !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            z-index: 20 !important;
+            cursor: grabbing !important;
+        }
+        
+        /* 动画效果 */
+        @keyframes dropzone-pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+        
+        @keyframes magnet-insert {
+            0% { 
+                transform: translateX(-50%) scale(0.8);
+                opacity: 0.5;
+            }
+            100% { 
+                transform: translateX(-50%) scale(1);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes current-pulse {
+            0% { 
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
+            }
+            70% { 
+                transform: scale(1.05);
+                box-shadow: 0 0 0 10px rgba(231, 76, 60, 0);
+            }
+            100% { 
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+            }
+        }
+        
+        @keyframes current-pulse-blue {
+            0% { 
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.7);
+            }
+            70% { 
+                transform: scale(1.05);
+                box-shadow: 0 0 0 10px rgba(52, 152, 219, 0);
+            }
+            100% { 
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(52, 152, 219, 0);
+            }
+        }
+        
+        @keyframes arrow-flow-up {
+            0% { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; transform: translateX(-50%) translateY(-20px); }
+        }
+        
+        @keyframes arrow-flow-down {
+            0% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; transform: translateX(-50%) translateY(20px); }
+        }
+        
+        @keyframes coil-pulse {
+            0% { background-color: #4a6fa5; }
+            50% { background-color: #e74c3c; }
+            100% { background-color: #4a6fa5; }
+        }
+        
+        @keyframes coil-pulse-blue {
+            0% { background-color: #4a6fa5; }
+            50% { background-color: #3498db; }
+            100% { background-color: #4a6fa5; }
+        }
+        
+        .current-pulse {
+            animation: current-pulse 0.8s ease-out;
+        }
+        
+        .current-pulse-blue {
+            animation: current-pulse-blue 0.8s ease-out;
+        }
+        
+        .magnet-insert-animation {
+            animation: magnet-insert 0.5s ease-out;
+        }
+        
+        .coil-pulse {
+            animation: coil-pulse 0.8s ease-out;
+        }
+        
+        .coil-pulse-blue {
+            animation: coil-pulse-blue 0.8s ease-out;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 1100px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .coil-container, .magnets-container {
+                width: 100%;
+                min-width: unset;
+            }
+            
+            .controls {
+                position: relative;
+                top: 0;
+                right: 0;
+                margin-bottom: 15px;
+                justify-content: center;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .coil-area {
+                width: 250px;
+                height: 400px;
+            }
+            
+            .coil {
+                height: 320px;
+            }
+            
+            .coil-dropzone {
+                height: 320px;
+            }
+            
+            .magnet {
+                width: 100px;
+                height: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <header>
+            <h1>楞次定律模拟实验</h1>
+            <p class="subtitle">通过交互式模拟理解电磁感应中的楞次定律</p>
+            <div class="controls">
+                <button class="btn" id="testBtn">学习检测</button>
+                <button class="btn reset-btn" id="resetBtn">重置实验</button>
+            </div>
+        </header>
+        
+        <div class="coil-container">
+            <h2>螺旋线圈</h2>
+            <div class="coil-area" id="coilArea">
+                <div class="coil" id="coil">
+                    <div class="coil-line" id="coilLine"></div>
+                    <div class="coil-arrows-container" id="coilArrowsContainer"></div>
+                </div>
+                <div class="current-indicator">
+                    <div class="current-label" id="currentLabel">无电流</div>
+                </div>
+                <div class="coil-dropzone" id="coilDropzone">拖入磁铁到线圈区域</div>
+            </div>
+            <p>提示：将磁铁拖入线圈区域，然后上下拖拽磁铁观察电流方向变化</p>
+            <p>向左箭头 = 顺时针电流 | 向右箭头 = 逆时针电流</p>
+        </div>
+        
+        <div class="magnets-container">
+            <h2>磁铁</h2>
+            <div class="magnet-container">
+                <div class="magnet ns" id="magnetNS">
+                    <div class="magnet-label n-pole">N极</div>
+                    <div class="magnet-label s-pole">S极</div>
+                </div>
+                <p class="magnet-instruction">磁铁1: 上N下S - 拖入线圈后上下拖拽</p>
+            </div>
+            
+            <div class="magnet-container">
+                <div class="magnet sn" id="magnetSN">
+                    <div class="magnet-label n-pole">S极</div>
+                    <div class="magnet-label s-pole">N极</div>
+                </div>
+                <p class="magnet-instruction">磁铁2: 上S下N - 拖入线圈后上下拖拽</p>
+            </div>
+        </div>
+        
+        <div class="law-container">
+            <h2 class="law-title">楞次定律</h2>
+            <div class="law-content">
+                感应电流具有这样的方向，即感应电流的磁场总要阻碍引起感应电流的磁通量的变化。
+            </div>
+        </div>
+    </div>
+    
+    <!-- 测验弹窗 -->
+    <div class="modal" id="quizModal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeBtn">&times;</span>
+            <h2>楞次定律学习检测</h2>
+            <p>请回答以下问题，完成后点击提交按钮查看结果。</p>
+            
+            <div id="quizQuestions">
+                <!-- 问题将通过JavaScript动态添加 -->
+            </div>
+            
+            <button class="submit-btn" id="submitQuiz">提交答案</button>
+            
+            <div class="results" id="quizResults">
+                <!-- 结果将动态显示 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 获取DOM元素
+        const magnetNS = document.getElementById('magnetNS');
+        const magnetSN = document.getElementById('magnetSN');
+        const currentLabel = document.getElementById('currentLabel');
+        const coilDropzone = document.getElementById('coilDropzone');
+        const coilArea = document.getElementById('coilArea');
+        const coil = document.getElementById('coil');
+        const coilLine = document.getElementById('coilLine');
+        const coilArrowsContainer = document.getElementById('coilArrowsContainer');
+        const testBtn = document.getElementById('testBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const quizModal = document.getElementById('quizModal');
+        const closeBtn = document.getElementById('closeBtn');
+        const submitQuizBtn = document.getElementById('submitQuiz');
+        const quizQuestionsContainer = document.getElementById('quizQuestions');
+        const quizResults = document.getElementById('quizResults');
+        
+        // 状态变量
+        let isMagnetInCoil = false;
+        let currentMagnet = null;
+        let isDragging = false;
+        let dragOffsetX = 0;
+        let dragOffsetY = 0;
+        let currentDirection = 'none'; // 'left', 'right', 'none'
+        let isAnimating = false;
+        let magnetStartY = 0; // 记录拖拽开始时的Y坐标
+        
+        // 初始化拖拽功能
+        function initDragAndDrop() {
+            const magnets = [magnetNS, magnetSN];
+            
+            magnets.forEach(magnet => {
+                // 鼠标按下开始拖拽
+                magnet.addEventListener('mousedown', startDrag);
+                magnet.addEventListener('touchstart', startDragTouch);
+                
+                // 阻止默认拖拽行为
+                magnet.addEventListener('dragstart', (e) => {
+                    e.preventDefault();
+                });
+            });
+            
+            // 鼠标移动事件
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('touchmove', dragTouch);
+            
+            // 鼠标释放事件
+            document.addEventListener('mouseup', endDrag);
+            document.addEventListener('touchend', endDrag);
+            
+            // 点击磁铁也可以插入
+            magnets.forEach(magnet => {
+                magnet.addEventListener('click', (e) => {
+                    // 防止拖拽结束后触发点击事件
+                    if (isDragging) {
+                        isDragging = false;
+                        return;
+                    }
+                    
+                    if (!isMagnetInCoil) {
+                        insertMagnet(magnet);
+                    }
+                });
+            });
+        }
+        
+        // 开始拖拽（鼠标）
+        function startDrag(e) {
+            if (isAnimating) return;
+            
+            isDragging = true;
+            const magnet = e.target;
+            
+            // 计算鼠标相对于磁铁的位置
+            const rect = magnet.getBoundingClientRect();
+            dragOffsetX = e.clientX - rect.left;
+            dragOffsetY = e.clientY - rect.top;
+            
+            // 记录拖拽开始位置
+            magnetStartY = e.clientY;
+            
+            // 设置磁铁样式
+            magnet.style.zIndex = '100';
+            magnet.style.cursor = 'grabbing';
+            magnet.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.3)';
+            
+            // 如果磁铁不在线圈中，激活放置区域
+            if (!isMagnetInCoil || currentMagnet !== magnet) {
+                coilDropzone.classList.add('active');
+            }
+            
+            e.preventDefault();
+        }
+        
+        // 开始拖拽（触摸）
+        function startDragTouch(e) {
+            if (isAnimating) return;
+            
+            isDragging = true;
+            const magnet = e.target;
+            const touch = e.touches[0];
+            
+            // 计算触摸点相对于磁铁的位置
+            const rect = magnet.getBoundingClientRect();
+            dragOffsetX = touch.clientX - rect.left;
+            dragOffsetY = touch.clientY - rect.top;
+            
+            // 记录拖拽开始位置
+            magnetStartY = touch.clientY;
+            
+            // 设置磁铁样式
+            magnet.style.zIndex = '100';
+            magnet.style.cursor = 'grabbing';
+            magnet.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.3)';
+            
+            // 如果磁铁不在线圈中，激活放置区域
+            if (!isMagnetInCoil || currentMagnet !== magnet) {
+                coilDropzone.classList.add('active');
+            }
+            
+            e.preventDefault();
+        }
+        
+        // 拖拽中（鼠标）
+        function drag(e) {
+            if (!isDragging || isAnimating) return;
+            
+            const magnet = currentDraggingMagnet();
+            if (!magnet) return;
+            
+            // 计算磁铁新位置
+            const x = e.clientX - dragOffsetX;
+            const y = e.clientY - dragOffsetY;
+            
+            // 设置磁铁位置
+            magnet.style.position = 'absolute';
+            magnet.style.left = x + 'px';
+            magnet.style.top = y + 'px';
+            
+            // 如果磁铁在线圈中，计算移动方向并更新电流显示
+            if (isMagnetInCoil && currentMagnet === magnet) {
+                const moveDirection = e.clientY < magnetStartY ? 'up' : 'down';
+                updateCurrentBasedOnMovement(magnet.id, moveDirection);
+            }
+            
+            e.preventDefault();
+        }
+        
+        // 拖拽中（触摸）
+        function dragTouch(e) {
+            if (!isDragging || isAnimating) return;
+            
+            const magnet = currentDraggingMagnet();
+            if (!magnet) return;
+            
+            const touch = e.touches[0];
+            
+            // 计算磁铁新位置
+            const x = touch.clientX - dragOffsetX;
+            const y = touch.clientY - dragOffsetY;
+            
+            // 设置磁铁位置
+            magnet.style.position = 'absolute';
+            magnet.style.left = x + 'px';
+            magnet.style.top = y + 'px';
+            
+            // 如果磁铁在线圈中，计算移动方向并更新电流显示
+            if (isMagnetInCoil && currentMagnet === magnet) {
+                const moveDirection = touch.clientY < magnetStartY ? 'up' : 'down';
+                updateCurrentBasedOnMovement(magnet.id, moveDirection);
+            }
+            
+            e.preventDefault();
+        }
+        
+        // 结束拖拽
+        function endDrag(e) {
+            if (!isDragging || isAnimating) return;
+            
+            const magnet = currentDraggingMagnet();
+            if (!magnet) {
+                isDragging = false;
+                return;
+            }
+            
+            // 获取线圈区域位置
+            const coilRect = coilArea.getBoundingClientRect();
+            const magnetRect = magnet.getBoundingClientRect();
+            
+            // 检查磁铁是否在线圈区域内
+            const isInCoilArea = 
+                magnetRect.left >= coilRect.left - 30 &&
+                magnetRect.right <= coilRect.right + 30 &&
+                magnetRect.top >= coilRect.top &&
+                magnetRect.bottom <= coilRect.bottom;
+            
+            if (isInCoilArea && !isMagnetInCoil) {
+                // 插入磁铁
+                insertMagnet(magnet);
+            } else if (!isInCoilArea && isMagnetInCoil && currentMagnet === magnet) {
+                // 抽出磁铁
+                removeMagnet();
+            } else if (isMagnetInCoil && currentMagnet === magnet) {
+                // 磁铁在线圈中移动，回到线圈中心位置
+                positionMagnetInCoil(magnet);
+            }
+            
+            // 重置拖拽状态
+            isDragging = false;
+            coilDropzone.classList.remove('active');
+            
+            e.preventDefault();
+        }
+        
+        // 获取当前拖拽的磁铁
+        function currentDraggingMagnet() {
+            const magnets = [magnetNS, magnetSN];
+            for (let magnet of magnets) {
+                if (magnet.style.cursor === 'grabbing' || magnet.classList.contains('grabbing')) {
+                    return magnet;
+                }
+            }
+            return null;
+        }
+        
+        // 将磁铁定位到线圈中心
+        function positionMagnetInCoil(magnet) {
+            const coilRect = coilArea.getBoundingClientRect();
+            const coilCenterX = coilRect.left + coilRect.width / 2;
+            const coilTop = coilRect.top + 50; // 线圈顶部偏移
+            
+            magnet.style.left = (coilCenterX - magnet.offsetWidth / 2) + 'px';
+            magnet.style.top = coilTop + 'px';
+            magnet.style.transition = 'all 0.3s ease';
+            
+            setTimeout(() => {
+                magnet.style.transition = '';
+            }, 300);
+        }
+        
+        // 插入磁铁
+        function insertMagnet(magnet) {
+            if (isMagnetInCoil) return;
+            
+            isMagnetInCoil = true;
+            currentMagnet = magnet;
+            
+            // 设置磁铁插入样式
+            magnet.classList.add('magnet-inserted', 'magnet-insert-animation');
+            magnet.style.cursor = 'grabbing';
+            magnet.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.3)';
+            
+            // 将磁铁定位到线圈中心
+            positionMagnetInCoil(magnet);
+            
+            // 移除动画类
+            setTimeout(() => {
+                magnet.classList.remove('magnet-insert-animation');
+            }, 500);
+            
+            // 更新指示器
+            coilDropzone.textContent = '磁铁已插入，上下拖拽观察电流';
+            
+            // 添加线圈脉冲动画
+            if (magnet.id === 'magnetNS') {
+                coilLine.classList.add('coil-pulse');
+                setTimeout(() => {
+                    coilLine.classList.remove('coil-pulse');
+                }, 800);
+            } else {
+                coilLine.classList.add('coil-pulse-blue');
+                setTimeout(() => {
+                    coilLine.classList.remove('coil-pulse-blue');
+                }, 800);
+            }
+            
+            // 初始状态：无电流
+            updateCurrentDisplay('none');
+        }
+        
+        // 抽出磁铁
+        function removeMagnet() {
+            if (!isMagnetInCoil) return;
+            
+            // 重置磁铁
+            resetMagnetPosition(currentMagnet);
+            
+            // 重置状态
+            isMagnetInCoil = false;
+            currentMagnet = null;
+            currentDirection = 'none';
+            
+            // 清空线圈箭头
+            clearCoilArrows();
+            
+            // 重置显示
+            currentLabel.textContent = '无电流';
+            currentLabel.style.color = '#2c3e50';
+            currentLabel.classList.remove('current-pulse', 'current-pulse-blue');
+            coilDropzone.textContent = '拖入磁铁到线圈区域';
+            
+            // 重置线圈样式
+            coilLine.classList.remove('coil-pulse', 'coil-pulse-blue');
+        }
+        
+        // 重置磁铁位置
+        function resetMagnetPosition(magnet) {
+            magnet.style.position = 'static';
+            magnet.style.left = '';
+            magnet.style.top = '';
+            magnet.style.zIndex = '';
+            magnet.style.cursor = 'grab';
+            magnet.style.boxShadow = '0 6px 15px rgba(0, 0, 0, 0.15)';
+            magnet.classList.remove('magnet-inserted', 'grabbing');
+            magnet.style.transition = 'none';
+        }
+        
+        // 根据移动更新电流
+        function updateCurrentBasedOnMovement(magnetId, direction) {
+            let newDirection;
+            
+            if (magnetId === 'magnetNS') {
+                // 上N下S磁铁
+                if (direction === 'up') {
+                    // 向上拖拽（抽出）：向右箭头（逆时针电流）
+                    newDirection = 'right';
+                } else {
+                    // 向下拖拽（插入）：向左箭头（顺时针电流）
+                    newDirection = 'left';
+                }
+            } else {
+                // 上S下N磁铁
+                if (direction === 'up') {
+                    // 向上拖拽（抽出）：向左箭头（顺时针电流）
+                    newDirection = 'left';
+                } else {
+                    // 向下拖拽（插入）：向右箭头（逆时针电流）
+                    newDirection = 'right';
+                }
+            }
+            
+            // 如果方向有变化，更新显示
+            if (newDirection !== currentDirection) {
+                currentDirection = newDirection;
+                updateCurrentDisplay(newDirection);
+            }
+        }
+        
+        // 更新电流显示
+        function updateCurrentDisplay(direction) {
+            // 清空线圈箭头
+            clearCoilArrows();
+            
+            if (direction === 'left') {
+                // 向左箭头：顺时针电流
+                createCoilArrows('left');
+                currentLabel.textContent = '顺时针电流';
+                currentLabel.style.color = '#e74c3c';
+                
+                // 添加电流脉冲动画
+                currentLabel.classList.add('current-pulse');
+                setTimeout(() => {
+                    currentLabel.classList.remove('current-pulse');
+                }, 800);
+                
+                // 添加线圈脉冲动画
+                coilLine.classList.add('coil-pulse');
+                setTimeout(() => {
+                    coilLine.classList.remove('coil-pulse');
+                }, 800);
+            } else if (direction === 'right') {
+                // 向右箭头：逆时针电流
+                createCoilArrows('right');
+                currentLabel.textContent = '逆时针电流';
+                currentLabel.style.color = '#3498db';
+                
+                // 添加电流脉冲动画
+                currentLabel.classList.add('current-pulse-blue');
+                setTimeout(() => {
+                    currentLabel.classList.remove('current-pulse-blue');
+                }, 800);
+                
+                // 添加线圈脉冲动画
+                coilLine.classList.add('coil-pulse-blue');
+                setTimeout(() => {
+                    coilLine.classList.remove('coil-pulse-blue');
+                }, 800);
+            } else {
+                currentLabel.textContent = '无电流';
+                currentLabel.style.color = '#2c3e50';
+            }
+        }
+        
+        // 清空线圈箭头
+        function clearCoilArrows() {
+            coilArrowsContainer.innerHTML = '';
+        }
+        
+        // 创建线圈箭头
+        function createCoilArrows(direction) {
+            const arrowCount = 12; // 箭头数量
+            const coilHeight = 400; // 线圈高度
+            
+            // 根据电流方向确定箭头动画方向
+            // 向左箭头（顺时针电流）：向上流动
+            // 向右箭头（逆时针电流）：向下流动
+            const flowDirection = direction === 'left' ? 'up' : 'down';
+            
+            for (let i = 0; i < arrowCount; i++) {
+                const arrow = document.createElement('div');
+                arrow.className = `coil-arrow ${direction}`;
+                
+                // 计算箭头位置
+                const topPosition = 15 + (i * (coilHeight / arrowCount));
+                arrow.style.top = `${topPosition}px`;
+                
+                // 设置箭头动画
+                if (flowDirection === 'up') {
+                    arrow.style.animation = `arrow-flow-up 1.5s ease-in-out ${i * 0.1}s infinite`;
+                } else {
+                    arrow.style.animation = `arrow-flow-down 1.5s ease-in-out ${i * 0.1}s infinite`;
+                }
+                
+                coilArrowsContainer.appendChild(arrow);
+            }
+        }
+        
+        // 重置实验
+        function resetExperiment() {
+            if (isAnimating) return;
+            
+            // 抽出当前磁铁
+            if (currentMagnet) {
+                removeMagnet();
+            }
+            
+            // 重置所有状态
+            isDragging = false;
+            coilDropzone.classList.remove('active');
+            
+            // 重置磁铁位置
+            [magnetNS, magnetSN].forEach(magnet => {
+                resetMagnetPosition(magnet);
+            });
+        }
+        
+        // 测验数据
+        const quizData = [
+            {
+                question: "根据楞次定律，感应电流的磁场总是：",
+                options: [
+                    "与引起感应电流的磁场方向相同",
+                    "与引起感应电流的磁场方向相反",
+                    "阻碍引起感应电流的磁通量变化",
+                    "增强引起感应电流的磁通量变化"
+                ],
+                correct: 2,
+                explanation: "楞次定律指出：感应电流的磁场总是阻碍引起感应电流的磁通量变化。"
+            },
+            {
+                question: "将条形磁铁的N极插入线圈时，线圈中感应电流的方向是：",
+                options: [
+                    "与插入速度无关，始终为顺时针",
+                    "使线圈上端呈现N极",
+                    "使线圈上端呈现S极",
+                    "无法确定"
+                ],
+                correct: 2,
+                explanation: "当磁铁N极插入时，线圈中磁通量增加，感应电流产生的磁场要阻碍这一增加，所以线圈上端呈现S极（与插入的N极相斥）。"
+            },
+            {
+                question: "从线圈中快速抽出磁铁时，感应电流的大小与什么有关？",
+                options: [
+                    "只与磁铁的磁性有关",
+                    "只与线圈匝数有关",
+                    "与磁通量变化率有关",
+                    "与磁通量大小有关"
+                ],
+                correct: 2,
+                explanation: "根据法拉第电磁感应定律，感应电动势的大小与磁通量变化率成正比，因此感应电流大小也与磁通量变化率有关。"
+            },
+            {
+                question: "如图所示，当磁铁向上抽出线圈时，线圈中感应电流的方向是：",
+                options: [
+                    "顺时针方向",
+                    "逆时针方向",
+                    "无感应电流",
+                    "方向无法确定"
+                ],
+                correct: 0,
+                explanation: "当磁铁向上抽出时，线圈中磁通量减少，感应电流的磁场要阻碍这一减少，所以感应电流的方向与原磁场方向相同，为顺时针方向。"
+            },
+            {
+                question: "楞次定律的本质是：",
+                options: [
+                    "能量守恒定律在电磁感应现象中的体现",
+                    "电荷守恒定律的体现",
+                    "库仑定律的延伸",
+                    "安培定律的推论"
+                ],
+                correct: 0,
+                explanation: "楞次定律中感应电流的磁场阻碍磁通量变化，实质上是能量守恒定律的体现，因为阻碍运动需要消耗能量。"
+            }
+        ];
+        
+        // 初始化测验
+        function initQuiz() {
+            // 清空容器
+            quizQuestionsContainer.innerHTML = '';
+            
+            // 添加问题
+            quizData.forEach((q, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question';
+                questionDiv.innerHTML = `
+                    <div class="question-title">${index + 1}. ${q.question}</div>
+                    <div class="options">
+                        ${q.options.map((opt, optIndex) => `
+                            <div class="option" data-question="${index}" data-option="${optIndex}">${String.fromCharCode(65 + optIndex)}. ${opt}</div>
+                        `).join('')}
+                    </div>
+                    <div class="explanation" id="explanation${index}">${q.explanation}</div>
+                `;
+                quizQuestionsContainer.appendChild(questionDiv);
+            });
+            
+            // 添加选项点击事件
+            document.querySelectorAll('.option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const questionIndex = parseInt(this.dataset.question);
+                    const optionIndex = parseInt(this.dataset.option);
+                    
+                    // 移除同一问题中其他选项的选中状态
+                    const options = document.querySelectorAll(`.option[data-question="${questionIndex}"]`);
+                    options.forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    
+                    // 标记当前选项为选中
+                    this.classList.add('selected');
+                    
+                    // 存储用户答案
+                    quizData[questionIndex].userAnswer = optionIndex;
+                });
+            });
+        }
+        
+        // 提交测验
+        function submitQuiz() {
+            let correctCount = 0;
+            
+            // 检查每个问题
+            quizData.forEach((q, index) => {
+                const explanation = document.getElementById(`explanation${index}`);
+                const options = document.querySelectorAll(`.option[data-question="${index}"]`);
+                
+                // 重置样式
+                options.forEach(opt => {
+                    opt.classList.remove('correct', 'incorrect');
+                });
+                
+                // 如果没有答案，跳过
+                if (q.userAnswer === undefined) {
+                    explanation.classList.add('show');
+                    return;
+                }
+                
+                // 标记正确答案
+                options[q.correct].classList.add('correct');
+                
+                // 标记用户答案
+                if (q.userAnswer !== q.correct) {
+                    options[q.userAnswer].classList.add('incorrect');
+                } else {
+                    correctCount++;
+                }
+                
+                // 显示解释
+                explanation.classList.add('show');
+            });
+            
+            // 显示结果
+            const score = Math.round(correctCount / quizData.length * 100);
+            quizResults.innerHTML = `
+                <div class="score">得分: ${score}分 (${correctCount}/${quizData.length})</div>
+                <p>${score >= 80 ? '优秀！你已经掌握了楞次定律的核心概念。' : 
+                     score >= 60 ? '良好！你已经理解了楞次定律的基本原理。' : 
+                     '需要继续努力，建议回顾实验和定律内容。'}</p>
+                <p>点击右上角的×关闭窗口，可以重新进行测验。</p>
+            `;
+            quizResults.classList.add('show');
+            
+            // 滚动到结果
+            quizResults.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // 事件监听
+        testBtn.addEventListener('click', () => {
+            quizModal.style.display = 'flex';
+            initQuiz();
+            quizResults.classList.remove('show');
+            quizResults.innerHTML = '';
+        });
+        
+        resetBtn.addEventListener('click', resetExperiment);
+        
+        closeBtn.addEventListener('click', () => {
+            quizModal.style.display = 'none';
+        });
+        
+        window.addEventListener('click', (e) => {
+            if (e.target === quizModal) {
+                quizModal.style.display = 'none';
+            }
+        });
+        
+        submitQuizBtn.addEventListener('click', submitQuiz);
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            initDragAndDrop();
+            initQuiz();
+        });
+    </script>
+</body>
+</html>

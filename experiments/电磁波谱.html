@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电磁波谱交互学习系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0c2461 0%, #1e3799 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        h1 {
+            color: white;
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .subtitle {
+            color: #d1d8ff;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+        
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .spectrum-control {
+            flex: 1;
+            min-width: 300px;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .spectrum-display {
+            flex: 2;
+            min-width: 300px;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .slider-container {
+            margin: 25px 0;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .wavelength-value {
+            font-size: 1.3rem;
+            color: #2c3e50;
+        }
+        
+        .unit {
+            font-size: 1rem;
+            color: #7f8c8d;
+        }
+        
+        .slider {
+            width: 100%;
+            height: 25px;
+            -webkit-appearance: none;
+            background: linear-gradient(to right, 
+                #a0a0a0 0%, #a0a0a0 20%,  /* 无线电波 - 灰色 */
+                #808080 20%, #808080 35%, /* 微波 - 深灰色 */
+                #606060 35%, #606060 45%, /* 红外线 - 更深的灰色 */
+                #ff0000 45%, #ff8000 48%, #ffff00 51%, #80ff00 54%, #00ff80 57%, #00ffff 60%, #0080ff 63%, #0000ff 66%, #8000ff 69%, /* 可见光 - 彩色 */
+                #400040 69%, #400040 85%, /* 紫外线 - 深紫色 */
+                #200020 85%, #200020 95%, /* X射线 - 更深紫色 */
+                #100010 95%, #100010 100% /* 伽马射线 - 接近黑色 */
+            );
+            border-radius: 15px;
+            outline: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: #2c3e50;
+            cursor: pointer;
+            border: 4px solid white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .info-section {
+            margin-top: 30px;
+        }
+        
+        .info-title {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        .wave-type {
+            font-size: 1.8rem;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .wave-range {
+            font-size: 1.2rem;
+            color: #7f8c8d;
+            margin-bottom: 15px;
+        }
+        
+        .wave-applications {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+        
+        .wave-applications h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .wave-applications ul {
+            padding-left: 20px;
+        }
+        
+        .wave-applications li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+        
+        .color-display {
+            height: 80px;
+            width: 100%;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            overflow: hidden;
+            border: 2px solid #ddd;
+        }
+        
+        .color-segment {
+            flex: 1;
+            height: 100%;
+        }
+        
+        .visible-light-colors {
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+        
+        .color-label {
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .quiz-button {
+            display: block;
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(to right, #3498db, #2980b9);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 30px;
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        .quiz-button:hover {
+            background: linear-gradient(to right, #2980b9, #1c5a7a);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.6);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            width: 90%;
+            max-width: 800px;
+            border-radius: 15px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #7f8c8d;
+            transition: color 0.3s;
+        }
+        
+        .close-modal:hover {
+            color: #2c3e50;
+        }
+        
+        .quiz-question {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .quiz-question h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        
+        .quiz-option {
+            margin-bottom: 10px;
+            padding: 12px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .quiz-option:hover {
+            background-color: #e9ecef;
+        }
+        
+        .quiz-option.selected {
+            background-color: #d1ecf1;
+            border-left: 5px solid #17a2b8;
+        }
+        
+        .quiz-option.correct {
+            background-color: #d4edda;
+            border-left: 5px solid #28a745;
+        }
+        
+        .quiz-option.incorrect {
+            background-color: #f8d7da;
+            border-left: 5px solid #dc3545;
+        }
+        
+        .submit-quiz {
+            padding: 15px 30px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 20px;
+            display: block;
+            margin-left: auto;
+        }
+        
+        .submit-quiz:hover {
+            background-color: #218838;
+        }
+        
+        .explanation {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            display: none;
+        }
+        
+        .score {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        
+        footer {
+            text-align: center;
+            color: #d1d8ff;
+            margin-top: 40px;
+            padding: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .spectrum-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .spectrum-label {
+            text-align: center;
+            flex: 1;
+            min-width: 80px;
+            margin: 5px;
+        }
+        
+        .label-name {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.9rem;
+        }
+        
+        .label-range {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .modal-content {
+                margin: 10% auto;
+                width: 95%;
+            }
+            
+            .spectrum-label {
+                min-width: 70px;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-satellite-dish"></i> 电磁波谱交互学习系统</h1>
+            <p class="subtitle">调节波长滑块，探索不同电磁波区域的特性和应用</p>
+            <p class="subtitle">波长范围: 10km (无线电波) → 10⁻¹²m (伽马射线)</p>
+        </header>
+        
+        <div class="content">
+            <div class="spectrum-control">
+                <h2 class="info-title">波长控制器</h2>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>当前波长:</span>
+                        <span class="wavelength-value" id="wavelength-value">1.0</span>
+                        <span class="unit" id="wavelength-unit">m</span>
+                    </div>
+                    <input type="range" min="0" max="100" value="50" class="slider" id="wavelength-slider">
+                    <div class="slider-label">
+                        <span>无线电波 (长波)</span>
+                        <span>伽马射线 (短波)</span>
+                    </div>
+                </div>
+                
+                <div class="info-section">
+                    <div id="color-display" class="color-display"></div>
+                    <div id="color-labels" class="visible-light-colors"></div>
+                    
+                    <div class="wave-type" id="wave-type">无线电波</div>
+                    <div class="wave-range" id="wave-range">波长范围: 1mm - 100km</div>
+                    
+                    <div class="wave-applications">
+                        <h3>主要应用</h3>
+                        <ul id="applications-list">
+                            <li>广播和电视信号传输</li>
+                            <li>手机通信</li>
+                            <li>雷达系统</li>
+                            <li>Wi-Fi网络</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <button id="quiz-btn" class="quiz-button">
+                    <i class="fas fa-graduation-cap"></i> 开启学习检测 (5道习题)
+                </button>
+            </div>
+            
+            <div class="spectrum-display">
+                <h2 class="info-title">电磁波谱图</h2>
+                <p>电磁波谱按照波长从长到短（频率从低到高）排列，覆盖了从无线电波到伽马射线的广泛范围。</p>
+                
+                <div class="spectrum-diagram">
+                    <div class="color-display">
+                        <div class="color-segment" style="background-color: #a0a0a0;"></div>
+                        <div class="color-segment" style="background-color: #808080;"></div>
+                        <div class="color-segment" style="background-color: #606060;"></div>
+                        <div class="color-segment" style="background-color: #ff0000;"></div>
+                        <div class="color-segment" style="background-color: #ff8000;"></div>
+                        <div class="color-segment" style="background-color: #ffff00;"></div>
+                        <div class="color-segment" style="background-color: #80ff00;"></div>
+                        <div class="color-segment" style="background-color: #00ff80;"></div>
+                        <div class="color-segment" style="background-color: #00ffff;"></div>
+                        <div class="color-segment" style="background-color: #0080ff;"></div>
+                        <div class="color-segment" style="background-color: #0000ff;"></div>
+                        <div class="color-segment" style="background-color: #8000ff;"></div>
+                        <div class="color-segment" style="background-color: #400040;"></div>
+                        <div class="color-segment" style="background-color: #200020;"></div>
+                        <div class="color-segment" style="background-color: #100010;"></div>
+                    </div>
+                    
+                    <div class="spectrum-labels">
+                        <div class="spectrum-label">
+                            <div class="label-name">无线电波</div>
+                            <div class="label-range">1mm - 100km</div>
+                        </div>
+                        <div class="spectrum-label">
+                            <div class="label-name">微波</div>
+                            <div class="label-range">1mm - 1m</div>
+                        </div>
+                        <div class="spectrum-label">
+                            <div class="label-name">红外线</div>
+                            <div class="label-range">700nm - 1mm</div>
+                        </div>
+                        <div class="spectrum-label">
+                            <div class="label-name">可见光</div>
+                            <div class="label-range">400-700nm</div>
+                        </div>
+                        <div class="spectrum-label">
+                            <div class="label-name">紫外线</div>
+                            <div class="label-range">10-400nm</div>
+                        </div>
+                        <div class="spectrum-label">
+                            <div class="label-name">X射线</div>
+                            <div class="label-range">0.01-10nm</div>
+                        </div>
+                        <div class="spectrum-label">
+                            <div class="label-name">伽马射线</div>
+                            <div class="label-range">&lt;0.01nm</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="info-section">
+                    <h3 class="info-title">电磁波基本特性</h3>
+                    <div class="wave-applications">
+                        <ul>
+                            <li><strong>传播速度：</strong>所有电磁波在真空中以光速传播 (c ≈ 3×10⁸ m/s)</li>
+                            <li><strong>波长与频率关系：</strong>c = λν，波长越短，频率越高</li>
+                            <li><strong>能量公式：</strong>E = hν，频率越高，光子能量越大</li>
+                            <li><strong>产生方式：</strong>不同电磁波由不同物理过程产生（振荡电路、能级跃迁、核反应等）</li>
+                            <li><strong>与物质相互作用：</strong>不同电磁波与物质相互作用方式不同（反射、吸收、透射、电离等）</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 学习检测弹窗 -->
+        <div id="quiz-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal" id="close-modal">&times;</span>
+                <h2 class="info-title">电磁波谱学习检测</h2>
+                <p>请回答以下5个问题，完成后点击提交按钮查看结果和解析。</p>
+                
+                <div id="quiz-questions">
+                    <!-- 问题将通过JavaScript动态生成 -->
+                </div>
+                
+                <button id="submit-quiz" class="submit-quiz">提交答案</button>
+                
+                <div id="quiz-results" class="results">
+                    <div class="score" id="score">得分: 0/5</div>
+                    <div id="results-details"></div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>© 2023 电磁波谱交互学习系统 | 设计用于物理教学与科普 | 波长数据基于国际标准</p>
+        </footer>
+    </div>
+
+    <script>
+        // 电磁波谱数据 - 修复了波长范围和滑块映射
+        const spectrumData = [
+            {
+                type: "无线电波",
+                minWavelength: 0.001, // 1mm
+                maxWavelength: 100000, // 100km
+                color: "#a0a0a0", // 浅灰色
+                applications: [
+                    "广播和电视信号传输",
+                    "手机通信（2G/3G/4G/5G）",
+                    "雷达系统（探测距离和速度）",
+                    "Wi-Fi和蓝牙网络",
+                    "卫星通信和导航（GPS）"
+                ],
+                sliderRange: [0, 20] // 滑块范围0-20对应无线电波
+            },
+            {
+                type: "微波",
+                minWavelength: 0.001, // 1mm
+                maxWavelength: 1, // 1m
+                color: "#808080", // 灰色
+                applications: [
+                    "微波炉加热食物",
+                    "卫星电视信号传输",
+                    "雷达和遥感技术",
+                    "无线局域网（WLAN）",
+                    "射电天文学观测"
+                ],
+                sliderRange: [20, 35] // 滑块范围20-35对应微波
+            },
+            {
+                type: "红外线",
+                minWavelength: 0.0000007, // 700nm
+                maxWavelength: 0.001, // 1mm
+                color: "#606060", // 深灰色
+                applications: [
+                    "热成像和夜视设备",
+                    "红外遥控器",
+                    "红外光谱分析（化学分析）",
+                    "光纤通信",
+                    "气象卫星云图拍摄"
+                ],
+                sliderRange: [35, 45] // 滑块范围35-45对应红外线
+            },
+            {
+                type: "可见光",
+                minWavelength: 0.0000004, // 400nm
+                maxWavelength: 0.0000007, // 700nm
+                colors: [
+                    {name: "紫", color: "#8000ff", min: 380, max: 450},
+                    {name: "蓝", color: "#0000ff", min: 450, max: 485},
+                    {name: "青", color: "#00ffff", min: 485, max: 500},
+                    {name: "绿", color: "#00ff80", min: 500, max: 565},
+                    {name: "黄", color: "#ffff00", min: 565, max: 590},
+                    {name: "橙", color: "#ff8000", min: 590, max: 625},
+                    {name: "红", color: "#ff0000", min: 625, max: 750}
+                ],
+                applications: [
+                    "人眼视觉感知",
+                    "摄影和摄像技术",
+                    "光学显微镜",
+                    "光纤通信",
+                    "光合作用（植物生长）"
+                ],
+                sliderRange: [45, 69] // 滑块范围45-69对应可见光
+            },
+            {
+                type: "紫外线",
+                minWavelength: 0.00000001, // 10nm
+                maxWavelength: 0.0000004, // 400nm
+                color: "#400040", // 深紫色
+                applications: [
+                    "消毒和杀菌（UV-C）",
+                    "荧光效应（验钞、矿物鉴定）",
+                    "维生素D合成（UV-B）",
+                    "光刻技术（半导体制造）",
+                    "天文观测（研究恒星）"
+                ],
+                sliderRange: [69, 85] // 滑块范围69-85对应紫外线
+            },
+            {
+                type: "X射线",
+                minWavelength: 0.00000000001, // 0.01nm
+                maxWavelength: 0.00000001, // 10nm
+                color: "#200020", // 更深紫色
+                applications: [
+                    "医学影像（X光片、CT扫描）",
+                    "机场安检行李检查",
+                    "材料检测（探伤、结构分析）",
+                    "X射线天文学",
+                    "晶体结构分析（X射线衍射）"
+                ],
+                sliderRange: [85, 95] // 滑块范围85-95对应X射线
+            },
+            {
+                type: "伽马射线",
+                minWavelength: 0.000000000000001, // 10⁻¹⁵m
+                maxWavelength: 0.00000000001, // 0.01nm
+                color: "#100010", // 接近黑色
+                applications: [
+                    "癌症放射治疗",
+                    "核医学成像（PET扫描）",
+                    "食品辐照灭菌",
+                    "天体物理研究（伽马射线暴）",
+                    "工业探伤和材料分析"
+                ],
+                sliderRange: [95, 100] // 滑块范围95-100对应伽马射线
+            }
+        ];
+
+        // 波长滑块和显示元素
+        const wavelengthSlider = document.getElementById('wavelength-slider');
+        const wavelengthValue = document.getElementById('wavelength-value');
+        const wavelengthUnit = document.getElementById('wavelength-unit');
+        const waveType = document.getElementById('wave-type');
+        const waveRange = document.getElementById('wave-range');
+        const applicationsList = document.getElementById('applications-list');
+        const colorDisplay = document.getElementById('color-display');
+        const colorLabels = document.getElementById('color-labels');
+
+        // 弹窗相关元素
+        const quizModal = document.getElementById('quiz-modal');
+        const quizBtn = document.getElementById('quiz-btn');
+        const closeModal = document.getElementById('close-modal');
+        const quizQuestions = document.getElementById('quiz-questions');
+        const submitQuizBtn = document.getElementById('submit-quiz');
+        const quizResults = document.getElementById('quiz-results');
+        const scoreDisplay = document.getElementById('score');
+        const resultsDetails = document.getElementById('results-details');
+
+        // 将滑块值转换为实际波长（对数映射）
+        function sliderToWavelength(sliderValue) {
+            // 滑块范围0-100对应波长10⁴m到10⁻¹²m（实际更合理范围）
+            // 使用对数映射：10⁴ (10000m) 到 10⁻¹² (0.000000000001m)
+            const minLog = 4; // 对应10⁴m = 10km
+            const maxLog = -12; // 对应10⁻¹²m
+            const logRange = minLog - maxLog; // 16个数量级
+            
+            // 线性映射到对数尺度
+            const logValue = minLog - (sliderValue / 100) * logRange;
+            return Math.pow(10, logValue);
+        }
+
+        // 将实际波长转换为滑块值
+        function wavelengthToSlider(wavelength) {
+            const minLog = 4;
+            const maxLog = -12;
+            const logRange = minLog - maxLog;
+            
+            const logValue = Math.log10(wavelength);
+            // 限制在有效范围内
+            const clampedLog = Math.max(maxLog, Math.min(minLog, logValue));
+            const sliderValue = ((minLog - clampedLog) / logRange) * 100;
+            return Math.max(0, Math.min(100, sliderValue));
+        }
+
+        // 格式化波长显示
+        function formatWavelength(wavelength) {
+            if (wavelength >= 1000) {
+                return { value: (wavelength / 1000).toFixed(2), unit: "km" };
+            } else if (wavelength >= 1) {
+                return { value: wavelength.toFixed(2), unit: "m" };
+            } else if (wavelength >= 0.001) {
+                return { value: (wavelength * 1000).toFixed(2), unit: "mm" };
+            } else if (wavelength >= 0.000001) {
+                return { value: (wavelength * 1e6).toFixed(2), unit: "μm" };
+            } else if (wavelength >= 0.000000001) {
+                return { value: (wavelength * 1e9).toFixed(2), unit: "nm" };
+            } else if (wavelength >= 0.000000000001) {
+                return { value: (wavelength * 1e12).toFixed(2), unit: "pm" };
+            } else {
+                return { value: (wavelength * 1e15).toFixed(2), unit: "fm" };
+            }
+        }
+
+        // 根据波长确定电磁波类型
+        function getWaveTypeByWavelength(wavelength) {
+            for (let i = 0; i < spectrumData.length; i++) {
+                const wave = spectrumData[i];
+                if (wavelength >= wave.minWavelength && wavelength <= wave.maxWavelength) {
+                    return wave;
+                }
+            }
+            // 如果不在任何范围内，返回最近的类型
+            if (wavelength > spectrumData[0].maxWavelength) return spectrumData[0];
+            return spectrumData[spectrumData.length - 1];
+        }
+
+        // 根据滑块值确定电磁波类型
+        function getWaveTypeBySlider(sliderValue) {
+            for (let i = 0; i < spectrumData.length; i++) {
+                const wave = spectrumData[i];
+                if (sliderValue >= wave.sliderRange[0] && sliderValue <= wave.sliderRange[1]) {
+                    return wave;
+                }
+            }
+            return spectrumData[0]; // 默认返回无线电波
+        }
+
+        // 更新显示
+        function updateDisplay() {
+            const sliderValue = parseInt(wavelengthSlider.value);
+            const wavelength = sliderToWavelength(sliderValue);
+            const formatted = formatWavelength(wavelength);
+            const wave = getWaveTypeBySlider(sliderValue);
+            
+            // 更新波长显示
+            wavelengthValue.textContent = formatted.value;
+            wavelengthUnit.textContent = formatted.unit;
+            
+            // 更新波类型
+            waveType.textContent = wave.type;
+            
+            // 更新波长范围显示
+            const minFormatted = formatWavelength(wave.minWavelength);
+            const maxFormatted = formatWavelength(wave.maxWavelength);
+            waveRange.textContent = `波长范围: ${minFormatted.value}${minFormatted.unit} - ${maxFormatted.value}${maxFormatted.unit}`;
+            
+            // 更新应用列表
+            applicationsList.innerHTML = '';
+            wave.applications.forEach(app => {
+                const li = document.createElement('li');
+                li.textContent = app;
+                applicationsList.appendChild(li);
+            });
+            
+            // 更新颜色显示
+            colorDisplay.innerHTML = '';
+            colorLabels.innerHTML = '';
+            
+            if (wave.type === "可见光") {
+                // 显示可见光谱
+                wave.colors.forEach(color => {
+                    const colorSeg = document.createElement('div');
+                    colorSeg.className = 'color-segment';
+                    colorSeg.style.backgroundColor = color.color;
+                    colorDisplay.appendChild(colorSeg);
+                    
+                    const colorLabel = document.createElement('div');
+                    colorLabel.className = 'color-label';
+                    colorLabel.textContent = color.name;
+                    colorLabel.style.color = color.color;
+                    colorLabels.appendChild(colorLabel);
+                });
+                
+                // 高亮当前颜色（根据波长）
+                const visibleWavelength = wavelength * 1e9; // 转换为nm
+                for (let i = 0; i < wave.colors.length; i++) {
+                    if (visibleWavelength >= wave.colors[i].min && visibleWavelength <= wave.colors[i].max) {
+                        colorLabels.children[i].style.fontWeight = 'bold';
+                        colorLabels.children[i].style.textDecoration = 'underline';
+                        colorLabels.children[i].style.fontSize = '1rem';
+                        break;
+                    }
+                }
+            } else {
+                // 显示单一颜色（非可见光用灰度或单色）
+                const colorSeg = document.createElement('div');
+                colorSeg.className = 'color-segment';
+                colorSeg.style.backgroundColor = wave.color;
+                colorSeg.style.width = '100%';
+                colorDisplay.appendChild(colorSeg);
+                
+                const colorLabel = document.createElement('div');
+                colorLabel.className = 'color-label';
+                colorLabel.textContent = wave.type;
+                colorLabel.style.color = wave.color;
+                colorLabel.style.width = '100%';
+                colorLabels.appendChild(colorLabel);
+            }
+        }
+
+        // 初始化
+        function init() {
+            updateDisplay();
+            
+            // 滑块事件监听
+            wavelengthSlider.addEventListener('input', updateDisplay);
+            
+            // 弹窗相关事件
+            quizBtn.addEventListener('click', () => {
+                quizModal.style.display = 'block';
+                loadQuizQuestions();
+            });
+            
+            closeModal.addEventListener('click', () => {
+                quizModal.style.display = 'none';
+            });
+            
+            window.addEventListener('click', (event) => {
+                if (event.target === quizModal) {
+                    quizModal.style.display = 'none';
+                }
+            });
+            
+            submitQuizBtn.addEventListener('click', submitQuiz);
+        }
+
+        // 学习检测相关
+        const quizData = [
+            {
+                question: "电磁波在真空中的传播速度是多少？",
+                options: [
+                    "3×10⁵ m/s",
+                    "3×10⁸ m/s",
+                    "3×10¹⁰ m/s",
+                    "与波长有关"
+                ],
+                correct: 1,
+                explanation: "所有电磁波在真空中的传播速度都是光速，即大约3×10⁸ m/s。"
+            },
+            {
+                question: "下列哪种电磁波的波长最长？",
+                options: [
+                    "X射线",
+                    "可见光",
+                    "无线电波",
+                    "紫外线"
+                ],
+                correct: 2,
+                explanation: "无线电波的波长范围从1毫米到100千米，是电磁波谱中波长最长的。"
+            },
+            {
+                question: "可见光中哪种颜色的波长最短？",
+                options: [
+                    "红色",
+                    "绿色",
+                    "蓝色",
+                    "紫色"
+                ],
+                correct: 3,
+                explanation: "可见光中紫色光的波长最短（约380-450nm），红色光的波长最长（约625-750nm）。"
+            },
+            {
+                question: "下列哪种应用主要使用微波？",
+                options: [
+                    "X光医学成像",
+                    "微波炉加热食物",
+                    "紫外线消毒",
+                    "红外线遥控器"
+                ],
+                correct: 1,
+                explanation: "微波炉利用微波（波长约1mm-1m）使食物中的水分子共振产生热量来加热食物。"
+            },
+            {
+                question: "根据公式E=hν，电磁波的能量与什么成正比？",
+                options: [
+                    "波长",
+                    "频率",
+                    "传播速度",
+                    "振幅"
+                ],
+                correct: 1,
+                explanation: "根据普朗克公式E=hν，电磁波的光子能量E与频率ν成正比，频率越高能量越大。"
+            }
+        ];
+
+        let userAnswers = new Array(quizData.length).fill(-1);
+
+        // 加载问题
+        function loadQuizQuestions() {
+            quizQuestions.innerHTML = '';
+            userAnswers.fill(-1);
+            
+            quizData.forEach((q, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'quiz-question';
+                questionDiv.id = `question-${index}`;
+                
+                const questionTitle = document.createElement('h3');
+                questionTitle.textContent = `问题 ${index + 1}: ${q.question}`;
+                questionDiv.appendChild(questionTitle);
+                
+                q.options.forEach((option, optIndex) => {
+                    const optionDiv = document.createElement('div');
+                    optionDiv.className = 'quiz-option';
+                    optionDiv.textContent = `${String.fromCharCode(65 + optIndex)}. ${option}`;
+                    optionDiv.dataset.index = optIndex;
+                    optionDiv.dataset.question = index;
+                    
+                    optionDiv.addEventListener('click', () => {
+                        selectAnswer(index, optIndex);
+                    });
+                    
+                    questionDiv.appendChild(optionDiv);
+                });
+                
+                const explanationDiv = document.createElement('div');
+                explanationDiv.className = 'explanation';
+                explanationDiv.id = `explanation-${index}`;
+                explanationDiv.textContent = q.explanation;
+                questionDiv.appendChild(explanationDiv);
+                
+                quizQuestions.appendChild(questionDiv);
+            });
+            
+            // 重置结果显示
+            quizResults.style.display = 'none';
+            submitQuizBtn.style.display = 'block';
+        }
+
+        // 选择答案
+        function selectAnswer(questionIndex, optionIndex) {
+            const questionDiv = document.getElementById(`question-${questionIndex}`);
+            const options = questionDiv.querySelectorAll('.quiz-option');
+            
+            // 移除所有选项的选中状态
+            options.forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // 标记选中的选项
+            options[optionIndex].classList.add('selected');
+            
+            // 记录用户答案
+            userAnswers[questionIndex] = optionIndex;
+        }
+
+        // 提交测验
+        function submitQuiz() {
+            let score = 0;
+            
+            quizData.forEach((q, index) => {
+                const questionDiv = document.getElementById(`question-${index}`);
+                const options = questionDiv.querySelectorAll('.quiz-option');
+                const explanationDiv = document.getElementById(`explanation-${index}`);
+                
+                // 显示正确答案
+                options[q.correct].classList.add('correct');
+                
+                // 如果用户答错了，显示错误答案
+                if (userAnswers[index] !== -1 && userAnswers[index] !== q.correct) {
+                    options[userAnswers[index]].classList.add('incorrect');
+                }
+                
+                // 显示解析
+                explanationDiv.style.display = 'block';
+                
+                // 计分
+                if (userAnswers[index] === q.correct) {
+                    score++;
+                }
+            });
+            
+            // 显示结果
+            scoreDisplay.textContent = `得分: ${score}/${quizData.length}`;
+            
+            let detailsHTML = `<p>${score >= 4 ? '优秀！' : score >= 3 ? '不错！' : '需要继续努力！'}</p>`;
+            detailsHTML += '<ul>';
+            quizData.forEach((q, index) => {
+                const isCorrect = userAnswers[index] === q.correct;
+                detailsHTML += `<li>问题 ${index + 1}: ${isCorrect ? '✓ 正确' : '✗ 错误'}</li>`;
+            });
+            detailsHTML += '</ul>';
+            
+            resultsDetails.innerHTML = detailsHTML;
+            quizResults.style.display = 'block';
+            submitQuizBtn.style.display = 'none';
+            
+            // 滚动到结果
+            quizResults.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>核裂变链式反应模拟实验</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .canvas-container {
+            position: relative;
+            margin: 20px auto;
+            width: 800px;
+            height: 500px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            background-color: #000;
+            overflow: hidden;
+        }
+        
+        canvas {
+            display: block;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 150px;
+        }
+        
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background-color: #FF5722;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #E64A19;
+        }
+        
+        .info-panel {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #eef7ff;
+            border-radius: 5px;
+            border-left: 4px solid #2196F3;
+        }
+        
+        .info-panel h3 {
+            margin-top: 0;
+            color: #2196F3;
+        }
+        
+        .explanation {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f1f8e9;
+            border-radius: 5px;
+            border-left: 4px solid #8bc34a;
+        }
+        
+        .explanation h3 {
+            margin-top: 0;
+            color: #558b2f;
+        }
+        
+        .explanation p {
+            line-height: 1.6;
+        }
+        
+        .instructions {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e3f2fd;
+            border-radius: 5px;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .instructions h3 {
+            margin-top: 0;
+            color: #0d47a1;
+        }
+        
+        .instructions ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin: 5px 0;
+        }
+        
+        .quiz-section {
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .quiz-btn {
+            background-color: #ff9800;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .quiz-btn:hover {
+            background-color: #f57c00;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 0;
+            border: 1px solid #888;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 700px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            padding: 15px 20px;
+            background-color: #2196F3;
+            color: white;
+            border-top-left-radius: 7px;
+            border-top-right-radius: 7px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+        }
+        
+        .close {
+            color: #fff;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: #bbb;
+        }
+        
+        .modal-body {
+            padding: 20px;
+        }
+        
+        .quiz-container {
+            margin: 0 auto;
+        }
+        
+        .question-slider {
+            position: relative;
+            overflow: hidden;
+            height: 300px;
+        }
+        
+        .question-item {
+            display: none;
+            padding: 20px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            transition: transform 0.3s ease;
+        }
+        
+        .question-item.active {
+            display: block;
+        }
+        
+        .options {
+            margin-top: 15px;
+        }
+        
+        .options label {
+            display: block;
+            margin: 8px 0;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .options input[type="radio"] {
+            margin-right: 8px;
+        }
+        
+        .options label:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .navigation {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-btn {
+            background-color: #e0e0e0;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .nav-btn:hover {
+            background-color: #bdbdbd;
+        }
+        
+        .nav-btn:disabled {
+            background-color: #e0e0e0;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        
+        .submit-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .submit-btn:hover {
+            background-color: #45a049;
+        }
+        
+        .submit-btn:disabled {
+            background-color: #a5d6a7;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        
+        #questionCounter {
+            font-weight: bold;
+            font-size: 18px;
+            color: #555;
+        }
+        
+        .analysis-container {
+            margin-bottom: 20px;
+        }
+        
+        .score-summary {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        
+        .score-summary p {
+            margin: 5px 0;
+        }
+        
+        .analysis-details {
+            margin-bottom: 15px;
+        }
+        
+        .learning-suggestions {
+            margin-bottom: 20px;
+        }
+        
+        .learning-suggestions ul {
+            padding-left: 20px;
+        }
+        
+        .learning-suggestions li {
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <h1>核裂变链式反应模拟实验</h1>
+        
+        <div class="controls">
+            <div class="control-group">
+                <button id="fireNeutronBtn">发射中子</button>
+            </div>
+            
+            <div class="control-group">
+                <button id="resetBtn">重置实验</button>
+            </div>
+            
+            <div class="control-group">
+                <label for="speedControl">动画速度:</label>
+                <input type="range" id="speedControl" min="1" max="10" value="5">
+            </div>
+        </div>
+        
+        <div class="canvas-container">
+            <canvas id="fissionCanvas" width="800" height="500"></canvas>
+        </div>
+        
+        <div class="info-panel">
+            <h3>实验状态</h3>
+            <p id="experimentStatus">当前状态: 等待发射中子</p>
+            <p id="fissionCount">已发生裂变次数: <span id="count">0</span></p>
+        </div>
+        
+        <div class="explanation">
+            <h3>核裂变链式反应原理</h3>
+            <p><strong>核裂变：</strong>重原子核（如铀-235）吸收一个中子后分裂成两个或多个较轻的原子核，同时释放出2-3个新的中子和大量能量。</p>
+            <p><strong>链式反应：</strong>裂变产生的中子可引发其他原子核裂变，形成持续的连锁反应。</p>
+            <p><strong>临界条件：</strong>当平均每个裂变反应引发的新裂变不少于一个时，链式反应能够自我维持。</p>
+            <p><strong>反应速率控制：</strong>在核反应堆中，通过控制棒吸收多余中子来调节反应速率，防止反应过快失控。</p>
+            <p><strong>质量亏损与能量释放：</strong>裂变过程中存在质量亏损，根据爱因斯坦质能方程E=mc²，损失的质量转化为巨大的能量。</p>
+            <p><strong>裂变产物：</strong>铀核裂变通常产生中等质量的原子核，如氪(Kr)和钡(Ba)，同时释放伽马射线。</p>
+        </div>
+        
+        <div class="instructions">
+            <h3>使用说明</h3>
+            <ul>
+                <li>点击“发射中子”按钮，从左侧水平发射一个中子</li>
+                <li>观察中子撞击铀核引发的裂变反应</li>
+                <li>裂变产生的新中子会继续撞击其他铀核，形成链式反应</li>
+                <li>调整动画速度以获得更好的观察效果</li>
+                <li>点击“重置实验”重新开始</li>
+            </ul>
+            
+            <h3>教学要点</h3>
+            <ul>
+                <li><strong>中子撞击：</strong>中子撞击铀核是引发裂变的关键步骤</li>
+                <li><strong>能量释放：</strong>每次裂变都会释放巨大能量</li>
+                <li><strong>中子倍增：</strong>每次裂变产生多个新中子，维持链式反应</li>
+                <li><strong>临界质量：</strong>足够的裂变材料才能维持链式反应</li>
+            </ul>
+        </div>
+        
+        <div class="quiz-section" style="margin: 20px 0; text-align: center;">
+            <button id="knowledgeTestBtn" class="quiz-btn">知识检测</button>
+        </div>
+        
+        <!-- 答题界面弹窗 -->
+        <div id="quizModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>核裂变链式反应知识检测</h3>
+                    <span id="closeQuiz" class="close">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="quiz-container">
+                        <div class="question-slider">
+                            <div class="question-item active" data-question="1">
+                                <h4>问题 1: 铀-235发生核裂变时，通常会释放多少个中子？</h4>
+                                <div class="options">
+                                    <label><input type="radio" name="q1" value="A">A. 1-2个</label><br>
+                                    <label><input type="radio" name="q1" value="B">B. 2-3个</label><br>
+                                    <label><input type="radio" name="q1" value="C">C. 3-4个</label><br>
+                                    <label><input type="radio" name="q1" value="D">D. 4-5个</label><br>
+                                </div>
+                            </div>
+                            <div class="question-item" data-question="2">
+                                <h4>问题 2: 链式反应的临界条件是什么？</h4>
+                                <div class="options">
+                                    <label><input type="radio" name="q2" value="A">A. 每个裂变引发超过2个新裂变</label><br>
+                                    <label><input type="radio" name="q2" value="B">B. 每个裂变引发至少1个新裂变</label><br>
+                                    <label><input type="radio" name="q2" value="C">C. 每个裂变只引发0.5个新裂变</label><br>
+                                    <label><input type="radio" name="q2" value="D">D. 每个裂变不引发新裂变</label><br>
+                                </div>
+                            </div>
+                            <div class="question-item" data-question="3">
+                                <h4>问题 3: 核裂变释放能量的根本原因是什么？</h4>
+                                <div class="options">
+                                    <label><input type="radio" name="q3" value="A">A. 原子核的动能增加</label><br>
+                                    <label><input type="radio" name="q3" value="B">B. 质量亏损转化为能量</label><br>
+                                    <label><input type="radio" name="q3" value="C">C. 电子跃迁释放能量</label><br>
+                                    <label><input type="radio" name="q3" value="D">D. 化学键断裂</label><br>
+                                </div>
+                            </div>
+                            <div class="question-item" data-question="4">
+                                <h4>问题 4: 在核反应堆中，如何控制链式反应速率？</h4>
+                                <div class="options">
+                                    <label><input type="radio" name="q4" value="A">A. 改变温度</label><br>
+                                    <label><input type="radio" name="q4" value="B">B. 使用控制棒吸收中子</label><br>
+                                    <label><input type="radio" name="q4" value="C">C. 减少铀燃料</label><br>
+                                    <label><input type="radio" name="q4" value="D">D. 增加压力</label><br>
+                                </div>
+                            </div>
+                            <div class="question-item" data-question="5">
+                                <h4>问题 5: 引发铀-235核裂变最有效的中子类型是什么？</h4>
+                                <div class="options">
+                                    <label><input type="radio" name="q5" value="A">A. 快中子</label><br>
+                                    <label><input type="radio" name="q5" value="B">B. 热中子</label><br>
+                                    <label><input type="radio" name="q5" value="C">C. γ射线</label><br>
+                                    <label><input type="radio" name="q5" value="D">D. α粒子</label><br>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="navigation">
+                            <button id="prevQuestion" class="nav-btn">上一题</button>
+                            <span id="questionCounter">1 / 5</span>
+                            <button id="nextQuestion" class="nav-btn">下一题</button>
+                            <button id="submitQuiz" class="submit-btn">提交答案</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 学情分析报告弹窗 -->
+        <div id="analysisModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>学情分析报告</h3>
+                    <span id="closeAnalysis" class="close">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="analysis-container">
+                        <div class="score-summary">
+                            <h4>答题结果</h4>
+                            <p>总题数: <span id="totalQuestions">5</span></p>
+                            <p>答对题数: <span id="correctAnswers">0</span></p>
+                            <p>正确率: <span id="accuracyRate">0%</span></p>
+                        </div>
+                        <div class="analysis-details">
+                            <h4>学情分析</h4>
+                            <p id="analysisText">正在分析您的答题情况...</p>
+                        </div>
+                        <div class="learning-suggestions">
+                            <h4>个性化学习建议</h4>
+                            <ul id="suggestionList">
+                                <li>建议加强对核裂变基本概念的理解</li>
+                                <li>复习链式反应的临界条件</li>
+                                <li>加强对质能方程应用的理解</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <button id="retakeQuiz" class="quiz-btn">重新测试</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 获取画布和上下文
+        const canvas = document.getElementById('fissionCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 获取控制元素
+        const fireNeutronBtn = document.getElementById('fireNeutronBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const speedControl = document.getElementById('speedControl');
+        const fissionCountElement = document.getElementById('count');
+        const experimentStatus = document.getElementById('experimentStatus');
+        
+        // 初始化变量
+        let animationId = null;
+        let isAnimating = false;
+        let uraniumNuclei = [];
+        let neutrons = [];
+        let fissionEvents = [];
+        let fissionCount = 0;
+        let animationSpeed = 5;
+        
+        // 铀核类
+        class UraniumNucleus {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.radius = 25;
+                this.isFissioning = false;
+                this.fissionStartTime = 0;
+                this.fissionDuration = 1000; // 1秒裂变时间
+            }
+            
+            draw() {
+                if (this.isFissioning) {
+                    // 绘制裂变中的铀核
+                    const elapsed = Date.now() - this.fissionStartTime;
+                    const progress = Math.min(elapsed / this.fissionDuration, 1);
+                    
+                    // 随着裂变进行，铀核分裂成两部分
+                    const splitDistance = progress * 30;
+                    
+                    // 左半部分
+                    ctx.beginPath();
+                    ctx.arc(this.x - splitDistance/2, this.y, this.radius * (1 - progress * 0.5), 0, Math.PI * 2);
+                    const gradient1 = ctx.createRadialGradient(
+                        this.x - splitDistance/2 - 3, this.y - 3, 0, 
+                        this.x - splitDistance/2, this.y, this.radius * (1 - progress * 0.5)
+                    );
+                    gradient1.addColorStop(0, '#FFEB3B');
+                    gradient1.addColorStop(1, '#F44336');
+                    ctx.fillStyle = gradient1;
+                    ctx.fill();
+                    
+                    // 右半部分
+                    ctx.beginPath();
+                    ctx.arc(this.x + splitDistance/2, this.y, this.radius * (1 - progress * 0.5), 0, Math.PI * 2);
+                    const gradient2 = ctx.createRadialGradient(
+                        this.x + splitDistance/2 - 3, this.y - 3, 0, 
+                        this.x + splitDistance/2, this.y, this.radius * (1 - progress * 0.5)
+                    );
+                    gradient2.addColorStop(0, '#FFEB3B');
+                    gradient2.addColorStop(1, '#F44336');
+                    ctx.fillStyle = gradient2;
+                    ctx.fill();
+                    
+                    // 如果裂变完成，添加新中子
+                    if (progress >= 1 && !this.fissionCompleted) {
+                        this.fissionCompleted = true;
+                        // 创建2-3个新中子
+                        for (let i = 0; i < Math.floor(Math.random() * 2) + 2; i++) {
+                            const angle = Math.random() * Math.PI * 2;
+                            const speed = 2 + Math.random() * 2;
+                            neutrons.push({
+                                x: this.x,
+                                y: this.y,
+                                vx: Math.cos(angle) * speed,
+                                vy: Math.sin(angle) * speed,
+                                radius: 5,
+                                trail: [],
+                                life: 5000 // 5秒生命周期
+                            });
+                        }
+                        fissionCount++;
+                        fissionCountElement.textContent = fissionCount;
+                    }
+                } else {
+                    // 绘制正常铀核
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    const gradient = ctx.createRadialGradient(
+                        this.x - 5, this.y - 5, 0, 
+                        this.x, this.y, this.radius
+                    );
+                    gradient.addColorStop(0, '#9E9E9E');
+                    gradient.addColorStop(1, '#424242');
+                    ctx.fillStyle = gradient;
+                    ctx.fill();
+                    
+                    // 添加铀-235标记
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.font = 'bold 12px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('²³⁵U', this.x, this.y);
+                }
+            }
+            
+            checkCollision(neutron) {
+                const dx = this.x - neutron.x;
+                const dy = this.y - neutron.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                return distance < this.radius + neutron.radius;
+            }
+        }
+        
+        // 绘制中子
+        function drawNeutron(neutron) {
+            // 添加当前位置到轨迹
+            neutron.trail.push({x: neutron.x, y: neutron.y});
+            if (neutron.trail.length > 20) {
+                neutron.trail.shift();
+            }
+            
+            // 绘制轨迹线
+            if (neutron.trail.length > 1) {
+                ctx.beginPath();
+                ctx.moveTo(neutron.trail[0].x, neutron.trail[0].y);
+                
+                for (let i = 1; i < neutron.trail.length; i++) {
+                    const alphaValue = i / neutron.trail.length;
+                    ctx.globalAlpha = alphaValue * 0.6;
+                    ctx.lineTo(neutron.trail[i].x, neutron.trail[i].y);
+                }
+                
+                ctx.strokeStyle = '#2196F3';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.globalAlpha = 1.0; // 重置透明度
+            }
+            
+            // 绘制中子
+            ctx.beginPath();
+            ctx.arc(neutron.x, neutron.y, neutron.radius, 0, Math.PI * 2);
+            const gradient = ctx.createRadialGradient(
+                neutron.x - 2, neutron.y - 2, 0, 
+                neutron.x, neutron.y, neutron.radius
+            );
+            gradient.addColorStop(0, '#BBDEFB');
+            gradient.addColorStop(1, '#1976D2');
+            ctx.fillStyle = gradient;
+            ctx.fill();
+            
+            // 添加中子标记
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = 'bold 8px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('n', neutron.x, neutron.y);
+        }
+        
+        // 初始化铀核位置
+        function initUraniumNuclei() {
+            uraniumNuclei = [];
+            // 在画布上随机分布40个铀核
+            for (let i = 0; i < 40; i++) {
+                // 避免在左边缘放置铀核（中子发射区域）
+                const x = 150 + Math.random() * (canvas.width - 200);
+                const y = 50 + Math.random() * (canvas.height - 100);
+                uraniumNuclei.push(new UraniumNucleus(x, y));
+            }
+        }
+        
+        // 发射中子
+        function fireNeutron() {
+            // 从中子发射器位置（左侧中间）发射一个中子
+            neutrons.push({
+                x: 50, // 从左边发射
+                y: canvas.height / 2,
+                vx: 4, // 水平向右的速度
+                vy: (Math.random() - 0.5) * 2, // 小幅度垂直偏移
+                radius: 5,
+                trail: [],
+                life: 10000 // 10秒生命周期
+            });
+            
+            experimentStatus.textContent = `当前状态: 已发射中子，正在进行裂变反应`;
+        }
+        
+        // 重置实验
+        function resetExperiment() {
+            neutrons = [];
+            fissionEvents = [];
+            fissionCount = 0;
+            fissionCountElement.textContent = fissionCount;
+            experimentStatus.textContent = `当前状态: 等待发射中子`;
+            
+            // 重新初始化铀核
+            initUraniumNuclei();
+            
+            // 停止动画
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            isAnimating = false;
+            
+            // 重绘一次
+            draw();
+        }
+        
+        // 主动画循环
+        function animate() {
+            draw();
+            animationId = requestAnimationFrame(animate);
+        }
+        
+        // 绘制函数
+        function draw() {
+            // 清除画布
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 更新和绘制中子
+            for (let i = neutrons.length - 1; i >= 0; i--) {
+                const neutron = neutrons[i];
+                
+                // 更新位置
+                neutron.x += neutron.vx * (animationSpeed / 5);
+                neutron.y += neutron.vy * (animationSpeed / 5);
+                
+                // 减少生命值
+                neutron.life -= 16; // 假设每帧约16ms
+                
+                // 如果中子超出边界或生命耗尽，移除它
+                if (neutron.x < 0 || neutron.x > canvas.width || 
+                    neutron.y < 0 || neutron.y > canvas.height ||
+                    neutron.life <= 0) {
+                    neutrons.splice(i, 1);
+                    continue;
+                }
+                
+                // 检查与铀核的碰撞
+                for (let j = 0; j < uraniumNuclei.length; j++) {
+                    const nucleus = uraniumNuclei[j];
+                    if (!nucleus.isFissioning && nucleus.checkCollision(neutron)) {
+                        // 发生裂变
+                        nucleus.isFissioning = true;
+                        nucleus.fissionStartTime = Date.now();
+                        
+                        // 移除撞击的中子
+                        neutrons.splice(i, 1);
+                        
+                        // 更新状态
+                        experimentStatus.textContent = `当前状态: 发生核裂变！正在引发链式反应`;
+                        
+                        break; // 一个中子只能撞击一个铀核
+                    }
+                }
+                
+                if (i < neutrons.length) { // 如果中子未被移除，则绘制它
+                    drawNeutron(neutron);
+                }
+            }
+            
+            // 绘制铀核
+            for (const nucleus of uraniumNuclei) {
+                nucleus.draw();
+            }
+        }
+        
+        // 事件监听器
+        fireNeutronBtn.addEventListener('click', () => {
+            fireNeutron();
+            if (!isAnimating) {
+                isAnimating = true;
+                animate();
+            }
+        });
+        
+        resetBtn.addEventListener('click', resetExperiment);
+        
+        speedControl.addEventListener('input', () => {
+            animationSpeed = parseInt(speedControl.value);
+        });
+        
+        // 知识检测功能相关代码
+        const knowledgeTestBtn = document.getElementById('knowledgeTestBtn');
+        const quizModal = document.getElementById('quizModal');
+        const closeQuiz = document.getElementById('closeQuiz');
+        const analysisModal = document.getElementById('analysisModal');
+        const closeAnalysis = document.getElementById('closeAnalysis');
+        const retakeQuiz = document.getElementById('retakeQuiz');
+        
+        // 问题导航
+        const prevQuestion = document.getElementById('prevQuestion');
+        const nextQuestion = document.getElementById('nextQuestion');
+        const submitQuiz = document.getElementById('submitQuiz');
+        const questionCounter = document.getElementById('questionCounter');
+        
+        // 当前题目索引
+        let currentQuestionIndex = 0;
+        const totalQuestions = document.querySelectorAll('.question-item').length;
+        
+        // 更新问题计数器
+        function updateQuestionCounter() {
+            questionCounter.textContent = `${currentQuestionIndex + 1} / ${totalQuestions}`;
+        }
+        
+        // 显示当前问题
+        function showCurrentQuestion() {
+            const questions = document.querySelectorAll('.question-item');
+            questions.forEach((q, index) => {
+                if (index === currentQuestionIndex) {
+                    q.classList.add('active');
+                } else {
+                    q.classList.remove('active');
+                }
+            });
+            updateQuestionCounter();
+            
+            // 启用/禁用导航按钮
+            prevQuestion.disabled = currentQuestionIndex === 0;
+            nextQuestion.disabled = currentQuestionIndex === totalQuestions - 1;
+            submitQuiz.disabled = currentQuestionIndex !== totalQuestions - 1;
+        }
+        
+        // 点击知识检测按钮
+        knowledgeTestBtn.addEventListener('click', () => {
+            quizModal.style.display = 'block';
+            currentQuestionIndex = 0;
+            showCurrentQuestion();
+        });
+        
+        // 关闭模态框
+        closeQuiz.addEventListener('click', () => {
+            quizModal.style.display = 'none';
+        });
+        
+        closeAnalysis.addEventListener('click', () => {
+            analysisModal.style.display = 'none';
+        });
+        
+        // 导航事件
+        prevQuestion.addEventListener('click', () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                showCurrentQuestion();
+            }
+        });
+        
+        nextQuestion.addEventListener('click', () => {
+            if (currentQuestionIndex < totalQuestions - 1) {
+                currentQuestionIndex++;
+                showCurrentQuestion();
+            }
+        });
+        
+        // 提交测验
+        submitQuiz.addEventListener('click', () => {
+            // 计算分数
+            let score = 0;
+            const correctAnswers = ['B', 'B', 'B', 'B', 'B']; // 正确答案是B（2-3个中子、至少1个新裂变、质量亏损、控制棒、热中子）
+            
+            for (let i = 0; i < correctAnswers.length; i++) {
+                const selectedOption = document.querySelector(`input[name="q${i+1}"]:checked`);
+                if (selectedOption && selectedOption.value === correctAnswers[i]) {
+                    score++;
+                }
+            }
+            
+            // 显示分析结果
+            document.getElementById('correctAnswers').textContent = score;
+            const accuracy = Math.round((score / totalQuestions) * 100);
+            document.getElementById('accuracyRate').textContent = `${accuracy}%`;
+            
+            // 生成学情分析
+            let analysisText = '';
+            if (accuracy >= 80) {
+                analysisText = '优秀！您对核裂变链式反应的原理掌握得很好。';
+            } else if (accuracy >= 60) {
+                analysisText = '良好！您对基本概念有一定理解，但还有提升空间。';
+            } else {
+                analysisText = '需要加强学习。建议复习核裂变的基本原理和链式反应的关键概念。';
+            }
+            document.getElementById('analysisText').textContent = analysisText;
+            
+            // 个性化学习建议
+            const suggestions = document.getElementById('suggestionList');
+            suggestions.innerHTML = '';
+            
+            if (score < 3) {
+                const li1 = document.createElement('li');
+                li1.textContent = '建议加强对核裂变基本概念的理解';
+                suggestions.appendChild(li1);
+                
+                const li2 = document.createElement('li');
+                li2.textContent = '复习链式反应的临界条件';
+                suggestions.appendChild(li2);
+                
+                const li3 = document.createElement('li');
+                li3.textContent = '加强对质能方程应用的理解';
+                suggestions.appendChild(li3);
+            } else if (score < 5) {
+                const li1 = document.createElement('li');
+                li1.textContent = '继续巩固核裂变链式反应的相关知识';
+                suggestions.appendChild(li1);
+                
+                const li2 = document.createElement('li');
+                li2.textContent = '注意理解反应速率控制的重要性';
+                suggestions.appendChild(li2);
+            } else {
+                const li1 = document.createElement('li');
+                li1.textContent = '您已经很好地掌握了核裂变链式反应的知识点';
+                suggestions.appendChild(li1);
+                
+                const li2 = document.createElement('li');
+                li2.textContent = '可以进一步探索核能的实际应用';
+                suggestions.appendChild(li2);
+            }
+            
+            // 显示分析模态框
+            quizModal.style.display = 'none';
+            analysisModal.style.display = 'block';
+        });
+        
+        // 重新测试
+        retakeQuiz.addEventListener('click', () => {
+            analysisModal.style.display = 'none';
+            quizModal.style.display = 'block';
+            currentQuestionIndex = 0;
+            
+            // 清空所有选择
+            const radioButtons = document.querySelectorAll('input[type="radio"]');
+            radioButtons.forEach(radio => radio.checked = false);
+            
+            showCurrentQuestion();
+        });
+        
+        // 点击外部关闭模态框
+        window.addEventListener('click', (event) => {
+            if (event.target === quizModal) {
+                quizModal.style.display = 'none';
+            }
+            if (event.target === analysisModal) {
+                analysisModal.style.display = 'none';
+            }
+        });
+        
+        // 初始化
+        initUraniumNuclei();
+        draw();
+    </script>
+</body>
+</html>

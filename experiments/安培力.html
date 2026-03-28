@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>磁场对通电导线的作用力模拟器</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(to right, #0d47a1, #1565c0);
+            color: white;
+            padding: 25px;
+            text-align: center;
+            border-bottom: 5px solid #ff9800;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 20px;
+            gap: 20px;
+        }
+        
+        .sidebar {
+            flex: 1;
+            min-width: 300px;
+            background-color: #f5f5f5;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .simulation-area {
+            flex: 2;
+            min-width: 500px;
+            background-color: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .control-group {
+            margin-bottom: 25px;
+        }
+        
+        h2 {
+            color: #0d47a1;
+            border-bottom: 2px solid #ff9800;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        h2 i {
+            color: #ff9800;
+        }
+        
+        .slider-container {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 15px;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        
+        .slider-label span {
+            font-weight: 600;
+            color: #1565c0;
+        }
+        
+        .slider-value {
+            color: #ff9800;
+            font-weight: bold;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 10px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #e0e0e0;
+            border-radius: 5px;
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #ff9800;
+            cursor: pointer;
+            border: 3px solid white;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        .formula-box {
+            background: white;
+            border-left: 5px solid #ff9800;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 0 10px 10px 0;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+        }
+        
+        .formula {
+            font-size: 1.5rem;
+            text-align: center;
+            font-family: "Cambria Math", serif;
+            color: #d32f2f;
+            margin: 15px 0;
+        }
+        
+        .force-display {
+            background: linear-gradient(to right, #4CAF50, #8BC34A);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.3rem;
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+        }
+        
+        .left-hand-rule {
+            background-color: #e3f2fd;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 5px solid #2196f3;
+        }
+        
+        .left-hand-rule h3 {
+            color: #1565c0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .canvas-container {
+            flex: 1;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 20px;
+            border: 2px solid #e0e0e0;
+        }
+        
+        canvas {
+            display: block;
+            background-color: white;
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 10px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(to right, #ff9800, #ffb74d);
+            color: white;
+            box-shadow: 0 5px 15px rgba(255, 152, 0, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 152, 0, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(to right, #42a5f5, #64b5f6);
+            color: white;
+            box-shadow: 0 5px 15px rgba(66, 165, 245, 0.3);
+        }
+        
+        .btn-secondary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(66, 165, 245, 0.4);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+        
+        /* 弹窗样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            width: 90%;
+            max-width: 800px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            animation: modalSlideIn 0.5s ease;
+        }
+        
+        @keyframes modalSlideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .modal-header {
+            background: linear-gradient(to right, #0d47a1, #1565c0);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .modal-body {
+            padding: 30px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        
+        .question {
+            margin-bottom: 25px;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: #f9f9f9;
+            border-left: 5px solid #42a5f5;
+        }
+        
+        .question h4 {
+            margin-bottom: 10px;
+            color: #0d47a1;
+        }
+        
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .option {
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .option:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .option.selected {
+            border-color: #42a5f5;
+            background-color: #e3f2fd;
+        }
+        
+        .option.correct {
+            border-color: #4CAF50;
+            background-color: #e8f5e9;
+        }
+        
+        .option.incorrect {
+            border-color: #f44336;
+            background-color: #ffebee;
+        }
+        
+        .explanation {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #fff3e0;
+            display: none;
+        }
+        
+        .modal-footer {
+            padding: 20px;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .score-display {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #0d47a1;
+            padding: 20px;
+            display: none;
+        }
+        
+        .result-correct {
+            color: #4CAF50;
+        }
+        
+        .result-incorrect {
+            color: #f44336;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: white;
+            background: rgba(0, 0, 0, 0.2);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9rem;
+            border-top: 1px solid #e0e0e0;
+            background-color: #f9f9f9;
+        }
+        
+        @media (max-width: 1100px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .sidebar, .simulation-area {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-magnet"></i> 磁场对通电导线的作用力模拟器</h1>
+            <p class="subtitle">导线从平行屏幕(θ=90°)旋转到垂直屏幕向内(θ=0°) - 绿色箭头表示安培力</p>
+        </header>
+        
+        <div class="main-content">
+            <!-- 侧边栏 -->
+            <div class="sidebar">
+                <div class="control-group">
+                    <h2><i class="fas fa-sliders-h"></i> 参数控制</h2>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>磁场强度 B (T)</span>
+                            <span class="slider-value" id="b-value">0.5</span>
+                        </div>
+                        <input type="range" id="b-slider" min="0.1" max="2" step="0.1" value="0.5">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>电流强度 I (A)</span>
+                            <span class="slider-value" id="i-value">2.0</span>
+                        </div>
+                        <input type="range" id="i-slider" min="0.5" max="5" step="0.1" value="2.0">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>导线长度 L (m)</span>
+                            <span class="slider-value" id="l-value">0.5</span>
+                        </div>
+                        <input type="range" id="l-slider" min="0.2" max="1" step="0.05" value="0.5">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>导线与磁场夹角 θ (°)</span>
+                            <span class="slider-value" id="theta-value">90</span>
+                        </div>
+                        <input type="range" id="theta-slider" min="0" max="90" step="1" value="90">
+                    </div>
+                </div>
+                
+                <div class="formula-box">
+                    <h2><i class="fas fa-calculator"></i> 安培力公式</h2>
+                    <div class="formula">
+                        F = B × I × L × sin(θ)
+                    </div>
+                    <div class="force-display">
+                        <div>当前安培力：</div>
+                        <div id="force-result">F = 0.5 × 2.0 × 0.5 × sin(90°) = 0.50 N</div>
+                    </div>
+                </div>
+                
+                <div class="left-hand-rule">
+                    <h3><i class="fas fa-hand-point-left"></i> 左手定则</h3>
+                    <p>伸开左手，使拇指与其余四个手指垂直，并且都与手掌在同一平面内；让磁感线从掌心垂直进入，并且四指指向电流的方向，这时拇指所指的方向就是通电导线所受安培力的方向。</p>
+                </div>
+                
+                <div class="button-group">
+                    <button class="btn btn-primary" id="reset-btn">
+                        <i class="fas fa-redo"></i> 重置参数
+                    </button>
+                    <button class="btn btn-secondary" id="quiz-btn">
+                        <i class="fas fa-question-circle"></i> 学习检测
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 模拟区域 -->
+            <div class="simulation-area">
+                <h2><i class="fas fa-eye"></i> 模拟视图</h2>
+                <div class="canvas-container">
+                    <canvas id="simulationCanvas" width="800" height="500"></canvas>
+                </div>
+                
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #ff4444;"></div>
+                        <span>通电导线（红色实线，蓝色箭头表示电流方向）</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #00ff00;"></div>
+                        <span>安培力（绿色带箭头直线）</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #000;"></div>
+                        <span>磁场方向（×表示垂直屏幕向内）</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>安培力模拟器 | 导线从平行屏幕(θ=90°)旋转到垂直屏幕向内(θ=0°) | F = BIL sinθ | 绿色带箭头直线表示安培力</p>
+            <p>© 2023 物理教学工具</p>
+        </div>
+    </div>
+    
+    <!-- 学习检测弹窗 -->
+    <div id="quiz-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-graduation-cap"></i> 安培力学习检测</h2>
+                <div class="close-btn" id="close-modal">&times;</div>
+            </div>
+            
+            <div class="modal-body">
+                <div id="questions-container">
+                    <!-- 问题将通过JavaScript动态生成 -->
+                </div>
+                
+                <div class="score-display" id="score-display">
+                    <!-- 分数将通过JavaScript动态生成 -->
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="prev-question">
+                    <i class="fas fa-arrow-left"></i> 上一题
+                </button>
+                <div>
+                    <span id="question-counter">第 1 题 / 共 5 题</span>
+                </div>
+                <button class="btn btn-primary" id="next-question">
+                    下一题 <i class="fas fa-arrow-right"></i>
+                </button>
+                <button class="btn btn-primary" id="submit-quiz" style="display: none;">
+                    <i class="fas fa-paper-plane"></i> 提交答案
+                </button>
+                <button class="btn btn-secondary" id="review-quiz" style="display: none;">
+                    <i class="fas fa-book-open"></i> 查看解析
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 获取DOM元素
+        const canvas = document.getElementById('simulationCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 参数滑块和显示值
+        const bSlider = document.getElementById('b-slider');
+        const bValue = document.getElementById('b-value');
+        const iSlider = document.getElementById('i-slider');
+        const iValue = document.getElementById('i-value');
+        const lSlider = document.getElementById('l-slider');
+        const lValue = document.getElementById('l-value');
+        const thetaSlider = document.getElementById('theta-slider');
+        const thetaValue = document.getElementById('theta-value');
+        const forceResult = document.getElementById('force-result');
+        
+        // 按钮
+        const resetBtn = document.getElementById('reset-btn');
+        const quizBtn = document.getElementById('quiz-btn');
+        
+        // 弹窗相关元素
+        const quizModal = document.getElementById('quiz-modal');
+        const closeModal = document.getElementById('close-modal');
+        const questionsContainer = document.getElementById('questions-container');
+        const scoreDisplay = document.getElementById('score-display');
+        const questionCounter = document.getElementById('question-counter');
+        const prevQuestionBtn = document.getElementById('prev-question');
+        const nextQuestionBtn = document.getElementById('next-question');
+        const submitQuizBtn = document.getElementById('submit-quiz');
+        const reviewQuizBtn = document.getElementById('review-quiz');
+        
+        // 模拟参数
+        let B = parseFloat(bSlider.value); // 磁场强度 (T)
+        let I = parseFloat(iSlider.value); // 电流强度 (A)
+        let L = parseFloat(lSlider.value); // 导线长度 (m)
+        let theta = parseInt(thetaSlider.value); // 角度 θ (°) 0-90
+        
+        // 画布中心点
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        
+        // 初始化
+        updateDisplays();
+        drawSimulation();
+        
+        // 更新参数显示
+        function updateDisplays() {
+            bValue.textContent = B.toFixed(1);
+            iValue.textContent = I.toFixed(1);
+            lValue.textContent = L.toFixed(2);
+            thetaValue.textContent = theta;
+            
+            // 计算安培力
+            const thetaRad = theta * Math.PI / 180;
+            const sinValue = Math.sin(thetaRad);
+            const force = B * I * L * sinValue;
+            forceResult.innerHTML = `F = ${B.toFixed(1)} × ${I.toFixed(1)} × ${L.toFixed(2)} × sin(${theta}°) = <strong>${force.toFixed(2)} N</strong>`;
+        }
+        
+        // 绘制模拟
+        function drawSimulation() {
+            // 清除画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制磁场符号（×表示垂直屏幕向内）
+            drawMagneticField();
+            
+            // 绘制导线（从平行屏幕旋转到垂直屏幕向内）
+            drawWire();
+            
+            // 绘制安培力（绿色带箭头的直线）
+            drawAmpereForce();
+        }
+        
+        // 绘制磁场符号
+        function drawMagneticField() {
+            ctx.strokeStyle = "#000";
+            ctx.lineWidth = 2;
+            
+            // 绘制网格状的×符号
+            const fieldSpacing = 25;
+            const fieldSymbolSize = 15;
+            
+            for (let x = 50; x < canvas.width - 50; x += fieldSpacing) {
+                for (let y = 50; y < canvas.height - 50; y += fieldSpacing) {
+                    // 绘制×
+                    ctx.beginPath();
+                    ctx.moveTo(x - fieldSymbolSize/2, y - fieldSymbolSize/2);
+                    ctx.lineTo(x + fieldSymbolSize/2, y + fieldSymbolSize/2);
+                    ctx.stroke();
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(x + fieldSymbolSize/2, y - fieldSymbolSize/2);
+                    ctx.lineTo(x - fieldSymbolSize/2, y + fieldSymbolSize/2);
+                    ctx.stroke();
+                }
+            }
+        }
+        
+        // 绘制导线
+        function drawWire() {
+            const thetaRad = theta * Math.PI / 180;
+            const wireLength = L * 150;
+            
+            // 导线在屏幕平面内的分量（平行分量）
+            const parallelComponent = wireLength * Math.sin(thetaRad);
+            const visualLength = Math.max(parallelComponent, 5);
+            
+            // 绘制导线（平行于屏幕的部分）
+            const startX = centerX - visualLength/2;
+            const endX = centerX + visualLength/2;
+            const y = centerY;
+            
+            // 只有当导线有足够长度时才绘制
+            if (visualLength > 10) {
+                // 导线主体（实线）
+                ctx.beginPath();
+                ctx.moveTo(startX, y);
+                ctx.lineTo(endX, y);
+                ctx.lineWidth = 8;
+                ctx.strokeStyle = "#ff4444";
+                ctx.stroke();
+                
+                // 在导线中点绘制电流方向箭头（蓝色）
+                const midX = (startX + endX) / 2;
+                const midY = y;
+                
+                // 绘制蓝色箭头（电流方向始终向右）
+                ctx.fillStyle = "#0000ff";
+                ctx.beginPath();
+                ctx.moveTo(midX + 12, midY);
+                ctx.lineTo(midX - 3, midY - 10);
+                ctx.lineTo(midX - 3, midY + 10);
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.beginPath();
+                ctx.moveTo(midX + 20, midY);
+                ctx.lineTo(midX + 10, midY - 8);
+                ctx.lineTo(midX + 10, midY + 8);
+                ctx.closePath();
+                ctx.fill();
+            } else {
+                // 当导线很短时（接近垂直屏幕），只绘制一个点
+                ctx.fillStyle = "#ff4444";
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, 6, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = "#0000ff";
+                ctx.beginPath();
+                ctx.arc(centerX + 15, centerY, 4, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        // 绘制安培力（绿色带箭头的直线）
+        function drawAmpereForce() {
+            const thetaRad = theta * Math.PI / 180;
+            const sinValue = Math.sin(thetaRad);
+            const force = B * I * L * sinValue;
+            
+            // 计算安培力线长度（最大长度120像素）
+            const maxForce = 2 * 5 * 1 * 1; // 最大可能的安培力
+            let forceLength = (force / maxForce) * 120;
+            
+            // 确保最小显示长度
+            if (forceLength < 5) forceLength = 5;
+            
+            // 根据左手定则：磁场方向垂直屏幕向内，电流方向向右，安培力方向向上
+            const startX = centerX;
+            const startY = centerY;
+            
+            // 如果安培力大于0，绘制绿色带箭头直线
+            if (force > 0.001) {
+                // 向上为负方向
+                const endY = startY - forceLength;
+                
+                // 绘制绿色直线（非常明显）
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                ctx.lineTo(startX, endY);
+                ctx.lineWidth = 6;
+                ctx.strokeStyle = "#00ff00";
+                ctx.stroke();
+                
+                // 绘制箭头
+                ctx.fillStyle = "#00ff00";
+                const arrowSize = 15;
+                
+                // 绘制箭头三角形
+                ctx.beginPath();
+                ctx.moveTo(startX, endY);
+                ctx.lineTo(startX - arrowSize, endY + arrowSize);
+                ctx.lineTo(startX + arrowSize, endY + arrowSize);
+                ctx.closePath();
+                ctx.fill();
+                
+                // 在箭头顶部标注"F"
+                ctx.fillStyle = "#006600";
+                ctx.font = "bold 20px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText("F", startX, endY - 10);
+                
+                // 在直线中点标注力的大小
+                ctx.fillStyle = "#006600";
+                ctx.font = "bold 16px Arial";
+                ctx.textAlign = "left";
+                ctx.fillText(`${force.toFixed(2)} N`, startX + 15, (startY + endY) / 2);
+                
+            } else {
+                // 安培力接近0时，不绘制直线，只显示一个点
+                ctx.fillStyle = "#00ff00";
+                ctx.beginPath();
+                ctx.arc(startX, startY, 4, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 显示"F ≈ 0"
+                ctx.fillStyle = "#006600";
+                ctx.font = "bold 16px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText("F ≈ 0", startX, startY + 25);
+            }
+            
+            // 简单说明
+            ctx.fillStyle = "#006600";
+            ctx.font = "bold 14px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText("绿色箭头：安培力大小和方向", centerX, 40);
+        }
+        
+        // 事件监听器
+        bSlider.addEventListener('input', function() {
+            B = parseFloat(this.value);
+            updateDisplays();
+            drawSimulation();
+        });
+        
+        iSlider.addEventListener('input', function() {
+            I = parseFloat(this.value);
+            updateDisplays();
+            drawSimulation();
+        });
+        
+        lSlider.addEventListener('input', function() {
+            L = parseFloat(this.value);
+            updateDisplays();
+            drawSimulation();
+        });
+        
+        thetaSlider.addEventListener('input', function() {
+            theta = parseInt(this.value);
+            updateDisplays();
+            drawSimulation();
+        });
+        
+        resetBtn.addEventListener('click', function() {
+            B = 0.5;
+            I = 2.0;
+            L = 0.5;
+            theta = 90;
+            
+            bSlider.value = B;
+            iSlider.value = I;
+            lSlider.value = L;
+            thetaSlider.value = theta;
+            
+            updateDisplays();
+            drawSimulation();
+        });
+        
+        // 学习检测弹窗功能（保持不变）
+        const quizData = [
+            {
+                question: "当导线完全平行于屏幕时（θ=90°），导线与磁场的夹角是多少？安培力如何？",
+                options: [
+                    "夹角90°，安培力最大",
+                    "夹角0°，安培力为0",
+                    "夹角45°，安培力中等",
+                    "夹角180°，安培力最大"
+                ],
+                correct: 0,
+                explanation: "当导线完全平行于屏幕时，导线方向与磁场方向（垂直屏幕向内）垂直，所以夹角θ=90°，sinθ=1，安培力最大，为F=BIL。此时绿色箭头最长。"
+            },
+            {
+                question: "当导线完全垂直于屏幕向内时（θ=0°），导线与磁场的夹角是多少？安培力如何？",
+                options: [
+                    "夹角0°，安培力为0",
+                    "夹角90°，安培力最大",
+                    "夹角45°，安培力中等",
+                    "夹角180°，安培力为0"
+                ],
+                correct: 0,
+                explanation: "当导线完全垂直于屏幕向内时，导线方向与磁场方向（垂直屏幕向内）平行，所以夹角θ=0°，sinθ=0，安培力为0。此时绿色箭头消失。"
+            },
+            {
+                question: "一段长0.5m的直导线，通以2A电流，放在0.5T的匀强磁场中，当导线与磁场方向成30°角时，所受安培力大小为多少？",
+                options: [
+                    "0.25 N",
+                    "0.50 N",
+                    "0.75 N",
+                    "1.00 N"
+                ],
+                correct: 0,
+                explanation: "计算过程：F = BIL sinθ = 0.5 × 2 × 0.5 × sin30° = 0.5 × 2 × 0.5 × 0.5 = 0.25 N。在模拟器中可以设置相应参数查看绿色箭头长度。"
+            },
+            {
+                question: "下列关于安培力的说法，哪一项是正确的？",
+                options: [
+                    "安培力的方向总是垂直于磁场和电流所确定的平面",
+                    "安培力的方向总是与磁场方向相同",
+                    "安培力的方向总是与电流方向相同",
+                    "安培力的大小与导线材料的电阻率有关"
+                ],
+                correct: 0,
+                explanation: "根据左手定则，安培力的方向总是垂直于磁场方向和电流方向所确定的平面。在模拟器中，磁场方向垂直屏幕向内（×），电流方向向右，所以安培力方向向上（绿色箭头）。"
+            },
+            {
+                question: "在均匀磁场中，当导线从与磁场垂直方向旋转到与磁场平行方向时，安培力如何变化？",
+                options: [
+                    "从最大值减小到0",
+                    "从0增加到最大值",
+                    "保持不变",
+                    "先减小后增加"
+                ],
+                correct: 0,
+                explanation: "导线与磁场垂直时（θ=90°），安培力最大，绿色箭头最长；导线与磁场平行时（θ=0°），安培力为0，绿色箭头消失。所以当导线从垂直旋转到平行时，安培力从最大值减小到0，绿色箭头逐渐缩短直至消失。"
+            }
+        ];
+        
+        let currentQuestion = 0;
+        let userAnswers = new Array(quizData.length).fill(null);
+        let quizCompleted = false;
+        let showReview = false;
+        
+        // 打开弹窗
+        quizBtn.addEventListener('click', function() {
+            currentQuestion = 0;
+            userAnswers.fill(null);
+            quizCompleted = false;
+            showReview = false;
+            showQuestion(currentQuestion);
+            quizModal.style.display = "flex";
+        });
+        
+        // 关闭弹窗
+        closeModal.addEventListener('click', function() {
+            quizModal.style.display = "none";
+        });
+        
+        // 点击弹窗外部关闭
+        window.addEventListener('click', function(event) {
+            if (event.target === quizModal) {
+                quizModal.style.display = "none";
+            }
+        });
+        
+        // 显示问题
+        function showQuestion(index) {
+            const question = quizData[index];
+            
+            // 更新问题计数器
+            questionCounter.textContent = `第 ${index + 1} 题 / 共 ${quizData.length} 题`;
+            
+            // 生成问题HTML
+            let questionHTML = `
+                <div class="question">
+                    <h4><i class="fas fa-question-circle"></i> 问题 ${index + 1}</h4>
+                    <p>${question.question}</p>
+                    <div class="options">
+            `;
+            
+            question.options.forEach((option, i) => {
+                let optionClass = "option";
+                if (userAnswers[index] === i) {
+                    optionClass += " selected";
+                }
+                
+                // 如果已经提交并查看解析，显示对错
+                if (showReview) {
+                    if (i === question.correct) {
+                        optionClass += " correct";
+                    } else if (userAnswers[index] === i && i !== question.correct) {
+                        optionClass += " incorrect";
+                    }
+                }
+                
+                questionHTML += `
+                    <div class="${optionClass}" data-index="${i}">
+                        ${String.fromCharCode(65 + i)}. ${option}
+                        ${showReview && i === question.correct ? ' <i class="fas fa-check" style="color: #4CAF50; margin-left: 10px;"></i>' : ''}
+                        ${showReview && userAnswers[index] === i && i !== question.correct ? ' <i class="fas fa-times" style="color: #f44336; margin-left: 10px;"></i>' : ''}
+                    </div>
+                `;
+            });
+            
+            // 如果查看解析，显示解析内容
+            if (showReview) {
+                questionHTML += `
+                    <div class="explanation" style="display: block;">
+                        <strong>解析：</strong> ${question.explanation}
+                    </div>
+                `;
+            } else {
+                questionHTML += `
+                    <div class="explanation" id="explanation-${index}" style="display: none;">
+                        <strong>解析：</strong> ${question.explanation}
+                    </div>
+                `;
+            }
+            
+            questionHTML += `</div></div>`;
+            
+            questionsContainer.innerHTML = questionHTML;
+            
+            // 控制按钮显示
+            prevQuestionBtn.style.display = index === 0 ? "none" : "inline-flex";
+            
+            if (showReview) {
+                nextQuestionBtn.style.display = index === quizData.length - 1 ? "none" : "inline-flex";
+                submitQuizBtn.style.display = "none";
+                reviewQuizBtn.style.display = "none";
+            } else {
+                nextQuestionBtn.style.display = index === quizData.length - 1 ? "none" : "inline-flex";
+                submitQuizBtn.style.display = index === quizData.length - 1 ? "inline-flex" : "none";
+                reviewQuizBtn.style.display = "none";
+            }
+            
+            // 为选项添加点击事件（仅在未提交时有效）
+            if (!showReview) {
+                document.querySelectorAll('.option').forEach(option => {
+                    option.addEventListener('click', function() {
+                        const questionIndex = index;
+                        const optionIndex = parseInt(this.getAttribute('data-index'));
+                        
+                        // 清除其他选项的选择状态
+                        this.parentElement.querySelectorAll('.option').forEach(opt => {
+                            opt.classList.remove('selected');
+                        });
+                        
+                        // 设置当前选项为选中状态
+                        this.classList.add('selected');
+                        
+                        // 保存用户答案
+                        userAnswers[questionIndex] = optionIndex;
+                    });
+                });
+            }
+            
+            // 滚动到顶部
+            questionsContainer.scrollTop = 0;
+        }
+        
+        // 上一题
+        prevQuestionBtn.addEventListener('click', function() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                showQuestion(currentQuestion);
+            }
+        });
+        
+        // 下一题
+        nextQuestionBtn.addEventListener('click', function() {
+            if (currentQuestion < quizData.length - 1) {
+                currentQuestion++;
+                showQuestion(currentQuestion);
+            }
+        });
+        
+        // 提交测验
+        submitQuizBtn.addEventListener('click', function() {
+            // 检查是否所有题目都已作答
+            const unanswered = userAnswers.filter(answer => answer === null).length;
+            if (unanswered > 0) {
+                alert(`还有${unanswered}题未作答，请完成所有题目后再提交。`);
+                return;
+            }
+            
+            quizCompleted = true;
+            showReview = true;
+            currentQuestion = 0;
+            showQuestion(currentQuestion);
+            
+            // 计算得分
+            let score = 0;
+            userAnswers.forEach((answer, index) => {
+                if (answer === quizData[index].correct) {
+                    score++;
+                }
+            });
+            
+            // 显示得分
+            const scorePercentage = (score / quizData.length) * 100;
+            let scoreMessage = "";
+            if (scorePercentage >= 80) {
+                scoreMessage = `<span class="result-correct">优秀！</span> 你答对了 ${score} 题，得分 ${scorePercentage}%`;
+            } else if (scorePercentage >= 60) {
+                scoreMessage = `<span class="result-correct">良好！</span> 你答对了 ${score} 题，得分 ${scorePercentage}%`;
+            } else {
+                scoreMessage = `<span class="result-incorrect">继续努力！</span> 你答对了 ${score} 题，得分 ${scorePercentage}%`;
+            }
+            
+            scoreDisplay.innerHTML = `
+                <div style="text-align: center; padding: 20px; background-color: #f0f7ff; border-radius: 10px; margin-bottom: 20px;">
+                    <h3 style="color: #0d47a1;">测验完成！</h3>
+                    <p style="font-size: 1.2rem;">${scoreMessage}</p>
+                    <p>${scorePercentage >= 60 ? 
+                        "你对安培力的理解很好，继续加油！" : 
+                        "建议回顾安培力公式和左手定则，重新学习相关知识点。"}
+                    </p>
+                    <button class="btn btn-primary" id="restart-quiz" style="margin-top: 15px;">
+                        <i class="fas fa-redo"></i> 重新测验
+                    </button>
+                </div>
+            `;
+            
+            scoreDisplay.style.display = "block";
+            
+            // 重新测验按钮
+            document.getElementById('restart-quiz').addEventListener('click', function() {
+                currentQuestion = 0;
+                userAnswers.fill(null);
+                quizCompleted = false;
+                showReview = false;
+                scoreDisplay.style.display = "none";
+                showQuestion(currentQuestion);
+            });
+            
+            // 更新按钮显示
+            prevQuestionBtn.style.display = "none";
+            nextQuestionBtn.style.display = "inline-flex";
+            submitQuizBtn.style.display = "none";
+            reviewQuizBtn.style.display = "none";
+        });
+    </script>
+</body>
+</html>

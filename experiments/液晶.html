@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>液晶三种相态3D可视化</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+        }
+
+        /* 操作面板样式 */
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .control-panel h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 8px;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px 0;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #2980b9;
+        }
+
+        /* 缩放按钮特殊样式 */
+        .zoom-btn {
+            width: 48%;
+            display: inline-block;
+            margin: 5px 1%;
+        }
+
+        /* 温度控制滑块样式 */
+        .temperature-slider {
+            width: 100%;
+            margin: 15px 0;
+        }
+
+        .temp-display {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+
+        /* 液晶展示区域 */
+        .liquid-crystal-display {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        #model-container {
+            width: 100%;
+            height: 500px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .principles {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #e8f4fd;
+            border-radius: 4px;
+        }
+
+        .principles h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .principles ul {
+            padding-left: 20px;
+        }
+
+        .principles li {
+            margin-bottom: 10px;
+            line-height: 1.8;
+        }
+
+        .phase-indicator {
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .phase-crystal {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .phase-liquid-crystal {
+            background-color: #fff8e1;
+            color: #ff8f00;
+        }
+
+        .phase-liquid {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+
+        /* 弹窗样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 1000;
+            overflow: auto;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 85vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            width: 30px;
+            height: 30px;
+            text-align: center;
+            line-height: 30px;
+            border-radius: 50%;
+            background: #f5f5f5;
+        }
+
+        .close-btn:hover {
+            color: #000;
+            background: #e0e0e0;
+        }
+
+        /* 试题样式 */
+        .question {
+            margin-bottom: 25px;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 6px;
+        }
+
+        .question.unanswered {
+            border-color: #e74c3c;
+            background-color: #fff5f5;
+        }
+
+        .question h4 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .options {
+            list-style: none;
+            padding: 0;
+        }
+
+        .option {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+        }
+
+        .option:hover {
+            background-color: #f8f9fa;
+        }
+
+        .option.selected {
+            background-color: #e8f4fd;
+            border-color: #3498db;
+        }
+
+        .option.correct {
+            background-color: #e8f5e9;
+            border-color: #2e7d32;
+            color: #2e7d32;
+        }
+
+        .option.incorrect {
+            background-color: #ffebee;
+            border-color: #c62828;
+            color: #c62828;
+        }
+
+        .option input {
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        /* 提交按钮 */
+        #submit-btn {
+            background-color: #27ae60;
+        }
+
+        #submit-btn:hover {
+            background-color: #219653;
+        }
+
+        /* 成绩弹窗样式 */
+        .score-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .score {
+            font-size: 48px;
+            font-weight: bold;
+            color: #27ae60;
+            margin: 10px 0;
+        }
+
+        .analysis {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .analysis h4 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .answer-label {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        .correct-answer {
+            color: #2e7d32;
+        }
+
+        .your-answer {
+            color: #2c3e50;
+        }
+    </style>
+    <!-- 引入Three.js库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <header>
+        <h1>液晶三种相态（结晶态-液晶态-液态）3D可视化</h1>
+    </header>
+
+    <div class="container">
+        <!-- 操作面板 -->
+        <div class="control-panel">
+            <h3>操作控制面板</h3>
+            
+            <div class="control-group">
+                <label for="phase-type">选择相态类型</label>
+                <select id="phase-type" class="btn">
+                    <option value="crystal">甲：结晶态（分子位置+取向均有序）</option>
+                    <option value="liquid-crystal">乙：液晶态（位置无序，取向有序）</option>
+                    <option value="liquid">丙：液态（位置+取向均无序）</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>温度控制（模拟相态转变）</label>
+                <input type="range" id="temperature-slider" class="temperature-slider" 
+                       min="0" max="100" value="0">
+                <div class="temp-display" id="temp-display">温度：25°C（结晶态）</div>
+            </div>
+
+            <div class="control-group">
+                <label>模型旋转控制</label>
+                <button id="rotate-start" class="btn">开始旋转</button>
+                <button id="rotate-stop" class="btn">停止旋转</button>
+                <button id="reset-view" class="btn">重置视角</button>
+            </div>
+
+            <div class="control-group">
+                <label>模型缩放控制</label>
+                <button id="zoom-in" class="btn zoom-btn">🔍 放大</button>
+                <button id="zoom-out" class="btn zoom-btn">🔍 缩小</button>
+            </div>
+
+            <div class="control-group">
+                <button id="knowledge-test" class="btn" style="background-color: #9b59b6;">📚 知识检测</button>
+            </div>
+        </div>
+
+        <!-- 液晶展示区域 -->
+        <div class="liquid-crystal-display">
+            <div class="principles">
+                <h3>液晶相态结构原理</h3>
+                <ul>
+                    <li>构成液晶的分子多为棒状有机分子，棒长通常为棒直径的5倍以上，无外界干扰时趋向相互平行排列。</li>
+                    <li>低温时液晶呈结晶态，分子取向和重心位置均有序；温度升高转为液晶态，重心位置有序性消失，取向有序程度降至0.6；温度进一步升高变为液态，取向有序性也完全消失。</li>
+                    <li>液晶态介于固态和液态之间，既具有液体的流动性，又在一定程度上具有晶体分子规则排列的性质，部分物质在特定温度或浓度范围呈现液晶态。</li>
+                    <li>取向排列的液晶具有光学各向异性，其研究在生命科学领域有重要应用，是物理科学与生命科学的重要结合点。</li>
+                </ul>
+            </div>
+
+            <div id="phase-indicator" class="phase-indicator phase-crystal">当前相态：甲 结晶态</div>
+
+            <div id="model-container"></div>
+        </div>
+    </div>
+
+    <!-- 知识检测弹窗 -->
+    <div id="test-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('test-modal')">&times;</span>
+            <h2 style="text-align: center; margin-bottom: 20px; color: #2c3e50;">液晶知识检测</h2>
+            
+            <div id="questions-container">
+                <!-- 问题1 -->
+                <div class="question" id="q1">
+                    <h4>1. 液晶分子的主要形态特征是？</h4>
+                    <ul class="options">
+                        <li class="option" onclick="selectOption(this, 'q1')">
+                            <input type="radio" name="q1" value="A"> A. 球状分子，直径均匀
+                        </li>
+                        <li class="option" onclick="selectOption(this, 'q1')">
+                            <input type="radio" name="q1" value="B"> B. 棒状有机分子，棒长为直径5倍以上
+                        </li>
+                        <li class="option" onclick="selectOption(this, 'q1')">
+                            <input type="radio" name="q1" value="C"> C. 片状分子，厚度极薄
+                        </li>
+                        <li class="option" onclick="selectOption(this, 'q1')">
+                            <input type="radio" name="q1" value="D"> D. 无规则形态分子
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 问题2 -->
+                <div class="question" id="q2">
+                    <h4>2. 液晶态的分子排列特征是？</h4>
+                    <ul class="options">
+                        <li class="option" onclick="selectOption(this, 'q2')">
+                            <input type="radio" name="q2" value="A"> A. 位置和取向均有序
+                        </li>
+                        <li class="option" onclick="selectOption(this, 'q2')">
+                            <input type="radio" name="q2" value="B"> B. 位置无序，取向有序
+                        </li>
+                        <li class="option" onclick="selectOption(this, 'q2')">
+                            <input type="radio" name="q2" value="C"> C. 位置和取向均无序
+                        </li>
+                        <li class="option" onclick="selectOption(this, 'q2')">
+                            <input type="radio" name="q2" value="D"> D. 位置有序，取向无序
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 问题3 -->
+                <div class="question" id="q3">
+                    <h4>3. 液晶态的有序程度约为？</h4>
+                    <ul class="options">
+                        <li class="option" onclick="selectOption(this, 'q3')">
+                            <input type="radio" name="q3" value="A"> A. 1.0
+                        </li>
+                        <li class="option" onclick="selectOption(this, 'q3')">
+                            <input type="radio" name="q3" value="B"> B. 0.8
+                        </li>
+                        <li class="option" onclick="selectOption(this, 'q3')">
+                            <input type="radio" name="q3" value="C"> C. 0.6
+                        </li>
+                        <li class="option" onclick="selectOption(this, 'q3')">
+                            <input type="radio" name="q3" value="D"> D. 0.4
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 问题4 -->
+                <div class="question" id="q4">
+                    <h4>4. 关于液晶的性质，下列说法正确的是？</h4>
+                    <ul class="options">
+                        <li class="option" onclick="selectOption(this, 'q4')">
+                            <input type="radio" name="q4" value="A"> A. 只有液态一种状态
+                        </li>
+                        <li class="option" onclick="selectOption(this, 'q4')">
+                            <input type="radio" name="q4" value="B"> B. 仅具有晶体的规则排列性质
+                        </li>
+                        <li class="option" onclick="selectOption(this, 'q4')">
+                            <input type="radio" name="q4" value="C"> C. 介于固态和液态之间，兼具流动性和有序排列特性
+                        </li>
+                        <li class="option" onclick="selectOption(this, 'q4')">
+                            <input type="radio" name="q4" value="D"> D. 没有光学特性
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 问题5 -->
+                <div class="question" id="q5">
+                    <h4>5. 液晶的光学特性主要表现为？</h4>
+                    <ul class="options">
+                        <li class="option" onclick="selectOption(this, 'q5')">
+                            <input type="radio" name="q5" value="A"> A. 光学各向同性
+                        </li>
+                        <li class="option" onclick="selectOption(this, 'q5')">
+                            <input type="radio" name="q5" value="B"> B. 光学各向异性
+                        </li>
+                        <li class="option" onclick="selectOption(this, 'q5')">
+                            <input type="radio" name="q5" value="C"> C. 完全不透明
+                        </li>
+                        <li class="option" onclick="selectOption(this, 'q5')">
+                            <input type="radio" name="q5" value="D"> D. 只能反射红光
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <button id="submit-btn" class="btn">提交答案</button>
+        </div>
+    </div>
+
+    <!-- 成绩弹窗 -->
+    <div id="result-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('result-modal')">&times;</span>
+            <div id="result-content"></div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let scene, camera, renderer, currentModel;
+        let isRotating = false;
+        let rotationSpeed = 0.01;
+        // 缩放步长和范围限制
+        const zoomStep = 0.5;
+        const minZoom = 3;  // 最小缩放（最靠近模型）
+        const maxZoom = 15; // 最大缩放（最远离模型）
+        // 温度和相态相关变量
+        let currentTemperature = 25;
+        let currentPhase = 'crystal'; // crystal, liquid-crystal, liquid
+        
+        // 正确答案
+        const correctAnswers = {
+            q1: "B",
+            q2: "B",
+            q3: "C",
+            q4: "C",
+            q5: "B"
+        };
+
+        // 初始化3D场景
+        function initScene() {
+            // 创建场景
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xf5f5f5);
+
+            // 创建相机
+            camera = new THREE.PerspectiveCamera(75, document.getElementById('model-container').clientWidth / document.getElementById('model-container').clientHeight, 0.1, 1000);
+            camera.position.z = 8;
+
+            // 创建渲染器
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(document.getElementById('model-container').clientWidth, document.getElementById('model-container').clientHeight);
+            document.getElementById('model-container').appendChild(renderer.domElement);
+
+            // 添加光源
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(5, 5, 5);
+            scene.add(directionalLight);
+
+            // 初始加载结晶态模型
+            loadPhaseModel('crystal');
+
+            // 添加窗口大小调整监听
+            window.addEventListener('resize', onWindowResize);
+
+            // 添加鼠标控制
+            addMouseControls();
+
+            // 动画循环
+            function animate() {
+                requestAnimationFrame(animate);
+                
+                if (isRotating && currentModel) {
+                    currentModel.rotation.y += rotationSpeed;
+                }
+
+                renderer.render(scene, camera);
+            }
+            animate();
+        }
+
+        // 加载相态模型
+        function loadPhaseModel(type) {
+            currentPhase = type;
+            
+            // 更新相态指示器
+            updatePhaseIndicator();
+            
+            // 清除现有模型
+            if (currentModel) {
+                scene.remove(currentModel);
+                currentModel = null;
+            }
+
+            // 创建新模型组
+            const phaseGroup = new THREE.Group();
+            
+            switch(type) {
+                case 'crystal':
+                    createCrystalModel(phaseGroup); // 甲：结晶态
+                    break;
+                case 'liquid-crystal':
+                    createLiquidCrystalModel(phaseGroup); // 乙：液晶态
+                    break;
+                case 'liquid':
+                    createLiquidModel(phaseGroup); // 丙：液态
+                    break;
+            }
+
+            currentModel = phaseGroup;
+            scene.add(currentModel);
+        }
+
+        // 创建结晶态模型（甲：高度有序的棒状分子晶格）
+        function createCrystalModel(group) {
+            // 棒状分子：只保留棍状，移除球状重心
+            const rodGeometry = new THREE.CylinderGeometry(0.1, 0.1, 2, 12);
+            const rodMaterial = new THREE.MeshPhongMaterial({ color: 0x8B0000 }); // 深红色
+
+            // 结晶态：三维有序排列
+            const gridSize = 4;
+            const spacing = 2.5;
+
+            for (let x = -gridSize; x <= gridSize; x++) {
+                for (let y = -gridSize; y <= gridSize; y++) {
+                    for (let z = -gridSize; z <= gridSize; z++) {
+                        // 创建棒状分子主干
+                        const rod = new THREE.Mesh(rodGeometry, rodMaterial);
+                        rod.position.set(x * spacing, y * spacing, z * spacing);
+                        // 结晶态：所有分子取向一致（沿Z轴）
+                        rod.rotation.z = 0;
+                        group.add(rod);
+
+                        // 添加晶格连接线（显示有序结构）
+                        if (x < gridSize) {
+                            const bond = createBond(
+                                new THREE.Vector3(x * spacing, y * spacing, z * spacing),
+                                new THREE.Vector3((x+1) * spacing, y * spacing, z * spacing),
+                                0.02,
+                                0x95a5a6
+                            );
+                            group.add(bond);
+                        }
+                        if (y < gridSize) {
+                            const bond = createBond(
+                                new THREE.Vector3(x * spacing, y * spacing, z * spacing),
+                                new THREE.Vector3(x * spacing, (y+1) * spacing, z * spacing),
+                                0.02,
+                                0x95a5a6
+                            );
+                            group.add(bond);
+                        }
+                    }
+                }
+            }
+        }
+
+        // 创建液晶态模型（乙：位置无序，取向有序）
+        function createLiquidCrystalModel(group) {
+            // 棒状分子：只保留棍状，移除球状重心
+            const rodGeometry = new THREE.CylinderGeometry(0.1, 0.1, 2, 12);
+            const rodMaterial = new THREE.MeshPhongMaterial({ color: 0x8B0000 }); // 深红色
+
+            // 液晶态：位置无序，取向有序（整体沿Z轴，但位置有随机偏移）
+            const count = 100;
+            const maxPos = 6;
+
+            for (let i = 0; i < count; i++) {
+                // 随机位置（但保持一定分布）
+                const x = (Math.random() - 0.5) * maxPos * 2;
+                const y = (Math.random() - 0.5) * maxPos * 2;
+                const z = (Math.random() - 0.5) * maxPos * 2;
+
+                // 创建棒状分子主干
+                const rod = new THREE.Mesh(rodGeometry, rodMaterial);
+                rod.position.set(x, y, z);
+                // 液晶态：取向基本一致（小范围随机旋转，有序程度约0.6）
+                const randomRot = (Math.random() - 0.5) * 0.6; // ±30度以内
+                rod.rotation.x = randomRot;
+                rod.rotation.y = randomRot;
+                group.add(rod);
+            }
+
+            // 添加取向方向指示线
+            const indicatorGeometry = new THREE.BufferGeometry().setFromPoints([
+                new THREE.Vector3(0, 0, -maxPos),
+                new THREE.Vector3(0, 0, maxPos)
+            ]);
+            const indicatorMaterial = new THREE.LineBasicMaterial({ 
+                color: 0xff8f00,
+                linewidth: 2
+            });
+            const indicator = new THREE.Line(indicatorGeometry, indicatorMaterial);
+            group.add(indicator);
+        }
+
+        // 创建液态模型（丙：完全无序）
+        function createLiquidModel(group) {
+            // 棒状分子：只保留棍状，移除球状重心
+            const rodGeometry = new THREE.CylinderGeometry(0.1, 0.1, 2, 12);
+            const rodMaterial = new THREE.MeshPhongMaterial({ color: 0xFF6347 }); // 浅红色
+
+            // 液态：位置和取向均完全无序
+            const count = 100;
+            const maxPos = 6;
+
+            for (let i = 0; i < count; i++) {
+                // 完全随机位置
+                const x = (Math.random() - 0.5) * maxPos * 2;
+                const y = (Math.random() - 0.5) * maxPos * 2;
+                const z = (Math.random() - 0.5) * maxPos * 2;
+
+                // 创建棒状分子主干
+                const rod = new THREE.Mesh(rodGeometry, rodMaterial);
+                rod.position.set(x, y, z);
+                // 液态：完全随机取向
+                rod.rotation.x = Math.random() * Math.PI;
+                rod.rotation.y = Math.random() * Math.PI;
+                rod.rotation.z = Math.random() * Math.PI;
+                group.add(rod);
+            }
+        }
+
+        // 创建化学键/连接线
+        function createBond(start, end, thickness = 0.05, color = 0x95a5a6) {
+            const direction = new THREE.Vector3().subVectors(end, start);
+            const length = direction.length();
+            
+            // 创建圆柱体作为连接线
+            const bondGeometry = new THREE.CylinderGeometry(thickness, thickness, length, 8);
+            const bondMaterial = new THREE.MeshPhongMaterial({ color: color });
+            const bond = new THREE.Mesh(bondGeometry, bondMaterial);
+            
+            bond.position.copy(start).add(direction.multiplyScalar(0.5));
+            bond.lookAt(end);
+            bond.rotateX(Math.PI/2);
+            
+            return bond;
+        }
+
+        // 更新相态指示器
+        function updatePhaseIndicator() {
+            const indicator = document.getElementById('phase-indicator');
+            const tempDisplay = document.getElementById('temp-display');
+            
+            // 重置样式
+            indicator.classList.remove('phase-crystal', 'phase-liquid-crystal', 'phase-liquid');
+            
+            switch(currentPhase) {
+                case 'crystal':
+                    indicator.classList.add('phase-crystal');
+                    indicator.textContent = '当前相态：甲 结晶态（分子位置+取向均有序）';
+                    tempDisplay.textContent = `温度：${currentTemperature}°C（结晶态）`;
+                    break;
+                case 'liquid-crystal':
+                    indicator.classList.add('phase-liquid-crystal');
+                    indicator.textContent = '当前相态：乙 液晶态（位置无序，取向有序）';
+                    tempDisplay.textContent = `温度：${currentTemperature}°C（液晶态）`;
+                    break;
+                case 'liquid':
+                    indicator.classList.add('phase-liquid');
+                    indicator.textContent = '当前相态：丙 液态（位置+取向均无序）';
+                    tempDisplay.textContent = `温度：${currentTemperature}°C（液态）`;
+                    break;
+            }
+        }
+
+        // 根据温度更新相态
+        function updatePhaseByTemperature(temp) {
+            currentTemperature = temp;
+            
+            if (temp < 30) {
+                loadPhaseModel('crystal');
+            } else if (temp < 70) {
+                loadPhaseModel('liquid-crystal');
+            } else {
+                loadPhaseModel('liquid');
+            }
+        }
+
+        // 窗口大小调整
+        function onWindowResize() {
+            camera.aspect = document.getElementById('model-container').clientWidth / document.getElementById('model-container').clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(document.getElementById('model-container').clientWidth, document.getElementById('model-container').clientHeight);
+        }
+
+        // 添加鼠标控制
+        function addMouseControls() {
+            let isDragging = false;
+            let previousMousePosition = {
+                x: 0,
+                y: 0
+            };
+
+            const container = document.getElementById('model-container');
+            
+            container.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                previousMousePosition = {
+                    x: e.clientX,
+                    y: e.clientY
+                };
+            });
+            
+            container.addEventListener('mousemove', (e) => {
+                if (!isDragging || !currentModel) return;
+                
+                const deltaMove = {
+                    x: e.clientX - previousMousePosition.x,
+                    y: e.clientY - previousMousePosition.y
+                };
+                
+                currentModel.rotation.y += deltaMove.x * 0.01;
+                currentModel.rotation.x += deltaMove.y * 0.01;
+                
+                previousMousePosition = {
+                    x: e.clientX,
+                    y: e.clientY
+                };
+            });
+            
+            container.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+            
+            container.addEventListener('mouseleave', () => {
+                isDragging = false;
+            });
+
+            // 滚轮缩放
+            container.addEventListener('wheel', (e) => {
+                camera.position.z += e.deltaY * 0.01;
+                camera.position.z = Math.max(minZoom, Math.min(maxZoom, camera.position.z));
+            });
+        }
+
+        // 缩放控制函数
+        function zoomIn() {
+            camera.position.z = Math.max(minZoom, camera.position.z - zoomStep);
+        }
+
+        function zoomOut() {
+            camera.position.z = Math.min(maxZoom, camera.position.z + zoomStep);
+        }
+
+        // 知识检测相关函数
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // 选择选项（点击整个选项区域都可选中）
+        function selectOption(optionElement, questionId) {
+            // 移除同题目的其他选中状态
+            const options = document.querySelectorAll(`#${questionId} .option`);
+            options.forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // 添加当前选中状态
+            optionElement.classList.add('selected');
+            // 选中对应的radio
+            const radio = optionElement.querySelector('input');
+            radio.checked = true;
+            
+            // 移除未答题标记
+            document.getElementById(questionId).classList.remove('unanswered');
+        }
+
+        // 检查是否所有题目都已回答
+        function checkAllAnswered() {
+            const questionIds = ['q1', 'q2', 'q3', 'q4', 'q5'];
+            let allAnswered = true;
+            let firstUnanswered = null;
+
+            questionIds.forEach(id => {
+                const question = document.getElementById(id);
+                const selectedOption = question.querySelector('input:checked');
+                
+                if (!selectedOption) {
+                    allAnswered = false;
+                    question.classList.add('unanswered');
+                    if (!firstUnanswered) firstUnanswered = question;
+                } else {
+                    question.classList.remove('unanswered');
+                }
+            });
+
+            // 如果有未答题，滚动到第一个未答题位置
+            if (firstUnanswered) {
+                firstUnanswered.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
+            return allAnswered;
+        }
+
+        // 计算成绩并生成分析
+        function calculateScore() {
+            const questionIds = ['q1', 'q2', 'q3', 'q4', 'q5'];
+            let correctCount = 0;
+            let userAnswers = {};
+
+            // 收集用户答案并统计正确数
+            questionIds.forEach(id => {
+                const selectedOption = document.querySelector(`#${id} input:checked`);
+                userAnswers[id] = selectedOption ? selectedOption.value : "";
+                
+                if (userAnswers[id] === correctAnswers[id]) {
+                    correctCount++;
+                }
+            });
+
+            // 计算得分（每题20分，总分100）
+            const score = (correctCount / questionIds.length) * 100;
+            
+            // 生成学情分析
+            let analysis = "";
+            if (score === 100) {
+                analysis = "优秀！你完全掌握了液晶的相关知识，对液晶的分子结构、相态特征和光学性质都有准确的理解。";
+            } else if (score >= 80) {
+                analysis = "良好！你对液晶的核心知识掌握较好，仅在个别细节上需要加强，建议重点复习错误题目相关的知识点。";
+            } else if (score >= 60) {
+                analysis = "及格！你掌握了液晶的基本概念，但对部分重要特征理解不够准确，需要重新学习相关原理。";
+            } else {
+                analysis = "需要加强！你对液晶的基础知识掌握不足，建议重新阅读原理部分，并重点理解液晶的相态特征和光学性质。";
+            }
+
+            // 生成结果HTML
+            let resultHTML = `
+                <div class="score-container">
+                    <h2>检测结果</h2>
+                    <div class="score">${score} 分</div>
+                    <p>共答对 ${correctCount}/5 道题</p>
+                </div>
+
+                <div class="analysis">
+                    <h4>学情分析</h4>
+                    <p>${analysis}</p>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <h4>答题详情</h4>
+            `;
+
+            // 题目详情
+            const questionTitles = {
+                q1: "液晶分子的主要形态特征是？",
+                q2: "液晶态的分子排列特征是？",
+                q3: "液晶态的有序程度约为？",
+                q4: "关于液晶的性质，下列说法正确的是？",
+                q5: "液晶的光学特性主要表现为？"
+            };
+
+            const optionTexts = {
+                q1: {
+                    A: "球状分子，直径均匀",
+                    B: "棒状有机分子，棒长为直径5倍以上",
+                    C: "片状分子，厚度极薄",
+                    D: "无规则形态分子"
+                },
+                q2: {
+                    A: "位置和取向均有序",
+                    B: "位置无序，取向有序",
+                    C: "位置和取向均无序",
+                    D: "位置有序，取向无序"
+                },
+                q3: {
+                    A: "1.0",
+                    B: "0.8",
+                    C: "0.6",
+                    D: "0.4"
+                },
+                q4: {
+                    A: "只有液态一种状态",
+                    B: "仅具有晶体的规则排列性质",
+                    C: "介于固态和液态之间，兼具流动性和有序排列特性",
+                    D: "没有光学特性"
+                },
+                q5: {
+                    A: "光学各向同性",
+                    B: "光学各向异性",
+                    C: "完全不透明",
+                    D: "只能反射红光"
+                }
+            };
+
+            // 生成每题详情
+            questionIds.forEach((id, index) => {
+                const isCorrect = userAnswers[id] === correctAnswers[id];
+                resultHTML += `
+                    <div style="margin: 15px 0; padding: 10px; border: 1px solid #eee; border-radius: 4px;">
+                        <p><strong>${index + 1}. ${questionTitles[id]}</strong></p>
+                        <p>
+                            <span class="answer-label">你的答案：</span>
+                            <span class="${isCorrect ? 'correct-answer' : 'incorrect'}">
+                                ${userAnswers[id]} - ${optionTexts[id][userAnswers[id]]}
+                            </span>
+                        </p>
+                        <p>
+                            <span class="answer-label">正确答案：</span>
+                            <span class="correct-answer">
+                                ${correctAnswers[id]} - ${optionTexts[id][correctAnswers[id]]}
+                            </span>
+                        </p>
+                    </div>
+                `;
+            });
+
+            resultHTML += `
+                </div>
+                <button class="btn" style="margin-top: 20px;" onclick="closeModal('result-modal')">关闭</button>
+            `;
+
+            document.getElementById('result-content').innerHTML = resultHTML;
+            openModal('result-modal');
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 初始化3D场景
+            initScene();
+
+            // 绑定相态类型选择事件
+            document.getElementById('phase-type').addEventListener('change', (e) => {
+                loadPhaseModel(e.target.value);
+                // 同步温度滑块
+                switch(e.target.value) {
+                    case 'crystal':
+                        document.getElementById('temperature-slider').value = 25;
+                        currentTemperature = 25;
+                        break;
+                    case 'liquid-crystal':
+                        document.getElementById('temperature-slider').value = 50;
+                        currentTemperature = 50;
+                        break;
+                    case 'liquid':
+                        document.getElementById('temperature-slider').value = 80;
+                        currentTemperature = 80;
+                        break;
+                }
+                updatePhaseIndicator();
+            });
+
+            // 绑定温度滑块事件
+            document.getElementById('temperature-slider').addEventListener('input', (e) => {
+                const temp = parseInt(e.target.value);
+                updatePhaseByTemperature(temp);
+            });
+
+            // 绑定旋转控制事件
+            document.getElementById('rotate-start').addEventListener('click', () => {
+                isRotating = true;
+            });
+            
+            document.getElementById('rotate-stop').addEventListener('click', () => {
+                isRotating = false;
+            });
+            
+            document.getElementById('reset-view').addEventListener('click', () => {
+                if (currentModel) {
+                    currentModel.rotation.x = 0;
+                    currentModel.rotation.y = 0;
+                    currentModel.rotation.z = 0;
+                }
+                camera.position.z = 8;
+            });
+
+            // 绑定缩放控制事件
+            document.getElementById('zoom-in').addEventListener('click', zoomIn);
+            document.getElementById('zoom-out').addEventListener('click', zoomOut);
+
+            // 绑定知识检测按钮事件
+            document.getElementById('knowledge-test').addEventListener('click', () => {
+                openModal('test-modal');
+            });
+
+            // 绑定提交答案按钮事件
+            document.getElementById('submit-btn').addEventListener('click', () => {
+                if (checkAllAnswered()) {
+                    calculateScore();
+                } else {
+                    alert('请完成所有题目后再提交！未答题已高亮显示。');
+                }
+            });
+
+            // 点击弹窗外部关闭弹窗
+            window.addEventListener('click', (e) => {
+                if (e.target.classList.contains('modal')) {
+                    e.target.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+

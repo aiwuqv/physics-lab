@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>库仑定律交互模拟器 - 改进版</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2980, #26d0ce);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        header {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.8rem;
+            background: linear-gradient(to right, #1a2980, #26d0ce);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+        }
+        
+        .law-formula {
+            font-size: 2.2rem;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+            margin: 15px 0;
+            color: #1a2980;
+            font-weight: bold;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+        
+        .simulation-section {
+            flex: 3;
+            min-width: 800px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .controls-section {
+            flex: 1;
+            min-width: 350px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        .section-title {
+            font-size: 1.8rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #4a6fa5;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-title i {
+            color: #1a2980;
+        }
+        
+        .simulation-area {
+            position: relative;
+            width: 100%;
+            height: 600px;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            background-color: #f8f9fa;
+            overflow: hidden;
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .charge {
+            position: absolute;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            cursor: move;
+            user-select: none;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 3px solid rgba(255, 255, 255, 0.7);
+        }
+        
+        .charge:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        .positive {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+        
+        .negative {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+        }
+        
+        .neutral {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+        }
+        
+        .charge-label {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+        
+        .charge-value {
+            font-size: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 3px 8px;
+            border-radius: 10px;
+        }
+        
+        .force-line {
+            position: absolute;
+            height: 4px;
+            background: linear-gradient(to right, #ff9900, #ff5500);
+            transform-origin: 0 0;
+            pointer-events: none;
+            z-index: 5;
+            box-shadow: 0 0 8px rgba(255, 102, 0, 0.7);
+        }
+        
+        .force-arrow {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-top: 20px solid #ff9900;
+            transform-origin: 50% 50%;
+            pointer-events: none;
+            z-index: 6;
+            filter: drop-shadow(0 0 4px rgba(255, 102, 0, 0.7));
+        }
+        
+        .force-vector {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 15px solid;
+            transform-origin: 50% 50%;
+            pointer-events: none;
+            z-index: 7;
+            filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.5));
+        }
+        
+        .force-vector.q1 {
+            border-bottom-color: #e74c3c;
+        }
+        
+        .force-vector.q2 {
+            border-bottom-color: #3498db;
+        }
+        
+        .force-display {
+            background: linear-gradient(135deg, #1a2980, #26d0ce);
+            color: white;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .force-title {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .force-value {
+            font-size: 2.8rem;
+            font-weight: bold;
+            text-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+            margin: 15px 0;
+            color: #fff;
+        }
+        
+        .force-direction {
+            font-size: 1.3rem;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .control-group {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+        }
+        
+        .control-title {
+            font-size: 1.3rem;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .slider-label {
+            min-width: 120px;
+            font-weight: bold;
+            color: #1a2980;
+        }
+        
+        .slider-value {
+            min-width: 80px;
+            text-align: center;
+            font-weight: bold;
+            color: #e74c3c;
+            background: rgba(231, 76, 60, 0.1);
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+        
+        input[type="range"] {
+            flex-grow: 1;
+            height: 10px;
+            -webkit-appearance: none;
+            background: linear-gradient(to right, #1a2980, #26d0ce);
+            border-radius: 5px;
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #fff;
+            border: 3px solid #1a2980;
+            cursor: pointer;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+        }
+        
+        .distance-info {
+            background: #e8f4f8;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin-top: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+        }
+        
+        .distance-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #1a2980;
+            margin: 10px 0;
+        }
+        
+        .buttons-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        button {
+            background: linear-gradient(to right, #1a2980, #26d0ce);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn-knowledge {
+            background: linear-gradient(to right, #e74c3c, #c0392b);
+        }
+        
+        .btn-reset {
+            background: linear-gradient(to right, #2ecc71, #27ae60);
+        }
+        
+        .btn-direction {
+            background: linear-gradient(to right, #9b59b6, #8e44ad);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 85%;
+            overflow-y: auto;
+            padding: 40px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            position: relative;
+            animation: slideUp 0.4s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .modal-header {
+            font-size: 2rem;
+            color: #1a2980;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #eee;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .question {
+            margin-bottom: 25px;
+            font-size: 1.3rem;
+            line-height: 1.7;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid #1a2980;
+        }
+        
+        .options {
+            margin-bottom: 30px;
+        }
+        
+        .option {
+            display: block;
+            margin-bottom: 15px;
+            padding: 18px 20px;
+            background-color: #f1f8ff;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+        
+        .option:hover {
+            background-color: #e3f2fd;
+            transform: translateX(5px);
+        }
+        
+        .option.selected {
+            background-color: #d4edda;
+            border-color: #28a745;
+        }
+        
+        .option.correct {
+            background-color: #d4edda;
+            border-color: #28a745;
+        }
+        
+        .option.incorrect {
+            background-color: #f8d7da;
+            border-color: #dc3545;
+        }
+        
+        .explanation {
+            background: #e8f4f8;
+            padding: 25px;
+            border-radius: 10px;
+            margin-top: 25px;
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .explanation h3 {
+            color: #1a2980;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #7f8c8d;
+            transition: color 0.3s;
+        }
+        
+        .close-btn:hover {
+            color: #e74c3c;
+        }
+        
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 30px;
+            font-size: 1rem;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+        
+        .formula-details {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            gap: 15px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .formula-part {
+            text-align: center;
+            padding: 15px;
+            min-width: 180px;
+        }
+        
+        .formula-part h4 {
+            color: #1a2980;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .formula-part p {
+            font-size: 1.1rem;
+            color: #333;
+        }
+        
+        .formula-part .value {
+            font-weight: bold;
+            color: #e74c3c;
+            font-size: 1.3rem;
+            margin-top: 5px;
+        }
+        
+        .vector-display {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+        }
+        
+        .vector-info {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+            text-align: center;
+        }
+        
+        .vector-item {
+            padding: 15px;
+            border-radius: 8px;
+            min-width: 150px;
+        }
+        
+        .vector-item.q1 {
+            background: rgba(231, 76, 60, 0.1);
+            border-left: 4px solid #e74c3c;
+        }
+        
+        .vector-item.q2 {
+            background: rgba(52, 152, 219, 0.1);
+            border-left: 4px solid #3498db;
+        }
+        
+        .vector-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        @media (max-width: 1200px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .simulation-section {
+                min-width: 100%;
+            }
+            
+            .simulation-area {
+                height: 500px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .simulation-area {
+                height: 400px;
+            }
+            
+            .force-value {
+                font-size: 2.2rem;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .law-formula {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-atom"></i> 库仑定律交互模拟器 - 改进版</h1>
+            <p class="subtitle">探索点电荷之间的相互作用力 - 拖拽电荷改变位置，调节电荷量观察力的变化</p>
+            
+            <div class="law-formula">
+                \[ F = k \frac{|q_1 q_2|}{r^2} \]
+            </div>
+            
+            <div class="formula-details">
+                <div class="formula-part">
+                    <h4><i class="fas fa-bolt"></i> 静电力常量</h4>
+                    <p>k ≈ 9 × 10⁹</p>
+                    <p class="value">N·m²/C²</p>
+                </div>
+                <div class="formula-part">
+                    <h4><i class="fas fa-charging-station"></i> 电荷量</h4>
+                    <p>q₁, q₂</p>
+                    <p class="value">库仑 (C)</p>
+                </div>
+                <div class="formula-part">
+                    <h4><i class="fas fa-ruler"></i> 电荷间距离</h4>
+                    <p>r</p>
+                    <p class="value">米 (m)</p>
+                </div>
+                <div class="formula-part">
+                    <h4><i class="fas fa-weight-hanging"></i> 库仑力</h4>
+                    <p>F</p>
+                    <p class="value">牛顿 (N)</p>
+                </div>
+            </div>
+        </header>
+        
+        <div class="main-content">
+            <div class="simulation-section">
+                <h2 class="section-title"><i class="fas fa-play-circle"></i> 交互模拟区</h2>
+                <div class="simulation-area" id="simulationArea">
+                    <!-- 电荷将在这里动态创建 -->
+                    <div class="charge positive" id="charge1" style="top: 300px; left: 200px;">
+                        <div class="charge-label">q₁</div>
+                        <div class="charge-value">+1.0 μC</div>
+                    </div>
+                    <div class="charge negative" id="charge2" style="top: 300px; left: 500px;">
+                        <div class="charge-label">q₂</div>
+                        <div class="charge-value">-1.0 μC</div>
+                    </div>
+                    <!-- 力线和箭头将在这里动态创建 -->
+                </div>
+                
+                <div class="vector-display" id="vectorDisplay" style="display: none;">
+                    <h3 class="control-title"><i class="fas fa-arrows-alt-h"></i> 库仑力方向</h3>
+                    <div class="vector-info">
+                        <div class="vector-item q1">
+                            <div>电荷 q₁ 受力方向</div>
+                            <div class="vector-value" id="forceDirectionQ1">→ 朝向 q₂</div>
+                        </div>
+                        <div class="vector-item q2">
+                            <div>电荷 q₂ 受力方向</div>
+                            <div class="vector-value" id="forceDirectionQ2">← 朝向 q₁</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="controls-section">
+                <div class="force-display">
+                    <div class="force-title">
+                        <i class="fas fa-weight-hanging"></i> 库仑力大小
+                    </div>
+                    <div class="force-value" id="forceValue">0 N</div>
+                    <div class="force-direction">
+                        <i class="fas fa-arrows-alt-h"></i> 
+                        <span id="forceDirection">两电荷相互吸引</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3 class="control-title"><i class="fas fa-sliders-h"></i> 电荷量控制</h3>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">电荷 q₁:</div>
+                        <input type="range" id="charge1Slider" min="-5" max="5" step="0.1" value="1">
+                        <div class="slider-value" id="charge1Value">+1.0 μC</div>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">电荷 q₂:</div>
+                        <input type="range" id="charge2Slider" min="-5" max="5" step="0.1" value="-1">
+                        <div class="slider-value" id="charge2Value">-1.0 μC</div>
+                    </div>
+                </div>
+                
+                <div class="distance-info">
+                    <h3 class="control-title"><i class="fas fa-ruler-combined"></i> 距离信息</h3>
+                    <p>两电荷之间的距离:</p>
+                    <div class="distance-value" id="distanceValue">0.30 m</div>
+                    <p>（1像素 ≈ 0.001米）</p>
+                </div>
+                
+                <div class="buttons-container">
+                    <button class="btn-direction" onclick="toggleForceVectors()">
+                        <i class="fas fa-arrows-alt-h"></i> 显示力方向
+                    </button>
+                    
+                    <button class="btn-reset" onclick="resetSimulation()">
+                        <i class="fas fa-redo"></i> 重置模拟
+                    </button>
+                    
+                    <button class="btn-knowledge" onclick="openModal()">
+                        <i class="fas fa-graduation-cap"></i> 知识检测
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>库仑定律交互模拟器 | 拖动电荷改变位置 | 调节滑块改变电荷量 | 观察库仑力的实时变化</p>
+            <p>© 2023 物理教学工具 | 使用 HTML5, CSS3 和 JavaScript 构建</p>
+        </div>
+    </div>
+    
+    <!-- 知识检测模态框 -->
+    <div class="modal" id="knowledgeModal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <div class="modal-header">
+                <i class="fas fa-graduation-cap"></i> 库仑定律知识检测
+            </div>
+            
+            <div class="question">
+                1. 根据库仑定律，两个点电荷之间的作用力与下列哪个因素成正比？
+            </div>
+            <div class="options">
+                <div class="option" onclick="selectOption(this, 1)">A. 电荷量的乘积</div>
+                <div class="option" onclick="selectOption(this, 1)">B. 电荷量的和</div>
+                <div class="option" onclick="selectOption(this, 1)">C. 电荷间的距离</div>
+                <div class="option" onclick="selectOption(this, 1)">D. 电荷运动的速度</div>
+            </div>
+            
+            <div class="question">
+                2. 两个点电荷之间的库仑力为F，如果两个电荷的电荷量都变为原来的2倍，同时它们之间的距离也变为原来的2倍，那么它们之间的库仑力将变为：
+            </div>
+            <div class="options">
+                <div class="option" onclick="selectOption(this, 2)">A. F</div>
+                <div class="option" onclick="selectOption(this, 2)">B. 2F</div>
+                <div class="option" onclick="selectOption(this, 2)">C. F/2</div>
+                <div class="option" onclick="selectOption(this, 2)">D. F/4</div>
+            </div>
+            
+            <div class="question">
+                3. 关于库仑定律，以下哪种说法是正确的？
+            </div>
+            <div class="options">
+                <div class="option" onclick="selectOption(this, 3)">A. 库仑力可以是吸引力也可以是排斥力</div>
+                <div class="option" onclick="selectOption(this, 3)">B. 同种电荷相互吸引，异种电荷相互排斥</div>
+                <div class="option" onclick="selectOption(this, 3)">C. 库仑力与电荷的运动状态无关</div>
+                <div class="option" onclick="selectOption(this, 3)">D. 库仑力的方向总是沿着两电荷的连线</div>
+            </div>
+            
+            <div class="question">
+                4. 两个点电荷带电量分别为+2μC和-4μC，相距0.1m，它们之间的库仑力大小约为多少？（k=9×10⁹ N·m²/C²）
+            </div>
+            <div class="options">
+                <div class="option" onclick="selectOption(this, 4)">A. 0.72 N</div>
+                <div class="option" onclick="selectOption(this, 4)">B. 7.2 N</div>
+                <div class="option" onclick="selectOption(this, 4)">C. 72 N</div>
+                <div class="option" onclick="selectOption(this, 4)">D. 720 N</div>
+            </div>
+            
+            <div class="question">
+                5. 两个相同的金属小球，带电量分别为+Q和-3Q，相距为r时相互作用力大小为F。将它们接触后分开，放回原处，则相互作用力大小变为：
+            </div>
+            <div class="options">
+                <div class="option" onclick="selectOption(this, 5)">A. F/3</div>
+                <div class="option" onclick="selectOption(this, 5)">B. F</div>
+                <div class="option" onclick="selectOption(this, 5)">C. 4F/3</div>
+                <div class="option" onclick="selectOption(this, 5)">D. 3F</div>
+            </div>
+            
+            <div class="question">
+                6. 关于库仑定律的适用范围，以下说法正确的是：
+            </div>
+            <div class="options">
+                <div class="option" onclick="selectOption(this, 6)">A. 只适用于点电荷</div>
+                <div class="option" onclick="selectOption(this, 6)">B. 只适用于静止电荷</div>
+                <div class="option" onclick="selectOption(this, 6)">C. 适用于任何形状的带电体</div>
+                <div class="option" onclick="selectOption(this, 6)">D. 在原子尺度内仍然准确</div>
+            </div>
+            
+            <button onclick="checkAnswers()" style="width: 100%; margin-top: 20px; padding: 18px;">
+                <i class="fas fa-check-circle"></i> 提交答案
+            </button>
+            
+            <div class="explanation" id="explanation">
+                <h3><i class="fas fa-lightbulb"></i> 习题解析</h3>
+                <p><strong>第1题解析：</strong> 根据库仑定律公式 \( F = k \frac{|q_1 q_2|}{r^2} \)，库仑力与两个电荷量的乘积成正比，与它们之间距离的平方成反比。因此正确答案是<strong>A</strong>。</p>
+                <p><strong>第2题解析：</strong> 根据库仑定律，电荷量都变为原来的2倍时，乘积变为原来的4倍；距离变为原来的2倍时，分母变为原来的4倍。因此力的大小不变，仍然是<strong>F</strong>，正确答案是<strong>A</strong>。</p>
+                <p><strong>第3题解析：</strong> 库仑力可以是吸引力（异种电荷）或排斥力（同种电荷）；库仑力的方向总是沿着两电荷的连线；同种电荷相互排斥，异种电荷相互吸引；库仑力与电荷的运动状态无关。因此<strong>A、C、D</strong>都是正确的，但题目要求选择正确的说法，根据库仑定律的性质，<strong>D</strong>是最准确的描述。</p>
+                <p><strong>第4题解析：</strong> 根据库仑定律 \( F = k \frac{|q_1 q_2|}{r^2} = 9\times10^9 \times \frac{|2\times10^{-6} \times (-4)\times10^{-6}|}{0.1^2} = 9\times10^9 \times \frac{8\times10^{-12}}{0.01} = 9\times10^9 \times 8\times10^{-10} = 7.2 N \)，正确答案是<strong>B</strong>。</p>
+                <p><strong>第5题解析：</strong> 接触前：\( F = k \frac{|Q \times (-3Q)|}{r^2} = k \frac{3Q^2}{r^2} \)。接触后电荷先中和再平分，每个小球带电量为 \( \frac{Q + (-3Q)}{2} = -Q \)。接触后：\( F' = k \frac{|(-Q) \times (-Q)|}{r^2} = k \frac{Q^2}{r^2} = \frac{F}{3} \)，正确答案是<strong>A</strong>。</p>
+                <p><strong>第6题解析：</strong> 库仑定律只适用于点电荷（带电体的大小远小于它们之间的距离），也适用于静止电荷（运动电荷会产生磁场，需要考虑洛伦兹力）。在原子尺度内，量子效应显著，库仑定律不再准确。因此最准确的答案是<strong>A</strong>。</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 库仑定律常量
+        const k = 9e9; // N·m²/C²，静电力常量
+        const pixelToMeter = 0.001; // 1像素 = 0.001米
+        
+        // 模拟变量
+        let isDragging = false;
+        let currentCharge = null;
+        let offsetX = 0, offsetY = 0;
+        let selectedOptions = [[], [], [], [], [], []];
+        let correctAnswers = [0, 0, 3, 1, 0, 0]; // 正确答案索引 (0-based)
+        let showForceVectors = false;
+        
+        // 初始化函数
+        function init() {
+            // 设置电荷初始属性
+            const charge1 = document.getElementById('charge1');
+            const charge2 = document.getElementById('charge2');
+            
+            charge1.dataset.q = 1e-6; // 1 μC
+            charge2.dataset.q = -1e-6; // -1 μC
+            
+            // 设置滑块事件
+            setupSliders();
+            
+            // 设置拖拽功能
+            setupDraggableCharges();
+            
+            // 初始计算
+            updateForce();
+            
+            // 初始显示力方向
+            updateForceVectors();
+        }
+        
+        // 设置滑块事件
+        function setupSliders() {
+            const charge1Slider = document.getElementById('charge1Slider');
+            const charge2Slider = document.getElementById('charge2Slider');
+            const charge1Value = document.getElementById('charge1Value');
+            const charge2Value = document.getElementById('charge2Value');
+            
+            charge1Slider.addEventListener('input', function() {
+                const value = parseFloat(this.value);
+                const charge1 = document.getElementById('charge1');
+                
+                // 更新电荷量和显示
+                charge1.dataset.q = value * 1e-6;
+                charge1Value.textContent = formatCharge(value);
+                
+                // 更新电荷外观
+                updateChargeAppearance(charge1, value);
+                
+                // 更新库仑力
+                updateForce();
+                updateForceVectors();
+            });
+            
+            charge2Slider.addEventListener('input', function() {
+                const value = parseFloat(this.value);
+                const charge2 = document.getElementById('charge2');
+                
+                // 更新电荷量和显示
+                charge2.dataset.q = value * 1e-6;
+                charge2Value.textContent = formatCharge(value);
+                
+                // 更新电荷外观
+                updateChargeAppearance(charge2, value);
+                
+                // 更新库仑力
+                updateForce();
+                updateForceVectors();
+            });
+        }
+        
+        // 格式化电荷量显示
+        function formatCharge(value) {
+            if (value === 0) return "0 μC";
+            const sign = value > 0 ? '+' : '-';
+            const absValue = Math.abs(value);
+            return `${sign}${absValue.toFixed(1)} μC`;
+        }
+        
+        // 更新电荷外观
+        function updateChargeAppearance(charge, value) {
+            // 更新电荷颜色
+            if (value > 0) {
+                charge.className = 'charge positive';
+            } else if (value < 0) {
+                charge.className = 'charge negative';
+            } else {
+                charge.className = 'charge neutral';
+            }
+            
+            // 更新电荷标签
+            const chargeLabel = charge.querySelector('.charge-label');
+            const chargeValue = charge.querySelector('.charge-value');
+            
+            if (charge.id === 'charge1') {
+                chargeLabel.textContent = 'q₁';
+            } else {
+                chargeLabel.textContent = 'q₂';
+            }
+            
+            chargeValue.textContent = formatCharge(value);
+        }
+        
+        // 设置可拖拽电荷
+        function setupDraggableCharges() {
+            const charges = document.querySelectorAll('.charge');
+            
+            charges.forEach(charge => {
+                charge.addEventListener('mousedown', startDrag);
+                charge.addEventListener('touchstart', startDragTouch, { passive: false });
+            });
+            
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', stopDrag);
+            
+            document.addEventListener('touchmove', dragTouch, { passive: false });
+            document.addEventListener('touchend', stopDrag);
+        }
+        
+        // 开始拖拽 (鼠标)
+        function startDrag(e) {
+            isDragging = true;
+            currentCharge = e.target;
+            
+            const rect = currentCharge.getBoundingClientRect();
+            offsetX = e.clientX - rect.left;
+            offsetY = e.clientY - rect.top;
+            
+            currentCharge.style.zIndex = 100;
+            currentCharge.style.cursor = 'grabbing';
+            e.preventDefault();
+        }
+        
+        // 开始拖拽 (触摸)
+        function startDragTouch(e) {
+            isDragging = true;
+            currentCharge = e.target;
+            
+            const touch = e.touches[0];
+            const rect = currentCharge.getBoundingClientRect();
+            offsetX = touch.clientX - rect.left;
+            offsetY = touch.clientY - rect.top;
+            
+            currentCharge.style.zIndex = 100;
+            e.preventDefault();
+        }
+        
+        // 拖拽 (鼠标)
+        function drag(e) {
+            if (!isDragging || !currentCharge) return;
+            
+            const simulationArea = document.getElementById('simulationArea');
+            const areaRect = simulationArea.getBoundingClientRect();
+            
+            let newX = e.clientX - offsetX - areaRect.left;
+            let newY = e.clientY - offsetY - areaRect.top;
+            
+            // 限制在模拟区域内
+            newX = Math.max(0, Math.min(newX, areaRect.width - currentCharge.offsetWidth));
+            newY = Math.max(0, Math.min(newY, areaRect.height - currentCharge.offsetHeight));
+            
+            currentCharge.style.left = `${newX}px`;
+            currentCharge.style.top = `${newY}px`;
+            
+            updateForce();
+            updateForceVectors();
+            e.preventDefault();
+        }
+        
+        // 拖拽 (触摸)
+        function dragTouch(e) {
+            if (!isDragging || !currentCharge) return;
+            
+            const touch = e.touches[0];
+            const simulationArea = document.getElementById('simulationArea');
+            const areaRect = simulationArea.getBoundingClientRect();
+            
+            let newX = touch.clientX - offsetX - areaRect.left;
+            let newY = touch.clientY - offsetY - areaRect.top;
+            
+            // 限制在模拟区域内
+            newX = Math.max(0, Math.min(newX, areaRect.width - currentCharge.offsetWidth));
+            newY = Math.max(0, Math.min(newY, areaRect.height - currentCharge.offsetHeight));
+            
+            currentCharge.style.left = `${newX}px`;
+            currentCharge.style.top = `${newY}px`;
+            
+            updateForce();
+            updateForceVectors();
+            e.preventDefault();
+        }
+        
+        // 停止拖拽
+        function stopDrag() {
+            if (currentCharge) {
+                currentCharge.style.zIndex = 10;
+                currentCharge.style.cursor = 'move';
+            }
+            isDragging = false;
+            currentCharge = null;
+        }
+        
+        // 更新库仑力计算和显示
+        function updateForce() {
+            const charge1 = document.getElementById('charge1');
+            const charge2 = document.getElementById('charge2');
+            const forceValue = document.getElementById('forceValue');
+            const forceDirection = document.getElementById('forceDirection');
+            const distanceValue = document.getElementById('distanceValue');
+            
+            // 获取位置和电荷量
+            const rect1 = charge1.getBoundingClientRect();
+            const rect2 = charge2.getBoundingClientRect();
+            const areaRect = document.getElementById('simulationArea').getBoundingClientRect();
+            
+            const x1 = rect1.left - areaRect.left + rect1.width / 2;
+            const y1 = rect1.top - areaRect.top + rect1.height / 2;
+            const x2 = rect2.left - areaRect.left + rect2.width / 2;
+            const y2 = rect2.top - areaRect.top + rect2.height / 2;
+            
+            const q1 = parseFloat(charge1.dataset.q);
+            const q2 = parseFloat(charge2.dataset.q);
+            
+            // 计算距离（转换为米）
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            const rPixels = Math.sqrt(dx * dx + dy * dy);
+            const r = rPixels * pixelToMeter;
+            
+            // 计算库仑力
+            let force = 0;
+            if (r > 0) {
+                force = k * Math.abs(q1 * q2) / (r * r);
+            }
+            
+            // 更新距离显示
+            distanceValue.textContent = r.toFixed(2) + " m";
+            
+            // 更新力显示
+            if (force < 1e-9 || rPixels < 5) {
+                forceValue.textContent = "≈ 0 N";
+            } else if (force < 0.01) {
+                forceValue.textContent = force.toExponential(2) + " N";
+            } else {
+                forceValue.textContent = force.toFixed(3) + " N";
+            }
+            
+            // 更新力方向显示
+            if (q1 * q2 > 0) {
+                forceDirection.textContent = "两电荷相互排斥";
+            } else if (q1 * q2 < 0) {
+                forceDirection.textContent = "两电荷相互吸引";
+            } else {
+                forceDirection.textContent = "电荷为零，无相互作用";
+            }
+            
+            // 更新力线和箭头
+            updateForceLine(x1, y1, x2, y2, q1, q2, force, rPixels);
+        }
+        
+        // 更新力线和箭头
+        function updateForceLine(x1, y1, x2, y2, q1, q2, force, rPixels) {
+            // 移除旧的力线和箭头
+            const oldLines = document.querySelectorAll('.force-line, .force-arrow');
+            oldLines.forEach(line => line.remove());
+            
+            // 如果距离为0或力为0，不显示力线
+            if (rPixels < 5 || force === 0) return;
+            
+            const simulationArea = document.getElementById('simulationArea');
+            
+            // 计算角度
+            const angle = Math.atan2(y2 - y1, x2 - x1);
+            
+            // 创建力线
+            const line = document.createElement('div');
+            line.className = 'force-line';
+            line.style.width = `${rPixels}px`;
+            line.style.left = `${x1}px`;
+            line.style.top = `${y1}px`;
+            line.style.transform = `rotate(${angle}rad)`;
+            
+            simulationArea.appendChild(line);
+        }
+        
+        // 更新力方向向量
+        function updateForceVectors() {
+            // 移除旧的力向量
+            const oldVectors = document.querySelectorAll('.force-vector');
+            oldVectors.forEach(vector => vector.remove());
+            
+            // 如果不显示力向量，则返回
+            if (!showForceVectors) return;
+            
+            const charge1 = document.getElementById('charge1');
+            const charge2 = document.getElementById('charge2');
+            const forceDirectionQ1 = document.getElementById('forceDirectionQ1');
+            const forceDirectionQ2 = document.getElementById('forceDirectionQ2');
+            
+            // 获取位置和电荷量
+            const rect1 = charge1.getBoundingClientRect();
+            const rect2 = charge2.getBoundingClientRect();
+            const areaRect = document.getElementById('simulationArea').getBoundingClientRect();
+            
+            const x1 = rect1.left - areaRect.left + rect1.width / 2;
+            const y1 = rect1.top - areaRect.top + rect1.height / 2;
+            const x2 = rect2.left - areaRect.left + rect2.width / 2;
+            const y2 = rect2.top - areaRect.top + rect2.height / 2;
+            
+            const q1 = parseFloat(charge1.dataset.q);
+            const q2 = parseFloat(charge2.dataset.q);
+            
+            // 计算角度
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            const angle = Math.atan2(dy, dx);
+            
+            const simulationArea = document.getElementById('simulationArea');
+            
+            // 更新电荷1的受力方向
+            if (q1 !== 0 && q2 !== 0) {
+                const vector1 = document.createElement('div');
+                vector1.className = 'force-vector q1';
+                
+                // 根据力的方向设置向量方向
+                if (q1 * q2 > 0) {
+                    // 排斥力，q1受力方向远离q2
+                    vector1.style.left = `${x1}px`;
+                    vector1.style.top = `${y1}px`;
+                    vector1.style.transform = `rotate(${angle + Math.PI}rad)`;
+                    forceDirectionQ1.textContent = "← 远离 q₂";
+                } else {
+                    // 吸引力，q1受力方向指向q2
+                    vector1.style.left = `${x1}px`;
+                    vector1.style.top = `${y1}px`;
+                    vector1.style.transform = `rotate(${angle}rad)`;
+                    forceDirectionQ1.textContent = "→ 朝向 q₂";
+                }
+                
+                simulationArea.appendChild(vector1);
+            } else {
+                forceDirectionQ1.textContent = "无受力";
+            }
+            
+            // 更新电荷2的受力方向
+            if (q1 !== 0 && q2 !== 0) {
+                const vector2 = document.createElement('div');
+                vector2.className = 'force-vector q2';
+                
+                // 根据力的方向设置向量方向
+                if (q1 * q2 > 0) {
+                    // 排斥力，q2受力方向远离q1
+                    vector2.style.left = `${x2}px`;
+                    vector2.style.top = `${y2}px`;
+                    vector2.style.transform = `rotate(${angle}rad)`;
+                    forceDirectionQ2.textContent = "→ 远离 q₁";
+                } else {
+                    // 吸引力，q2受力方向指向q1
+                    vector2.style.left = `${x2}px`;
+                    vector2.style.top = `${y2}px`;
+                    vector2.style.transform = `rotate(${angle + Math.PI}rad)`;
+                    forceDirectionQ2.textContent = "← 朝向 q₁";
+                }
+                
+                simulationArea.appendChild(vector2);
+            } else {
+                forceDirectionQ2.textContent = "无受力";
+            }
+        }
+        
+        // 切换力方向向量显示
+        function toggleForceVectors() {
+            const vectorDisplay = document.getElementById('vectorDisplay');
+            const directionButton = document.querySelector('.btn-direction');
+            
+            showForceVectors = !showForceVectors;
+            
+            if (showForceVectors) {
+                vectorDisplay.style.display = 'block';
+                directionButton.innerHTML = '<i class="fas fa-eye-slash"></i> 隐藏力方向';
+                updateForceVectors();
+            } else {
+                vectorDisplay.style.display = 'none';
+                directionButton.innerHTML = '<i class="fas fa-arrows-alt-h"></i> 显示力方向';
+                
+                // 移除力向量
+                const oldVectors = document.querySelectorAll('.force-vector');
+                oldVectors.forEach(vector => vector.remove());
+            }
+        }
+        
+        // 重置模拟
+        function resetSimulation() {
+            // 重置电荷位置
+            document.getElementById('charge1').style.left = '200px';
+            document.getElementById('charge1').style.top = '300px';
+            document.getElementById('charge2').style.left = '500px';
+            document.getElementById('charge2').style.top = '300px';
+            
+            // 重置滑块
+            document.getElementById('charge1Slider').value = 1;
+            document.getElementById('charge2Slider').value = -1;
+            
+            // 更新电荷显示
+            const charge1 = document.getElementById('charge1');
+            const charge2 = document.getElementById('charge2');
+            
+            charge1.dataset.q = 1e-6;
+            charge2.dataset.q = -1e-6;
+            
+            document.getElementById('charge1Value').textContent = '+1.0 μC';
+            document.getElementById('charge2Value').textContent = '-1.0 μC';
+            
+            updateChargeAppearance(charge1, 1);
+            updateChargeAppearance(charge2, -1);
+            
+            // 更新力计算
+            updateForce();
+            updateForceVectors();
+            
+            // 隐藏力方向显示
+            if (showForceVectors) {
+                toggleForceVectors();
+            }
+        }
+        
+        // 打开知识检测模态框
+        function openModal() {
+            document.getElementById('knowledgeModal').style.display = 'flex';
+        }
+        
+        // 关闭知识检测模态框
+        function closeModal() {
+            document.getElementById('knowledgeModal').style.display = 'none';
+            const explanation = document.getElementById('explanation');
+            explanation.style.display = 'none';
+            
+            // 重置选项样式
+            const options = document.querySelectorAll('#knowledgeModal .option');
+            options.forEach(option => {
+                option.classList.remove('selected', 'correct', 'incorrect');
+            });
+            
+            // 重置选中选项
+            selectedOptions = [[], [], [], [], [], []];
+        }
+        
+        // 选择答案选项
+        function selectOption(optionElement, questionIndex) {
+            const optionsContainer = optionElement.parentNode;
+            const options = optionsContainer.querySelectorAll('.option');
+            const optionIndex = Array.from(options).indexOf(optionElement);
+            
+            // 移除同一问题中其他选项的选中状态
+            options.forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // 标记当前选项为选中状态
+            optionElement.classList.add('selected');
+            
+            // 保存选择
+            selectedOptions[questionIndex - 1] = optionIndex;
+        }
+        
+        // 检查答案
+        function checkAnswers() {
+            const explanation = document.getElementById('explanation');
+            const optionsContainers = document.querySelectorAll('#knowledgeModal .options');
+            
+            let allAnswered = true;
+            let score = 0;
+            
+            // 检查每个问题
+            for (let i = 0; i < optionsContainers.length; i++) {
+                const options = optionsContainers[i].querySelectorAll('.option');
+                const selectedIndex = selectedOptions[i];
+                const correctIndex = correctAnswers[i];
+                
+                // 如果没有选择答案
+                if (selectedIndex === undefined) {
+                    allAnswered = false;
+                    continue;
+                }
+                
+                // 标记正确和错误的答案
+                options.forEach((option, index) => {
+                    if (index === correctIndex) {
+                        option.classList.add('correct');
+                    } else if (index === selectedIndex && index !== correctIndex) {
+                        option.classList.add('incorrect');
+                    }
+                });
+                
+                // 计分
+                if (selectedIndex === correctIndex) {
+                    score++;
+                }
+            }
+            
+            // 显示解析
+            explanation.style.display = 'block';
+            
+            // 添加得分信息
+            const scoreInfo = document.createElement('div');
+            scoreInfo.style.marginTop = '15px';
+            scoreInfo.style.padding = '15px';
+            scoreInfo.style.backgroundColor = score === optionsContainers.length ? '#d4edda' : 
+                                            score >= optionsContainers.length/2 ? '#fff3cd' : '#f8d7da';
+            scoreInfo.style.borderRadius = '8px';
+            scoreInfo.style.borderLeft = `5px solid ${
+                score === optionsContainers.length ? '#28a745' : 
+                score >= optionsContainers.length/2 ? '#ffc107' : '#dc3545'
+            }`;
+            
+            if (allAnswered) {
+                scoreInfo.innerHTML = `
+                    <h4 style="margin-bottom: 10px; color: ${
+                        score === optionsContainers.length ? '#155724' : 
+                        score >= optionsContainers.length/2 ? '#856404' : '#721c24'
+                    }">
+                        <i class="fas fa-${score === optionsContainers.length ? 'trophy' : 
+                                         score >= optionsContainers.length/2 ? 'chart-line' : 'exclamation-circle'}"></i>
+                        你的得分: ${score}/${optionsContainers.length}
+                    </h4>
+                    <p style="color: ${
+                        score === optionsContainers.length ? '#155724' : 
+                        score >= optionsContainers.length/2 ? '#856404' : '#721c24'
+                    }">
+                        ${score === optionsContainers.length ? 
+                            '太棒了！全部回答正确！' : 
+                            score >= optionsContainers.length/2 ?
+                            `答对了 ${score} 题，继续努力！` :
+                            `答对了 ${score} 题，需要加强学习！`
+                        }
+                    </p>
+                `;
+                
+                // 如果已经存在得分信息，先移除
+                const existingScoreInfo = explanation.querySelector('.score-info');
+                if (existingScoreInfo) {
+                    existingScoreInfo.remove();
+                }
+                
+                scoreInfo.classList.add('score-info');
+                explanation.appendChild(scoreInfo);
+            } else {
+                scoreInfo.innerHTML = `
+                    <h4 style="margin-bottom: 10px; color: #856404">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        请完成所有题目！
+                    </h4>
+                    <p style="color: #856404">
+                        你还有题目没有回答，请完成所有题目后再提交。
+                    </p>
+                `;
+                
+                // 如果已经存在得分信息，先移除
+                const existingScoreInfo = explanation.querySelector('.score-info');
+                if (existingScoreInfo) {
+                    existingScoreInfo.remove();
+                }
+                
+                scoreInfo.classList.add('score-info');
+                explanation.appendChild(scoreInfo);
+            }
+            
+            // 滚动到解析部分
+            explanation.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // 页面加载完成后初始化
+        window.onload = init;
+        
+        // 使MathJax公式正确渲染
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            },
+            startup: {
+                pageReady: () => {
+                    return MathJax.startup.defaultPageReady().then(() => {
+                        console.log('MathJax 渲染完成');
+                    });
+                }
+            }
+        };
+    </script>
+</body>
+</html>

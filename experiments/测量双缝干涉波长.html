@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>双缝干涉测量光的波长 - 双缝间距可视化</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #f0f7ff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #4a90e2;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+        
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .experiment-container {
+            flex: 2;
+            min-width: 500px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+        }
+        
+        .controls-container {
+            flex: 1;
+            min-width: 300px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+        }
+        
+        .section-title {
+            font-size: 1.3em;
+            color: #3498db;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #ddd;
+        }
+        
+        .control-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        input[type="range"] {
+            flex-grow: 1;
+            height: 8px;
+            border-radius: 4px;
+            background: #ddd;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        
+        input[type="range"]:hover {
+            opacity: 1;
+        }
+        
+        .value-display {
+            min-width: 70px;
+            text-align: center;
+            font-weight: bold;
+            color: #2980b9;
+        }
+        
+        /* 实验装置样式 */
+        .experiment-setup {
+            position: relative;
+            height: 450px;
+            margin-bottom: 30px;
+            background-color: #2a2f3a;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #1a1e26;
+            overflow: hidden;
+        }
+        
+        .optical-bench {
+            position: absolute;
+            top: 85%;
+            left: 5%;
+            width: 90%;
+            height: 15px;
+            background-color: #4a5568;
+            border-radius: 8px;
+            z-index: 1;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+        }
+        
+        .optical-bench::before {
+            content: '';
+            position: absolute;
+            top: -15px;
+            left: 0;
+            width: 100%;
+            height: 15px;
+            background-color: #5d6b82;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .component {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 2;
+            transition: all 0.5s ease;
+        }
+        
+        .component-label {
+            position: absolute;
+            bottom: -40px;
+            font-size: 13px;
+            color: #ecf0f1;
+            white-space: nowrap;
+            font-weight: 600;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+            background-color: rgba(0,0,0,0.6);
+            padding: 3px 8px;
+            border-radius: 3px;
+        }
+        
+        .component-value {
+            position: absolute;
+            top: -35px;
+            font-size: 12px;
+            color: #ecf0f1;
+            background-color: rgba(0,0,0,0.6);
+            padding: 2px 6px;
+            border-radius: 3px;
+            white-space: nowrap;
+        }
+        
+        /* 光源 */
+        .light-source {
+            left: 5%;
+            width: 50px;
+            height: 80px;
+            background-color: #e74c3c;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(231, 76, 60, 0.9);
+        }
+        
+        .light-source .component-value::after {
+            content: '激光光源';
+        }
+        
+        /* 透镜 */
+        .lens {
+            left: 18%;
+            width: 40px;
+            height: 90px;
+            background: radial-gradient(ellipse at center, #ecf0f1, #bdc3c7);
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(255,255,255,0.4);
+        }
+        
+        .lens .component-value::after {
+            content: '凸透镜';
+        }
+        
+        /* 单缝 */
+        .single-slit {
+            left: 32%;
+            width: 25px;
+            height: 100px;
+            background-color: #3a4556;
+            border-radius: 4px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+        }
+        
+        .single-slit::before {
+            content: '';
+            position: absolute;
+            width: 4px;
+            height: 60px;
+            background-color: #ecf0f1;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 2px;
+        }
+        
+        .single-slit .component-value::after {
+            content: '单缝';
+        }
+        
+        /* 双缝和遮光筒组件 */
+        .double-slit-shield {
+            left: 46%;
+            display: flex;
+            align-items: center;
+            width: 400px;
+            height: 150px;
+        }
+        
+        .shield-tube {
+            width: 350px;
+            height: 120px;
+            background: linear-gradient(to right, #3a4556, #2c3e50, #3a4556);
+            border-radius: 60px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+            position: relative;
+            border: 2px solid #4a5568;
+            transition: width 0.5s ease;
+        }
+        
+        .shield-tube::before {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            right: 5px;
+            bottom: 5px;
+            background: linear-gradient(to right, #4a5568, #3a4556, #4a5568);
+            border-radius: 55px;
+        }
+        
+        /* 双缝单元 - 重点展示双缝间距 */
+        .double-slit-unit {
+            position: absolute;
+            left: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 80px;
+            height: 120px;
+            background-color: #1a1e26;
+            border-radius: 8px;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.7), 0 0 15px rgba(255,255,255,0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .double-slits-container {
+            position: relative;
+            width: 60px;
+            height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        /* 单个缝的样式 */
+        .slit {
+            position: absolute;
+            width: 4px;
+            height: 40px;
+            background-color: #ecf0f1;
+            border-radius: 2px;
+            box-shadow: 0 0 8px rgba(255,255,255,0.8);
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        /* 双缝间距指示器 */
+        .slit-distance-indicator {
+            position: absolute;
+            top: -25px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: #ecf0f1;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .slit-distance-line {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            width: 1px;
+            height: 10px;
+            background-color: #e74c3c;
+            transform: translateX(-50%);
+        }
+        
+        .slit-distance-line::before, .slit-distance-line::after {
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 1px;
+            background-color: #e74c3c;
+            top: 50%;
+        }
+        
+        .slit-distance-line::before {
+            left: -20px;
+        }
+        
+        .slit-distance-line::after {
+            left: 11px;
+        }
+        
+        /* 测量头部分 */
+        .measurement-head {
+            position: absolute;
+            right: 50px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 80px;
+            height: 100px;
+            background-color: #3a4556;
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.6);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .eyepiece {
+            width: 40px;
+            height: 40px;
+            background-color: #1a1e26;
+            border-radius: 50%;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        
+        .eyepiece::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 25px;
+            height: 25px;
+            background-color: #3498db;
+            border-radius: 50%;
+            opacity: 0.8;
+        }
+        
+        .frosted-glass {
+            width: 70px;
+            height: 40px;
+            background: linear-gradient(to right, rgba(255,255,255,0.95), rgba(255,255,255,0.6));
+            border-radius: 6px;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.4);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* 干涉条纹 */
+        .interference-pattern {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 50px;
+            height: 20px;
+        }
+        
+        .interference-stripe {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: rgba(52, 152, 219, 0.9);
+            transform: translateY(-50%);
+            box-shadow: 0 0 4px rgba(52, 152, 219, 0.9);
+            transition: top 0.5s ease;
+        }
+        
+        /* 光束路径 */
+        .light-beam {
+            position: absolute;
+            top: 50%;
+            left: 5%;
+            height: 3px;
+            background: linear-gradient(90deg, 
+                rgba(231, 76, 60, 0) 0%, 
+                rgba(231, 76, 60, 0.8) 5%, 
+                rgba(231, 76, 60, 0.8) 35%, 
+                rgba(231, 76, 60, 0.4) 40%,
+                rgba(52, 152, 219, 0.8) 46%,
+                rgba(52, 152, 219, 0.8) 95%,
+                rgba(52, 152, 219, 0) 100%);
+            transform: translateY(-50%);
+            z-index: 1;
+            transition: width 0.5s ease, left 0.5s ease;
+        }
+        
+        .beam-to-double-slit {
+            position: absolute;
+            top: 50%;
+            left: 46%;
+            height: 3px;
+            background: rgba(52, 152, 219, 0.8);
+            transform: translateY(-50%);
+            z-index: 1;
+            transition: width 0.5s ease;
+        }
+        
+        /* 距离指示器 */
+        .distance-indicator {
+            position: absolute;
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            z-index: 10;
+            white-space: nowrap;
+        }
+        
+        .distance-line {
+            position: absolute;
+            border-top: 1px dashed rgba(255,255,255,0.5);
+            z-index: 9;
+        }
+        
+        /* 双缝间距可视化 */
+        .slit-visualization {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 200px;
+            height: 150px;
+            background-color: rgba(0,0,0,0.7);
+            border-radius: 8px;
+            padding: 10px;
+            z-index: 20;
+        }
+        
+        .slit-visual-title {
+            color: white;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .slit-visual-container {
+            position: relative;
+            width: 100%;
+            height: 100px;
+            background-color: rgba(30, 40, 50, 0.8);
+            border-radius: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .visual-slit {
+            position: absolute;
+            width: 3px;
+            height: 40px;
+            background-color: #ecf0f1;
+            border-radius: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .visual-distance-line {
+            position: absolute;
+            width: 1px;
+            height: 20px;
+            background-color: #e74c3c;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .visual-distance-line::before, .visual-distance-line::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 1px;
+            background-color: #e74c3c;
+            top: 50%;
+        }
+        
+        .visual-distance-line::before {
+            left: -10px;
+        }
+        
+        .visual-distance-line::after {
+            left: 3px;
+        }
+        
+        .visual-distance-text {
+            position: absolute;
+            color: #e74c3c;
+            font-size: 11px;
+            font-weight: bold;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0,0,0,0.7);
+            padding: 2px 4px;
+            border-radius: 2px;
+        }
+        
+        /* 装置说明 */
+        .apparatus-explanation {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #3498db;
+        }
+        
+        .apparatus-explanation h4 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        .apparatus-explanation ul {
+            padding-left: 20px;
+        }
+        
+        .apparatus-explanation li {
+            margin-bottom: 5px;
+        }
+        
+        .formula {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #3498db;
+            font-family: 'Cambria', 'Times New Roman', serif;
+        }
+        
+        .formula h4 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        .formula p {
+            font-size: 1.2em;
+            text-align: center;
+        }
+        
+        /* 测量区域 */
+        .measurement-area {
+            background-color: #e8f4fc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .measurement-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .measure-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .measure-btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .measurement-result {
+            background-color: white;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        
+        /* 填空和测试区域 */
+        .fill-blanks, .knowledge-test {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            margin-top: 30px;
+        }
+        
+        .blank-item {
+            margin-bottom: 15px;
+        }
+        
+        .blank-question {
+            margin-bottom: 5px;
+        }
+        
+        .blank-input {
+            padding: 8px;
+            width: 150px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        
+        .check-button {
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .check-button:hover {
+            background-color: #27ae60;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        
+        @media (max-width: 1100px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .experiment-container {
+                min-width: 100%;
+            }
+            
+            .double-slit-shield {
+                width: 350px;
+            }
+            
+            .shield-tube {
+                width: 300px;
+            }
+            
+            .slit-visualization {
+                width: 150px;
+                height: 120px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .experiment-setup {
+                height: 400px;
+            }
+            
+            .double-slit-shield {
+                width: 300px;
+            }
+            
+            .shield-tube {
+                width: 250px;
+            }
+            
+            .slit-visualization {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <header>
+        <h1>双缝干涉测量光的波长实验</h1>
+        <p class="subtitle">双缝间距可视化 - 两个缝之间距离的动态变化</p>
+    </header>
+    
+    <div class="container">
+        <div class="experiment-container">
+            <h2 class="section-title">实验装置与光路（双缝间距可视化）</h2>
+            
+            <div class="experiment-setup" id="experimentArea">
+                <!-- 双缝间距可视化 -->
+                <div class="slit-visualization">
+                    <div class="slit-visual-title">双缝间距d可视化</div>
+                    <div class="slit-visual-container" id="slitVisualContainer">
+                        <!-- 两个缝和距离指示将在这里动态生成 -->
+                    </div>
+                </div>
+                
+                <!-- 光具座 -->
+                <div class="optical-bench"></div>
+                
+                <!-- 光束路径 -->
+                <div class="light-beam" id="lightBeam"></div>
+                <div class="beam-to-double-slit" id="beamToDoubleSlit"></div>
+                
+                <!-- 距离指示器 -->
+                <div class="distance-indicator" id="slitDistanceIndicator" style="top: 30%; left: 49%;">
+                    d = <span id="slitDistanceDisplay">0.20</span> mm
+                </div>
+                
+                <div class="distance-line" id="slitDistanceLine" style="top: 32%; left: 49%; width: 100px; transform: translateX(-50%);"></div>
+                
+                <div class="distance-indicator" id="screenDistanceIndicator" style="top: 60%; left: 65%;">
+                    L = <span id="screenDistanceDisplay">1.0</span> m
+                </div>
+                
+                <div class="distance-line" id="screenDistanceLine" style="top: 62%; left: 50%; width: 200px;"></div>
+                
+                <!-- 实验组件 -->
+                <div class="component light-source" id="sourceComponent" style="top: 50%;">
+                    <div class="component-value"></div>
+                    <div class="component-label">光源</div>
+                </div>
+                
+                <div class="component lens" id="lensComponent" style="top: 50%;">
+                    <div class="component-value"></div>
+                    <div class="component-label">透镜</div>
+                </div>
+                
+                <div class="component single-slit" id="slitComponent" style="top: 50%;">
+                    <div class="component-value"></div>
+                    <div class="component-label">单缝</div>
+                </div>
+                
+                <!-- 双缝和遮光筒组件 -->
+                <div class="component double-slit-shield" id="shieldComponent" style="top: 50%;">
+                    <div class="shield-tube" id="shieldTube">
+                        <!-- 双缝单元 -->
+                        <div class="double-slit-unit" id="doubleSlitUnit">
+                            <div class="double-slits-container" id="doubleSlitsContainer">
+                                <!-- 两个缝将在这里动态生成 -->
+                            </div>
+                        </div>
+                        
+                        <!-- 测量头 -->
+                        <div class="measurement-head" id="measurementHead">
+                            <div class="eyepiece" title="目镜"></div>
+                            <div class="frosted-glass">
+                                <div class="interference-pattern" id="interferencePattern">
+                                    <!-- 干涉条纹将在此生成 -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="component-label">双缝与遮光筒</div>
+                </div>
+            </div>
+            
+            <div class="apparatus-explanation">
+                <h4>双缝间距d可视化说明</h4>
+                <ul>
+                    <li><strong>双缝间距d</strong>：两个缝中心之间的距离，通常为0.1-0.5mm</li>
+                    <li><strong>调节效果</strong>：增加d → 两个缝距离增加 → 干涉条纹间距Δx减小（条纹变密）</li>
+                    <li><strong>物理原理</strong>：根据公式Δx = (L/d)×λ，d在分母，所以d增加时Δx减小</li>
+                    <li><strong>实验观察</strong>：调节双缝间距旋钮，观察两个缝的距离变化，同时观察干涉条纹的变化</li>
+                </ul>
+            </div>
+            
+            <div class="formula">
+                <h4>双缝干涉公式 Δx = (L/d) × λ</h4>
+                <p>Δx: 条纹间距 | L: 双缝到屏距离 | d: 双缝间距 | λ: 光的波长</p>
+                <p id="formulaExample">当前：d = <span id="currentD">0.20</span> mm, L = <span id="currentL">1.0</span> m, λ = <span id="currentLambda">532</span> nm</p>
+                <p>计算：Δx = (<span id="currentL2">1.0</span> m / <span id="currentD2">0.20</span> mm) × <span id="currentLambda2">532</span> nm = <span id="currentDeltaX">2.66</span> mm</p>
+            </div>
+        </div>
+        
+        <div class="controls-container">
+            <h2 class="section-title">实验参数调节</h2>
+            
+            <div class="control-group">
+                <label for="slitDistance">双缝间距 d: <span id="slitDistanceValue">0.20 mm</span></label>
+                <div class="slider-container">
+                    <input type="range" id="slitDistance" min="0.05" max="0.5" value="0.2" step="0.01">
+                </div>
+                <p class="hint">调节双缝间距：0.05mm(两缝很近) → 0.5mm(两缝很远)</p>
+                <p class="hint">观察：d增加 → Δx减小（条纹变密）</p>
+            </div>
+            
+            <div class="control-group">
+                <label for="wavelength">光的波长 λ: <span id="wavelengthValue">532 nm</span></label>
+                <div class="slider-container">
+                    <input type="range" id="wavelength" min="400" max="700" value="532" step="1">
+                </div>
+                <p class="hint">调节波长：400nm(紫) → 700nm(红)</p>
+                <p class="hint">观察：λ增加 → Δx增加（条纹变疏）</p>
+            </div>
+            
+            <div class="control-group">
+                <label for="screenDistance">双缝到屏距离 L: <span id="screenDistanceValue">1.0 m</span></label>
+                <div class="slider-container">
+                    <input type="range" id="screenDistance" min="0.5" max="2.5" value="1.0" step="0.1">
+                </div>
+                <p class="hint">调节缝到屏距离：0.5m → 2.5m</p>
+                <p class="hint">观察：L增加 → Δx增加（条纹变疏）</p>
+            </div>
+            
+            <div class="control-group">
+                <label for="lightIntensity">光强: <span id="lightIntensityValue">100%</span></label>
+                <div class="slider-container">
+                    <input type="range" id="lightIntensity" min="30" max="100" value="100" step="1">
+                </div>
+                <p class="hint">调节光强：30% → 100%，条纹亮度变化</p>
+            </div>
+            
+            <div class="control-group">
+                <label>参数变化规律总结</label>
+                <div style="background-color: #f0f8ff; padding: 12px; border-radius: 6px; border-left: 4px solid #3498db;">
+                    <p style="margin-bottom: 8px;"><strong>Δx = (L/d) × λ</strong></p>
+                    <p>• d增加 → Δx减小（条纹变密）</p>
+                    <p>• λ增加 → Δx增加（条纹变疏）</p>
+                    <p>• L增加 → Δx增加（条纹变疏）</p>
+                </div>
+            </div>
+            
+            <div class="measurement-area">
+                <h4>条纹测量与计算</h4>
+                <div class="measurement-controls">
+                    <button class="measure-btn" id="measureDeltaX">测量Δx</button>
+                    <button class="measure-btn" id="calculateLambda">计算λ</button>
+                    <button class="measure-btn" id="resetParams">重置参数</button>
+                </div>
+                <div class="measurement-result">
+                    <p>测量的条纹间距 Δx = <span id="measuredDeltaX">0.00</span> mm</p>
+                    <p>计算波长 λ = <span id="calculatedLambda">0.00</span> nm</p>
+                    <p>理论波长 λ = <span id="theoreticalLambda">532.0</span> nm</p>
+                    <p id="measurementError">相对误差: <span id="errorPercent">0.0</span>%</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="fill-blanks">
+        <h3 class="section-title">实验观察与思考</h3>
+        <div class="blank-item">
+            <p class="blank-question">1. 当双缝间距d从0.10mm增加到0.40mm时（变为4倍），干涉条纹间距Δx会变为原来的______。</p>
+            <input type="text" class="blank-input" id="blank1" placeholder="填入倍数">
+            <button class="check-button" onclick="checkBlank(1)">检查</button>
+            <div class="blank-feedback" id="feedback1"></div>
+        </div>
+        <div class="blank-item">
+            <p class="blank-question">2. 如果要使干涉条纹变得更稀疏（Δx增大），可以采取的措施是：______双缝间距d，或______双缝到屏距离L，或使用波长______的光。</p>
+            <input type="text" class="blank-input" id="blank2" placeholder="填入变化">
+            <button class="check-button" onclick="checkBlank(2)">检查</button>
+            <div class="blank-feedback" id="feedback2"></div>
+        </div>
+        <div class="blank-item">
+            <p class="blank-question">3. 实际实验中，双缝间距d通常很小（0.1-0.5mm），这是因为如果d太大，会导致Δx______，不利于观察和测量。</p>
+            <input type="text" class="blank-input" id="blank3" placeholder="填入变化">
+            <button class="check-button" onclick="checkBlank(3)">检查</button>
+            <div class="blank-feedback" id="feedback3"></div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>双缝干涉测量光的波长实验 - 双缝间距可视化 | 高中物理教学资源</p>
+        <p>重点：两个缝之间的距离d调节及其对干涉条纹的影响</p>
+    </footer>
+
+    <script>
+        // 获取DOM元素
+        const wavelengthSlider = document.getElementById('wavelength');
+        const wavelengthValue = document.getElementById('wavelengthValue');
+        const slitDistanceSlider = document.getElementById('slitDistance');
+        const slitDistanceValue = document.getElementById('slitDistanceValue');
+        const screenDistanceSlider = document.getElementById('screenDistance');
+        const screenDistanceValue = document.getElementById('screenDistanceValue');
+        const lightIntensitySlider = document.getElementById('lightIntensity');
+        const lightIntensityValue = document.getElementById('lightIntensityValue');
+        
+        // 实验装置元素
+        const doubleSlitsContainer = document.getElementById('doubleSlitsContainer');
+        const slitVisualContainer = document.getElementById('slitVisualContainer');
+        const shieldTube = document.getElementById('shieldTube');
+        const measurementHead = document.getElementById('measurementHead');
+        const lightBeam = document.getElementById('lightBeam');
+        const beamToDoubleSlit = document.getElementById('beamToDoubleSlit');
+        const interferencePattern = document.getElementById('interferencePattern');
+        
+        // 显示元素
+        const slitDistanceDisplay = document.getElementById('slitDistanceDisplay');
+        const screenDistanceDisplay = document.getElementById('screenDistanceDisplay');
+        const currentDeltaX = document.getElementById('currentDeltaX');
+        const currentD = document.getElementById('currentD');
+        const currentL = document.getElementById('currentL');
+        const currentLambda = document.getElementById('currentLambda');
+        const currentD2 = document.getElementById('currentD2');
+        const currentL2 = document.getElementById('currentL2');
+        const currentLambda2 = document.getElementById('currentLambda2');
+        const measuredDeltaX = document.getElementById('measuredDeltaX');
+        const calculatedLambda = document.getElementById('calculatedLambda');
+        const theoreticalLambda = document.getElementById('theoreticalLambda');
+        const errorPercent = document.getElementById('errorPercent');
+        const measurementError = document.getElementById('measurementError');
+        
+        // 按钮
+        const measureDeltaXBtn = document.getElementById('measureDeltaX');
+        const calculateLambdaBtn = document.getElementById('calculateLambda');
+        const resetParamsBtn = document.getElementById('resetParams');
+        
+        // 初始化参数
+        let wavelength = parseInt(wavelengthSlider.value); // nm
+        let slitDistance = parseFloat(slitDistanceSlider.value); // mm
+        let screenDistance = parseFloat(screenDistanceSlider.value); // m
+        let lightIntensity = parseInt(lightIntensitySlider.value); // %
+        
+        // 更新显示值
+        function updateDisplays() {
+            // 更新参数显示
+            wavelengthValue.textContent = wavelength + ' nm';
+            slitDistanceValue.textContent = slitDistance.toFixed(2) + ' mm';
+            screenDistanceValue.textContent = screenDistance.toFixed(1) + ' m';
+            lightIntensityValue.textContent = lightIntensity + '%';
+            
+            theoreticalLambda.textContent = wavelength.toFixed(1);
+            
+            // 计算条纹间距 Δx = (L/d) × λ
+            let deltaX = (screenDistance * 1000 / slitDistance) * (wavelength * 1e-6); // mm
+            currentDeltaX.textContent = deltaX.toFixed(3);
+            
+            // 更新公式显示
+            currentD.textContent = slitDistance.toFixed(2);
+            currentL.textContent = screenDistance.toFixed(1);
+            currentLambda.textContent = wavelength;
+            currentD2.textContent = slitDistance.toFixed(2);
+            currentL2.textContent = screenDistance.toFixed(1);
+            currentLambda2.textContent = wavelength;
+            
+            // 更新距离指示器
+            slitDistanceDisplay.textContent = slitDistance.toFixed(2);
+            screenDistanceDisplay.textContent = screenDistance.toFixed(1);
+            
+            // 更新双缝间距可视化
+            updateSlitVisualization();
+            
+            // 更新实验装置
+            updateApparatus();
+            
+            // 更新干涉条纹
+            updateInterferencePattern();
+        }
+        
+        // 更新双缝间距可视化
+        function updateSlitVisualization() {
+            // 清空容器
+            doubleSlitsContainer.innerHTML = '';
+            slitVisualContainer.innerHTML = '';
+            
+            // 计算双缝间距（像素）
+            // d: 0.05-0.5mm 对应 10-100px
+            const visualDistance = 10 + (slitDistance - 0.05) / (0.5 - 0.05) * 90; // 10px到100px
+            
+            // 在双缝容器中创建两个缝
+            const slitHeight = 40; // 缝的高度
+            const containerHeight = 100; // 容器高度
+            
+            // 计算两个缝的垂直位置（在容器中居中）
+            const topSlitTop = (containerHeight - visualDistance - slitHeight) / 2;
+            const bottomSlitTop = topSlitTop + visualDistance;
+            
+            // 创建第一个缝（上面的缝）
+            const slit1 = document.createElement('div');
+            slit1.className = 'slit';
+            slit1.style.top = `${topSlitTop}px`;
+            slit1.style.height = `${slitHeight}px`;
+            doubleSlitsContainer.appendChild(slit1);
+            
+            // 创建第二个缝（下面的缝）
+            const slit2 = document.createElement('div');
+            slit2.className = 'slit';
+            slit2.style.top = `${bottomSlitTop}px`;
+            slit2.style.height = `${slitHeight}px`;
+            doubleSlitsContainer.appendChild(slit2);
+            
+            // 创建距离指示器
+            const distanceIndicator = document.createElement('div');
+            distanceIndicator.className = 'slit-distance-indicator';
+            distanceIndicator.innerHTML = `
+                <div class="slit-distance-line"></div>
+                d = ${slitDistance.toFixed(2)} mm
+            `;
+            doubleSlitsContainer.appendChild(distanceIndicator);
+            
+            // 在可视化容器中创建放大的双缝视图
+            const visualHeight = 100; // 可视化容器高度
+            
+            // 计算放大的距离（为了更清晰）
+            const visualScale = 2; // 放大倍数
+            const visualSlitDistance = visualDistance * visualScale;
+            
+            // 计算两个缝的垂直位置（在可视化容器中居中）
+            const visualTopSlitTop = (visualHeight - visualSlitDistance - slitHeight) / 2;
+            const visualBottomSlitTop = visualTopSlitTop + visualSlitDistance;
+            
+            // 创建第一个缝（可视化）
+            const visualSlit1 = document.createElement('div');
+            visualSlit1.className = 'visual-slit';
+            visualSlit1.style.top = `${visualTopSlitTop}px`;
+            visualSlit1.style.height = `${slitHeight}px`;
+            slitVisualContainer.appendChild(visualSlit1);
+            
+            // 创建第二个缝（可视化）
+            const visualSlit2 = document.createElement('div');
+            visualSlit2.className = 'visual-slit';
+            visualSlit2.style.top = `${visualBottomSlitTop}px`;
+            visualSlit2.style.height = `${slitHeight}px`;
+            slitVisualContainer.appendChild(visualSlit2);
+            
+            // 创建距离指示线（可视化）
+            const visualDistanceLine = document.createElement('div');
+            visualDistanceLine.className = 'visual-distance-line';
+            visualDistanceLine.style.top = `${visualTopSlitTop + slitHeight/2}px`;
+            visualDistanceLine.style.height = `${visualSlitDistance}px`;
+            slitVisualContainer.appendChild(visualDistanceLine);
+            
+            // 创建距离文本（可视化）
+            const visualDistanceText = document.createElement('div');
+            visualDistanceText.className = 'visual-distance-text';
+            visualDistanceText.textContent = `d = ${slitDistance.toFixed(2)} mm`;
+            visualDistanceText.style.left = '60%';
+            visualDistanceText.style.top = `${visualTopSlitTop + slitHeight/2 + visualSlitDistance/2}px`;
+            slitVisualContainer.appendChild(visualDistanceText);
+            
+            // 更新距离指示线长度
+            const slitDistanceLine = document.getElementById('slitDistanceLine');
+            const lineLength = 50 + (slitDistance - 0.05) / (0.5 - 0.05) * 100; // 50px到150px
+            slitDistanceLine.style.width = `${lineLength}px`;
+        }
+        
+        // 更新实验装置
+        function updateApparatus() {
+            // 更新遮光筒长度 - 缝到屏距离L变化
+            // L: 0.5-2.5m，对应遮光筒长度变化
+            const tubeLengthFactor = (screenDistance - 0.5) / (2.5 - 0.5); // 0到1之间的值
+            const tubeWidth = 250 + tubeLengthFactor * 200; // 250px到450px之间
+            
+            shieldTube.style.width = `${tubeWidth}px`;
+            
+            // 更新测量头位置
+            measurementHead.style.right = `${50 - tubeLengthFactor * 20}px`; // 50px到30px之间
+            
+            // 更新光束长度
+            // 光源到双缝的光束
+            lightBeam.style.width = `${46 - 5}%`; // 固定宽度，从5%到46%
+            
+            // 双缝到屏的光束（在遮光筒内）
+            const beamToScreenWidth = tubeWidth - 80; // 减去双缝单元和测量头的宽度
+            beamToDoubleSlit.style.width = `${beamToScreenWidth}px`;
+            beamToDoubleSlit.style.left = `${46}%`;
+            
+            // 更新缝到屏距离指示线长度
+            const screenDistanceLine = document.getElementById('screenDistanceLine');
+            const lLineLength = 100 + tubeLengthFactor * 200; // 100px到300px
+            screenDistanceLine.style.width = `${lLineLength}px`;
+            
+            // 更新光束颜色
+            updateBeamColor();
+        }
+        
+        // 更新光束颜色
+        function updateBeamColor() {
+            let color;
+            if (wavelength < 450) {
+                color = '#8a2be2'; // 紫色
+            } else if (wavelength < 500) {
+                color = '#0000ff'; // 蓝色
+            } else if (wavelength < 550) {
+                color = '#00ffff'; // 青色
+            } else if (wavelength < 580) {
+                color = '#00ff00'; // 绿色
+            } else if (wavelength < 600) {
+                color = '#ffff00'; // 黄色
+            } else if (wavelength < 650) {
+                color = '#ffa500'; // 橙色
+            } else {
+                color = '#ff0000'; // 红色
+            }
+            
+            // 计算光束强度
+            const intensity = lightIntensity / 100;
+            const opacity1 = 0.8 * intensity;
+            const opacity2 = 0.4 * intensity;
+            const opacity3 = 0.8 * intensity;
+            
+            // 更新光源到双缝的光束
+            lightBeam.style.background = `linear-gradient(90deg, 
+                rgba(231, 76, 60, 0) 0%, 
+                ${hexToRgb(color, opacity1)} 5%, 
+                ${hexToRgb(color, opacity1)} 35%, 
+                ${hexToRgb(color, opacity2)} 40%,
+                ${hexToRgb(color, opacity3)} 46%,
+                ${hexToRgb(color, opacity3)} 95%,
+                rgba(52, 152, 219, 0) 100%)`;
+            
+            // 更新双缝到屏的光束
+            beamToDoubleSlit.style.backgroundColor = hexToRgb(color, opacity3);
+        }
+        
+        // 十六进制颜色转rgba
+        function hexToRgb(hex, alpha) {
+            const r = parseInt(hex.slice(1, 3), 16);
+            const g = parseInt(hex.slice(3, 5), 16);
+            const b = parseInt(hex.slice(5, 7), 16);
+            
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+        
+        // 更新干涉条纹
+        function updateInterferencePattern() {
+            // 清空当前条纹
+            interferencePattern.innerHTML = '';
+            
+            // 计算条纹间距（像素）
+            const patternHeight = 20; // 干涉图案高度(px)
+            const patternWidth = 50; // 干涉图案宽度(px)
+            const centerY = patternHeight / 2;
+            
+            // 根据公式计算条纹间距（像素）
+            // Δx = (L/d) × λ
+            // 像素间距与Δx成正比
+            const baseDeltaX = 0.399; // mm，对应基准参数下的Δx
+            const basePixelSpacing = 4; // 像素，对应基准参数下的条纹间距
+            const currentDeltaX = (screenDistance * 1000 / slitDistance) * (wavelength * 1e-6); // mm
+            
+            // 计算当前条纹间距（像素）
+            const pixelSpacing = (currentDeltaX / baseDeltaX) * basePixelSpacing;
+            
+            // 根据光强设置条纹亮度
+            const intensity = lightIntensity / 100;
+            
+            // 生成干涉条纹（7条亮纹，确保在图案内）
+            const stripeCount = 7;
+            const maxSpacing = (patternHeight - 4) / (stripeCount - 1); // 最大允许间距
+            
+            // 使用实际间距或最大间距中较小的一个
+            const actualPixelSpacing = Math.min(pixelSpacing, maxSpacing);
+            
+            for (let i = -Math.floor(stripeCount/2); i <= Math.floor(stripeCount/2); i++) {
+                const stripe = document.createElement('div');
+                stripe.className = 'interference-stripe';
+                
+                // 中央亮纹最亮
+                let brightness;
+                if (i === 0) {
+                    brightness = 0.9 * intensity;
+                } else {
+                    // 离中央越远，亮度越低
+                    brightness = (0.8 - Math.abs(i) * 0.12) * intensity;
+                }
+                
+                // 根据波长设置条纹颜色
+                let stripeColor;
+                if (wavelength < 450) {
+                    stripeColor = `rgba(138, 43, 226, ${brightness})`; // 紫色
+                } else if (wavelength < 500) {
+                    stripeColor = `rgba(0, 0, 255, ${brightness})`; // 蓝色
+                } else if (wavelength < 550) {
+                    stripeColor = `rgba(0, 255, 255, ${brightness})`; // 青色
+                } else if (wavelength < 580) {
+                    stripeColor = `rgba(0, 255, 0, ${brightness})`; // 绿色
+                } else if (wavelength < 600) {
+                    stripeColor = `rgba(255, 255, 0, ${brightness})`; // 黄色
+                } else if (wavelength < 650) {
+                    stripeColor = `rgba(255, 165, 0, ${brightness})`; // 橙色
+                } else {
+                    stripeColor = `rgba(255, 0, 0, ${brightness})`; // 红色
+                }
+                
+                stripe.style.backgroundColor = stripeColor;
+                stripe.style.boxShadow = `0 0 4px ${stripeColor}`;
+                
+                // 设置条纹位置
+                const positionY = centerY + i * actualPixelSpacing;
+                stripe.style.top = positionY + 'px';
+                
+                interferencePattern.appendChild(stripe);
+            }
+            
+            // 如果条纹太密集，显示提示
+            if (pixelSpacing < 2) {
+                const warning = document.createElement('div');
+                warning.style.position = 'absolute';
+                warning.style.top = '0';
+                warning.style.left = '0';
+                warning.style.width = '100%';
+                warning.style.height = '100%';
+                warning.style.display = 'flex';
+                warning.style.alignItems = 'center';
+                warning.style.justifyContent = 'center';
+                warning.style.color = '#e74c3c';
+                warning.style.fontSize = '10px';
+                warning.style.textAlign = 'center';
+                warning.textContent = '条纹过密\n减小d或增加L';
+                warning.style.backgroundColor = 'rgba(0,0,0,0.5)';
+                
+                interferencePattern.appendChild(warning);
+            }
+        }
+        
+        // 测量功能
+        measureDeltaXBtn.addEventListener('click', function() {
+            // 计算条纹间距
+            const deltaX = (screenDistance * 1000 / slitDistance) * (wavelength * 1e-6); // mm
+            
+            // 添加随机误差模拟实际测量
+            const errorFactor = 1 + (Math.random() * 0.08 - 0.04); // ±4%随机误差
+            const measuredDeltaXValue = deltaX * errorFactor;
+            
+            measuredDeltaX.textContent = measuredDeltaXValue.toFixed(3);
+            
+            // 显示测量值
+            alert(`测量完成！\n条纹间距Δx = ${measuredDeltaXValue.toFixed(3)} mm\n当前双缝间距d = ${slitDistance.toFixed(2)} mm`);
+        });
+        
+        calculateLambdaBtn.addEventListener('click', function() {
+            const measuredDeltaXValue = parseFloat(measuredDeltaX.textContent);
+            
+            if (measuredDeltaXValue === 0) {
+                alert('请先测量条纹间距Δx！');
+                return;
+            }
+            
+            // 计算波长 λ = Δx × d / L
+            const measuredLambda = (measuredDeltaXValue * slitDistance) / (screenDistance * 1000) * 1e6; // nm
+            calculatedLambda.textContent = measuredLambda.toFixed(1);
+            
+            // 计算误差
+            const error = Math.abs(measuredLambda - wavelength) / wavelength * 100;
+            errorPercent.textContent = error.toFixed(1);
+            
+            // 显示误差评估
+            if (error < 5) {
+                measurementError.innerHTML = `相对误差: <span style="color:green">${error.toFixed(1)}%</span> (测量准确)`;
+            } else if (error < 10) {
+                measurementError.innerHTML = `相对误差: <span style="color:orange">${error.toFixed(1)}%</span> (测量基本准确)`;
+            } else {
+                measurementError.innerHTML = `相对误差: <span style="color:red">${error.toFixed(1)}%</span> (误差较大，请检查实验条件)`;
+            }
+            
+            // 显示计算结果
+            alert(`计算完成！\n测量波长λ = ${measuredLambda.toFixed(1)} nm\n理论波长λ = ${wavelength} nm\n相对误差 = ${error.toFixed(1)}%`);
+        });
+        
+        resetParamsBtn.addEventListener('click', function() {
+            // 重置为默认参数
+            wavelengthSlider.value = 532;
+            slitDistanceSlider.value = 0.2;
+            screenDistanceSlider.value = 1.0;
+            lightIntensitySlider.value = 100;
+            
+            wavelength = 532;
+            slitDistance = 0.2;
+            screenDistance = 1.0;
+            lightIntensity = 100;
+            
+            // 清空测量结果
+            measuredDeltaX.textContent = "0.00";
+            calculatedLambda.textContent = "0.00";
+            errorPercent.textContent = "0.0";
+            measurementError.innerHTML = "相对误差: <span id='errorPercent'>0.0</span>%";
+            
+            updateDisplays();
+            
+            alert('参数已重置为默认值！\n双缝间距d = 0.20 mm\n波长λ = 532 nm\n缝到屏距离L = 1.0 m');
+        });
+        
+        // 填空题检查
+        function checkBlank(blankNum) {
+            const input = document.getElementById(`blank${blankNum}`);
+            const feedback = document.getElementById(`feedback${blankNum}`);
+            const answer = input.value.trim().toLowerCase();
+            
+            let correct = false;
+            let correctAnswer = '';
+            
+            switch(blankNum) {
+                case 1:
+                    correctAnswer = '1/4或0.25';
+                    correct = answer === '1/4' || answer === '0.25' || answer === '四分之一' || answer.includes('0.25');
+                    break;
+                case 2:
+                    correctAnswer = '减小，增加，更长';
+                    const answers = answer.split(/[,，]/).map(a => a.trim());
+                    correct = (answers[0] === '减小' || answers[0] === '变小') &&
+                             (answers[1] === '增加' || answers[1] === '变大') &&
+                             (answers[2] === '更长' || answers[2] === '更大' || answers[2] === '更长波长');
+                    break;
+                case 3:
+                    correctAnswer = '太小';
+                    correct = answer === '太小' || answer === '过小' || answer === '非常小';
+                    break;
+            }
+            
+            if (correct) {
+                feedback.innerHTML = '<span style="color: green;">✓ 正确！</span>';
+                feedback.style.color = 'green';
+            } else {
+                feedback.innerHTML = `<span style="color: red;">✗ 不正确，正确答案是：${correctAnswer}</span>`;
+                feedback.style.color = 'red';
+            }
+        }
+        
+        // 事件监听
+        wavelengthSlider.addEventListener('input', function() {
+            wavelength = parseInt(this.value);
+            updateDisplays();
+        });
+        
+        slitDistanceSlider.addEventListener('input', function() {
+            slitDistance = parseFloat(this.value);
+            updateDisplays();
+        });
+        
+        screenDistanceSlider.addEventListener('input', function() {
+            screenDistance = parseFloat(this.value);
+            updateDisplays();
+        });
+        
+        lightIntensitySlider.addEventListener('input', function() {
+            lightIntensity = parseInt(this.value);
+            updateDisplays();
+        });
+        
+        // 初始化
+        updateDisplays();
+    </script>
+</body>
+</html>

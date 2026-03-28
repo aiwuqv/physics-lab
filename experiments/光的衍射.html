@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>单缝衍射实验 - 条纹高度变化</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f0f2f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #1a237e;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        /* 实验区域 */
+        .experiment-area {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .left-panel {
+            flex: 1;
+        }
+        
+        .right-panel {
+            flex: 1;
+        }
+        
+        /* 实验装置 */
+        .setup-diagram {
+            width: 100%;
+            height: 200px;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            position: relative;
+            margin-bottom: 15px;
+        }
+        
+        .laser {
+            position: absolute;
+            left: 30px;
+            top: 50%;
+            width: 50px;
+            height: 15px;
+            background: #c00;
+            border-radius: 3px;
+            transform: translateY(-50%);
+            box-shadow: 0 0 10px rgba(255,0,0,0.5);
+        }
+        
+        .light-beam {
+            position: absolute;
+            left: 80px;
+            top: 50%;
+            width: 100px;
+            height: 2px;
+            background: #333;
+            transform: translateY(-50%);
+        }
+        
+        .slit {
+            position: absolute;
+            left: 190px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 10px;
+            height: 100px;
+            background: #444;
+            border-radius: 2px;
+        }
+        
+        .slit-gap {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 100%;
+            background: #888;
+            transform: translateY(-50%);
+            border-radius: 1px;
+        }
+        
+        .observation-screen {
+            position: absolute;
+            right: 30px;
+            top: 50%;
+            width: 180px;
+            height: 150px;
+            background: #e0e0e0;
+            border-left: 2px solid #999;
+            transform: translateY(-50%);
+        }
+        
+        /* 衍射图样显示区域 */
+        .pattern-display {
+            width: 100%;
+            height: 400px;
+            background: #000;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* 条纹容器 */
+        .fringes-container {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            height: 350px;
+        }
+        
+        /* 水平条纹样式 - 高度会变化 */
+        .horizontal-fringe {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 3px;
+            width: 300px; /* 固定长度 */
+        }
+        
+        /* 中央亮纹 - 最高 */
+        .central-fringe {
+            background: #fff;
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.9);
+        }
+        
+        /* 一级亮纹 */
+        .first-fringe {
+            background: rgba(255, 255, 180, 0.9);
+            box-shadow: 0 0 20px rgba(255, 255, 180, 0.7);
+        }
+        
+        /* 二级亮纹 */
+        .second-fringe {
+            background: rgba(255, 255, 130, 0.8);
+            box-shadow: 0 0 15px rgba(255, 255, 130, 0.6);
+        }
+        
+        /* 三级亮纹 */
+        .third-fringe {
+            background: rgba(255, 255, 80, 0.7);
+            box-shadow: 0 0 10px rgba(255, 255, 80, 0.5);
+        }
+        
+        /* 暗纹区域 */
+        .dark-area {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 3px;
+            width: 320px; /* 比亮纹稍宽 */
+        }
+        
+        /* 缝很宽时的一条亮线 */
+        .single-line {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            box-shadow: 0 0 20px #fff;
+            width: 300px;
+        }
+        
+        /* 控制面板 */
+        .control-panel {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .control-group {
+            margin: 15px 0;
+        }
+        
+        .control-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .slider-container {
+            margin-bottom: 10px;
+        }
+        
+        .slider {
+            width: 100%;
+            height: 20px;
+            -webkit-appearance: none;
+            background: #ddd;
+            outline: none;
+            border-radius: 10px;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #1a237e;
+            cursor: pointer;
+            border: 2px solid white;
+        }
+        
+        .slider-value {
+            text-align: center;
+            font-size: 13px;
+            color: #666;
+        }
+        
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #777;
+            margin-top: 2px;
+        }
+        
+        /* 光源选择 */
+        .light-options {
+            display: flex;
+            gap: 8px;
+            margin: 15px 0;
+        }
+        
+        .light-btn {
+            flex: 1;
+            padding: 8px;
+            background: #e8eaf6;
+            border: 2px solid #c5cae9;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 13px;
+        }
+        
+        .light-btn.active {
+            background: #1a237e;
+            color: white;
+            border-color: #1a237e;
+        }
+        
+        /* 颜色标识 */
+        .color-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+        
+        .red-ind { background: #f00; }
+        .blue-ind { background: #00f; }
+        .white-ind { 
+            background: linear-gradient(45deg, #f00, #0f0, #00f);
+            border: 1px solid #ccc;
+        }
+        
+        /* 演示按钮 */
+        .demo-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .demo-btn {
+            flex: 1;
+            padding: 8px;
+            background: #3949ab;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        
+        /* 高度信息显示 */
+        .info-panel {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            z-index: 10;
+        }
+        
+        .info-item {
+            margin: 5px 0;
+        }
+        
+        /* 条纹标签 */
+        .fringe-label {
+            position: absolute;
+            left: 10px;
+            color: white;
+            font-size: 12px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 3px 6px;
+            border-radius: 3px;
+            white-space: nowrap;
+        }
+        
+        /* 高度指示 */
+        .height-indicator {
+            position: absolute;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            width: 4px;
+        }
+        
+        .height-text {
+            position: absolute;
+            right: 20px;
+            color: white;
+            font-size: 11px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 2px 4px;
+            border-radius: 2px;
+            white-space: nowrap;
+        }
+        
+        /* 物理规律展示 */
+        .physics-info {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+        
+        .height-demo {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            height: 80px;
+            margin: 15px 0;
+        }
+        
+        .height-bar {
+            background: #1a237e;
+            border-radius: 3px 3px 0 0;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <h1>单缝衍射实验 - 条纹高度变化</h1>
+        <p class="subtitle">观察条纹高度变化：缝越小条纹越高，波长越长条纹越高</p>
+        
+        <div class="experiment-area">
+            <div class="left-panel">
+                <!-- 实验装置图 -->
+                <div class="setup-diagram">
+                    <div class="laser"></div>
+                    <div class="light-beam"></div>
+                    <div class="slit">
+                        <div class="slit-gap" id="slitGap"></div>
+                    </div>
+                    <div class="observation-screen"></div>
+                    <div style="position: absolute; left: 35px; top: 75%; font-size: 12px; color: #666;">光源</div>
+                    <div style="position: absolute; left: 195px; top: 75%; font-size: 12px; color: #666;">单缝</div>
+                    <div style="position: absolute; right: 35px; top: 75%; font-size: 12px; color: #666;">屏幕</div>
+                </div>
+                
+                <!-- 衍射图样显示 -->
+                <div class="pattern-display">
+                    <div class="info-panel">
+                        <div class="info-item">缝宽: <span id="currentWidth">0.10</span> mm</div>
+                        <div class="info-item">中央亮纹高度: <span id="centralHeight">0</span> px</div>
+                        <div class="info-item">光源: <span id="currentLight">红光</span></div>
+                        <div class="info-item">规律: 缝↓高↑, λ↑高↑</div>
+                    </div>
+                    <div id="patternContainer" class="fringes-container">
+                        <!-- 水平条纹在这里动态生成 -->
+                    </div>
+                </div>
+                
+                <!-- 高度变化示意图 -->
+                <div style="background: #e8eaf6; padding: 15px; border-radius: 6px; margin-top: 15px;">
+                    <div style="color: #1a237e; font-weight: bold; margin-bottom: 10px;">条纹高度变化示意图</div>
+                    <div class="height-demo">
+                        <div style="text-align: center;">
+                            <div class="height-bar" style="width: 40px; height: 15px;"></div>
+                            <div style="font-size: 12px; color: #666; margin-top: 5px;">缝宽大<br>高度小</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div class="height-bar" style="width: 40px; height: 30px;"></div>
+                            <div style="font-size: 12px; color: #666; margin-top: 5px;">缝宽中<br>高度中</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div class="height-bar" style="width: 40px; height: 50px;"></div>
+                            <div style="font-size: 12px; color: #666; margin-top: 5px;">缝宽小<br>高度大</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="right-panel">
+                <!-- 控制面板 -->
+                <div class="control-panel">
+                    <div class="control-group">
+                        <div class="control-title">狭缝宽度调节</div>
+                        <div class="slider-container">
+                            <input type="range" min="5" max="100" value="20" class="slider" id="slitWidth">
+                        </div>
+                        <div class="slider-value">当前：<span id="widthValue">0.10</span> mm</div>
+                        <div class="slider-labels">
+                            <span>很窄 (0.05mm)</span>
+                            <span>很宽 (0.5mm)</span>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <div class="control-title">光源选择</div>
+                        <div class="light-options">
+                            <div class="light-btn active" data-light="red">
+                                <span class="color-indicator red-ind"></span>红光
+                            </div>
+                            <div class="light-btn" data-light="blue">
+                                <span class="color-indicator blue-ind"></span>蓝光
+                            </div>
+                            <div class="light-btn" data-light="white">
+                                <span class="color-indicator white-ind"></span>白光
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="demo-buttons">
+                        <button class="demo-btn" id="demoNarrow">缝很窄 (条纹很高)</button>
+                        <button class="demo-btn" id="demoWide">缝很宽 (条纹很矮)</button>
+                        <button class="demo-btn" id="demoCompare">对比红/蓝光</button>
+                        <button class="demo-btn" id="resetAll">重置</button>
+                    </div>
+                    
+                    <div style="margin-top: 15px; padding: 10px; background: #e3f2fd; border-radius: 4px; font-size: 13px;">
+                        <strong>实验现象观察重点：</strong>
+                        <div>1. 调节缝宽 → 观察所有条纹<strong>高度</strong>变化</div>
+                        <div>2. 切换光源 → 观察所有条纹<strong>高度</strong>变化</div>
+                        <div>3. 中央亮纹<strong>最高</strong>，两侧逐渐变矮</div>
+                        <div>4. 缝很宽时 → 条纹高度很小</div>
+                    </div>
+                </div>
+                
+                <!-- 物理规律展示 -->
+                <div class="physics-info">
+                    <div style="color: #1a237e; margin-bottom: 15px; font-weight: bold;">单缝衍射条纹高度规律</div>
+                    
+                    <div style="background: white; padding: 15px; border-radius: 5px; margin-bottom: 12px;">
+                        <div style="font-weight: bold; color: #1a237e; margin-bottom: 8px;">物理意义：</div>
+                        <div style="font-size: 13px; color: #666; line-height: 1.5;">
+                            条纹的"宽度"在实验中通常指<strong>条纹的高度</strong>或<strong>条纹的粗细</strong>。<br>
+                            衍射越明显，条纹在垂直方向上越"宽"，即条纹越高。<br>
+                            这与衍射角θ有关：θ越大，条纹在屏幕上展得越开。
+                        </div>
+                    </div>
+                    
+                    <div style="background: white; padding: 15px; border-radius: 5px;">
+                        <div style="font-weight: bold; color: #1a237e; margin-bottom: 8px;">规律说明：</div>
+                        <div style="font-size: 13px; color: #333; line-height: 1.6;">
+                            <div style="margin: 5px 0; padding-left: 15px; position: relative;">
+                                <span style="position: absolute; left: 0;">•</span>
+                                <strong>缝宽 a 减小</strong> → 衍射角 θ 增大 → 条纹<strong>高度增加</strong>
+                            </div>
+                            <div style="margin: 5px 0; padding-left: 15px; position: relative;">
+                                <span style="position: absolute; left: 0;">•</span>
+                                <strong>波长 λ 增大</strong> → 衍射角 θ 增大 → 条纹<strong>高度增加</strong>
+                            </div>
+                            <div style="margin: 5px 0; padding-left: 15px; position: relative;">
+                                <span style="position: absolute; left: 0;">•</span>
+                                中央亮纹<strong>最高最亮</strong>，能量最集中
+                            </div>
+                            <div style="margin: 5px 0; padding-left: 15px; position: relative;">
+                                <span style="position: absolute; left: 0;">•</span>
+                                两侧亮纹高度<strong>逐渐减小</strong>
+                            </div>
+                            <div style="margin: 5px 0; padding-left: 15px; position: relative;">
+                                <span style="position: absolute; left: 0;">•</span>
+                                当 a ≫ λ 时，θ ≈ 0，条纹<strong>很矮</strong>（近似直线传播）
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 当前光源类型
+        let currentLight = 'red';
+        
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            updateExperiment();
+            setupControls();
+        });
+        
+        // 更新实验
+        function updateExperiment() {
+            const slitWidth = parseInt(document.getElementById('slitWidth').value);
+            const physicalWidth = (slitWidth * 0.005).toFixed(2);
+            
+            // 更新狭缝开口
+            const slitGap = document.getElementById('slitGap');
+            const gapHeight = Math.max(4, Math.min(slitWidth * 0.8, 80));
+            slitGap.style.height = gapHeight + 'px';
+            
+            // 更新显示值
+            document.getElementById('widthValue').textContent = physicalWidth;
+            document.getElementById('currentWidth').textContent = physicalWidth;
+            
+            // 更新光源显示
+            let lightName = '红光';
+            if (currentLight === 'blue') lightName = '蓝光';
+            else if (currentLight === 'white') lightName = '白光';
+            document.getElementById('currentLight').textContent = lightName;
+            
+            // 更新光源颜色
+            updateLightSource();
+            
+            // 更新衍射图样
+            updateDiffractionPattern(slitWidth);
+        }
+        
+        // 更新光源颜色
+        function updateLightSource() {
+            const laser = document.querySelector('.laser');
+            
+            switch(currentLight) {
+                case 'red':
+                    laser.style.background = '#f00';
+                    laser.style.boxShadow = '0 0 15px #f00';
+                    break;
+                case 'blue':
+                    laser.style.background = '#00f';
+                    laser.style.boxShadow = '0 0 15px #00f';
+                    break;
+                case 'white':
+                    laser.style.background = '#fff';
+                    laser.style.boxShadow = '0 0 15px #fff';
+                    break;
+            }
+        }
+        
+        // 更新衍射图样 - 水平条纹，高度变化
+        function updateDiffractionPattern(slitWidth) {
+            const container = document.getElementById('patternContainer');
+            container.innerHTML = '';
+            
+            // 缝很宽时显示一条很矮的亮线
+            if (slitWidth > 80) {
+                const singleLine = document.createElement('div');
+                singleLine.className = 'single-line';
+                singleLine.style.height = '3px'; // 很矮的一条线
+                singleLine.style.top = '173px';
+                container.appendChild(singleLine);
+                document.getElementById('centralHeight').textContent = '3';
+                return;
+            }
+            
+            // 计算条纹参数 - 高度（与缝宽成反比）
+            let baseHeight;
+            if (slitWidth <= 10) {
+                baseHeight = 20; // 缝很窄，条纹很高
+            } else if (slitWidth <= 20) {
+                baseHeight = 15;
+            } else if (slitWidth <= 40) {
+                baseHeight = 10;
+            } else if (slitWidth <= 60) {
+                baseHeight = 6;
+            } else {
+                baseHeight = 4;
+            }
+            
+            // 根据波长调整（波长越长，条纹越高）
+            let wavelengthFactor = 1.0;
+            if (currentLight === 'red') {
+                wavelengthFactor = 1.8; // 红光波长约650nm
+            } else if (currentLight === 'blue') {
+                wavelengthFactor = 0.6; // 蓝光波长约450nm
+            } else if (currentLight === 'white') {
+                wavelengthFactor = 1.2; // 白光取中间值
+            }
+            
+            // 计算中央亮纹高度
+            const centralHeight = Math.round(baseHeight * wavelengthFactor);
+            document.getElementById('centralHeight').textContent = centralHeight;
+            
+            // 条纹垂直位置（固定）
+            const positions = [
+                { class: 'central-fringe', label: '中央亮纹', top: 175, heightFactor: 1.0 },
+                { class: 'first-fringe', label: '一级亮纹', top: 100, heightFactor: 0.6 },
+                { class: 'first-fringe', label: '一级亮纹', top: 250, heightFactor: 0.6 },
+                { class: 'second-fringe', label: '二级亮纹', top: 50, heightFactor: 0.4 },
+                { class: 'second-fringe', label: '二级亮纹', top: 300, heightFactor: 0.4 },
+                { class: 'third-fringe', label: '三级亮纹', top: 20, heightFactor: 0.25 },
+                { class: 'third-fringe', label: '三级亮纹', top: 330, heightFactor: 0.25 }
+            ];
+            
+            // 创建所有亮纹
+            positions.forEach(pos => {
+                const height = Math.max(2, Math.round(centralHeight * pos.heightFactor));
+                
+                // 创建亮纹
+                const fringe = document.createElement('div');
+                fringe.className = `horizontal-fringe ${pos.class}`;
+                fringe.style.height = height + 'px';
+                fringe.style.top = (pos.top - height/2) + 'px'; // 居中
+                
+                // 添加标签
+                const label = document.createElement('div');
+                label.className = 'fringe-label';
+                label.textContent = pos.label;
+                label.style.top = (pos.top - 20) + 'px';
+                container.appendChild(label);
+                
+                // 添加高度指示
+                const heightIndicator = document.createElement('div');
+                heightIndicator.className = 'height-indicator';
+                heightIndicator.style.height = height + 'px';
+                heightIndicator.style.top = (pos.top - height/2) + 'px';
+                
+                const heightText = document.createElement('div');
+                heightText.className = 'height-text';
+                heightText.textContent = height + 'px';
+                heightText.style.top = (pos.top - 8) + 'px';
+                heightIndicator.appendChild(heightText);
+                
+                container.appendChild(fringe);
+                container.appendChild(heightIndicator);
+            });
+            
+            // 创建暗纹区域
+            createDarkAreas(container, centralHeight);
+        }
+        
+        // 创建暗纹区域
+        function createDarkAreas(container, centralHeight) {
+            // 暗纹位置在亮纹之间
+            const darkPositions = [
+                { top: 140, height: 15 }, // 中央和一级之间
+                { top: 210, height: 15 }, // 中央和一级之间（下方）
+                { top: 75, height: 15 },  // 一级和二级之间
+                { top: 275, height: 15 }, // 一级和二级之间（下方）
+                { top: 35, height: 15 },  // 二级和三级之间
+                { top: 315, height: 15 }  // 二级和三级之间（下方）
+            ];
+            
+            darkPositions.forEach(pos => {
+                const darkArea = document.createElement('div');
+                darkArea.className = 'dark-area';
+                darkArea.style.height = Math.round(centralHeight * 0.8) + 'px';
+                darkArea.style.top = (pos.top - Math.round(centralHeight * 0.4)) + 'px';
+                container.appendChild(darkArea);
+            });
+        }
+        
+        // 设置控制参数
+        function setupControls() {
+            // 狭缝宽度控制
+            const slitSlider = document.getElementById('slitWidth');
+            slitSlider.addEventListener('input', updateExperiment);
+            
+            // 光源选择
+            const lightBtns = document.querySelectorAll('.light-btn');
+            lightBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    lightBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentLight = this.getAttribute('data-light');
+                    updateExperiment();
+                });
+            });
+            
+            // 演示按钮
+            document.getElementById('demoNarrow').addEventListener('click', function() {
+                slitSlider.value = 5;
+                lightBtns[0].click();
+                updateExperiment();
+            });
+            
+            document.getElementById('demoWide').addEventListener('click', function() {
+                slitSlider.value = 90;
+                lightBtns[0].click();
+                updateExperiment();
+            });
+            
+            document.getElementById('demoCompare').addEventListener('click', function() {
+                slitSlider.value = 20;
+                
+                // 先显示红光
+                lightBtns[0].click();
+                updateExperiment();
+                
+                // 2秒后切换为蓝光
+                setTimeout(() => {
+                    lightBtns[1].click();
+                    updateExperiment();
+                }, 2000);
+            });
+            
+            document.getElementById('resetAll').addEventListener('click', function() {
+                slitSlider.value = 20;
+                lightBtns[0].click();
+                updateExperiment();
+            });
+        }
+    </script>
+</body>
+</html>

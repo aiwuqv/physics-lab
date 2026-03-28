@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分子间作用力与距离</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
+        body {
+            background-color: #f5f7fa;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #3498db;
+            margin: 20px 0 15px;
+            font-size: 20px;
+        }
+        .knowledge-point {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #e8f4fd;
+            border-radius: 8px;
+        }
+        .knowledge-point p {
+            margin: 8px 0;
+            color: #34495e;
+        }
+        .table-wrap {
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        table th, table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+        table th {
+            background-color: #3498db;
+            color: white;
+        }
+        /* 分子交互区域样式 */
+        .molecule-interactive {
+            width: 100%;
+            height: 400px;
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            margin: 30px 0;
+            position: relative;
+            overflow: hidden;
+            background-color: #f8fbff;
+        }
+        /* 右上角力值显示面板 */
+        .force-value-panel {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255,255,255,0.9);
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            z-index: 20;
+            font-weight: bold;
+            min-width: 200px;
+        }
+        .data-collect-btn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 20;
+            transition: background 0.3s;
+        }
+        .data-collect-btn:hover {
+            background: #218838;
+        }
+        .force-value-item {
+            margin: 5px 0;
+            font-size: 16px;
+        }
+        .force-type {
+            color: #2c3e50;
+        }
+        .force-magnitude {
+            font-size: 18px;
+            margin-left: 8px;
+        }
+        .molecule {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #6fa8dc, #2980b9);
+            position: absolute;
+            top: 170px;
+            cursor: move;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            user-select: none;
+            z-index: 10;
+        }
+        #molecule1 {
+            left: 150px;
+        }
+        #molecule2 {
+            left: 450px;
+        }
+        /* 力的直线样式 - 仅保留直线 */
+        .force-line {
+            position: absolute;
+            height: 2px;
+            z-index: 5;
+            transform-origin: left center;
+            border-radius: 1px;
+        }
+        .force-label {
+            position: absolute;
+            font-weight: bold;
+            font-size: 14px;
+            z-index: 7;
+            background: rgba(255,255,255,0.8);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        .distance-label {
+            position: absolute;
+            top: 220px;
+            color: #2c3e50;
+            font-weight: bold;
+            font-size: 16px;
+            z-index: 8;
+            background: rgba(255,255,255,0.8);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        /* 打开新窗口按钮样式 */
+        .quiz-toggle {
+            display: block;
+            width: 180px;
+            height: 45px;
+            line-height: 45px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            margin: 40px auto 0;
+            transition: background 0.3s;
+        }
+        .quiz-toggle:hover {
+            background-color: #2980b9;
+        }
+
+        /* 答题弹窗 */
+        .quiz-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .quiz-modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        /* 右上角关闭叉号 */
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #7f8c8d;
+            transition: color 0.2s;
+            z-index: 1001;
+        }
+        .modal-close:hover {
+            color: #e74c3c;
+        }
+        .quiz-title {
+            color: #e74c3c;
+            font-size: 24px;
+            margin-bottom: 30px;
+            text-align: center;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #3498db;
+        }
+        .quiz-item {
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .quiz-question {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+        .quiz-options {
+            margin-left: 20px;
+        }
+        .quiz-options label {
+            display: block;
+            margin: 8px 0;
+            color: #34495e;
+            cursor: pointer;
+        }
+        .quiz-fill {
+            margin-left: 10px;
+            padding: 5px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 120px;
+            text-align: center;
+        }
+        .quiz-submit {
+            display: block;
+            width: 150px;
+            height: 40px;
+            line-height: 40px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 30px auto;
+            transition: background 0.3s;
+        }
+        .quiz-submit:hover {
+            background-color: #2980b9;
+        }
+
+        /* 结果展示样式 */
+        .result-section {
+            margin-top: 20px;
+        }
+        .score-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #3498db;
+        }
+        .score-text {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .analysis-section {
+            margin: 20px 0;
+        }
+        .analysis-title {
+            font-size: 18px;
+            color: #3498db;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .answer-item {
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #3498db;
+        }
+        .answer-question {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .answer-row {
+            margin: 8px 0;
+            font-size: 15px;
+        }
+        .answer-label {
+            display: inline-block;
+            width: 80px;
+            font-weight: bold;
+            color: #7f8c8d;
+        }
+        .correct-answer {
+            color: #28a745; /* 绿色 */
+            font-weight: bold;
+        }
+        .wrong-answer {
+            color: #dc3545; /* 红色 */
+            font-weight: bold;
+        }
+        .analysis-text {
+            padding: 10px 15px;
+            border-radius: 6px;
+            background-color: #e8f4fd;
+            color: #2c3e50;
+            line-height: 1.7;
+        }
+
+        /* 新增未答题高亮样式 */
+        .quiz-item.unanswered {
+            border: 2px solid #e74c3c;
+            background-color: #fff5f5;
+        }
+        .quiz-fill.unanswered {
+            border-color: #e74c3c;
+            box-shadow: 0 0 5px rgba(231, 76, 60, 0.5);
+        }
+        .quiz-options.unanswered {
+            border-left: 3px solid #e74c3c;
+            padding-left: 10px;
+        }
+
+        /* 数据表格和曲线图样式 */
+        .data-section {
+            margin: 40px 0;
+        }
+        .data-table-wrap {
+            margin: 20px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .data-table {
+            width: 100%;
+        }
+        .data-table th {
+            background-color: #2980b9;
+        }
+        .clear-data-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            margin: 10px 0;
+            transition: background 0.3s;
+        }
+        .clear-data-btn:hover {
+            background: #c0392b;
+        }
+        /* 新增删除按钮样式 */
+        .delete-row-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .delete-row-btn:hover {
+            background: #bb2d3b;
+        }
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            margin: 20px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            background: white;
+            position: relative;
+        }
+
+        /* 闪烁动画 */
+        @keyframes flash {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+    </style>
+    <!-- 引入Chart.js用于绘制曲线图 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- 引入annotation插件 -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.2.1/dist/chartjs-plugin-annotation.min.js"></script>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <h1>分子间作用力与分子间的距离</h1>
+
+        <!-- 知识讲解模块 -->
+        <div class="knowledge-point">
+            <h2>一、核心物理规律</h2>
+            <p>1. 分子间同时存在<strong>引力</strong>和<strong>斥力</strong>，实际表现的是二者的合力，其大小与分子间距密切相关（r₀≈10⁻¹⁰m，为平衡距离）：</p>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>分子间距 r 与平衡距离 r₀ 的关系</th>
+                            <th>分子间作用力表现</th>
+                            <th>物理本质</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>r < r₀</td>
+                            <td><strong>斥力主导</strong></td>
+                            <td>分子外层电子云重叠，库仑斥力显著</td>
+                        </tr>
+                        <tr>
+                            <td>r = r₀</td>
+                            <td><strong>引力=斥力，合力为0</strong></td>
+                            <td>分子处于稳定平衡位置</td>
+                        </tr>
+                        <tr>
+                            <td>r₀ < r < 10r₀</td>
+                            <td><strong>引力主导</strong></td>
+                            <td>分子间范德华力（取向力/诱导力/色散力）作用</td>
+                        </tr>
+                        <tr>
+                            <td>r ≥ 10r₀</td>
+                            <td><strong>作用力可忽略（< 10⁻⁶N）</strong></td>
+                            <td>分子间相互作用的有效距离耗尽</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>2. 分子间存在空隙：水和酒精混合后总体积变小、金块与铅块压合后分子相互扩散，均可证明分子间存在空隙。</p>
+            <p>3. 分子间存在相互作用力：引力与斥力同时存在，合力表现随分子间距变化：</p>
+            <p>&nbsp;&nbsp;- 拉伸物体时，分子间表现为引力（抵抗拉伸）；</p>
+            <p>&nbsp;&nbsp;- 压缩物体时，分子间表现为斥力（抵抗压缩）。</p>
+        </div>
+
+        <!-- 分子交互区域 -->
+        <div class="molecule-interactive" id="moleculeContainer">
+            <!-- 右上角力值显示面板 -->
+            <div class="force-value-panel" id="forceValuePanel">
+                <div class="force-value-item">
+                    <span class="force-type">当前作用力：</span>
+                    <span class="force-magnitude" id="currentForceType">合力为0</span>
+                </div>
+                <div class="force-value-item">
+                    <span class="force-type">力的大小：</span>
+                    <span class="force-magnitude" id="currentForceValue">0</span>
+                </div>
+                <div class="force-value-item">
+                    <span class="force-type">分子间距：</span>
+                    <span class="force-magnitude" id="currentDistance">60px</span>
+                </div>
+                <div class="force-value-item">
+                    <span class="force-type">平衡距离 r₀：</span>
+                    <span class="force-magnitude">60px (对应10⁻¹⁰m)</span>
+                </div>
+            </div>
+            
+            <!-- 取数按钮 -->
+            <button class="data-collect-btn" id="collectDataBtn">采集当前数据</button>
+            
+            <div class="molecule" id="molecule1">分子1</div>
+            <div class="molecule" id="molecule2">分子2</div>
+            <!-- 仅保留力的直线 -->
+            <div class="force-line" id="forceLine"></div>
+            <div class="force-label" id="forceLabel"></div>
+            <div class="distance-label" id="distanceLabel"></div>
+        </div>
+
+        <!-- 数据表格和曲线图区域 -->
+        <div class="data-section">
+            <h2>二、实验数据记录与变化曲线</h2>
+            
+            <!-- 数据表格 -->
+            <div class="data-table-wrap">
+                <button class="clear-data-btn" id="clearDataBtn">清空数据</button>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>分子间距 (px)</th>
+                            <th>力的大小（模拟值）</th>
+                            <th>作用力类型</th>
+                            <th>对应真实尺度 (×10⁻¹⁰m)</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTableBody">
+                        <tr>
+                            <td colspan="6" style="color: #7f8c8d;">暂无采集数据，请拖动分子后点击"采集当前数据"按钮</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- 曲线图容器 -->
+            <div class="chart-container">
+                <canvas id="forceDistanceChart"></canvas>
+            </div>
+        </div>
+
+        <!-- 打开弹窗按钮 -->
+        <button class="quiz-toggle" id="openQuizBtn">点击进入知识检测</button>
+    </div>
+
+    <!-- 知识检测弹窗 -->
+    <div class="quiz-modal" id="quizModal">
+        <div class="quiz-modal-content">
+            <!-- 右上角关闭叉号 -->
+            <span class="modal-close" id="modalCloseBtn">&times;</span>
+            <div class="quiz-title">知识检测</div>
+
+            <!-- 答题区域 -->
+            <div id="quizContent">
+                <div class="quiz-item" id="quizItem1">
+                    <div class="quiz-question">1. 分子间引力和斥力同时存在，当r = r₀（平衡距离）时，合力表现为（  ）</div>
+                    <div class="quiz-options" id="quizOptions1">
+                        <label><input type="radio" name="q1" value="A"> A. 引力大于斥力</label>
+                        <label><input type="radio" name="q1" value="B"> B. 斥力大于引力</label>
+                        <label><input type="radio" name="q1" value="C"> C. 引力等于斥力，合力为0</label>
+                        <label><input type="radio" name="q1" value="D"> D. 无相互作用</label>
+                    </div>
+                </div>
+
+                <div class="quiz-item" id="quizItem2">
+                    <div class="quiz-question">2. 关于分子间作用力的规律，下列说法正确的是（  ）</div>
+                    <div class="quiz-options" id="quizOptions2">
+                        <label><input type="radio" name="q2" value="A"> A. r < r₀时，斥力随距离减小线性增大</label>
+                        <label><input type="radio" name="q2" value="B"> B. r₀ < r < 10r₀时，引力主导</label>
+                        <label><input type="radio" name="q2" value="C"> C. r ≥ 5r₀时，分子力即可忽略</label>
+                        <label><input type="radio" name="q2" value="D"> D. 引力的增长速率快于斥力</label>
+                    </div>
+                </div>
+
+                <div class="quiz-item" id="quizItem3">
+                    <div class="quiz-question">3. 平衡距离 r₀ 的数量级约为 <input type="text" class="quiz-fill" name="q3" id="quizFill3_1"> m；当 r ≥ <input type="text" class="quiz-fill" name="q3_2" id="quizFill3_2"> r₀ 时，分子间作用力可忽略。</div>
+                </div>
+
+                <div class="quiz-item" id="quizItem4">
+                    <div class="quiz-question">4. 分子间作用力的本质是 <input type="text" class="quiz-fill" name="q4" id="quizFill4_1"> 相互作用；r < r₀时斥力急剧增大的原因是 <input type="text" class="quiz-fill" name="q4_2" id="quizFill4_2">。</div>
+                </div>
+
+                <button class="quiz-submit" id="quizSubmitBtn">提交答案</button>
+            </div>
+
+            <!-- 结果展示区域（初始隐藏） -->
+            <div class="result-section" id="resultSection" style="display: none;">
+                <div class="score-header">
+                    <div class="score-text" id="scoreDisplay">得分：0/100</div>
+                </div>
+                
+                <div class="analysis-section">
+                    <div class="analysis-title">学情分析</div>
+                    <div class="analysis-text" id="analysisText"></div>
+                </div>
+                
+                <div class="analysis-section">
+                    <div class="analysis-title">答题详情</div>
+                    <div id="answerDetails"></div>
+                </div>
+                
+                <button class="quiz-submit" id="resetQuizBtn" style="margin-top: 20px;">重新答题</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 可拖动分子功能实现
+        document.addEventListener('DOMContentLoaded', function() {
+            const molecule1 = document.getElementById('molecule1');
+            const molecule2 = document.getElementById('molecule2');
+            const forceLine = document.getElementById('forceLine');
+            const forceLabel = document.getElementById('forceLabel');
+            const distanceLabel = document.getElementById('distanceLabel');
+            const container = document.getElementById('moleculeContainer');
+            
+            // 右上角力值面板元素
+            const currentForceType = document.getElementById('currentForceType');
+            const currentForceValue = document.getElementById('currentForceValue');
+            const currentDistance = document.getElementById('currentDistance');
+            
+            // 数据采集相关变量
+            const collectDataBtn = document.getElementById('collectDataBtn');
+            const clearDataBtn = document.getElementById('clearDataBtn');
+            const dataTableBody = document.getElementById('dataTableBody');
+            let dataList = []; // 存储采集的所有数据
+            let chart = null; // 曲线图实例
+            
+            // 物理参数
+            const r0 = 60; // 平衡距离（px），对应真实10^-10m
+            const r10 = 10 * r0; // 10r0（分子力可忽略的临界值）
+            const maxRepulsion = 500; // 斥力最大值（模拟值）
+            const maxAttraction = -80; // 引力最大值（模拟值）
+            const attractionPeak = 80; // 引力峰值位置（80px）- 保留该常量，仅删除图表上的绿线
+            
+            // 绘制分子间力的直线（仅保留直线，移除所有曲线相关）
+            function drawStraightForceLine(x1, y1, x2, y2, color) {
+                const dx = x2 - x1;
+                const dy = y2 - y1;
+                const distance = Math.sqrt(dx*dx + dy*dy);
+                const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                
+                // 设置直线样式
+                forceLine.style.left = `${x1}px`;
+                forceLine.style.top = `${y1}px`;
+                forceLine.style.width = `${distance}px`;
+                forceLine.style.transform = `rotate(${angle}deg)`;
+                forceLine.style.backgroundColor = color;
+                forceLine.style.display = distance > 0 ? 'block' : 'none';
+            }
+            
+            // 拖动功能
+            function makeDraggable(element) {
+                let isDragging = false;
+                let offsetX, offsetY;
+                
+                element.addEventListener('mousedown', startDrag);
+                element.addEventListener('touchstart', startDrag, { passive: true });
+                
+                function startDrag(e) {
+                    isDragging = true;
+                    const clientX = e.clientX || e.touches[0].clientX;
+                    const clientY = e.clientY || e.touches[0].clientY;
+                    const rect = element.getBoundingClientRect();
+                    offsetX = clientX - rect.left;
+                    offsetY = clientY - rect.top;
+                    
+                    document.addEventListener('mousemove', drag);
+                    document.addEventListener('touchmove', drag, { passive: true });
+                    document.addEventListener('mouseup', stopDrag);
+                    document.addEventListener('touchend', stopDrag);
+                }
+                
+                function drag(e) {
+                    if (!isDragging) return;
+                    e.preventDefault();
+                    const clientX = e.clientX || e.touches[0].clientX;
+                    const clientY = e.clientY || e.touches[0].clientY;
+                    const containerRect = container.getBoundingClientRect();
+                    
+                    let newX = clientX - offsetX - containerRect.left;
+                    let newY = clientY - offsetY - containerRect.top;
+                    
+                    newX = Math.max(0, Math.min(containerRect.width - element.offsetWidth, newX));
+                    newY = Math.max(0, Math.min(containerRect.height - element.offsetHeight, newY));
+                    
+                    element.style.left = newX + 'px';
+                    element.style.top = newY + 'px';
+                    
+                    updateForceDisplay();
+                }
+                
+                function stopDrag() {
+                    isDragging = false;
+                    document.removeEventListener('mousemove', drag);
+                    document.removeEventListener('touchmove', drag);
+                    document.removeEventListener('mouseup', stopDrag);
+                    document.removeEventListener('touchend', stopDrag);
+                }
+            }
+            
+            // 核心：更新力的显示，确保r0位置力的大小严格为0
+            function updateForceDisplay() {
+                const rect1 = molecule1.getBoundingClientRect();
+                const rect2 = molecule2.getBoundingClientRect();
+                const containerRect = container.getBoundingClientRect();
+                
+                const x1 = rect1.left + rect1.width/2 - containerRect.left;
+                const y1 = rect1.top + rect1.height/2 - containerRect.top;
+                const x2 = rect2.left + rect2.width/2 - containerRect.left;
+                const y2 = rect2.top + rect2.height/2 - containerRect.top;
+                
+                const dx = x2 - x1;
+                const dy = y2 - y1;
+                let distance = Math.sqrt(dx*dx + dy*dy);
+                const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                
+                let forceType, forceMagnitude, forceColor;
+                
+                // 严格保证r0位置力的大小为0、合力为0
+                if (Math.abs(distance - r0) < 1) {
+                    distance = r0;
+                    forceType = '合力为0';
+                    forceMagnitude = 0;
+                    forceColor = '#7f8c8d';
+                } else if (distance < r0) {
+                    forceType = '斥力';
+                    // 斥力随距离减小呈指数增长
+                    const repulsionFactor = Math.exp((r0 - distance) / (r0/5));
+                    forceMagnitude = Math.round(Math.min(repulsionFactor * 50, maxRepulsion));
+                    forceColor = '#e74c3c';
+                } else if (distance > r10) {
+                    forceType = '作用力可忽略';
+                    forceMagnitude = 0;
+                    forceColor = '#7f8c8d';
+                } else if (distance > r0) {
+                    forceType = '引力';
+                    let attractionFactor;
+                    // 核心修改：将引力峰值位置改回80px（原120px）
+                    const attractionPeakDynamic = 80; // 固定为80px作为引力峰值位置
+                    if (distance <= attractionPeakDynamic) {
+                        // 从r0(60px)到80px，引力逐渐增大到最大值
+                        attractionFactor = (distance - r0) / (attractionPeakDynamic - r0);
+                    } else {
+                        // 从80px到10r0(600px)，引力逐渐减小到0
+                        attractionFactor = (r10 - distance) / (r10 - attractionPeakDynamic);
+                    }
+                    forceMagnitude = Math.round(-Math.min(attractionFactor * Math.abs(maxAttraction), Math.abs(maxAttraction)));
+                    forceColor = '#28a745';
+                } else {
+                    forceType = '合力为0';
+                    forceMagnitude = 0;
+                    forceColor = '#7f8c8d';
+                }
+                
+                // 绘制仅有的直线力线
+                drawStraightForceLine(x1, y1, x2, y2, forceColor);
+                
+                // 更新中间标签
+                forceLabel.style.left = (x1 + dx/2 - 20) + 'px';
+                forceLabel.style.top = (y1 + dy/2 - 20) + 'px';
+                forceLabel.textContent = `${forceType} (${forceMagnitude})`;
+                forceLabel.style.color = forceColor;
+                
+                // 距离标签显示真实尺度映射
+                const realScale = (distance / r0).toFixed(2);
+                distanceLabel.style.left = (x1 + dx/2 - 30) + 'px';
+                distanceLabel.textContent = `距离: ${Math.round(distance)}px (${realScale}×10⁻¹⁰m，r₀=60px)`;
+                
+                // 更新右上角面板
+                currentForceType.textContent = forceType;
+                currentForceType.style.color = forceColor;
+                currentForceValue.textContent = forceMagnitude;
+                currentForceValue.style.color = forceColor;
+                currentDistance.textContent = `${Math.round(distance)}px (${realScale}r₀)`;
+                
+                // 存储当前数据（供采集使用）
+                window.currentMoleculeData = {
+                    distance: Math.round(distance),
+                    forceMagnitude: forceMagnitude,
+                    forceType: forceType,
+                    forceColor: forceColor,
+                    realScale: realScale
+                };
+            }
+            
+            // 采集当前数据
+            collectDataBtn.addEventListener('click', function() {
+                const data = window.currentMoleculeData;
+                if (!data) return;
+                
+                // 添加数据到列表 - 修复forceType引用错误
+                dataList.push({
+                    id: dataList.length + 1,
+                    distance: data.distance,
+                    forceMagnitude: data.forceMagnitude,
+                    forceType: data.forceType, // 修复：改为data.forceType而不是全局的forceType
+                    realScale: data.realScale
+                });
+                
+                // 按分子间距从小到大排序
+                dataList.sort((a, b) => a.distance - b.distance);
+                // 重新分配序号
+                dataList.forEach((item, index) => {
+                    item.id = index + 1;
+                });
+                
+                // 更新表格
+                updateDataTable();
+                // 更新曲线图
+                updateForceDistanceChart();
+                
+                // 提示采集成功
+                alert(`数据采集成功！\n间距：${data.distance}px (${data.realScale}×10⁻¹⁰m) | 力的大小：${data.forceMagnitude} | 类型：${data.forceType}`);
+            });
+            
+            // 清空数据功能
+            clearDataBtn.addEventListener('click', function() {
+                if (confirm('确定要清空所有采集的数据吗？')) {
+                    dataList = [];
+                    dataTableBody.innerHTML = '<tr><td colspan="6" style="color: #7f8c8d;">暂无采集数据，请拖动分子后点击"采集当前数据"按钮</td></tr>';
+                    if (chart) {
+                        chart.destroy();
+                        chart = null;
+                    }
+                    initForceDistanceChart();
+                    alert('所有数据已清空！');
+                }
+            });
+            
+            // 删除单行数据（事件委托）
+            dataTableBody.addEventListener('click', function(e) {
+                if (e.target.classList.contains('delete-row-btn')) {
+                    const index = parseInt(e.target.getAttribute('data-index'));
+                    if (confirm('确定要删除这条数据吗？')) {
+                        dataList.splice(index, 1);
+                        dataList.forEach((item, idx) => {
+                            item.id = idx + 1;
+                        });
+                        updateDataTable();
+                        updateForceDistanceChart();
+                        alert('数据已删除！');
+                    }
+                }
+            });
+            
+            // 更新数据表格
+            function updateDataTable() {
+                dataTableBody.innerHTML = '';
+                
+                if (dataList.length === 0) {
+                    const emptyRow = document.createElement('tr');
+                    emptyRow.innerHTML = `<td colspan="6" style="color: #7f8c8d;">暂无采集数据，请拖动分子后点击"采集当前数据"按钮</td>`;
+                    dataTableBody.appendChild(emptyRow);
+                    return;
+                }
+                
+                dataList.forEach((item, index) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${item.id}</td>
+                        <td>${item.distance}</td>
+                        <td>${item.forceMagnitude}</td>
+                        <td>${item.forceType}</td>
+                        <td>${item.realScale}</td>
+                        <td><button class="delete-row-btn" data-index="${index}">删除</button></td>
+                    `;
+                    dataTableBody.appendChild(row);
+                });
+            }
+            
+            // 初始化曲线图：添加力为0的黑色参考线，x轴0开始，y轴-100到500
+            function initForceDistanceChart() {
+                const ctx = document.getElementById('forceDistanceChart').getContext('2d');
+                
+                // 准备图表数据
+                const chartDataPoints = dataList.map(item => ({
+                    x: item.distance,
+                    y: item.forceMagnitude
+                }));
+                
+                // 计算x轴最大范围
+                const maxX = Math.max(...dataList.map(item => item.distance), r10);
+                
+                chart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [{
+                            label: '分子间作用力大小（正值=斥力，负值=引力）',
+                            data: chartDataPoints,
+                            borderColor: '#3498db',
+                            backgroundColor: 'rgba(52, 152, 219, 0.6)',
+                            borderWidth: 2,
+                            pointRadius: 6,
+                            pointHoverRadius: 8,
+                            showLine: true,
+                            tension: 0.4,
+                            fill: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: '分子间距 (px) (1px = 1/60 ×10⁻¹⁰m)',
+                                    font: { size: 14, weight: 'bold' }
+                                },
+                                grid: { display: true, color: 'rgba(0,0,0,0.05)' },
+                                min: 0,
+                                max: maxX + 10,
+                                ticks: { stepSize: 20, autoSkip: true }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: '力的大小（模拟值）',
+                                    font: { size: 14, weight: 'bold' }
+                                },
+                                grid: { display: true, color: 'rgba(0,0,0,0.05)' },
+                                min: -100,
+                                max: 500,
+                                ticks: { stepSize: 50 }
+                            }
+                        },
+                        plugins: {
+                            annotation: {
+                                annotations: {
+                                    // 力的大小为0的黑色参考线（核心新增）
+                                    forceZeroLine: {
+                                        type: 'line',
+                                        yMin: 0,
+                                        yMax: 0,
+                                        borderColor: '#000000',
+                                        borderWidth: 2,
+                                        borderDash: [3, 3],
+                                        label: {
+                                            display: true,
+                                            content: '力的大小=0',
+                                            position: 'end'
+                                        }
+                                    },
+                                    // 平衡距离r0红线
+                                    r0Line: {
+                                        type: 'line',
+                                        xMin: r0,
+                                        xMax: r0,
+                                        borderColor: 'rgba(231, 76, 60, 0.8)',
+                                        borderWidth: 2,
+                                        borderDash: [5, 5],
+                                        label: {
+                                            display: true,
+                                            content: '平衡距离 r₀ (60px)',
+                                            position: 'start'
+                                        }
+                                    },
+                                    // 移除引力峰值绿线的配置（仅删除这部分，保留其他逻辑）
+                                    // 10r0紫线
+                                    r10Line: {
+                                        type: 'line',
+                                        xMin: r10,
+                                        xMax: r10,
+                                        borderColor: 'rgba(155, 89, 182, 0.8)',
+                                        borderWidth: 2,
+                                        borderDash: [3, 3],
+                                        label: {
+                                            display: true,
+                                            content: '10r₀ (600px)',
+                                            position: 'start'
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // 更新曲线图
+            function updateForceDistanceChart() {
+                if (chart) {
+                    chart.destroy();
+                }
+                initForceDistanceChart();
+            }
+            
+            // 初始化拖动功能
+            makeDraggable(molecule1);
+            makeDraggable(molecule2);
+            
+            // 初始化力的显示
+            updateForceDisplay();
+            
+            // 初始化数据表格
+            updateDataTable();
+            
+            // 初始化曲线图
+            initForceDistanceChart();
+            
+            // ========== 答题弹窗功能（保留原有） ==========
+            const openQuizBtn = document.getElementById('openQuizBtn');
+            const quizModal = document.getElementById('quizModal');
+            const modalCloseBtn = document.getElementById('modalCloseBtn');
+            const quizSubmitBtn = document.getElementById('quizSubmitBtn');
+            const resetQuizBtn = document.getElementById('resetQuizBtn');
+            const quizContent = document.getElementById('quizContent');
+            const resultSection = document.getElementById('resultSection');
+            const scoreDisplay = document.getElementById('scoreDisplay');
+            const analysisText = document.getElementById('analysisText');
+            const answerDetails = document.getElementById('answerDetails');
+            
+            // 打开弹窗
+            openQuizBtn.addEventListener('click', function() {
+                quizModal.style.display = 'flex';
+                resetQuiz();
+            });
+            
+            // 关闭弹窗
+            modalCloseBtn.addEventListener('click', function() {
+                quizModal.style.display = 'none';
+            });
+            
+            // 点击弹窗外部关闭
+            quizModal.addEventListener('click', function(e) {
+                if (e.target === quizModal) {
+                    quizModal.style.display = 'none';
+                }
+            });
+            
+            // 重置答题
+            function resetQuiz() {
+                const radioInputs = document.querySelectorAll('input[type="radio"]');
+                radioInputs.forEach(input => input.checked = false);
+                
+                const fillInputs = document.querySelectorAll('.quiz-fill');
+                fillInputs.forEach(input => {
+                    input.value = '';
+                    input.classList.remove('unanswered');
+                });
+                
+                const quizItems = document.querySelectorAll('.quiz-item');
+                quizItems.forEach(item => item.classList.remove('unanswered'));
+                
+                const quizOptions = document.querySelectorAll('.quiz-options');
+                quizOptions.forEach(option => option.classList.remove('unanswered'));
+                
+                resultSection.style.display = 'none';
+                quizContent.style.display = 'block';
+            }
+            
+            // 重新答题按钮
+            resetQuizBtn.addEventListener('click', resetQuiz);
+            
+            // 提交答案
+            quizSubmitBtn.addEventListener('click', function() {
+                let score = 0;
+                let answers = [];
+                let hasUnanswered = false;
+                
+                // 题目1
+                const q1Answer = document.querySelector('input[name="q1"]:checked');
+                if (!q1Answer) {
+                    document.getElementById('quizItem1').classList.add('unanswered');
+                    document.getElementById('quizOptions1').classList.add('unanswered');
+                    hasUnanswered = true;
+                } else {
+                    answers.push({
+                        question: '分子间引力和斥力同时存在，当r = r₀（平衡距离）时，合力表现为？',
+                        userAnswer: q1Answer.value,
+                        correctAnswer: 'C',
+                        score: 25,
+                        analysis: '当分子间距等于平衡距离r₀时，引力与斥力大小相等、方向相反，合力为0。'
+                    });
+                    if (q1Answer.value === 'C') score += 25;
+                }
+                
+                // 题目2
+                const q2Answer = document.querySelector('input[name="q2"]:checked');
+                if (!q2Answer) {
+                    document.getElementById('quizItem2').classList.add('unanswered');
+                    document.getElementById('quizOptions2').classList.add('unanswered');
+                    hasUnanswered = true;
+                } else {
+                    answers.push({
+                        question: '关于分子间作用力的规律，下列说法正确的是？',
+                        userAnswer: q2Answer.value,
+                        correctAnswer: 'B',
+                        score: 25,
+                        analysis: 'r₀ < r < 10r₀时，分子间作用力以引力为主导；r < r₀时斥力随距离减小快速增大；r ≥ 10r₀时分子力可忽略；斥力的增长速率远快于引力。'
+                    });
+                    if (q2Answer.value === 'B') score += 25;
+                }
+                
+                // 题目3
+                const q3_1 = document.getElementById('quizFill3_1').value.trim();
+                const q3_2 = document.getElementById('quizFill3_2').value.trim();
+                if (!q3_1) {
+                    document.getElementById('quizFill3_1').classList.add('unanswered');
+                    hasUnanswered = true;
+                }
+                if (!q3_2) {
+                    document.getElementById('quizFill3_2').classList.add('unanswered');
+                    hasUnanswered = true;
+                }
+                answers.push({
+                    question: '平衡距离 r₀ 的数量级约为？m；当 r ≥？r₀ 时，分子间作用力可忽略。',
+                    userAnswer: `${q3_1} | ${q3_2}`,
+                    correctAnswer: '10⁻¹⁰ | 10',
+                    score: 20,
+                    analysis: '平衡距离r₀的数量级为10⁻¹⁰m（1埃），当分子间距大于等于10倍r₀时，分子间作用力可忽略不计。'
+                });
+                if ((q3_1 === '10⁻¹⁰' || q3_1 === '10^-10') && q3_2 === '10') score += 20;
+                
+                // 题目4
+                const q4_1 = document.getElementById('quizFill4_1').value.trim();
+                const q4_2 = document.getElementById('quizFill4_2').value.trim();
+                if (!q4_1) {
+                    document.getElementById('quizFill4_1').classList.add('unanswered');
+                    hasUnanswered = true;
+                }
+                if (!q4_2) {
+                    document.getElementById('quizFill4_2').classList.add('unanswered');
+                    hasUnanswered = true;
+                }
+                answers.push({
+                    question: '分子间作用力的本质是？相互作用；r < r₀时斥力急剧增大的原因是？',
+                    userAnswer: `${q4_1} | ${q4_2}`,
+                    correctAnswer: '电磁（库仑） | 分子外层电子云重叠，库仑斥力显著',
+                    score: 30,
+                    analysis: '分子间作用力的本质是电磁相互作用（库仑力）；当r < r₀时，分子外层电子云发生重叠，库仑斥力急剧增大，表现为强烈的斥力作用。'
+                });
+                if (q4_1.includes('电磁') || q4_1.includes('库仑')) {
+                    if (q4_2.includes('电子云') || q4_2.includes('库仑斥力')) {
+                        score += 30;
+                    } else if (q4_2) score += 10;
+                } else if (q4_1) {
+                    score += 5;
+                    if (q4_2.includes('电子云') || q4_2.includes('库仑斥力')) score += 15;
+                }
+                
+                if (hasUnanswered) {
+                    alert('还有未作答的题目，请完成所有题目后再提交！');
+                    return;
+                }
+                
+                // 显示结果
+                scoreDisplay.textContent = `得分：${score}/100`;
+                
+                // 学情分析
+                let analysis = '';
+                if (score >= 90) {
+                    analysis = '优秀！你已熟练掌握分子间作用力的核心规律，能够准确理解分子间距与作用力的关系，以及分子间作用力的物理本质。';
+                } else if (score >= 70) {
+                    analysis = '良好！你基本掌握了分子间作用力的主要规律，但在细节知识点（如作用力本质、数量级）上还需加强。';
+                } else if (score >= 60) {
+                    analysis = '及格！你对分子间作用力的基本概念有一定了解，但对核心规律和物理本质的理解还不够深入，建议重点复习相关知识点。';
+                } else {
+                    analysis = '需加强！你对分子间作用力的核心知识点掌握不足，建议重新学习分子间引力与斥力的变化规律、平衡距离的物理意义等内容。';
+                }
+                analysisText.textContent = analysis;
+                
+                // 答题详情
+                answerDetails.innerHTML = '';
+                answers.forEach((answer, index) => {
+                    const isCorrect = answer.userAnswer === answer.correctAnswer || 
+                                     (index === 2 && (answer.userAnswer.includes('10⁻¹⁰') || answer.userAnswer.includes('10^-10')) && answer.userAnswer.includes('10')) ||
+                                     (index === 3 && (answer.userAnswer.includes('电磁') || answer.userAnswer.includes('库仑')) && (answer.userAnswer.includes('电子云') || answer.userAnswer.includes('库仑斥力')));
+                    
+                    const answerItem = document.createElement('div');
+                    answerItem.className = 'answer-item';
+                    
+                    answerItem.innerHTML = `
+                        <div class="answer-question">${index + 1}. ${answer.question}</div>
+                        <div class="answer-row">
+                            <span class="answer-label">你的答案：</span>
+                            <span class="${isCorrect ? 'correct-answer' : 'wrong-answer'}">${answer.userAnswer || '未作答'}</span>
+                        </div>
+                        <div class="answer-row">
+                            <span class="answer-label">正确答案：</span>
+                            <span class="correct-answer">${answer.correctAnswer}</span>
+                        </div>
+                        <div class="answer-row">
+                            <span class="answer-label">解析：</span>
+                            <span class="analysis-text">${answer.analysis}</span>
+                        </div>
+                    `;
+                    
+                    answerDetails.appendChild(answerItem);
+                });
+                
+                quizContent.style.display = 'none';
+                resultSection.style.display = 'block';
+            });
+        });
+    </script>
+</body>
+</html>
+

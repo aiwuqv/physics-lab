@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>伽利略理想实验：牛顿第一定律演示</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        header {
+            width: 100%;
+            text-align: center;
+            margin-bottom: 10px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .experiment-area {
+            width: 100%;
+            min-height: 400px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .control-panel {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .canvas-container {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        canvas {
+            display: block;
+            background: #0a0e2a;
+        }
+        
+        .panel-title {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .control-group {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .control-title {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .control-title i {
+            font-size: 1.5rem;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .slider-label {
+            min-width: 120px;
+        }
+        
+        input[type="range"] {
+            flex: 1;
+            height: 8px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.2);
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #fdbb2d;
+            cursor: pointer;
+        }
+        
+        .value-display {
+            min-width: 40px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 5px;
+            border-radius: 5px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        .reset-btn {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+        
+        .info-section {
+            margin-top: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .info-title {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .info-content {
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+        
+        .experiment-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+        
+        .info-item {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .info-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #fdbb2d;
+        }
+        
+        .info-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .control-row {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .control-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        @media (max-width: 900px) {
+            .control-row {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <header>
+            <h1>伽利略理想实验：牛顿第一定律演示</h1>
+            <p class="subtitle">探索物体在没有外力作用下的运动状态</p>
+        </header>
+        
+        <section class="experiment-area">
+            <h2 class="panel-title">实验演示</h2>
+            <div class="canvas-container">
+                <canvas id="experimentCanvas" width="800" height="400"></canvas>
+            </div>
+            <div class="experiment-info">
+                <div class="info-item">
+                    <div class="info-value" id="distanceValue">0 m</div>
+                    <div class="info-label">滑行距离</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-value" id="timeValue">0 s</div>
+                    <div class="info-label">运动时间</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-value" id="velocityValue">0 m/s</div>
+                    <div class="info-label">当前速度</div>
+                </div>
+            </div>
+        </section>
+        
+        <section class="control-panel">
+            <h2 class="panel-title">控制面板</h2>
+            <div class="controls">
+                <div class="control-row">
+                    <div class="control-column">
+                        <div class="control-group">
+                            <h3 class="control-title">🏔️ 斜面角度</h3>
+                            <div class="slider-container">
+                                <span class="slider-label">角度:</span>
+                                <input type="range" id="angleSlider" min="5" max="45" value="30">
+                                <span class="value-display" id="angleValue">30°</span>
+                            </div>
+                        </div>
+                        
+                        <div class="control-group">
+                            <h3 class="control-title">⚖️ 摩擦力</h3>
+                            <div class="slider-container">
+                                <span class="slider-label">摩擦系数:</span>
+                                <input type="range" id="frictionSlider" min="0" max="100" value="10">
+                                <span class="value-display" id="frictionValue">0.1</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="control-column">
+                        <div class="control-group">
+                            <h3 class="control-title">🚀 初始速度</h3>
+                            <div class="slider-container">
+                                <span class="slider-label">速度:</span>
+                                <input type="range" id="velocitySlider" min="0" max="100" value="50">
+                                <span class="value-display" id="initialVelocityValue">5.0 m/s</span>
+                            </div>
+                        </div>
+                        
+                        <div class="button-group">
+                            <button id="startBtn">开始实验</button>
+                            <button id="pauseBtn">暂停</button>
+                            <button id="resetBtn" class="reset-btn">重置</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="info-section">
+                <h3 class="info-title">📚 物理原理</h3>
+                <div class="info-content">
+                    <p><strong>牛顿第一定律（惯性定律）</strong>：任何物体都要保持匀速直线运动或静止状态，直到外力迫使它改变运动状态为止。</p>
+                    <p>伽利略的理想实验通过逐渐减小斜面的摩擦力，展示了物体在接近无摩擦条件下会保持匀速直线运动。</p>
+                    <p>本实验模拟了小球在不同摩擦系数表面上的运动，直观展示了摩擦力对物体运动状态的影响。</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // 获取Canvas元素和上下文
+        const canvas = document.getElementById('experimentCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 获取控制元素
+        const angleSlider = document.getElementById('angleSlider');
+        const frictionSlider = document.getElementById('frictionSlider');
+        const velocitySlider = document.getElementById('velocitySlider');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        
+        // 获取显示元素
+        const angleValue = document.getElementById('angleValue');
+        const frictionValue = document.getElementById('frictionValue');
+        const initialVelocityValue = document.getElementById('initialVelocityValue');
+        const distanceValue = document.getElementById('distanceValue');
+        const timeValue = document.getElementById('timeValue');
+        const velocityValue = document.getElementById('velocityValue');
+        
+        // 实验参数
+        let angle = parseInt(angleSlider.value); // 斜面角度（度）
+        let friction = parseInt(frictionSlider.value) / 100; // 摩擦系数
+        let initialVelocity = parseInt(velocitySlider.value) / 10; // 初始速度（m/s）
+        
+        // 实验状态
+        let isRunning = false;
+        let isPaused = false;
+        let animationId = null;
+        
+        // 小球状态
+        let ball = {
+            x: 100,
+            y: 100,
+            radius: 15,
+            velocity: initialVelocity,
+            distance: 0,
+            time: 0,
+            color: '#fdbb2d'
+        };
+        
+        // 更新显示值
+        function updateDisplayValues() {
+            angleValue.textContent = angle + '°';
+            frictionValue.textContent = friction.toFixed(2);
+            initialVelocityValue.textContent = initialVelocity.toFixed(1) + ' m/s';
+            distanceValue.textContent = ball.distance.toFixed(2) + ' m';
+            timeValue.textContent = ball.time.toFixed(2) + ' s';
+            velocityValue.textContent = ball.velocity.toFixed(2) + ' m/s';
+        }
+        
+        // 绘制实验场景
+        function drawScene() {
+            // 清除画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制背景
+            ctx.fillStyle = '#0a0e2a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制斜面（向下倾斜）
+            const angleRad = angle * Math.PI / 180;
+            const slopeLength = 300;
+            const slopeEndX = 100 + slopeLength * Math.cos(angleRad);
+            const slopeEndY = 100 + slopeLength * Math.sin(angleRad);
+            
+            ctx.beginPath();
+            ctx.moveTo(100, 100);
+            ctx.lineTo(slopeEndX, slopeEndY);
+            ctx.lineWidth = 8;
+            ctx.strokeStyle = '#3498db';
+            ctx.stroke();
+            
+            // 绘制水平面
+            ctx.beginPath();
+            ctx.moveTo(slopeEndX, slopeEndY);
+            ctx.lineTo(canvas.width, slopeEndY);
+            ctx.lineWidth = 8;
+            
+            // 根据摩擦系数改变水平面颜色
+            if (friction < 0.1) {
+                ctx.strokeStyle = '#2ecc71'; // 低摩擦 - 绿色
+            } else if (friction < 0.5) {
+                ctx.strokeStyle = '#f39c12'; // 中摩擦 - 橙色
+            } else {
+                ctx.strokeStyle = '#e74c3c'; // 高摩擦 - 红色
+            }
+            
+            ctx.stroke();
+            
+            // 绘制小球
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fillStyle = ball.color;
+            ctx.fill();
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // 绘制标记
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.font = '14px Arial';
+            ctx.fillText('斜面', 150, 80);
+            ctx.fillText(`摩擦系数: ${friction.toFixed(2)}`, slopeEndX + 50, slopeEndY - 20);
+            
+            // 绘制速度矢量
+            if (ball.velocity > 0) {
+                const velocityVectorLength = ball.velocity * 10;
+                ctx.beginPath();
+                ctx.moveTo(ball.x, ball.y);
+                
+                // 根据位置调整速度矢量方向
+                if (ball.x < slopeEndX) {
+                    // 在斜面上
+                    ctx.lineTo(ball.x + velocityVectorLength * Math.cos(angleRad), 
+                               ball.y + velocityVectorLength * Math.sin(angleRad));
+                } else {
+                    // 在水平面上
+                    ctx.lineTo(ball.x + velocityVectorLength, ball.y);
+                }
+                
+                ctx.strokeStyle = '#fdbb2d';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                // 绘制箭头
+                ctx.beginPath();
+                if (ball.x < slopeEndX) {
+                    // 在斜面上
+                    const arrowX = ball.x + velocityVectorLength * Math.cos(angleRad);
+                    const arrowY = ball.y + velocityVectorLength * Math.sin(angleRad);
+                    ctx.moveTo(arrowX, arrowY);
+                    ctx.lineTo(arrowX - 10 * Math.cos(angleRad) + 5 * Math.sin(angleRad), 
+                               arrowY - 10 * Math.sin(angleRad) - 5 * Math.cos(angleRad));
+                    ctx.lineTo(arrowX - 10 * Math.cos(angleRad) - 5 * Math.sin(angleRad), 
+                               arrowY - 10 * Math.sin(angleRad) + 5 * Math.cos(angleRad));
+                } else {
+                    // 在水平面上
+                    ctx.moveTo(ball.x + velocityVectorLength, ball.y);
+                    ctx.lineTo(ball.x + velocityVectorLength - 10, ball.y - 5);
+                    ctx.lineTo(ball.x + velocityVectorLength - 10, ball.y + 5);
+                }
+                ctx.closePath();
+                ctx.fillStyle = '#fdbb2d';
+                ctx.fill();
+            }
+        }
+        
+        // 更新小球状态
+        function updateBall() {
+            if (!isRunning || isPaused) return;
+            
+            const angleRad = angle * Math.PI / 180;
+            const slopeLength = 300;
+            const slopeEndX = 100 + slopeLength * Math.cos(angleRad);
+            const slopeEndY = 100 + slopeLength * Math.sin(angleRad);
+            
+            // 小球在斜面上
+            if (ball.x < slopeEndX) {
+                const acceleration = 9.8 * Math.sin(angleRad);
+                ball.velocity += acceleration * 0.05;
+                
+                ball.x += ball.velocity * Math.cos(angleRad) * 0.05;
+                ball.y += ball.velocity * Math.sin(angleRad) * 0.05;
+            } 
+            // 小球在水平面上
+            else {
+                const deceleration = 9.8 * friction;
+                ball.velocity -= deceleration * 0.05;
+                
+                if (ball.velocity < 0) {
+                    ball.velocity = 0;
+                }
+                
+                ball.x += ball.velocity * 0.05;
+                ball.y = slopeEndY;
+            }
+            
+            // 更新距离和时间
+            ball.distance += ball.velocity * 0.05;
+            ball.time += 0.05;
+            
+            // 如果小球到达边界或停止，停止实验
+            if (ball.x > canvas.width - ball.radius || ball.velocity <= 0) {
+                stopExperiment();
+            }
+            
+            updateDisplayValues();
+            drawScene();
+            
+            if (isRunning) {
+                animationId = requestAnimationFrame(updateBall);
+            }
+        }
+        
+        // 开始实验
+        function startExperiment() {
+            if (isRunning && !isPaused) return;
+            
+            isRunning = true;
+            isPaused = false;
+            
+            // 如果实验已经结束，重置小球位置
+            if (ball.x > canvas.width - ball.radius || ball.velocity <= 0) {
+                ball.x = 100;
+                ball.y = 100;
+                ball.velocity = initialVelocity;
+                ball.distance = 0;
+                ball.time = 0;
+            }
+            
+            updateBall();
+            startBtn.textContent = "重新开始";
+        }
+        
+        // 暂停实验
+        function pauseExperiment() {
+            if (!isRunning) return;
+            
+            isPaused = !isPaused;
+            pauseBtn.textContent = isPaused ? "继续" : "暂停";
+            
+            if (!isPaused) {
+                updateBall();
+            }
+        }
+        
+        // 停止实验
+        function stopExperiment() {
+            isRunning = false;
+            isPaused = false;
+            cancelAnimationFrame(animationId);
+            pauseBtn.textContent = "暂停";
+        }
+        
+        // 重置实验
+        function resetExperiment() {
+            stopExperiment();
+            
+            // 重置参数
+            angle = parseInt(angleSlider.value);
+            friction = parseInt(frictionSlider.value) / 100;
+            initialVelocity = parseInt(velocitySlider.value) / 10;
+            
+            // 重置小球状态
+            ball.x = 100;
+            ball.y = 100;
+            ball.velocity = initialVelocity;
+            ball.distance = 0;
+            ball.time = 0;
+            
+            updateDisplayValues();
+            drawScene();
+            startBtn.textContent = "开始实验";
+        }
+        
+        // 事件监听
+        angleSlider.addEventListener('input', function() {
+            angle = parseInt(this.value);
+            updateDisplayValues();
+            if (!isRunning) {
+                drawScene();
+            }
+        });
+        
+        frictionSlider.addEventListener('input', function() {
+            friction = parseInt(this.value) / 100;
+            updateDisplayValues();
+            if (!isRunning) {
+                drawScene();
+            }
+        });
+        
+        velocitySlider.addEventListener('input', function() {
+            initialVelocity = parseInt(this.value) / 10;
+            ball.velocity = initialVelocity;
+            updateDisplayValues();
+            if (!isRunning) {
+                drawScene();
+            }
+        });
+        
+        startBtn.addEventListener('click', startExperiment);
+        pauseBtn.addEventListener('click', pauseExperiment);
+        resetBtn.addEventListener('click', resetExperiment);
+        
+        // 初始化
+        updateDisplayValues();
+        drawScene();
+    </script>
+</body>
+</html>

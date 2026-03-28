@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>玻璃折射率实验</title>
+    <style>
+        body {
+            margin: 20px;
+            font-family: Arial;
+            background: #f5f9ff;
+        }
+        
+        canvas {
+            border: 2px solid #ccc;
+            background: #f8fbff;
+            display: block;
+            margin: 20px auto;
+        }
+        
+        .controls {
+            text-align: center;
+            margin: 20px;
+        }
+        
+        input, button {
+            margin: 5px;
+            padding: 5px;
+        }
+        
+        .test-section {
+            display: none;
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .question {
+            margin: 20px 0;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .option {
+            margin: 8px 0;
+            padding: 8px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .option:hover {
+            background: #eef5ff;
+        }
+        
+        .analysis {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background: #e6f0ff;
+            border-radius: 8px;
+            border-left: 4px solid #1a5fb4;
+        }
+        
+        .correct {
+            color: #26a269;
+            font-weight: bold;
+        }
+        
+        .incorrect {
+            color: #c01c28;
+            font-weight: bold;
+        }
+        
+        .data-box {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <h2 style="text-align:center">插针法测定玻璃折射率实验</h2>
+    <p style="text-align:center">光线从玻璃砖上面射入，从下面射出</p>
+    
+    <canvas id="experimentCanvas" width="800" height="400"></canvas>
+    
+    <div class="controls">
+        <div>
+            入射角 θ₁: <input type="range" id="angleSlider" min="20" max="70" value="45" step="1">
+            <span id="angleValue">45°</span>
+        </div>
+        <div>
+            折射率 n: <input type="range" id="nSlider" min="1.33" max="2.42" value="1.50" step="0.01">
+            <span id="nValue">1.50</span>
+        </div>
+        <div>
+            <button onclick="toggleAnimation()">开始/停止动画</button>
+            <button onclick="resetExperiment()">重置</button>
+            <button onclick="showTest()">开始知识检测</button>
+        </div>
+        <div>
+            <label><input type="checkbox" id="showPins" checked> 显示大头针</label>
+            <label><input type="checkbox" id="showAngles" checked> 显示角度</label>
+        </div>
+    </div>
+    
+    <div class="data-box">
+        <h3 style="text-align:center">数据记录与计算</h3>
+        <div style="text-align:center">
+            <p>测量入射角 θ₁ = <span id="incidentAngleValue">45</span>°</p>
+            <p>测量折射角 θ₂ = <input type="number" id="refractionAngle" value="28.1" style="width:60px"> °</p>
+            <p>计算折射率 n = <input type="number" id="refractiveIndex" value="1.50" style="width:60px"></p>
+            <button onclick="checkCalculation()">验证计算</button>
+            <span id="calculationResult"></span>
+        </div>
+    </div>
+    
+    <!-- 习题检测部分 -->
+    <div id="testSection" class="test-section">
+        <h2 style="text-align:center">知识检测</h2>
+        
+        <div class="question">
+            <p><strong>1. 在插针法实验中，大头针P₁和P₂应该插在什么位置？</strong></p>
+            <div class="option" onclick="selectAnswer('q1', 'a')">
+                <input type="radio" name="q1" id="q1a"> 
+                <label for="q1a">玻璃砖内部</label>
+            </div>
+            <div class="option" onclick="selectAnswer('q1', 'b')">
+                <input type="radio" name="q1" id="q1b"> 
+                <label for="q1b">玻璃砖上方空气中</label>
+            </div>
+            <div class="option" onclick="selectAnswer('q1', 'c')">
+                <input type="radio" name="q1" id="q1c"> 
+                <label for="q1c">玻璃砖下方空气中</label>
+            </div>
+            <div class="option" onclick="selectAnswer('q1', 'd')">
+                <input type="radio" name="q1" id="q1d"> 
+                <label for="q1d">任意位置都可以</label>
+            </div>
+        </div>
+        
+        <div class="question">
+            <p><strong>2. 关于实验中的光路，以下说法正确的是：</strong></p>
+            <div class="option" onclick="selectAnswer('q2', 'a')">
+                <input type="radio" name="q2" id="q2a"> 
+                <label for="q2a">光线从玻璃砖左侧射入，右侧射出</label>
+            </div>
+            <div class="option" onclick="selectAnswer('q2', 'b')">
+                <input type="radio" name="q2" id="q2b"> 
+                <label for="q2b">光线从玻璃砖上面射入，下面射出</label>
+            </div>
+            <div class="option" onclick="selectAnswer('q2', 'c')">
+                <input type="radio" name="q2" id="q2c"> 
+                <label for="q2c">光线从玻璃砖下面射入，上面射出</label>
+            </div>
+            <div class="option" onclick="selectAnswer('q2', 'd')">
+                <input type="radio" name="q2" id="q2d"> 
+                <label for="q2d">光线可以在任意方向传播</label>
+            </div>
+        </div>
+        
+        <div class="question">
+            <p><strong>3. O'点的位置在：</strong></p>
+            <div class="option" onclick="selectAnswer('q3', 'a')">
+                <input type="radio" name="q3" id="q3a"> 
+                <label for="q3a">玻璃砖内部任意位置</label>
+            </div>
+            <div class="option" onclick="selectAnswer('q3', 'b')">
+                <input type="radio" name="q3" id="q3b"> 
+                <label for="q3b">玻璃砖下界面bb'上</label>
+            </div>
+            <div class="option" onclick="selectAnswer('q3', 'c')">
+                <input type="radio" name="q3" id="q3c"> 
+                <label for="q3c">空气介质中</label>
+            </div>
+            <div class="option" onclick="selectAnswer('q3', 'd')">
+                <input type="radio" name="q3" id="q3d"> 
+                <label for="q3d">法线NN'上</label>
+            </div>
+        </div>
+        
+        <div class="question">
+            <p><strong>4. 折射角θ₂是指：</strong></p>
+            <div class="option" onclick="selectAnswer('q4', 'a')">
+                <input type="radio" name="q4" id="q4a"> 
+                <label for="q4a">入射光线与界面的夹角</label>
+            </div>
+            <div class="option" onclick="selectAnswer('q4', 'b')">
+                <input type="radio" name="q4" id="q4b"> 
+                <label for="q4b">折射光线与法线的夹角</label>
+            </div>
+            <div class="option" onclick="selectAnswer('q4', 'c')">
+                <input type="radio" name="q4" id="q4c"> 
+                <label for="q4c">出射光线与界面的夹角</label>
+            </div>
+            <div class="option" onclick="selectAnswer('q4', 'd')">
+                <input type="radio" name="q4" id="q4d"> 
+                <label for="q4d">入射光线与法线的夹角</label>
+            </div>
+        </div>
+        
+        <div class="question">
+            <p><strong>5. 实验中连接P₃和P₄的目的是：</strong></p>
+            <div class="option" onclick="selectAnswer('q5', 'a')">
+                <input type="radio" name="q5" id="q5a"> 
+                <label for="q5a">确定入射光线的方向</label>
+            </div>
+            <div class="option" onclick="selectAnswer('q5', 'b')">
+                <input type="radio" name="q5" id="q5b"> 
+                <label for="q5b">确定出射光线的方向</label>
+            </div>
+            <div class="option" onclick="selectAnswer('q5', 'c')">
+                <input type="radio" name="q5" id="q5c"> 
+                <label for="q5c">测量玻璃砖的厚度</label>
+            </div>
+            <div class="option" onclick="selectAnswer('q5', 'd')">
+                <input type="radio" name="q5" id="q5d"> 
+                <label for="q5d">没有特定目的</label>
+            </div>
+        </div>
+        
+        <div style="text-align:center; margin:20px;">
+            <button onclick="submitTest()" style="background:#26a269; color:white; padding:10px 20px;">提交答案</button>
+            <button onclick="hideTest()" style="background:#666; color:white; padding:10px 20px;">返回实验</button>
+        </div>
+        
+        <div id="analysis" class="analysis">
+            <h3>学情分析</h3>
+            <div id="analysisContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // === 实验部分代码（保持原样）===
+        // 获取元素
+        const canvas = document.getElementById('experimentCanvas');
+        const ctx = canvas.getContext('2d');
+        const angleSlider = document.getElementById('angleSlider');
+        const angleValue = document.getElementById('angleValue');
+        const incidentAngleValue = document.getElementById('incidentAngleValue');
+        const nSlider = document.getElementById('nSlider');
+        const nValue = document.getElementById('nValue');
+        const refractionAngleInput = document.getElementById('refractionAngle');
+        const refractiveIndexInput = document.getElementById('refractiveIndex');
+        const showPinsCheck = document.getElementById('showPins');
+        const showAnglesCheck = document.getElementById('showAngles');
+        
+        // 实验状态
+        let incidentAngle = 45;
+        let refractiveIndex = 1.5;
+        let animating = false;
+        let animationId = null;
+        
+        // 绘制实验
+        function drawExperiment() {
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            // 清空画布
+            ctx.clearRect(0, 0, width, height);
+            
+            // 玻璃砖尺寸和位置
+            const glassWidth = 300;
+            const glassHeight = 100;
+            const glassX = width/2 - glassWidth/2;
+            const glassY = height/2 - glassHeight/2;
+            
+            // 绘制玻璃砖
+            ctx.fillStyle = 'rgba(173, 216, 230, 0.3)';
+            ctx.fillRect(glassX, glassY, glassWidth, glassHeight);
+            ctx.strokeStyle = '#1a5fb4';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(glassX, glassY, glassWidth, glassHeight);
+            
+            // 界面aa'（上表面）
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(glassX, glassY);
+            ctx.lineTo(glassX + glassWidth, glassY);
+            ctx.stroke();
+            ctx.fillText("aa'", width/2 - 10, glassY - 10);
+            
+            // 界面bb'（下表面）
+            ctx.beginPath();
+            ctx.moveTo(glassX, glassY + glassHeight);
+            ctx.lineTo(glassX + glassWidth, glassY + glassHeight);
+            ctx.stroke();
+            ctx.fillText("bb'", width/2 - 10, glassY + glassHeight + 20);
+            
+            // 入射点O
+            const O = { x: width/2, y: glassY };
+            
+            // 法线NN'
+            ctx.setLineDash([5, 5]);
+            ctx.strokeStyle = '#666';
+            ctx.beginPath();
+            ctx.moveTo(O.x, glassY - 80);
+            ctx.lineTo(O.x, glassY + glassHeight + 80);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillText("NN'", O.x + 10, glassY + 30);
+            
+            // 计算折射角
+            const incidentRad = incidentAngle * Math.PI / 180;
+            const sinRefraction = Math.sin(incidentRad) / refractiveIndex;
+            const refractionRad = Math.asin(sinRefraction);
+            const refractionDeg = refractionRad * 180 / Math.PI;
+            
+            // 更新显示值
+            angleValue.textContent = incidentAngle + '°';
+            incidentAngleValue.textContent = incidentAngle;
+            nValue.textContent = refractiveIndex.toFixed(2);
+            refractionAngleInput.value = refractionDeg.toFixed(1);
+            refractiveIndexInput.value = refractiveIndex.toFixed(2);
+            
+            // 入射光线AO
+            const A = {
+                x: O.x - 120 * Math.sin(incidentRad),
+                y: O.y - 120 * Math.cos(incidentRad)
+            };
+            
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(A.x, A.y);
+            ctx.lineTo(O.x, O.y);
+            ctx.stroke();
+            ctx.fillText("AO", (A.x + O.x)/2 - 15, (A.y + O.y)/2 - 15);
+            
+            // 折射光线OO'
+            const refractionLength = glassHeight / Math.cos(refractionRad);
+            const refractionEndX = O.x + refractionLength * Math.sin(refractionRad);
+            const refractionEndY = O.y + refractionLength * Math.cos(refractionRad);
+            
+            ctx.beginPath();
+            ctx.moveTo(O.x, O.y);
+            ctx.lineTo(refractionEndX, refractionEndY);
+            ctx.stroke();
+            ctx.fillText("OO'", (O.x + refractionEndX)/2 + 10, (O.y + refractionEndY)/2);
+            
+            // 出射光线O'B
+            const O_prime = { x: refractionEndX, y: glassY + glassHeight };
+            const B = {
+                x: O_prime.x + 100 * Math.sin(incidentRad),
+                y: O_prime.y + 100 * Math.cos(incidentRad)
+            };
+            
+            ctx.beginPath();
+            ctx.moveTo(O_prime.x, O_prime.y);
+            ctx.lineTo(B.x, B.y);
+            ctx.stroke();
+            ctx.fillText("O'B", (O_prime.x + B.x)/2 + 10, (O_prime.y + B.y)/2 + 10);
+            
+            // 绘制大头针
+            if (showPinsCheck.checked) {
+                // P1, P2在上方
+                const p1 = { x: O.x - 80 * Math.sin(incidentRad), y: O.y - 80 * Math.cos(incidentRad) };
+                const p2 = { x: O.x - 40 * Math.sin(incidentRad), y: O.y - 40 * Math.cos(incidentRad) };
+                
+                // P3, P4在下方
+                const p3 = { x: O_prime.x + 30 * Math.sin(incidentRad), y: O_prime.y + 30 * Math.cos(incidentRad) };
+                const p4 = { x: O_prime.x + 70 * Math.sin(incidentRad), y: O_prime.y + 70 * Math.cos(incidentRad) };
+                
+                [p1, p2, p3, p4].forEach((pin, i) => {
+                    // 大头针
+                    ctx.strokeStyle = '#2c3e50';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(pin.x, pin.y - 6);
+                    ctx.lineTo(pin.x, pin.y + 6);
+                    ctx.stroke();
+                    
+                    ctx.fillStyle = '#2c3e50';
+                    ctx.beginPath();
+                    ctx.arc(pin.x, pin.y, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // 编号
+                    ctx.fillText(`P${i+1}`, pin.x + 8, pin.y + 18);
+                });
+                
+                // 连接P3P4的虚线
+                ctx.setLineDash([3, 3]);
+                ctx.strokeStyle = '#666';
+                ctx.beginPath();
+                ctx.moveTo(p3.x, p3.y);
+                ctx.lineTo(p4.x, p4.y);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+            
+            // 绘制角度
+            if (showAnglesCheck.checked) {
+                const radius = 40;
+                
+                // 入射角θ₁
+                ctx.strokeStyle = '#e74c3c';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.arc(O.x, O.y, radius, -Math.PI/2, -Math.PI/2 + incidentRad);
+                ctx.stroke();
+                
+                const midAngle1 = -Math.PI/2 + incidentRad/2;
+                ctx.fillText("θ₁", O.x + (radius + 15) * Math.cos(midAngle1), O.y + (radius + 15) * Math.sin(midAngle1));
+                
+                // 折射角θ₂
+                ctx.beginPath();
+                ctx.arc(O.x, O.y, radius, Math.PI/2, Math.PI/2 - refractionRad);
+                ctx.stroke();
+                
+                const midAngle2 = Math.PI/2 - refractionRad/2;
+                ctx.fillText("θ₂", O.x + (radius + 15) * Math.cos(midAngle2), O.y + (radius + 15) * Math.sin(midAngle2));
+            }
+            
+            // 标注点
+            ctx.fillStyle = '#333';
+            ctx.font = '14px Arial';
+            ctx.beginPath();
+            ctx.arc(O.x, O.y, 3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillText("O", O.x + 8, O.y - 8);
+            
+            ctx.beginPath();
+            ctx.arc(O_prime.x, O_prime.y, 3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillText("O'", O_prime.x + 8, O_prime.y - 8);
+            
+            // 标注介质
+            ctx.fillStyle = '#333';
+            ctx.fillText('空气', O.x - 100, O.y - 60);
+            ctx.fillText(`玻璃 (n=${refractiveIndex.toFixed(2)})`, width/2, height/2);
+            ctx.fillText('空气', O.x + 100, glassY + glassHeight + 60);
+        }
+        
+        // 事件监听
+        angleSlider.addEventListener('input', function() {
+            incidentAngle = parseInt(this.value);
+            drawExperiment();
+        });
+        
+        nSlider.addEventListener('input', function() {
+            refractiveIndex = parseFloat(this.value);
+            drawExperiment();
+        });
+        
+        showPinsCheck.addEventListener('change', drawExperiment);
+        showAnglesCheck.addEventListener('change', drawExperiment);
+        
+        // 动画函数
+        function toggleAnimation() {
+            if (animating) {
+                animating = false;
+                cancelAnimationFrame(animationId);
+            } else {
+                animating = true;
+                animate();
+            }
+        }
+        
+        function animate() {
+            if (!animating) return;
+            
+            incidentAngle += 1;
+            if (incidentAngle > 70) incidentAngle = 20;
+            
+            angleSlider.value = incidentAngle;
+            drawExperiment();
+            
+            animationId = requestAnimationFrame(animate);
+        }
+        
+        // 重置
+        function resetExperiment() {
+            incidentAngle = 45;
+            refractiveIndex = 1.5;
+            angleSlider.value = incidentAngle;
+            nSlider.value = refractiveIndex;
+            drawExperiment();
+        }
+        
+        // 验证计算
+        function checkCalculation() {
+            const measuredAngle = parseFloat(refractionAngleInput.value);
+            const measuredN = parseFloat(refractiveIndexInput.value);
+            
+            const incidentRad = incidentAngle * Math.PI / 180;
+            const measuredRad = measuredAngle * Math.PI / 180;
+            const calculatedN = Math.sin(incidentRad) / Math.sin(measuredRad);
+            
+            const error = Math.abs(calculatedN - measuredN);
+            const result = document.getElementById('calculationResult');
+            
+            if (error < 0.05) {
+                result.innerHTML = '<span style="color:green">✓ 计算正确</span>';
+            } else if (error < 0.1) {
+                result.innerHTML = '<span style="color:orange">≈ 基本正确</span>';
+            } else {
+                result.innerHTML = '<span style="color:red">✗ 需要检查</span>';
+            }
+        }
+        
+        // === 习题检测部分（新增）===
+        let userAnswers = {};
+        
+        function selectAnswer(questionId, answer) {
+            // 清除该问题的其他选项
+            document.querySelectorAll(`input[name="${questionId}"]`).forEach(input => {
+                input.checked = false;
+            });
+            
+            // 选中当前选项
+            document.getElementById(`${questionId}${answer}`).checked = true;
+            userAnswers[questionId] = answer;
+        }
+        
+        function showTest() {
+            document.getElementById('testSection').style.display = 'block';
+            document.getElementById('analysis').style.display = 'none';
+            window.scrollTo(0, document.getElementById('testSection').offsetTop);
+        }
+        
+        function hideTest() {
+            document.getElementById('testSection').style.display = 'none';
+        }
+        
+        function submitTest() {
+            // 检查是否所有题目都已回答
+            for (let i = 1; i <= 5; i++) {
+                if (!userAnswers[`q${i}`]) {
+                    alert(`请先回答第${i}题！`);
+                    return;
+                }
+            }
+            
+            // 正确答案
+            const correctAnswers = {
+                q1: 'b', // P1和P2在上方空气中
+                q2: 'b', // 光线从上面射入，下面射出
+                q3: 'b', // O'点在bb'上
+                q4: 'b', // 折射光线与法线的夹角
+                q5: 'b'  // 确定出射光线方向
+            };
+            
+            // 计算得分和分析
+            let score = 0;
+            let analysisHTML = '<h4>答题情况分析：</h4><ul>';
+            
+            // 各题分析
+            for (let i = 1; i <= 5; i++) {
+                const questionId = `q${i}`;
+                const userAnswer = userAnswers[questionId];
+                const correctAnswer = correctAnswers[questionId];
+                
+                analysisHTML += `<li><strong>第${i}题：</strong>`;
+                
+                if (userAnswer === correctAnswer) {
+                    score++;
+                    analysisHTML += '<span class="correct">回答正确</span>';
+                } else {
+                    analysisHTML += '<span class="incorrect">回答错误</span>';
+                }
+                
+                // 添加详细解释
+                switch(i) {
+                    case 1:
+                        analysisHTML += '。正确位置：玻璃砖上方空气中，用于确定入射光线方向。';
+                        break;
+                    case 2:
+                        analysisHTML += '。实验图示显示光线从玻璃砖上面射入，从下面射出。';
+                        break;
+                    case 3:
+                        analysisHTML += '。O\'点是折射光线与下界面bb\'的交点。';
+                        break;
+                    case 4:
+                        analysisHTML += '。折射角θ₂是折射光线OO\'与法线NN\'的夹角。';
+                        break;
+                    case 5:
+                        analysisHTML += '。连接P₃和P₄可确定出射光线的方向，从而找到O\'点。';
+                        break;
+                }
+                
+                analysisHTML += '</li>';
+            }
+            
+            analysisHTML += '</ul>';
+            analysisHTML += `<h4>得分：${score}/5</h4>`;
+            
+            // 学情分析
+            if (score === 5) {
+                analysisHTML += '<p class="correct">优秀！您已经完全掌握了插针法实验的原理和操作。</p>';
+                analysisHTML += '<p><strong>教学建议：</strong>可以进行更复杂的折射现象探究。</p>';
+            } else if (score >= 3) {
+                analysisHTML += '<p>良好！您基本理解了实验，但还需注意一些细节。</p>';
+                analysisHTML += '<p><strong>教学建议：</strong>重点复习实验步骤和测量方法。</p>';
+            } else {
+                analysisHTML += '<p class="incorrect">需要加强学习！请重新观察实验图示，理解各元素的意义。</p>';
+                analysisHTML += '<p><strong>教学建议：</strong>建议重新进行实验观察，重点关注光路方向和各点位置。</p>';
+            }
+            
+            // 显示分析结果
+            document.getElementById('analysisContent').innerHTML = analysisHTML;
+            document.getElementById('analysis').style.display = 'block';
+            
+            // 滚动到分析部分
+            setTimeout(() => {
+                document.getElementById('analysis').scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        }
+        
+        // 初始绘制
+        drawExperiment();
+    </script>
+</body>
+</html>

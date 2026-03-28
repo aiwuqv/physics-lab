@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电磁振荡电路可视化</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e6e6e6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        h1 {
+            color: #4cc9f0;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            color: #a9a9a9;
+            font-size: 1.1em;
+        }
+        
+        .content {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .control-panel {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .chart-container {
+            flex: 2;
+            min-width: 500px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            height: 550px;
+        }
+        
+        .formula-box {
+            background: rgba(76, 201, 240, 0.1);
+            border-left: 4px solid #4cc9f0;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        
+        .formula {
+            font-size: 1.3em;
+            color: #4cc9f0;
+            text-align: center;
+        }
+        
+        .slider-group {
+            margin: 25px 0;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            color: #b0b0b0;
+        }
+        
+        .slider-value {
+            color: #4cc9f0;
+            font-weight: bold;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            background: #4cc9f0;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: #3ab0d6;
+            transform: scale(1.2);
+        }
+        
+        .phase-info {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 25px;
+        }
+        
+        .phase-item {
+            padding: 12px 15px;
+            margin: 8px 0;
+            border-radius: 8px;
+            transition: all 0.3s;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .phase-item:hover {
+            background: rgba(76, 201, 240, 0.1);
+        }
+        
+        .phase-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+        
+        .phase-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .phase-1 { background-color: #4cc9f0; }
+        .phase-2 { background-color: #f72585; }
+        .phase-3 { background-color: #7209b7; }
+        .phase-4 { background-color: #3a86ff; }
+        
+        .energy-flow {
+            font-size: 0.9em;
+            color: #a9a9a9;
+            margin-top: 5px;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #4cc9f0, #3a86ff);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+            width: 100%;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(76, 201, 240, 0.3);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: #1a1a2e;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 2px solid #4cc9f0;
+            position: relative;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: #4cc9f0;
+            font-size: 2em;
+            cursor: pointer;
+            line-height: 1;
+        }
+        
+        .question {
+            margin: 25px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        
+        .options {
+            margin-top: 15px;
+        }
+        
+        .option {
+            margin: 10px 0;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .option:hover {
+            background: rgba(76, 201, 240, 0.2);
+        }
+        
+        .selected {
+            background: rgba(76, 201, 240, 0.3) !important;
+            border-left: 4px solid #4cc9f0;
+        }
+        
+        .correct {
+            background: rgba(76, 175, 80, 0.3) !important;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .incorrect {
+            background: rgba(244, 67, 54, 0.3) !important;
+            border-left: 4px solid #f44336;
+        }
+        
+        .explanation {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .results {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            background: rgba(76, 201, 240, 0.1);
+            display: none;
+        }
+        
+        .phase-highlight {
+            animation: pulse 2s infinite;
+            background: rgba(76, 201, 240, 0.15) !important;
+            border: 1px solid #4cc9f0;
+        }
+        
+        .phase-active {
+            background: rgba(255, 255, 0, 0.2) !important;
+            border: 2px solid #FFD700 !important;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+        
+        @media (max-width: 1100px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            .control-panel, .chart-container {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <header>
+            <h1>电磁振荡电路可视化实验</h1>
+            <p class="subtitle">调节LC参数，观察振荡电流变化，理解电磁能量转换过程</p>
+        </header>
+        
+        <div class="content">
+            <div class="control-panel">
+                <h2>电路参数控制</h2>
+                
+                <div class="formula-box">
+                    <div class="formula">
+                        振荡周期：T = 2π√(LC)
+                    </div>
+                    <p id="currentPeriod" style="text-align: center; margin-top: 10px; color: #a9a9a9;">
+                        当前周期：<span id="periodValue">0.628</span> ms
+                    </p>
+                </div>
+                
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span>电感 L (亨利)</span>
+                        <span class="slider-value" id="lValue">0.01</span>
+                    </div>
+                    <input type="range" id="lSlider" min="0.001" max="0.1" step="0.001" value="0.01">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8em; color: #666; margin-top: 5px;">
+                        <span>0.001 H</span>
+                        <span>0.1 H</span>
+                    </div>
+                </div>
+                
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span>电容 C (法拉)</span>
+                        <span class="slider-value" id="cValue">0.0001</span>
+                    </div>
+                    <input type="range" id="cSlider" min="0.00001" max="0.001" step="0.00001" value="0.0001">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8em; color: #666; margin-top: 5px;">
+                        <span>0.00001 F</span>
+                        <span>0.001 F</span>
+                    </div>
+                </div>
+                
+                <div class="phase-info">
+                    <h3>振荡周期四个阶段</h3>
+                    <div class="phase-item" id="phase1" data-phase="1">
+                        <div class="phase-title">
+                            <div class="phase-indicator phase-1"></div>
+                            <strong>电容器放电 (0 → T/4)</strong>
+                        </div>
+                        <p>电场能最大 → 磁场能最大</p>
+                        <p class="energy-flow">电场能 → 磁场能</p>
+                    </div>
+                    
+                    <div class="phase-item" id="phase2" data-phase="2">
+                        <div class="phase-title">
+                            <div class="phase-indicator phase-2"></div>
+                            <strong>电容器反向充电 (T/4 → T/2)</strong>
+                        </div>
+                        <p>磁场能最大 → 电场能最大</p>
+                        <p class="energy-flow">磁场能 → 电场能 (反向)</p>
+                    </div>
+                    
+                    <div class="phase-item" id="phase3" data-phase="3">
+                        <div class="phase-title">
+                            <div class="phase-indicator phase-3"></div>
+                            <strong>电容器反向放电 (T/2 → 3T/4)</strong>
+                        </div>
+                        <p>电场能最大 → 磁场能最大</p>
+                        <p class="energy-flow">电场能 → 磁场能</p>
+                    </div>
+                    
+                    <div class="phase-item" id="phase4" data-phase="4">
+                        <div class="phase-title">
+                            <div class="phase-indicator phase-4"></div>
+                            <strong>电容器充电 (3T/4 → T)</strong>
+                        </div>
+                        <p>磁场能最大 → 电场能最大</p>
+                        <p class="energy-flow">磁场能 → 电场能</p>
+                    </div>
+                </div>
+                
+                <button class="btn" id="quizBtn">开始学习检测</button>
+            </div>
+            
+            <div class="chart-container">
+                <h2>振荡电流随时间变化 (电流领先电压π相位)</h2>
+                <div style="height: 450px; position: relative;">
+                    <canvas id="oscillationChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 学习检测弹窗 -->
+    <div class="modal" id="quizModal">
+        <div class="modal-content">
+            <button class="close-btn" id="closeModal">&times;</button>
+            <h2 style="color: #4cc9f0; margin-bottom: 20px;">电磁振荡学习检测</h2>
+            
+            <div id="quizQuestions">
+                <!-- 问题将在这里动态生成 -->
+            </div>
+            
+            <div class="results" id="quizResults">
+                <h3>测试结果</h3>
+                <p id="scoreText"></p>
+                <button class="btn" id="retryBtn" style="margin-top: 20px;">重新测试</button>
+            </div>
+            
+            <button class="btn" id="submitQuiz" style="margin-top: 30px;">提交答案</button>
+        </div>
+    </div>
+
+    <script>
+        // 初始化变量
+        let L = 0.01; // 电感 (H)
+        let C = 0.0001; // 电容 (F)
+        let currentPhase = 0;
+        let chart = null;
+        let highlightedPhase = null; // 当前高亮的阶段
+        
+        // 计算振荡周期
+        function calculatePeriod(L, C) {
+            return 2 * Math.PI * Math.sqrt(L * C);
+        }
+        
+        // 生成振荡电流数据（电流领先电压π相位）
+        function generateOscillationData(L, C) {
+            const T = calculatePeriod(L, C);
+            const dataPoints = 500; // 足够多的点使曲线平滑
+            const data = [];
+            
+            // 生成一个周期的平滑正弦波数据
+            // 电流领先电压π：i(t) = sin(ωt + π) = -sin(ωt)
+            for (let i = 0; i <= dataPoints; i++) {
+                const t = (i / dataPoints) * T; // 归一化时间
+                const omega = 2 * Math.PI / T;
+                
+                // 电流领先电压π：i(t) = -sin(ωt)
+                // 这样当电压为最大值时，电流为0且将要变为负值
+                const current = -Math.sin(omega * t);
+                
+                data.push({
+                    x: t * 1000, // 转换为毫秒
+                    y: current
+                });
+            }
+            
+            return { data, T };
+        }
+        
+        // 高亮特定阶段的图像部分
+        function highlightPhase(phase) {
+            highlightedPhase = phase;
+            
+            // 移除所有阶段的高亮
+            document.querySelectorAll('.phase-item').forEach(item => {
+                item.classList.remove('phase-active');
+            });
+            
+            // 高亮选中的阶段
+            const phaseItem = document.getElementById(`phase${phase}`);
+            if (phaseItem) {
+                phaseItem.classList.add('phase-active');
+            }
+            
+            // 更新图表，显示高亮
+            updateChartWithHighlight();
+        }
+        
+        // 更新图表，显示高亮区域
+        function updateChartWithHighlight() {
+            const { data, T } = generateOscillationData(L, C);
+            const ctx = document.getElementById('oscillationChart').getContext('2d');
+            
+            // 更新周期显示
+            document.getElementById('periodValue').textContent = (T * 1000).toFixed(3);
+            document.getElementById('lValue').textContent = L.toFixed(3);
+            document.getElementById('cValue').textContent = C.toFixed(5);
+            
+            // 如果图表已存在，则销毁它
+            if (chart) {
+                chart.destroy();
+            }
+            
+            // 创建新数据集 - 为高亮阶段创建特殊数据集
+            const datasets = [];
+            
+            // 首先添加完整的波形（蓝色）
+            datasets.push({
+                label: '电流 i(t) (A)',
+                data: data,
+                borderColor: '#4cc9f0',
+                backgroundColor: 'rgba(76, 201, 240, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0,
+                pointRadius: 0,
+                pointHoverRadius: 5,
+                cubicInterpolationMode: 'monotone',
+                spanGaps: false
+            });
+            
+            // 如果有高亮的阶段，添加黄色高亮部分
+            if (highlightedPhase) {
+                const phaseData = [];
+                const phaseTimeRanges = [
+                    { start: 0, end: T/4 },        // 阶段1: 0 → T/4
+                    { start: T/4, end: T/2 },      // 阶段2: T/4 → T/2
+                    { start: T/2, end: 3*T/4 },    // 阶段3: T/2 → 3T/4
+                    { start: 3*T/4, end: T }       // 阶段4: 3T/4 → T
+                ];
+                
+                const range = phaseTimeRanges[highlightedPhase - 1];
+                const omega = 2 * Math.PI / T;
+                
+                // 为高亮阶段生成数据
+                const highlightPoints = 100;
+                for (let i = 0; i <= highlightPoints; i++) {
+                    const t = range.start + (i / highlightPoints) * (range.end - range.start);
+                    const current = -Math.sin(omega * t);
+                    
+                    phaseData.push({
+                        x: t * 1000,
+                        y: current
+                    });
+                }
+                
+                // 添加高亮数据集（黄色）
+                datasets.push({
+                    label: `阶段${highlightedPhase}高亮`,
+                    data: phaseData,
+                    borderColor: '#FFD700', // 金黄色
+                    backgroundColor: 'rgba(255, 215, 0, 0.3)', // 半透明金色
+                    borderWidth: 5, // 更粗的线条
+                    tension: 0,
+                    pointRadius: 0,
+                    pointHoverRadius: 0,
+                    fill: false,
+                    borderDash: [], // 实线
+                    borderCapStyle: 'round'
+                });
+            }
+            
+            // 创建新图表
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 300,
+                        easing: 'easeOutQuart'
+                    },
+                    plugins: {
+                        legend: {
+                            display: false, // 隐藏图例，避免显示"阶段高亮"
+                            labels: {
+                                color: '#e6e6e6',
+                                font: {
+                                    size: 14
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const time = context.parsed.x.toFixed(2);
+                                    const current = context.parsed.y.toFixed(3);
+                                    return `时间: ${time} ms, 电流: ${current} A`;
+                                }
+                            },
+                            backgroundColor: 'rgba(26, 26, 46, 0.9)',
+                            titleColor: '#4cc9f0',
+                            bodyColor: '#e6e6e6',
+                            borderColor: '#4cc9f0',
+                            borderWidth: 1
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            title: {
+                                display: true,
+                                text: '时间 t (ms)',
+                                color: '#a9a9a9',
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#a9a9a9',
+                                maxTicksLimit: 10,
+                                callback: function(value) {
+                                    return value.toFixed(1);
+                                }
+                            },
+                            min: 0,
+                            max: 10 // 固定显示10ms的范围
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '电流 i (A)',
+                                color: '#a9a9a9',
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#a9a9a9',
+                                callback: function(value) {
+                                    return value.toFixed(1);
+                                }
+                            },
+                            min: -1.2,
+                            max: 1.2
+                        }
+                    },
+                    elements: {
+                        line: {
+                            tension: 0
+                        }
+                    }
+                }
+            });
+            
+            // 添加阶段分割线
+            addPhaseLines(T);
+        }
+        
+        // 创建或更新图表（初始或参数变化时）
+        function createOrUpdateChart(L, C) {
+            highlightedPhase = null; // 重置高亮
+            updateChartWithHighlight();
+        }
+        
+        // 添加阶段分割线
+        function addPhaseLines(T) {
+            const phaseTimes = [0, T/4, T/2, 3*T/4, T];
+            const phaseColors = ['#4cc9f0', '#f72585', '#7209b7', '#3a86ff', '#4cc9f0'];
+            const phaseLabels = ['放电开始', '反向充电开始', '反向放电开始', '充电开始', '周期结束'];
+            
+            // 为图表添加垂直线标注
+            if (chart.options.plugins.annotation) {
+                chart.options.plugins.annotation.annotations = {};
+                
+                phaseTimes.forEach((time, index) => {
+                    const xValue = time * 1000; // 转换为毫秒
+                    
+                    // 如果x值在图表显示范围内，才添加标注
+                    if (xValue <= 10) { // 因为我们固定x轴显示0-10ms
+                        chart.options.plugins.annotation.annotations[`phase${index}`] = {
+                            type: 'line',
+                            xMin: xValue,
+                            xMax: xValue,
+                            borderColor: phaseColors[index],
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            label: {
+                                display: true,
+                                content: phaseLabels[index],
+                                position: 'start',
+                                backgroundColor: phaseColors[index],
+                                color: 'white',
+                                font: {
+                                    size: 11,
+                                    weight: 'bold'
+                                },
+                                padding: 4
+                            }
+                        };
+                    }
+                });
+                
+                chart.update();
+            }
+        }
+        
+        // 学习检测相关
+        const quizQuestions = [
+            {
+                question: "1. 在LC振荡电路中，振荡周期T的公式是？",
+                options: [
+                    "T = 2π√(L/C)",
+                    "T = 2π√(LC)",
+                    "T = √(2πLC)",
+                    "T = 1/(2π√(LC))"
+                ],
+                correct: 1,
+                explanation: "正确公式是 T = 2π√(LC)。这是LC电路固有振荡周期的计算公式，由电感和电容共同决定。"
+            },
+            {
+                question: "2. 在电容器放电阶段（0→T/4），能量是如何转换的？",
+                options: [
+                    "磁场能 → 电场能",
+                    "电场能 → 磁场能",
+                    "电场能和磁场能都增加",
+                    "电场能和磁场能都减少"
+                ],
+                correct: 1,
+                explanation: "电容器放电阶段：电容放电，电场能减少，电感充电，磁场能增加。所以是电场能转换为磁场能。"
+            },
+            {
+                question: "3. 当电流达到最大值时，电路处于什么状态？",
+                options: [
+                    "电场能最大，磁场能为零",
+                    "磁场能最大，电场能为零",
+                    "电场能和磁场能都最大",
+                    "电场能和磁场能都为零"
+                ],
+                correct: 1,
+                explanation: "电流最大时，电感中的磁场能最大。此时电容已放电完毕，电场能为零。"
+            },
+            {
+                question: "4. 如果增加电感L的值，振荡波形会如何变化？",
+                options: [
+                    "波形变密（周期变短）",
+                    "波形变疏（周期变长）",
+                    "波形振幅变大",
+                    "波形振幅变小"
+                ],
+                correct: 1,
+                explanation: "根据公式 T = 2π√(LC)，L增大，周期T变长。在固定时间范围内，波形会变得更稀疏。"
+            },
+            {
+                question: "5. 在LC振荡电路中，电流和电压的相位关系是？",
+                options: [
+                    "电流与电压同相位",
+                    "电流领先电压90°",
+                    "电流领先电压180°",
+                    "电流落后电压90°"
+                ],
+                correct: 2,
+                explanation: "在LC振荡电路中，电流领先电压180°（π弧度）。当电容电压最大时，电流为0且即将变为负值。"
+            }
+        ];
+        
+        // 渲染测验问题
+        function renderQuizQuestions() {
+            const container = document.getElementById('quizQuestions');
+            container.innerHTML = '';
+            
+            quizQuestions.forEach((q, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question';
+                questionDiv.innerHTML = `
+                    <h4>${q.question}</h4>
+                    <div class="options">
+                        ${q.options.map((option, optIndex) => `
+                            <div class="option" data-question="${index}" data-option="${optIndex}">
+                                ${option}
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="explanation" id="explanation${index}"></div>
+                `;
+                container.appendChild(questionDiv);
+            });
+            
+            // 添加选项点击事件
+            document.querySelectorAll('.option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const questionIndex = parseInt(this.getAttribute('data-question'));
+                    const optionIndex = parseInt(this.getAttribute('data-option'));
+                    
+                    // 移除同一问题的其他选项的选中状态
+                    const options = document.querySelectorAll(`.option[data-question="${questionIndex}"]`);
+                    options.forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    
+                    // 添加选中状态
+                    this.classList.add('selected');
+                    this.setAttribute('data-selected', 'true');
+                });
+            });
+        }
+        
+        // 提交测验
+        function submitQuiz() {
+            let score = 0;
+            
+            quizQuestions.forEach((q, index) => {
+                const selectedOption = document.querySelector(`.option[data-question="${index}"][data-selected="true"]`);
+                const explanationDiv = document.getElementById(`explanation${index}`);
+                
+                if (selectedOption) {
+                    const selectedIndex = parseInt(selectedOption.getAttribute('data-option'));
+                    const isCorrect = selectedIndex === q.correct;
+                    
+                    if (isCorrect) {
+                        score++;
+                        selectedOption.classList.add('correct');
+                    } else {
+                        selectedOption.classList.add('incorrect');
+                        // 标记正确答案
+                        const correctOption = document.querySelector(`.option[data-question="${index}"][data-option="${q.correct}"]`);
+                        if (correctOption) {
+                            correctOption.classList.add('correct');
+                        }
+                    }
+                    
+                    // 显示解析
+                    explanationDiv.innerHTML = `<strong>${isCorrect ? '✓ 正确' : '✗ 错误'}</strong><br>${q.explanation}`;
+                    explanationDiv.style.display = 'block';
+                } else {
+                    const correctOption = document.querySelector(`.option[data-question="${index}"][data-option="${q.correct}"]`);
+                    if (correctOption) {
+                        correctOption.classList.add('correct');
+                    }
+                    
+                    explanationDiv.innerHTML = `<strong>未选择答案</strong><br>${q.explanation}`;
+                    explanationDiv.style.display = 'block';
+                }
+            });
+            
+            // 显示结果
+            const resultsDiv = document.getElementById('quizResults');
+            const scoreText = document.getElementById('scoreText');
+            scoreText.innerHTML = `你答对了 ${score} 题，共 ${quizQuestions.length} 题<br>得分: ${(score/quizQuestions.length*100).toFixed(0)}分`;
+            resultsDiv.style.display = 'block';
+            
+            // 滚动到结果
+            resultsDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // 重置测验
+        function resetQuiz() {
+            document.getElementById('quizResults').style.display = 'none';
+            renderQuizQuestions();
+        }
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始创建图表
+            createOrUpdateChart(L, C);
+            
+            // 绑定滑块事件 - 实时更新图表
+            document.getElementById('lSlider').addEventListener('input', function() {
+                L = parseFloat(this.value);
+                createOrUpdateChart(L, C);
+            });
+            
+            document.getElementById('cSlider').addEventListener('input', function() {
+                C = parseFloat(this.value);
+                createOrUpdateChart(L, C);
+            });
+            
+            // 绑定阶段点击事件 - 点击时高亮对应图像
+            document.querySelectorAll('.phase-item').forEach((phase, index) => {
+                phase.addEventListener('click', function() {
+                    const phaseNumber = parseInt(this.getAttribute('data-phase'));
+                    highlightPhase(phaseNumber);
+                });
+            });
+            
+            // 绑定测验按钮事件
+            document.getElementById('quizBtn').addEventListener('click', function() {
+                document.getElementById('quizModal').style.display = 'flex';
+                resetQuiz();
+            });
+            
+            document.getElementById('closeModal').addEventListener('click', function() {
+                document.getElementById('quizModal').style.display = 'none';
+            });
+            
+            document.getElementById('submitQuiz').addEventListener('click', submitQuiz);
+            
+            document.getElementById('retryBtn').addEventListener('click', resetQuiz);
+            
+            // 点击模态框外部关闭
+            window.addEventListener('click', function(event) {
+                if (event.target === document.getElementById('quizModal')) {
+                    document.getElementById('quizModal').style.display = 'none';
+                }
+            });
+            
+            // 初始渲染测验
+            renderQuizQuestions();
+            
+            // 添加键盘快捷键
+            document.addEventListener('keydown', function(event) {
+                // 按ESC关闭模态框
+                if (event.key === 'Escape') {
+                    document.getElementById('quizModal').style.display = 'none';
+                }
+                
+                // 按数字键1-4切换阶段高亮
+                if (event.key >= '1' && event.key <= '4') {
+                    highlightPhase(parseInt(event.key));
+                }
+                
+                // 按0清除高亮
+                if (event.key === '0') {
+                    highlightedPhase = null;
+                    createOrUpdateChart(L, C);
+                }
+            });
+        });
+        
+        // 响应窗口大小变化
+        window.addEventListener('resize', function() {
+            if (chart) {
+                chart.resize();
+            }
+        });
+    </script>
+</body>
+</html>

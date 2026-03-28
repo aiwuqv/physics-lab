@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>晶体微观结构可视化</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+        }
+
+        /* 操作面板样式 */
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .control-panel h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 8px;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px 0;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #2980b9;
+        }
+
+        /* 缩放按钮特殊样式 */
+        .zoom-btn {
+            width: 48%;
+            display: inline-block;
+            margin: 5px 1%;
+        }
+
+        /* 晶体展示区域 */
+        .crystal-display {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        #model-container {
+            width: 100%;
+            height: 500px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .principles {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #e8f4fd;
+            border-radius: 4px;
+        }
+
+        .principles h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        /* 弹窗样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            overflow: auto;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .close-btn:hover {
+            color: #000;
+        }
+
+        /* 题目样式 */
+        .question {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .question.unanswered {
+            border: 2px solid #e74c3c;
+            background-color: #ffebee;
+        }
+
+        .question h4 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .option {
+            display: block;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .option:hover {
+            background-color: #f0f7ff;
+        }
+
+        .option.selected {
+            background-color: #3498db;
+            color: white;
+            border-color: #2980b9;
+        }
+
+        /* 结果弹窗样式 */
+        .result-item {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .correct {
+            background-color: #e8f5e9;
+            border-left: 4px solid #4caf50;
+        }
+
+        .incorrect {
+            background-color: #ffebee;
+            border-left: 4px solid #e74c3c;
+        }
+
+        .score {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .analysis {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+    </style>
+    <!-- 引入Three.js库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <header>
+        <h1>晶体微观结构可视化展示</h1>
+    </header>
+
+    <div class="container">
+        <!-- 操作面板 -->
+        <div class="control-panel">
+            <h3>操作控制面板</h3>
+            
+            <div class="control-group">
+                <label for="crystal-type">选择晶体类型</label>
+                <select id="crystal-type" class="btn">
+                    <option value="nacl">食盐晶体 (NaCl)</option>
+                    <option value="graphite">石墨</option>
+                    <option value="diamond">金刚石</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>模型旋转控制</label>
+                <button id="rotate-start" class="btn">开始旋转</button>
+                <button id="rotate-stop" class="btn">停止旋转</button>
+                <button id="reset-view" class="btn">重置视角</button>
+            </div>
+
+            <div class="control-group">
+                <label>模型缩放控制</label>
+                <button id="zoom-in" class="btn zoom-btn">🔍 放大</button>
+                <button id="zoom-out" class="btn zoom-btn">🔍 缩小</button>
+            </div>
+
+            <div class="control-group">
+                <button id="knowledge-test" class="btn" style="background-color: #e67e22;">知识检测</button>
+            </div>
+        </div>
+
+        <!-- 晶体展示区域 -->
+        <div class="crystal-display">
+            <div class="principles">
+                <h3>晶体结构原理</h3>
+                <p><strong>食盐晶体 (NaCl)：</strong> 面心立方结构，Na⁺和Cl⁻交替排列，每个Na⁺周围有6个Cl⁻，每个Cl⁻周围有6个Na⁺，离子键结合。</p>
+                <p><strong>石墨：</strong> 层状结构，每层由碳原子以sp²杂化形成六边形平面网状结构，层与层之间通过范德华力结合，具有良好的导电性和润滑性。</p>
+                <p><strong>金刚石：</strong> 正四面体结构，每个碳原子与周围4个碳原子以共价键结合，形成三维网状结构，硬度大，熔点高，不导电。</p>
+            </div>
+
+            <div id="model-container"></div>
+        </div>
+    </div>
+
+    <!-- 知识检测弹窗（物理题） -->
+    <div id="test-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('test-modal')">&times;</span>
+            <h2>晶体结构物理知识检测</h2>
+            <div id="questions-container">
+                <!-- 题目1 -->
+                <div class="question" data-id="1">
+                    <h4>1. 下列哪种晶体的结构决定了其具有良好的导电性？</h4>
+                    <div class="option" data-question="1" data-answer="A">A. 石墨（层状结构存在自由电子）</div>
+                    <div class="option" data-question="1" data-answer="B">B. 金刚石（共价键无自由电子）</div>
+                    <div class="option" data-question="1" data-answer="C">C. 食盐晶体（固态无自由移动离子）</div>
+                    <div class="option" data-question="1" data-answer="D">D. 以上都有良好导电性</div>
+                </div>
+
+                <!-- 题目2 -->
+                <div class="question" data-id="2">
+                    <h4>2. 关于晶体的硬度，下列说法正确的是？</h4>
+                    <div class="option" data-question="2" data-answer="A">A. 金刚石硬度最大，因为其三维网状共价键结构</div>
+                    <div class="option" data-question="2" data-answer="B">B. 石墨硬度大，适合做切割工具</div>
+                    <div class="option" data-question="2" data-answer="C">C. 食盐晶体硬度比金刚石大</div>
+                    <div class="option" data-question="2" data-answer="D">D. 所有晶体硬度都相同</div>
+                </div>
+
+                <!-- 题目3 -->
+                <div class="question" data-id="3">
+                    <h4>3. 晶体的熔点与结构有关，下列熔点最高的是？</h4>
+                    <div class="option" data-question="3" data-answer="A">A. 石墨（层状结构，层内共价键）</div>
+                    <div class="option" data-question="3" data-answer="B">B. 金刚石（三维共价键网状结构）</div>
+                    <div class="option" data-question="3" data-answer="C">C. 食盐晶体（离子键）</div>
+                    <div class="option" data-question="3" data-answer="D">D. 三者熔点相同</div>
+                </div>
+
+                <!-- 题目4 -->
+                <div class="question" data-id="4">
+                    <h4>4. 石墨可以作为润滑剂，主要原因是？</h4>
+                    <div class="option" data-question="4" data-answer="A">A. 石墨密度小</div>
+                    <div class="option" data-question="4" data-answer="B">B. 石墨层与层之间作用力弱，易滑动</div>
+                    <div class="option" data-question="4" data-answer="C">C. 石墨颜色为黑色</div>
+                    <div class="option" data-question="4" data-answer="D">D. 石墨导电性好</div>
+                </div>
+
+                <!-- 题目5 -->
+                <div class="question" data-id="5">
+                    <h4>5. 关于晶体的空间结构，下列说法错误的是？</h4>
+                    <div class="option" data-question="5" data-answer="A">A. 食盐晶体是面心立方结构</div>
+                    <div class="option" data-question="5" data-answer="B">B. 金刚石是正四面体空间网状结构</div>
+                    <div class="option" data-question="5" data-answer="C">C. 石墨是平面层状结构，层内为正六边形</div>
+                    <div class="option" data-question="5" data-answer="D">D. 所有晶体都是三维网状结构</div>
+                </div>
+            </div>
+            <button id="submit-answers" class="btn" style="background-color: #27ae60;">提交答案</button>
+        </div>
+    </div>
+
+    <!-- 结果弹窗 -->
+    <div id="result-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('result-modal')">&times;</span>
+            <h2>检测结果</h2>
+            <div class="score" id="score-display">总分：0/100</div>
+            
+            <div class="analysis" id="analysis-display">
+                <h3>学情分析</h3>
+                <p id="analysis-text"></p>
+            </div>
+
+            <h3>答题详情</h3>
+            <div id="answers-detail"></div>
+            
+            <button class="btn" onclick="closeModal('result-modal')">关闭</button>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let scene, camera, renderer, currentModel;
+        let isRotating = false;
+        let rotationSpeed = 0.01;
+        // 缩放步长和范围限制
+        const zoomStep = 0.5;
+        const minZoom = 3;  // 最小缩放（最靠近模型）
+        const maxZoom = 15; // 最大缩放（最远离模型）
+        
+        // 正确答案（物理题）
+        const correctAnswers = {
+            1: "A",
+            2: "A",
+            3: "B",
+            4: "B",
+            5: "D"
+        };
+        
+        // 用户答案
+        let userAnswers = {};
+
+        // 初始化3D场景
+        function initScene() {
+            // 创建场景
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xf5f5f5);
+
+            // 创建相机
+            camera = new THREE.PerspectiveCamera(75, document.getElementById('model-container').clientWidth / document.getElementById('model-container').clientHeight, 0.1, 1000);
+            camera.position.z = 8;
+
+            // 创建渲染器
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(document.getElementById('model-container').clientWidth, document.getElementById('model-container').clientHeight);
+            document.getElementById('model-container').appendChild(renderer.domElement);
+
+            // 添加光源
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(5, 5, 5);
+            scene.add(directionalLight);
+
+            // 初始加载食盐晶体
+            loadCrystalModel('nacl');
+
+            // 添加窗口大小调整监听
+            window.addEventListener('resize', onWindowResize);
+
+            // 添加鼠标控制
+            addMouseControls();
+
+            // 动画循环
+            function animate() {
+                requestAnimationFrame(animate);
+                
+                if (isRotating && currentModel) {
+                    currentModel.rotation.y += rotationSpeed;
+                }
+
+                renderer.render(scene, camera);
+            }
+            animate();
+        }
+
+        // 加载晶体模型
+        function loadCrystalModel(type) {
+            // 清除现有模型
+            if (currentModel) {
+                scene.remove(currentModel);
+                currentModel = null;
+            }
+
+            // 创建新模型组
+            const crystalGroup = new THREE.Group();
+            
+            switch(type) {
+                case 'nacl':
+                    createNaClModel(crystalGroup);
+                    break;
+                case 'graphite':
+                    createGraphiteModel(crystalGroup);
+                    break;
+                case 'diamond':
+                    createDiamondModel(crystalGroup);
+                    break;
+            }
+
+            currentModel = crystalGroup;
+            scene.add(currentModel);
+        }
+
+        // 创建食盐晶体模型（面心立方结构）
+        function createNaClModel(group) {
+            // Na+ 离子（蓝色）
+            const naGeometry = new THREE.SphereGeometry(0.3, 16, 16);
+            const naMaterial = new THREE.MeshPhongMaterial({ color: 0x3498db });
+            
+            // Cl- 离子（橙色）
+            const clGeometry = new THREE.SphereGeometry(0.3, 16, 16);
+            const clMaterial = new THREE.MeshPhongMaterial({ color: 0xe67e22 });
+
+            // NaCl面心立方晶胞结构
+            const naPositions = [
+                [0, 0, 0], [2, 0, 0], [0, 2, 0], [2, 2, 0],
+                [0, 0, 2], [2, 0, 2], [0, 2, 2], [2, 2, 2],
+                [1, 1, 0], [1, 1, 2], [1, 0, 1], [1, 2, 1],
+                [0, 1, 1], [2, 1, 1]
+            ];
+
+            const clPositions = [
+                [1, 0, 0], [0, 1, 0], [2, 1, 0], [1, 2, 0],
+                [1, 0, 2], [0, 1, 2], [2, 1, 2], [1, 2, 2],
+                [0, 0, 1], [2, 0, 1], [0, 2, 1], [2, 2, 1],
+                [1, 1, 1]
+            ];
+
+            // 创建Na+离子
+            naPositions.forEach(pos => {
+                const mesh = new THREE.Mesh(naGeometry, naMaterial);
+                mesh.position.set(pos[0]-1, pos[1]-1, pos[2]-1);
+                group.add(mesh);
+            });
+
+            // 创建Cl-离子
+            clPositions.forEach(pos => {
+                const mesh = new THREE.Mesh(clGeometry, clMaterial);
+                mesh.position.set(pos[0]-1, pos[1]-1, pos[2]-1);
+                group.add(mesh);
+            });
+
+            // 添加化学键
+            naPositions.forEach(naPos => {
+                const naVec = new THREE.Vector3(naPos[0]-1, naPos[1]-1, naPos[2]-1);
+                clPositions.forEach(clPos => {
+                    const clVec = new THREE.Vector3(clPos[0]-1, clPos[1]-1, clPos[2]-1);
+                    const distance = naVec.distanceTo(clVec);
+                    if (Math.abs(distance - 1) < 0.1) {
+                        const bond = createBond(naVec, clVec, 0.03, 0x95a5a6);
+                        group.add(bond);
+                    }
+                });
+            });
+        }
+
+        // 创建石墨模型（层状六边形结构，第二层向左偏移，添加竖直虚线连接三层）
+        function createGraphiteModel(group) {
+            const cGeometry = new THREE.SphereGeometry(0.25, 16, 16);
+            const cMaterial = new THREE.MeshPhongMaterial({ color: 0x34495e });
+
+            // 石墨层状结构参数
+            const layerHeight = 1.5;
+            const hexRadius = 0.8;
+            const layers = 3;
+            
+            // 存储每层的原子位置，用于后续绘制竖直虚线
+            const layerAtoms = [[], [], []];
+
+            // 创建多层六边形结构
+            for (let layer = 0; layer < layers; layer++) {
+                const z = layer * layerHeight;
+                // 第二层向左偏移（增加额外的左偏移量-1.0）
+                let offsetX = (layer % 2 === 0) ? 0 : hexRadius * 1.5;
+                let offsetY = (layer % 2 === 0) ? 0 : hexRadius * Math.sqrt(3) / 2;
+                
+                // 第二层额外向左移动1个单位
+                if (layer === 1) {
+                    offsetX -= 1.0; // 向左偏移
+                }
+
+                // 创建多个六边形网格
+                for (let i = -1; i <= 1; i++) {
+                    for (let j = -1; j <= 1; j++) {
+                        const baseX = i * hexRadius * 1.5 + offsetX;
+                        const baseY = j * hexRadius * Math.sqrt(3) + (i % 2 === 0 ? 0 : hexRadius * Math.sqrt(3) / 2) + offsetY;
+
+                        // 六边形顶点
+                        for (let k = 0; k < 6; k++) {
+                            const angle = k * Math.PI / 3;
+                            const x = baseX + hexRadius * Math.cos(angle);
+                            const y = baseY + hexRadius * Math.sin(angle);
+                            
+                            const carbon = new THREE.Mesh(cGeometry, cMaterial);
+                            carbon.position.set(x, y, z);
+                            group.add(carbon);
+                            
+                            // 存储当前原子位置到对应层的数组
+                            layerAtoms[layer].push({x, y, z});
+                            
+                            // 添加层内化学键
+                            const nextK = (k + 1) % 6;
+                            const nextAngle = nextK * Math.PI / 3;
+                            const nextX = baseX + hexRadius * Math.cos(nextAngle);
+                            const nextY = baseY + hexRadius * Math.sin(nextAngle);
+                            
+                            const bond = createBond(
+                                new THREE.Vector3(x, y, z),
+                                new THREE.Vector3(nextX, nextY, z),
+                                0.03,
+                                0x95a5a6
+                            );
+                            group.add(bond);
+                        }
+                    }
+                }
+            }
+
+            // 绘制竖直方向虚线连接1/2/3层（取每层中心位置的原子对应连接）
+            // 取每层第0个原子作为参考点，保证竖直对齐
+            const connectCount = Math.min(layerAtoms[0].length, layerAtoms[1].length, layerAtoms[2].length);
+            for (let i = 0; i < connectCount; i++) {
+                // 第一层到第二层的竖直虚线
+                const atom1 = layerAtoms[0][i];
+                const atom2 = layerAtoms[1][i];
+                // 修正第二层的x坐标，使其在竖直方向对齐
+                const bond1 = createDashedBond(
+                    new THREE.Vector3(atom1.x, atom1.y, atom1.z),
+                    new THREE.Vector3(atom1.x, atom1.y, atom2.z), // 竖直对齐
+                    0.02,
+                    0x666666
+                );
+                group.add(bond1);
+
+                // 第二层到第三层的竖直虚线
+                const atom3 = layerAtoms[2][i];
+                const bond2 = createDashedBond(
+                    new THREE.Vector3(atom1.x, atom1.y, atom2.z),
+                    new THREE.Vector3(atom1.x, atom1.y, atom3.z), // 竖直对齐
+                    0.02,
+                    0x666666
+                );
+                group.add(bond2);
+            }
+        }
+
+        // 创建金刚石模型（扩展结构，下方添加更多原子）
+        function createDiamondModel(group) {
+            const cGeometry = new THREE.SphereGeometry(0.25, 16, 16);
+            const cMaterial = new THREE.MeshPhongMaterial({ color: 0xe74c3c });
+
+            // 扩展的金刚石晶胞结构（原有基础上向下/向外扩展）
+            const positions = [
+                // 原有基础结构
+                [0, 0, 0], [2, 0, 0], [0, 2, 0], [2, 2, 0],
+                [0, 0, 2], [2, 0, 2], [0, 2, 2], [2, 2, 2],
+                [1, 1, 1], [3, 1, 1], [1, 3, 1], [3, 3, 1],
+                [1, 1, 3], [3, 1, 3], [1, 3, 3], [3, 3, 3],
+                // 下方扩展结构
+                [0, 0, -2], [2, 0, -2], [0, 2, -2], [2, 2, -2],
+                [1, 1, -1], [3, 1, -1], [1, 3, -1], [3, 3, -1],
+                // 外侧扩展结构
+                [-2, 0, 0], [-2, 2, 0], [-2, 0, 2], [-2, 2, 2],
+                [-1, 1, 1], [-1, 3, 1], [-1, 1, 3], [-1, 3, 3]
+            ];
+
+            // 创建碳原子
+            positions.forEach(pos => {
+                const carbon = new THREE.Mesh(cGeometry, cMaterial);
+                // 调整整体位置，使扩展后的结构居中
+                carbon.position.set(pos[0]-1.5, pos[1]-1.5, pos[2]-1.5);
+                group.add(carbon);
+            });
+
+            // 添加共价键
+            positions.forEach((pos1, i) => {
+                const vec1 = new THREE.Vector3(pos1[0]-1.5, pos1[1]-1.5, pos1[2]-1.5);
+                positions.forEach((pos2, j) => {
+                    if (i !== j) {
+                        const vec2 = new THREE.Vector3(pos2[0]-1.5, pos2[1]-1.5, pos2[2]-1.5);
+                        const distance = vec1.distanceTo(vec2);
+                        if (Math.abs(distance - 1.732) < 0.1) { // 四面体键长
+                            const bond = createBond(vec1, vec2, 0.04, 0x95a5a6);
+                            group.add(bond);
+                        }
+                    }
+                });
+            });
+        }
+
+        // 创建普通化学键（实线）
+        function createBond(start, end, thickness = 0.05, color = 0x95a5a6) {
+            const direction = new THREE.Vector3().subVectors(end, start);
+            const length = direction.length();
+            
+            // 创建圆柱体作为化学键
+            const bondGeometry = new THREE.CylinderGeometry(thickness, thickness, length, 8);
+            const bondMaterial = new THREE.MeshPhongMaterial({ color: color });
+            const bond = new THREE.Mesh(bondGeometry, bondMaterial);
+            
+            bond.position.copy(start).add(direction.multiplyScalar(0.5));
+            bond.lookAt(end);
+            bond.rotateX(Math.PI/2);
+            
+            return bond;
+        }
+
+        // 创建虚线化学键（用于石墨竖直连接）
+        function createDashedBond(start, end, thickness = 0.05, color = 0x666666) {
+            const direction = new THREE.Vector3().subVectors(end, start);
+            const length = direction.length();
+            
+            // 创建虚线材质
+            const bondMaterial = new THREE.LineDashedMaterial({
+                color: color,
+                linewidth: thickness * 20,
+                scale: 1,
+                dashSize: 0.1,
+                gapSize: 0.1
+            });
+            
+            // 创建虚线几何体
+            const bondGeometry = new THREE.BufferGeometry().setFromPoints([start, end]);
+            const bond = new THREE.Line(bondGeometry, bondMaterial);
+            
+            // 计算虚线长度（必须调用computeLineDistances才能显示虚线）
+            bond.computeLineDistances();
+            
+            return bond;
+        }
+
+        // 窗口大小调整
+        function onWindowResize() {
+            camera.aspect = document.getElementById('model-container').clientWidth / document.getElementById('model-container').clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(document.getElementById('model-container').clientWidth, document.getElementById('model-container').clientHeight);
+        }
+
+        // 添加鼠标控制
+        function addMouseControls() {
+            let isDragging = false;
+            let previousMousePosition = {
+                x: 0,
+                y: 0
+            };
+
+            const container = document.getElementById('model-container');
+            
+            container.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                previousMousePosition = {
+                    x: e.clientX,
+                    y: e.clientY
+                };
+            });
+            
+            container.addEventListener('mousemove', (e) => {
+                if (!isDragging || !currentModel) return;
+                
+                const deltaMove = {
+                    x: e.clientX - previousMousePosition.x,
+                    y: e.clientY - previousMousePosition.y
+                };
+                
+                currentModel.rotation.y += deltaMove.x * 0.01;
+                currentModel.rotation.x += deltaMove.y * 0.01;
+                
+                previousMousePosition = {
+                    x: e.clientX,
+                    y: e.clientY
+                };
+            });
+            
+            container.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+            
+            container.addEventListener('mouseleave', () => {
+                isDragging = false;
+            });
+
+            // 滚轮缩放
+            container.addEventListener('wheel', (e) => {
+                camera.position.z += e.deltaY * 0.01;
+                camera.position.z = Math.max(minZoom, Math.min(maxZoom, camera.position.z));
+            });
+        }
+
+        // 缩放控制函数
+        function zoomIn() {
+            camera.position.z = Math.max(minZoom, camera.position.z - zoomStep);
+        }
+
+        function zoomOut() {
+            camera.position.z = Math.min(maxZoom, camera.position.z + zoomStep);
+        }
+
+        // 打开弹窗
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+            // 重置用户答案
+            userAnswers = {};
+            // 重置选项样式
+            document.querySelectorAll('.option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            // 重置题目样式
+            document.querySelectorAll('.question').forEach(question => {
+                question.classList.remove('unanswered');
+            });
+        }
+
+        // 关闭弹窗
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // 选择答案
+        function selectAnswer(optionElement) {
+            const questionId = optionElement.dataset.question;
+            const answer = optionElement.dataset.answer;
+            
+            // 移除同一题目的其他选中状态
+            document.querySelectorAll(`.option[data-question="${questionId}"]`).forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // 添加当前选中状态
+            optionElement.classList.add('selected');
+            
+            // 保存用户答案
+            userAnswers[questionId] = answer;
+        }
+
+        // 提交答案
+        function submitAnswers() {
+            // 检查是否所有题目都已回答
+            const allQuestions = document.querySelectorAll('.question');
+            let unansweredQuestions = [];
+            
+            allQuestions.forEach(question => {
+                const questionId = question.dataset.id;
+                if (!userAnswers[questionId]) {
+                    unansweredQuestions.push(question);
+                }
+            });
+
+            // 如果有未回答的题目
+            if (unansweredQuestions.length > 0) {
+                // 高亮未回答的题目
+                unansweredQuestions.forEach(question => {
+                    question.classList.add('unanswered');
+                });
+                
+                // 定位到第一个未回答的题目
+                unansweredQuestions[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                return;
+            }
+
+            // 计算分数
+            let correctCount = 0;
+            const totalQuestions = Object.keys(correctAnswers).length;
+            
+            for (const [questionId, correctAnswer] of Object.entries(correctAnswers)) {
+                if (userAnswers[questionId] === correctAnswer) {
+                    correctCount++;
+                }
+            }
+            
+            const score = Math.round((correctCount / totalQuestions) * 100);
+            
+            // 显示结果
+            showResults(score, correctCount, totalQuestions);
+        }
+
+        // 显示检测结果
+        function showResults(score, correctCount, totalQuestions) {
+            // 更新分数显示
+            document.getElementById('score-display').textContent = `总分：${score}/100`;
+            
+            // 生成学情分析
+            let analysisText = '';
+            if (score >= 90) {
+                analysisText = '优秀！你对晶体结构的物理知识掌握得非常好，能够准确理解不同晶体的结构与物理性质的关系。';
+            } else if (score >= 70) {
+                analysisText = '良好！你基本掌握了晶体结构的核心物理知识，但在细节方面还需要加强，建议重点复习薄弱知识点。';
+            } else if (score >= 60) {
+                analysisText = '及格！你对晶体结构有基本的物理认知，但还有较多知识点需要巩固，建议重新学习相关原理。';
+            } else {
+                analysisText = '不及格！你对晶体结构的物理知识掌握不足，建议重新学习晶体结构的基本原理和物理特征。';
+            }
+            
+            document.getElementById('analysis-text').textContent = analysisText;
+            
+            // 生成答题详情
+            let answersDetailHtml = '';
+            for (const [questionId, correctAnswer] of Object.entries(correctAnswers)) {
+                const userAnswer = userAnswers[questionId];
+                const isCorrect = userAnswer === correctAnswer;
+                
+                answersDetailHtml += `
+                    <div class="result-item ${isCorrect ? 'correct' : 'incorrect'}">
+                        <h4>题目 ${questionId}：</h4>
+                        <p>你的答案：${userAnswer}</p>
+                        <p>正确答案：${correctAnswer}</p>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('answers-detail').innerHTML = answersDetailHtml;
+            
+            // 关闭测试弹窗，打开结果弹窗
+            closeModal('test-modal');
+            openModal('result-modal');
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 初始化3D场景
+            initScene();
+
+            // 绑定晶体类型选择事件
+            document.getElementById('crystal-type').addEventListener('change', (e) => {
+                loadCrystalModel(e.target.value);
+            });
+
+            // 绑定旋转控制事件
+            document.getElementById('rotate-start').addEventListener('click', () => {
+                isRotating = true;
+            });
+            
+            document.getElementById('rotate-stop').addEventListener('click', () => {
+                isRotating = false;
+            });
+            
+            document.getElementById('reset-view').addEventListener('click', () => {
+                if (currentModel) {
+                    currentModel.rotation.x = 0;
+                    currentModel.rotation.y = 0;
+                    currentModel.rotation.z = 0;
+                }
+                camera.position.z = 8;
+            });
+
+            // 绑定缩放控制事件
+            document.getElementById('zoom-in').addEventListener('click', zoomIn);
+            document.getElementById('zoom-out').addEventListener('click', zoomOut);
+
+            // 绑定知识检测按钮事件
+            document.getElementById('knowledge-test').addEventListener('click', () => {
+                openModal('test-modal');
+            });
+
+            // 绑定选项点击事件
+            document.querySelectorAll('.option').forEach(option => {
+                option.addEventListener('click', () => {
+                    selectAnswer(option);
+                });
+            });
+
+            // 绑定提交答案按钮事件
+            document.getElementById('submit-answers').addEventListener('click', submitAnswers);
+
+            // 点击弹窗外区域关闭弹窗
+            window.addEventListener('click', (e) => {
+                if (e.target.classList.contains('modal')) {
+                    e.target.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+

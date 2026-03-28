@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>伽利略理想斜面实验 · 历史回响</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Roboto', 'Georgia', serif;
+        }
+        body {
+            background: linear-gradient(145deg, #ece8e0 0%, #d6d0c0 100%);
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .card {
+            max-width: 1300px;
+            width: 100%;
+            background: rgba(255, 250, 240, 0.8);
+            backdrop-filter: blur(6px);
+            border-radius: 60px 60px 40px 40px;
+            box-shadow: 0 25px 50px rgba(90, 60, 30, 0.5), inset 2px 2px 8px #fff9e6;
+            padding: 28px 30px 35px;
+            border: 2px solid rgba(255, 245, 215, 0.9);
+        }
+        h1 {
+            font-size: 2.6rem;
+            font-weight: 400;
+            margin: 0 0 5px;
+            color: #3b2b17;
+            letter-spacing: 1px;
+            text-shadow: 2px 2px 0 #cdb282;
+        }
+        .subhead {
+            font-size: 1.2rem;
+            color: #5c4a2e;
+            margin-bottom: 25px;
+            font-style: italic;
+            background: #e6d8bd;
+            display: inline-block;
+            padding: 8px 32px;
+            border-radius: 60px;
+            box-shadow: inset 0 1px 6px #aa9f88;
+        }
+        .history {
+            background: #2e2b26;
+            color: #f0e5d2;
+            padding: 14px 24px;
+            border-radius: 100px 100px 30px 30px;
+            margin-bottom: 30px;
+            font-size: 1.05rem;
+            box-shadow: 0 8px 0 #0f0e0b;
+            border-bottom: 3px solid #bfa77a;
+        }
+        .history strong {
+            color: #ffcf9a;
+        }
+        .dashboard {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+        /* 控制面板 */
+        .control-panel {
+            background: #ddd2b8;
+            border-radius: 48px;
+            padding: 25px 20px;
+            box-shadow: inset 0 2px 12px #f1e8d0, 0 10px 16px #876f4e;
+            border: 1px solid #f2e3c1;
+        }
+        .control-panel h3 {
+            color: #2f2a1f;
+            margin-top: 0;
+            margin-bottom: 25px;
+            font-weight: 600;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            font-size: 1.5rem;
+        }
+        .slider-group {
+            margin-bottom: 30px;
+        }
+        .slider-group label {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            color: #352e1e;
+            font-size: 1.1rem;
+        }
+        .value-badge {
+            background: #564b34;
+            color: #ffefcf;
+            padding: 5px 14px;
+            border-radius: 40px;
+            font-family: monospace;
+            font-size: 1.1rem;
+        }
+        input[type=range] {
+            width: 100%;
+            margin: 12px 0 5px;
+            height: 8px;
+            background: #b09f86;
+            border-radius: 20px;
+            -webkit-appearance: none;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            background: #d6742c;
+            border-radius: 50%;
+            box-shadow: 0 4px 8px #3d2d14;
+            border: 2px solid #ffe5b4;
+            cursor: pointer;
+        }
+        .btn {
+            background: #cabf9f;
+            border: none;
+            padding: 16px 20px;
+            border-radius: 60px;
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: #1f1b12;
+            box-shadow: 0 9px 0 #7d684b, 0 6px 18px #3f321e;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.07s linear;
+            margin-top: 16px;
+            border: 1px solid #efdcb6;
+        }
+        .btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 3px 0 #7d684b, 0 8px 18px #3f321e;
+        }
+        /* 动画区 */
+        .canvas-area {
+            background: #b7aa8f;
+            border-radius: 48px;
+            padding: 22px;
+            box-shadow: inset 0 -5px 10px #756849, 0 16px 24px #5f4f34;
+            border: 2px solid #ead5aa;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: #cdbb9b;
+            border-radius: 36px;
+            box-shadow: 0 0 0 4px #b59d72, inset 0 0 0 2px #3b3629;
+            cursor: pointer;
+        }
+        .data-row {
+            background: #e5d7bb;
+            border-radius: 60px;
+            padding: 18px 20px;
+            display: flex;
+            justify-content: space-around;
+            margin-top: 18px;
+            font-weight: 600;
+            font-size: 1.2rem;
+            color: #2b2316;
+            border: 1px solid #fff1cf;
+            box-shadow: inset 0 2px 8px #bbac8a;
+        }
+        .data-item span {
+            background: #5c503b;
+            color: #fbeecc;
+            padding: 8px 22px;
+            border-radius: 60px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.3rem;
+            margin-left: 12px;
+            border: 1px solid #e1c994;
+        }
+        /* 结论区 */
+        .conclusion-box {
+            background: #3f3524;
+            border-radius: 50px;
+            padding: 22px 30px;
+            margin-top: 30px;
+            color: #f1e5cf;
+            box-shadow: inset 0 2px 10px #9f8d6b, 0 15px 20px #2d2417;
+            border-bottom: 5px solid #a08451;
+        }
+        .conclusion-box h3 {
+            font-size: 1.7rem;
+            color: #ffd78c;
+            margin: 0 0 12px 0;
+        }
+        .conclusion-box p {
+            font-size: 1.15rem;
+            margin: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .conclusion-box span {
+            background: #595035;
+            border-radius: 60px;
+            padding: 5px 16px;
+            color: #ffe2ad;
+        }
+        hr {
+            border: 1px solid #a58f63;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+<div class="card">
+    <h1>🏛️ 伽利略理想斜面实验</h1>
+    <div class="subhead">推翻两千年错误 · 开启近代科学</div>
+    <div class="history">
+        <strong>📜 历史背景：</strong> 17世纪，伽利略通过理想斜面实验推断：若斜面完全光滑，小球将上升到与释放点等高的位置。当第二个斜面倾角减小，小球为达到原高度需运动更远；若倾角为零（水平），小球将永不停息地匀速运动。这一思想实验直接驳斥了亚里士多德“力是维持运动的原因”的教条，为牛顿第一定律奠定基础。
+    </div>
+
+    <div class="dashboard">
+        <!-- 左侧控制面板 -->
+        <div class="control-panel">
+            <h3>⚙️ 实验调控</h3>
+            <div class="slider-group">
+                <label>右侧斜面倾角 <span class="value-badge" id="angleVal">22.5°</span></label>
+                <input type="range" id="angleSlider" min="0" max="45" value="25" step="0.5">
+            </div>
+            <div class="slider-group">
+                <label>光滑度 (摩擦系数) <span class="value-badge" id="frictionVal">0.00</span></label>
+                <input type="range" id="frictionSlider" min="0" max="0.2" value="0" step="0.01">
+            </div>
+            <button class="btn" id="startBtn">⏺️ 开始释放</button>
+            <p style="font-size:0.9rem; color:#3f331f; margin-top:22px; background:#bfaf8a; border-radius:40px; padding:10px; text-align:center;">
+                * 理想无摩擦时，小球总能回到原高度。<br> 倾角越小，上升路径越长；水平则永远运动。
+            </p>
+        </div>
+
+        <!-- 动画区 -->
+        <div class="canvas-area">
+            <canvas id="labCanvas" width="780" height="360"></canvas>
+            <div class="data-row">
+                <div class="data-item">释放高度 <span id="releaseH">200.0</span> px</div>
+                <div class="data-item">上升高度 <span id="riseH">0.0</span> px</div>
+                <div class="data-item">速度 <span id="speedV">0.00</span> px/帧</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部结论 -->
+    <div class="conclusion-box">
+        <h3>🔍 实验结论 · 伽利略思想精髓</h3>
+        <p><span>①</span> 理想光滑斜面，小球总能上升到原来高度 (忽略摩擦时机械能守恒)。</p>
+        <p><span>②</span> 水平面（倾角=0）不受力时，物体保持匀速直线运动。</p>
+        <p><span>③</span> 力不是维持运动的原因，而是改变运动状态的原因。</p>
+        <hr>
+        <p style="font-style:italic;">“一个运动的物体假如有了某种速度以后，只要没有增加或减小速度的外部原因，便会始终保持这种速度——伽利略”</p>
+    </div>
+</div>
+
+<script>
+(function() {
+    // 获取 canvas 和上下文
+    const canvas = document.getElementById('labCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // 滑块元素
+    const angleSlider = document.getElementById('angleSlider');
+    const frictionSlider = document.getElementById('frictionSlider');
+    const angleVal = document.getElementById('angleVal');
+    const frictionVal = document.getElementById('frictionVal');
+
+    // 数据显示区
+    const releaseHSpan = document.getElementById('releaseH');
+    const riseHSpan = document.getElementById('riseH');
+    const speedSpan = document.getElementById('speedV');
+
+    // 按钮
+    const startBtn = document.getElementById('startBtn');
+
+    // ---------- 固定物理参数 ----------
+    const g = 0.4;                // 重力加速度 (像素/帧²)  兼顾动画速度
+    const leftBase = { x: 300, y: 300 };   // 左右斜面公共底端 (300,300)
+    const leftTop = { x: 100, y: 100 };     // 左侧斜面顶端 (固定45°)
+    // 左侧斜面长度 & 角度
+    const dxL = leftBase.x - leftTop.x;      // 200
+    const dyL = leftBase.y - leftTop.y;      // 200
+    const L1 = Math.sqrt(dxL * dxL + dyL * dyL); // ~282.84
+    const theta1 = Math.atan2(dyL, dxL);     // 45° (0.785 rad)
+
+    // 右侧斜面长度固定 (可调节角度)
+    const L2 = 300;   // 像素
+
+    // 小球半径
+    const ballR = 12;
+
+    // ---------- 运动状态 ----------
+    let active = false;               // 动画是否进行
+    let animFrame = null;
+    // 0 = 在左侧斜面, 1 = 在右侧斜面
+    let side = 0;                     // 0:左,1:右
+    let s = 0;                        // 当前斜面上的路程 (0~L)
+    let v = 0;                        // 速度 (沿斜面方向，正向为从起点向终点)
+
+    // 释放高度固定为左侧顶端相对于底部的垂直高度 = 200px
+    const releaseHeight = leftBase.y - leftTop.y;  // 200px
+
+    // 更新滑块显示
+    function updateSliderReadout() {
+        const angDeg = parseFloat(angleSlider.value);
+        const mu = parseFloat(frictionSlider.value);
+        angleVal.innerText = angDeg.toFixed(1) + '°';
+        frictionVal.innerText = mu.toFixed(2);
+    }
+
+    // 根据右侧倾角(度)计算终点坐标和角度(弧度)
+    function getRightParams() {
+        const deg = parseFloat(angleSlider.value);
+        const rad = deg * Math.PI / 180;
+        const endX = leftBase.x + L2 * Math.cos(rad);
+        const endY = leftBase.y - L2 * Math.sin(rad);  // 注意y向下为正，向上为负
+        return { rad, endX, endY };
+    }
+
+    // 重置小球到左侧顶端
+    function resetBall() {
+        side = 0;          // 左侧
+        s = 0;             // 顶端
+        v = 0;
+        active = false;
+        if (animFrame) {
+            cancelAnimationFrame(animFrame);
+            animFrame = null;
+        }
+        drawStatic();
+        updateHeightAndSpeed();
+    }
+
+    // 绘制静态场景 (无动画时)
+    function drawStatic() {
+        drawCanvas();
+    }
+
+    // 计算小球当前坐标
+    function getBallCoord() {
+        if (side === 0) {  // 左侧
+            const t = s / L1; // 比例 0~1
+            const x = leftTop.x + (leftBase.x - leftTop.x) * t;
+            const y = leftTop.y + (leftBase.y - leftTop.y) * t;
+            return { x, y };
+        } else {  // 右侧
+            const { rad } = getRightParams();
+            const x = leftBase.x + s * Math.cos(rad);
+            const y = leftBase.y - s * Math.sin(rad); // 减是因为sin向上
+            return { x, y };
+        }
+    }
+
+    // 更新数据区: 上升高度(相对于底部) & 速率
+    function updateHeightAndSpeed() {
+        if (!active) {
+            // 如果静止，根据当前s计算高度
+            const coord = getBallCoord();
+            let rise = Math.max(0, leftBase.y - coord.y); // 相对于底部的高度
+            riseHSpan.innerText = rise.toFixed(1);
+            speedSpan.innerText = Math.abs(v).toFixed(2);
+        } else {
+            const coord = getBallCoord();
+            let rise = Math.max(0, leftBase.y - coord.y);
+            riseHSpan.innerText = rise.toFixed(1);
+            speedSpan.innerText = Math.abs(v).toFixed(2);
+        }
+        // 释放高度不变
+        releaseHSpan.innerText = releaseHeight.toFixed(1);
+    }
+
+    // ----- 物理更新 (每帧) -----
+    function updatePhysics() {
+        if (!active) return;
+
+        const mu = parseFloat(frictionSlider.value);
+        const dt = 0.28;  // 每帧模拟时间，兼顾速度和稳定性
+
+        // 根据当前所在斜面计算加速度
+        let a = 0;
+        if (side === 0) { // 左侧斜面：下滑加速度 (s增加方向向下)
+            a = g * Math.sin(theta1) - mu * g * Math.cos(theta1);
+            // 如果速度方向与加速度方向导致减速？但左侧小球只会向下 (v>=0)
+        } else { // 右侧斜面：上滑 (v>0) , 加速度 = -g sinθ - μ g cosθ
+            const { rad } = getRightParams();
+            a = -g * Math.sin(rad) - mu * g * Math.cos(rad);
+        }
+
+        // 欧拉积分
+        v += a * dt;
+        s += v * dt;
+
+        // 边界处理 -------------------------------------------------
+        if (side === 0) {
+            // 左侧斜面范围 0 ~ L1
+            if (s >= L1) {
+                // 进入右侧斜面
+                s = s - L1;    // 剩余路程从右侧底部开始
+                if (s < 0) s = 0;
+                side = 1;       // 切换到右侧
+                // 速度大小不变，方向保持正向 (向上)
+            }
+            if (s < 0) {
+                s = 0;
+                v = 0;
+                active = false; // 到达顶端? 但左侧顶端不会出现
+            }
+        } else { // 右侧斜面
+            const { rad } = getRightParams();
+            if (s >= L2) { // 到达右侧顶端
+                s = L2;
+                v = 0;
+                active = false; // 停止动画
+            }
+            if (s <= 0) {  // 滑回底部
+                s = 0;
+                v = 0;
+                active = false; // 停止动画
+            }
+            // 如果速度转为负 (反向下滑)，实际也可能，但为了演示上升最高点，我们检测速度反向时停止
+            if (v <= 0 && s > 0 && s < L2) {
+                // 若速度减为零，视为达到最高点 (但可能有震荡，直接停止)
+                v = 0;
+                active = false;
+            }
+        }
+
+        // 额外安全停止：速度极小且加速度阻碍
+        if (Math.abs(v) < 0.02) {
+            v = 0;
+            // 如果几乎不动，停止动画
+            if (Math.abs(a) < 0.02) active = false;
+        }
+
+        // 更新数据
+        updateHeightAndSpeed();
+
+        // 重绘
+        drawCanvas();
+
+        // 继续动画
+        if (active) {
+            animFrame = requestAnimationFrame(updatePhysics);
+        } else {
+            animFrame = null;
+        }
+    }
+
+    // ----- 绘图函数 (斜面、小球、标注) -----
+    function drawCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // 画底部水平参考线 (草地)
+        ctx.fillStyle = '#9b8c6f';
+        ctx.fillRect(0, 300, canvas.width, 60);
+        ctx.fillStyle = '#7b6d50';
+        ctx.fillRect(0, 330, canvas.width, 30);
+
+        // 绘制左侧斜面 (木质)
+        ctx.beginPath();
+        ctx.moveTo(leftTop.x, leftTop.y);
+        ctx.lineTo(leftBase.x, leftBase.y);
+        ctx.strokeStyle = '#7a5a3a';
+        ctx.lineWidth = 12;
+        ctx.shadowColor = '#4d3b23';
+        ctx.shadowBlur = 14;
+        ctx.stroke();
+        // 右侧斜面 (随角度变化)
+        const { rad, endX, endY } = getRightParams();
+        ctx.beginPath();
+        ctx.moveTo(leftBase.x, leftBase.y);
+        ctx.lineTo(endX, endY);
+        ctx.strokeStyle = '#8b6f47';
+        ctx.lineWidth = 12;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // 斜面边缘高光
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#cbae82';
+        ctx.shadowBlur = 4;
+        ctx.beginPath();
+        ctx.moveTo(leftTop.x, leftTop.y);
+        ctx.lineTo(leftBase.x, leftBase.y);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(leftBase.x, leftBase.y);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+
+        // 画斜面底部的小平台
+        ctx.fillStyle = '#5b4d33';
+        ctx.beginPath();
+        ctx.ellipse(leftBase.x, leftBase.y+4, 20, 8, 0, 0, 2*Math.PI);
+        ctx.fill();
+
+        // 画小球
+        const ballPos = getBallCoord();
+        // 球体阴影
+        ctx.shadowColor = '#2f2618';
+        ctx.shadowBlur = 16;
+        ctx.beginPath();
+        ctx.arc(ballPos.x, ballPos.y, ballR, 0, 2*Math.PI);
+        ctx.fillStyle = '#c93e2b';
+        ctx.fill();
+        ctx.shadowBlur = 8;
+        ctx.fillStyle = '#f5512e';
+        ctx.beginPath();
+        ctx.arc(ballPos.x-2, ballPos.y-2, ballR-3, 0, 2*Math.PI);
+        ctx.fill();
+
+        // 高光
+        ctx.shadowBlur = 0;
+        ctx.beginPath();
+        ctx.arc(ballPos.x-4, ballPos.y-4, 3, 0, 2*Math.PI);
+        ctx.fillStyle = '#fff9e6';
+        ctx.fill();
+
+        // 释放高度标记虚线
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.moveTo(20, leftTop.y);
+        ctx.lineTo(leftTop.x-10, leftTop.y);
+        ctx.strokeStyle = '#413a2a';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.fillStyle = '#272215';
+        ctx.font = 'bold 14px "Segoe UI"';
+        ctx.fillText('释放高度', 30, leftTop.y-8);
+
+        // 右侧最高点动态标记 (如果小球在右侧)
+        if (side === 1 && active) {
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(endX+20, ballPos.y);
+            ctx.lineTo(endX+50, ballPos.y);
+            ctx.strokeStyle = '#3a2c18';
+            ctx.stroke();
+            ctx.fillStyle = '#1f2c3a';
+            ctx.fillText('上升高度', endX+40, ballPos.y-8);
+        }
+        ctx.setLineDash([]);
+
+        // 倾角为0时的特殊标注
+        if (parseFloat(angleSlider.value) === 0) {
+            ctx.font = 'italic 18px "Georgia"';
+            ctx.fillStyle = '#27476e';
+            ctx.fillText('→ 永远匀速运动', 550, 160);
+        }
+
+        // 绘制倾角度数
+        ctx.font = 'bold 16px "Courier New"';
+        ctx.fillStyle = '#263f2c';
+        ctx.fillText(`右侧倾角 ${angleSlider.value}°`, 500, 80);
+    }
+
+    // 开始释放按钮: 重置并启动动画
+    function startExperiment() {
+        // 重置小球到左侧顶端
+        side = 0;
+        s = 0;
+        v = 0;
+        active = true;
+
+        // 取消已有动画
+        if (animFrame) {
+            cancelAnimationFrame(animFrame);
+            animFrame = null;
+        }
+
+        // 先绘制一帧
+        updateHeightAndSpeed();
+        drawCanvas();
+
+        // 启动动画循环
+        active = true;
+        animFrame = requestAnimationFrame(updatePhysics);
+    }
+
+    // 滑块事件: 更新数值 + 重绘静态场景 (如果动画未运行)
+    function handleSliderChange() {
+        updateSliderReadout();
+        if (!active) {
+            // 如果动画未运行，刷新画布让斜面变化可见
+            drawCanvas();
+            // 同时更新上升高度显示（小球位置重置为左侧顶端）
+            if (side === 0 && s===0) {
+                updateHeightAndSpeed();
+            } else {
+                // 但为了安全，重置到左侧顶端
+                resetBall();
+            }
+        }
+    }
+
+    // 绑定事件
+    angleSlider.addEventListener('input', handleSliderChange);
+    frictionSlider.addEventListener('input', handleSliderChange);
+    startBtn.addEventListener('click', startExperiment);
+
+    // 初始化显示
+    updateSliderReadout();
+    resetBall();  // 绘制静态，小球在左侧顶端
+
+    // 额外：当动画运行中改变倾角/摩擦，我们允许动态改变（会直接影响物理，比较符合真实，就不锁了）
+    // 为了更好的体验，我们可以让倾角变化时稍微重绘，但物理继续
+    // 但为了物理连贯，不加额外处理。
+})();
+</script>
+</body>
+</html>

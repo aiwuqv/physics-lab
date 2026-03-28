@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>牛顿环实验交互演示</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(to right, #303f9f, #5c6bc0);
+            color: white;
+            padding: 25px 30px;
+            text-align: center;
+            border-bottom: 5px solid #ff9800;
+        }
+        
+        h1 {
+            font-size: 2.4rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 20px;
+        }
+        
+        .left-panel {
+            flex: 1;
+            min-width: 300px;
+            padding: 20px;
+            background-color: #f5f7ff;
+            border-radius: 10px;
+            margin-right: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .right-panel {
+            flex: 2;
+            min-width: 500px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+        
+        h2 {
+            color: #303f9f;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e8eaf6;
+        }
+        
+        h3 {
+            color: #5c6bc0;
+            margin: 15px 0;
+            font-size: 1.2rem;
+        }
+        
+        .control-group {
+            margin-bottom: 25px;
+        }
+        
+        .control-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #444;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+        }
+        
+        .slider {
+            flex: 1;
+            height: 8px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: linear-gradient(to right, #5c6bc0, #303f9f);
+            border-radius: 4px;
+            outline: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #ff9800;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .slider-value {
+            margin-left: 15px;
+            font-weight: bold;
+            color: #303f9f;
+            min-width: 60px;
+        }
+        
+        .btn {
+            background: linear-gradient(to right, #ff9800, #ffb74d);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 5px;
+            box-shadow: 0 4px 8px rgba(255, 152, 0, 0.3);
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(255, 152, 0, 0.4);
+        }
+        
+        .btn i {
+            margin-right: 8px;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(to right, #5c6bc0, #7986cb);
+        }
+        
+        .simulation-area {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        #newton-rings-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            border-radius: 10px;
+            background: linear-gradient(to bottom, #0a0e2a, #1a237e);
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        #newton-rings-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        #principle-container {
+            width: 100%;
+            height: 350px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border: 2px solid #e8eaf6;
+        }
+        
+        #principle-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        .observation-area {
+            background-color: #f9f9ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 25px;
+            border-left: 5px solid #5c6bc0;
+        }
+        
+        .fill-blank {
+            margin: 15px 0;
+            padding: 15px;
+            background-color: #e8eaf6;
+            border-radius: 8px;
+        }
+        
+        .fill-blank p {
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .blank-input {
+            padding: 10px;
+            border: 2px solid #5c6bc0;
+            border-radius: 6px;
+            width: 100%;
+            font-size: 1rem;
+            margin-top: 5px;
+        }
+        
+        .quiz-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px dashed #ccc;
+        }
+        
+        .question {
+            background-color: #f9f9ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .options {
+            margin-top: 15px;
+        }
+        
+        .option {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: white;
+            border-radius: 6px;
+            border: 2px solid #e0e0e0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .option:hover {
+            background-color: #f0f2ff;
+            border-color: #5c6bc0;
+        }
+        
+        .option.selected {
+            background-color: #e3f2fd;
+            border-color: #2196f3;
+        }
+        
+        .option.correct {
+            background-color: #e8f5e9;
+            border-color: #4caf50;
+        }
+        
+        .option.incorrect {
+            background-color: #ffebee;
+            border-color: #f44336;
+        }
+        
+        .analysis-panel {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f0f7ff;
+            border-radius: 10px;
+            display: none;
+        }
+        
+        .analysis-panel h3 {
+            color: #303f9f;
+            margin-bottom: 15px;
+        }
+        
+        .analysis-result {
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        
+        .result-item {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 0 10px;
+            margin-bottom: 10px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .ring-info {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .info-panel {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .info-item {
+            padding: 10px;
+            background-color: #f5f7ff;
+            border-radius: 6px;
+            margin: 5px;
+            flex: 1;
+            min-width: 150px;
+            text-align: center;
+        }
+        
+        .info-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #303f9f;
+        }
+        
+        .principle-explanation {
+            background-color: #f8f9ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            border-left: 3px solid #5c6bc0;
+        }
+        
+        .principle-explanation h4 {
+            color: #303f9f;
+            margin-bottom: 8px;
+        }
+        
+        .principle-explanation ul {
+            padding-left: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .principle-explanation li {
+            margin-bottom: 5px;
+        }
+        
+        @media (max-width: 900px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            .left-panel {
+                margin-right: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-circle-notch"></i> 牛顿环实验交互演示</h1>
+            <p class="subtitle">通过调整参数观察牛顿环干涉现象，理解等厚干涉原理，完成知识检测巩固学习效果</p>
+        </header>
+        
+        <div class="content">
+            <div class="left-panel">
+                <h2><i class="fas fa-sliders-h"></i> 实验参数控制</h2>
+                
+                <div class="control-group">
+                    <label class="control-label">透镜曲率半径 R (m):</label>
+                    <div class="slider-container">
+                        <input type="range" min="1" max="20" value="10" step="0.5" class="slider" id="radius-slider">
+                        <span class="slider-value" id="radius-value">10.0</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label class="control-label">入射光波长 λ (nm):</label>
+                    <div class="slider-container">
+                        <input type="range" min="400" max="700" value="589" step="1" class="slider" id="wavelength-slider">
+                        <span class="slider-value" id="wavelength-value">589</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label class="control-label">介质折射率 n:</label>
+                    <div class="slider-container">
+                        <input type="range" min="1.0" max="2.0" value="1.0" step="0.1" class="slider" id="refraction-slider">
+                        <span class="slider-value" id="refraction-value">1.0</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label class="control-label">观察环数:</label>
+                    <div class="slider-container">
+                        <input type="range" min="5" max="30" value="15" step="1" class="slider" id="rings-slider">
+                        <span class="slider-value" id="rings-value">15</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <button class="btn" id="reset-btn">
+                        <i class="fas fa-redo"></i> 重置参数
+                    </button>
+                    <button class="btn btn-secondary" id="auto-btn">
+                        <i class="fas fa-play"></i> 自动演示
+                    </button>
+                </div>
+                
+                <div class="observation-area">
+                    <h2><i class="fas fa-eye"></i> 观察与填空</h2>
+                    
+                    <div class="fill-blank">
+                        <p>1. 牛顿环中央通常是______（明/暗）斑，这是因为在中心处空气薄膜厚度为______，两束反射光的光程差为______。</p>
+                        <input type="text" class="blank-input" id="blank1" placeholder="请填写答案，如：暗,0,λ/2">
+                    </div>
+                    
+                    <div class="fill-blank">
+                        <p>2. 当透镜曲率半径增大时，牛顿环条纹会变______（稀疏/密集）；当波长增大时，条纹会变______（稀疏/密集）。</p>
+                        <input type="text" class="blank-input" id="blank2" placeholder="请填写答案，如：密集,稀疏">
+                    </div>
+                    
+                    <div class="fill-blank">
+                        <p>3. 牛顿环干涉是______干涉，干涉条纹是以接触点为中心的______圆环。</p>
+                        <input type="text" class="blank-input" id="blank3" placeholder="请填写答案，如：等厚,同心">
+                    </div>
+                    
+                    <button class="btn btn-secondary" id="check-blank-btn">
+                        <i class="fas fa-check-circle"></i> 检查填空题
+                    </button>
+                </div>
+            </div>
+            
+            <div class="right-panel">
+                <h2><i class="fas fa-microscope"></i> 牛顿环实验模拟与原理</h2>
+                
+                <div class="simulation-area">
+                    <div id="newton-rings-container">
+                        <canvas id="newton-rings-canvas"></canvas>
+                        <div class="ring-info">
+                            点击圆环查看详细信息 | 当前: <span id="current-ring">未选择</span>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3><i class="fas fa-project-diagram"></i> 牛顿环原理示意图</h3>
+                        <div id="principle-container">
+                            <canvas id="principle-canvas"></canvas>
+                        </div>
+                        <div class="principle-explanation">
+                            <h4>原理说明：</h4>
+                            <ul>
+                                <li><strong>红色光线</strong>：垂直入射光（从上向下）</li>
+                                <li><strong>蓝色光线</strong>：从透镜下表面（玻璃-空气界面）反射，直接返回</li>
+                                <li><strong>绿色光线</strong>：从平面玻璃上表面（空气-玻璃界面）反射，有<strong>半波损失 λ/2</strong></li>
+                                <li><strong>光程差</strong>：Δ = 2d + λ/2（绿色光比蓝色光多走2d距离，并有半波损失）</li>
+                                <li><strong>明环条件</strong>：2d + λ/2 = kλ (k=1,2,3...)</li>
+                                <li><strong>暗环条件</strong>：2d + λ/2 = (k+1/2)λ (k=0,1,2...)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #ffff00;"></div>
+                        <span>明环 (亮纹)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #000080;"></div>
+                        <span>暗环 (暗纹)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #ff0000;"></div>
+                        <span>当前选中环</span>
+                    </div>
+                </div>
+                
+                <div class="info-panel">
+                    <div class="info-item">
+                        <div>中央斑类型</div>
+                        <div class="info-value" id="center-type">暗斑</div>
+                    </div>
+                    <div class="info-item">
+                        <div>第k级明环半径</div>
+                        <div class="info-value" id="k-radius">1.72 mm</div>
+                    </div>
+                    <div class="info-item">
+                        <div>条纹间距</div>
+                        <div class="info-value" id="ring-spacing">0.42 mm</div>
+                    </div>
+                    <div class="info-item">
+                        <div>理论环数</div>
+                        <div class="info-value" id="theory-rings">24</div>
+                    </div>
+                </div>
+                
+                <div class="quiz-section">
+                    <h2><i class="fas fa-question-circle"></i> 知识检测</h2>
+                    
+                    <div class="question" id="question1">
+                        <p>1. 牛顿环干涉条纹产生的根本原因是：</p>
+                        <div class="options">
+                            <div class="option" data-id="1" data-answer="A">A. 光的衍射现象</div>
+                            <div class="option" data-id="1" data-answer="B">B. 光的干涉现象</div>
+                            <div class="option" data-id="1" data-answer="C">C. 光的偏振现象</div>
+                            <div class="option" data-id="1" data-answer="D">D. 光的折射现象</div>
+                        </div>
+                    </div>
+                    
+                    <div class="question" id="question2">
+                        <p>2. 在牛顿环实验中，如果改用折射率更大的液体填充在透镜和平板玻璃之间，干涉条纹会：</p>
+                        <div class="options">
+                            <div class="option" data-id="2" data-answer="A">A. 变稀疏</div>
+                            <div class="option" data-id="2" data-answer="B">B. 变密集</div>
+                            <div class="option" data-id="2" data-answer="C">C. 不变</div>
+                            <div class="option" data-id="2" data-answer="D">D. 消失</div>
+                        </div>
+                    </div>
+                    
+                    <div class="question" id="question3">
+                        <p>3. 牛顿环实验中，反射光干涉形成的明环条件为：</p>
+                        <div class="options">
+                            <div class="option" data-id="3" data-answer="A">A. 2d = kλ</div>
+                            <div class="option" data-id="3" data-answer="B">B. 2d + λ/2 = kλ</div>
+                            <div class="option" data-id="3" data-answer="C">C. 2d = (k+1/2)λ</div>
+                            <div class="option" data-id="3" data-answer="D">D. 2d + λ/2 = (k+1/2)λ</div>
+                        </div>
+                    </div>
+                    
+                    <button class="btn" id="check-quiz-btn">
+                        <i class="fas fa-clipboard-check"></i> 提交检测
+                    </button>
+                    
+                    <div class="analysis-panel" id="analysis-panel">
+                        <h3><i class="fas fa-chart-line"></i> 学情分析报告</h3>
+                        <div class="analysis-result">
+                            <div class="result-item">
+                                <strong>填空题完成情况：</strong> <span id="blank-score">0/3</span>
+                            </div>
+                            <div class="result-item">
+                                <strong>选择题正确率：</strong> <span id="quiz-score">0/3</span>
+                            </div>
+                            <div class="result-item">
+                                <strong>学习建议：</strong> <span id="learning-suggestion">请继续观察实验现象，理解牛顿环干涉原理。</span>
+                            </div>
+                            <div class="result-item">
+                                <strong>掌握程度评估：</strong> <span id="mastery-level">未评估</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== 初始化部分 ==========
+        
+        // 获取DOM元素
+        const canvas = document.getElementById('newton-rings-canvas');
+        const ctx = canvas.getContext('2d');
+        const principleCanvas = document.getElementById('principle-canvas');
+        const principleCtx = principleCanvas.getContext('2d');
+        
+        const radiusSlider = document.getElementById('radius-slider');
+        const radiusValue = document.getElementById('radius-value');
+        const wavelengthSlider = document.getElementById('wavelength-slider');
+        const wavelengthValue = document.getElementById('wavelength-value');
+        const refractionSlider = document.getElementById('refraction-slider');
+        const refractionValue = document.getElementById('refraction-value');
+        const ringsSlider = document.getElementById('rings-slider');
+        const ringsValue = document.getElementById('rings-value');
+        const resetBtn = document.getElementById('reset-btn');
+        const autoBtn = document.getElementById('auto-btn');
+        const checkBlankBtn = document.getElementById('check-blank-btn');
+        const checkQuizBtn = document.getElementById('check-quiz-btn');
+        const analysisPanel = document.getElementById('analysis-panel');
+        
+        // 实验参数
+        let params = {
+            R: parseFloat(radiusSlider.value), // 曲率半径 (m)
+            lambda: parseFloat(wavelengthSlider.value) * 1e-9, // 波长 (m)
+            n: parseFloat(refractionSlider.value), // 折射率
+            ringsToShow: parseInt(ringsSlider.value), // 显示的环数
+            autoMode: false,
+            selectedRing: null
+        };
+        
+        // ========== 辅助函数 ==========
+        
+        // 辅助函数：绘制箭头头
+        function drawArrowHead(ctx, x, y, fromX, fromY, color) {
+            const headLength = 8;
+            const dx = x - fromX;
+            const dy = y - fromY;
+            const angle = Math.atan2(dy, dx);
+            
+            ctx.save();
+            ctx.fillStyle = color;
+            
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x - headLength * Math.cos(angle - Math.PI/6), 
+                      y - headLength * Math.sin(angle - Math.PI/6));
+            ctx.lineTo(x - headLength * Math.cos(angle + Math.PI/6), 
+                      y - headLength * Math.sin(angle + Math.PI/6));
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.restore();
+        }
+        
+        // 辅助函数：绘制光线（带箭头）
+        function drawLightRay(ctx, x1, y1, x2, y2, color, width, hasStartArrow, hasEndArrow) {
+            ctx.save();
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = width;
+            
+            // 绘制光线
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+            
+            // 绘制起点箭头（如果需要）
+            if (hasStartArrow) {
+                drawArrowHead(ctx, x1, y1, x2, y2, color);
+            }
+            
+            // 绘制终点箭头（如果需要）
+            if (hasEndArrow) {
+                drawArrowHead(ctx, x2, y2, x1, y1, color);
+            }
+            
+            ctx.restore();
+        }
+        
+        // ========== 计算函数 ==========
+        
+        // 计算第k级明环半径
+        function calculateRingRadius(k) {
+            // 明环半径公式: r = sqrt((k - 0.5) * R * λ / n)
+            return Math.sqrt((k - 0.5) * params.R * params.lambda / params.n);
+        }
+        
+        // 计算条纹间距（相邻明环或暗环之间的距离）
+        function calculateRingSpacing() {
+            // 第k级明环半径
+            const r_k = calculateRingRadius(5);
+            // 第k+1级明环半径
+            const r_k1 = calculateRingRadius(6);
+            
+            return r_k1 - r_k;
+        }
+        
+        // 计算理论可观察环数
+        function calculateTheoryRings() {
+            const maxRadius = 0.01; // 假设观察范围为半径1cm
+            // 由 r = sqrt(k * R * λ / n) 得 k = r^2 * n / (R * λ)
+            const k = Math.floor(maxRadius * maxRadius * params.n / (params.R * params.lambda));
+            return Math.min(k, 50); // 限制最大显示环数
+        }
+        
+        // ========== 绘图函数 ==========
+        
+        // 绘制牛顿环
+        function drawNewtonRings() {
+            const width = canvas.width;
+            const height = canvas.height;
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const maxRadius = Math.min(width, height) * 0.45;
+            
+            // 清空画布
+            ctx.clearRect(0, 0, width, height);
+            
+            // 绘制背景
+            const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, maxRadius);
+            gradient.addColorStop(0, '#0a0e2a');
+            gradient.addColorStop(1, '#1a237e');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, width, height);
+            
+            // 计算并绘制牛顿环
+            const kRadius = calculateRingRadius(3); // 第3级明环半径（用于信息显示）
+            const ringSpacing = calculateRingSpacing();
+            const theoryRings = calculateTheoryRings();
+            
+            // 更新信息面板
+            document.getElementById('k-radius').textContent = (kRadius * 1000).toFixed(2) + ' mm';
+            document.getElementById('ring-spacing').textContent = (ringSpacing * 1000).toFixed(2) + ' mm';
+            document.getElementById('theory-rings').textContent = theoryRings;
+            
+            // 确定中央斑类型（考虑半波损失）
+            const centerType = (params.n > 1) ? '暗斑' : '亮斑';
+            document.getElementById('center-type').textContent = centerType;
+            
+            // 绘制每个环
+            for (let k = 0; k <= params.ringsToShow; k++) {
+                // 计算明环半径 r = sqrt((k - 0.5) * R * λ / n)
+                const brightRadius = Math.sqrt((k - 0.5) * params.R * params.lambda / params.n);
+                
+                // 计算暗环半径 r = sqrt(k * R * λ / n)
+                const darkRadius = Math.sqrt(k * params.R * params.lambda / params.n);
+                
+                // 转换为像素坐标
+                const brightRadiusPx = brightRadius * maxRadius * 100;
+                const darkRadiusPx = darkRadius * maxRadius * 100;
+                
+                // 绘制明环（亮纹）
+                if (brightRadiusPx > 0 && brightRadiusPx <= maxRadius) {
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, brightRadiusPx, 0, Math.PI * 2);
+                    ctx.strokeStyle = '#ffff00';
+                    ctx.lineWidth = 2;
+                    if (params.selectedRing === k && params.selectedRingType === 'bright') {
+                        ctx.strokeStyle = '#ff0000';
+                        ctx.lineWidth = 3;
+                    }
+                    ctx.stroke();
+                }
+                
+                // 绘制暗环（暗纹）
+                if (darkRadiusPx > 0 && darkRadiusPx <= maxRadius) {
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, darkRadiusPx, 0, Math.PI * 2);
+                    ctx.strokeStyle = '#000080';
+                    ctx.lineWidth = 2;
+                    if (params.selectedRing === k && params.selectedRingType === 'dark') {
+                        ctx.strokeStyle = '#ff0000';
+                        ctx.lineWidth = 3;
+                    }
+                    ctx.stroke();
+                }
+            }
+            
+            // 绘制中心点
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 5, 0, Math.PI * 2);
+            ctx.fillStyle = centerType === '暗斑' ? '#000080' : '#ffff00';
+            ctx.fill();
+            
+            // 绘制坐标参考线
+            ctx.beginPath();
+            ctx.moveTo(centerX - maxRadius, centerY);
+            ctx.lineTo(centerX + maxRadius, centerY);
+            ctx.moveTo(centerX, centerY - maxRadius);
+            ctx.lineTo(centerX, centerY + maxRadius);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+        }
+        
+        // 绘制原理示意图 - 改进布局，文字不重叠
+        function drawPrincipleDiagram() {
+            const width = principleCanvas.width;
+            const height = principleCanvas.height;
+            
+            // 清空画布
+            principleCtx.clearRect(0, 0, width, height);
+            
+            // 设置背景
+            principleCtx.fillStyle = '#f8f9ff';
+            principleCtx.fillRect(0, 0, width, height);
+            
+            // ========== 第一部分：光路图（左侧） ==========
+            const diagramX = width * 0.25;
+            const diagramY = height * 0.45;
+            const lensRadius = 40;
+            const lensCenterY = diagramY - lensRadius;
+            
+            // 1. 绘制平凸透镜
+            principleCtx.beginPath();
+            principleCtx.arc(diagramX, lensCenterY, lensRadius, 0, Math.PI, false);
+            principleCtx.strokeStyle = '#303f9f';
+            principleCtx.lineWidth = 3;
+            principleCtx.stroke();
+            
+            principleCtx.beginPath();
+            principleCtx.moveTo(diagramX - lensRadius, diagramY);
+            principleCtx.lineTo(diagramX + lensRadius, diagramY);
+            principleCtx.strokeStyle = '#303f9f';
+            principleCtx.lineWidth = 3;
+            principleCtx.stroke();
+            
+            // 2. 绘制平面玻璃
+            const glassY = diagramY + 5;
+            principleCtx.beginPath();
+            principleCtx.moveTo(diagramX - lensRadius, glassY);
+            principleCtx.lineTo(diagramX + lensRadius, glassY);
+            principleCtx.strokeStyle = '#5c6bc0';
+            principleCtx.lineWidth = 3;
+            principleCtx.stroke();
+            
+            // 3. 绘制空气薄膜
+            const filmY = diagramY;
+            principleCtx.fillStyle = 'rgba(255, 152, 0, 0.15)';
+            principleCtx.fillRect(diagramX - 20, filmY, 40, 5);
+            principleCtx.strokeStyle = '#ff9800';
+            principleCtx.lineWidth = 1.5;
+            principleCtx.strokeRect(diagramX - 20, filmY, 40, 5);
+            
+            // 4. 绘制光线
+            const lightStartY = height * 0.1;
+            
+            // 入射光（红色，向下）
+            drawLightRay(principleCtx, diagramX, lightStartY, diagramX, filmY, '#ff0000', 2, false, true);
+            
+            // 反射光1（蓝色，向上）
+            drawLightRay(principleCtx, diagramX, filmY, diagramX, lightStartY + 30, '#2196f3', 2, false, true);
+            
+            // 反射光2（绿色，向下再向上）
+            drawLightRay(principleCtx, diagramX, filmY, diagramX, glassY, '#4caf50', 2, false, false);
+            drawLightRay(principleCtx, diagramX, glassY, diagramX, lightStartY + 60, '#4caf50', 2, false, true);
+            
+            // 5. 光路图标注（右侧）
+            const labelX = diagramX + 70;
+            
+            principleCtx.font = '14px Arial';
+            principleCtx.fillStyle = '#ff0000';
+            principleCtx.fillText('入射光', labelX, lightStartY + 10);
+            
+            principleCtx.fillStyle = '#2196f3';
+            principleCtx.fillText('反射光1', labelX, lightStartY + 40);
+            
+            principleCtx.fillStyle = '#4caf50';
+            principleCtx.fillText('反射光2', labelX, lightStartY + 70);
+            
+            principleCtx.font = '12px Arial';
+            principleCtx.fillStyle = '#666';
+            principleCtx.fillText('(空气膜上表面)', labelX, lightStartY + 55);
+            principleCtx.fillText('(玻璃上表面)', labelX, lightStartY + 85);
+            
+            // 6. 装置标注
+            principleCtx.font = 'bold 14px Arial';
+            principleCtx.fillStyle = '#303f9f';
+            principleCtx.fillText('平凸透镜', diagramX - 25, lensCenterY - 15);
+            
+            principleCtx.fillStyle = '#5c6bc0';
+            principleCtx.fillText('平面玻璃', diagramX - 25, glassY + 15);
+            
+            principleCtx.fillStyle = '#ff9800';
+            principleCtx.fillText('空气薄膜', diagramX - 25, filmY + 10);
+            
+            principleCtx.font = '12px Arial';
+            principleCtx.fillStyle = '#4caf50';
+            principleCtx.fillText('半波损失 λ/2', diagramX - 35, glassY + 30);
+            
+            // ========== 第二部分：光程差分析（中上部） ==========
+            const analysisX = width * 0.55;
+            const analysisY = height * 0.15;
+            
+            principleCtx.font = 'bold 16px Arial';
+            principleCtx.fillStyle = '#d32f2f';
+            principleCtx.fillText('光程差分析', analysisX, analysisY);
+            
+            principleCtx.font = '14px Arial';
+            principleCtx.fillStyle = '#2196f3';
+            principleCtx.fillText('蓝色光路径：0', analysisX, analysisY + 25);
+            
+            principleCtx.fillStyle = '#4caf50';
+            principleCtx.fillText('绿色光路径：2d + λ/2', analysisX, analysisY + 50);
+            
+            principleCtx.fillStyle = '#000';
+            principleCtx.fillText('总光程差：Δ = 2d + λ/2', analysisX, analysisY + 75);
+            
+            principleCtx.fillText('明环条件：2d + λ/2 = kλ', analysisX, analysisY + 100);
+            principleCtx.fillText('暗环条件：2d + λ/2 = (k+½)λ', analysisX, analysisY + 125);
+            
+            // ========== 第三部分：干涉图样（中下部） ==========
+            const patternX = width * 0.55;
+            const patternY = height * 0.6;
+            
+            principleCtx.font = 'bold 16px Arial';
+            principleCtx.fillStyle = '#303f9f';
+            principleCtx.fillText('干涉图样', patternX, patternY - 20);
+            
+            const patternRadius = 25;
+            principleCtx.beginPath();
+            principleCtx.arc(patternX + 30, patternY + 30, patternRadius, 0, Math.PI * 2);
+            principleCtx.strokeStyle = '#000';
+            principleCtx.lineWidth = 2;
+            principleCtx.stroke();
+            
+            // 绘制牛顿环
+            for (let i = 1; i <= 3; i++) {
+                const radius = patternRadius * i / 4;
+                principleCtx.beginPath();
+                principleCtx.arc(patternX + 30, patternY + 30, radius, 0, Math.PI * 2);
+                principleCtx.strokeStyle = i % 2 === 1 ? '#ffff00' : '#000080';
+                principleCtx.lineWidth = 2;
+                principleCtx.stroke();
+            }
+            
+            // 中心暗斑
+            principleCtx.beginPath();
+            principleCtx.arc(patternX + 30, patternY + 30, 3, 0, Math.PI * 2);
+            principleCtx.fillStyle = '#000080';
+            principleCtx.fill();
+            
+            // 图例说明
+            principleCtx.font = '12px Arial';
+            principleCtx.fillStyle = '#666';
+            principleCtx.fillText('中心：暗斑', patternX - 10, patternY + 70);
+            principleCtx.fillText('明环(亮纹)', patternX - 10, patternY + 85);
+            principleCtx.fillText('暗环(暗纹)', patternX - 10, patternY + 100);
+            
+            // ========== 第四部分：空气膜厚度标注 ==========
+            const dX = diagramX + 30;
+            principleCtx.beginPath();
+            principleCtx.moveTo(dX, filmY);
+            principleCtx.lineTo(dX, filmY + 5);
+            principleCtx.strokeStyle = '#000';
+            principleCtx.lineWidth = 1;
+            principleCtx.stroke();
+            
+            principleCtx.beginPath();
+            principleCtx.moveTo(dX - 5, filmY);
+            principleCtx.lineTo(dX + 5, filmY);
+            principleCtx.moveTo(dX - 5, filmY + 5);
+            principleCtx.lineTo(dX + 5, filmY + 5);
+            principleCtx.stroke();
+            
+            principleCtx.font = 'bold 14px Arial';
+            principleCtx.fillStyle = '#000';
+            principleCtx.fillText('d', dX + 8, filmY + 3);
+        }
+        
+        // ========== 界面控制函数 ==========
+        
+        // 设置canvas尺寸
+        function resizeCanvas() {
+            const container = document.getElementById('newton-rings-container');
+            if (container) {
+                canvas.width = container.clientWidth;
+                canvas.height = container.clientHeight;
+                drawNewtonRings();
+            }
+            
+            const principleContainer = document.getElementById('principle-container');
+            if (principleContainer) {
+                principleCanvas.width = principleContainer.clientWidth;
+                principleCanvas.height = principleContainer.clientHeight;
+                drawPrincipleDiagram();
+            }
+        }
+        
+        // 更新参数显示
+        function updateParamDisplays() {
+            radiusValue.textContent = params.R.toFixed(1);
+            wavelengthValue.textContent = (params.lambda * 1e9).toFixed(0);
+            refractionValue.textContent = params.n.toFixed(1);
+            ringsValue.textContent = params.ringsToShow;
+        }
+        
+        // ========== 事件监听器 ==========
+        
+        // 滑块事件监听
+        radiusSlider.addEventListener('input', function() {
+            params.R = parseFloat(this.value);
+            updateParamDisplays();
+            drawNewtonRings();
+            drawPrincipleDiagram();
+        });
+        
+        wavelengthSlider.addEventListener('input', function() {
+            params.lambda = parseFloat(this.value) * 1e-9;
+            updateParamDisplays();
+            drawNewtonRings();
+            drawPrincipleDiagram();
+        });
+        
+        refractionSlider.addEventListener('input', function() {
+            params.n = parseFloat(this.value);
+            updateParamDisplays();
+            drawNewtonRings();
+            drawPrincipleDiagram();
+        });
+        
+        ringsSlider.addEventListener('input', function() {
+            params.ringsToShow = parseInt(this.value);
+            updateParamDisplays();
+            drawNewtonRings();
+        });
+        
+        // 重置按钮
+        resetBtn.addEventListener('click', function() {
+            radiusSlider.value = 10;
+            wavelengthSlider.value = 589;
+            refractionSlider.value = 1.0;
+            ringsSlider.value = 15;
+            
+            params.R = 10;
+            params.lambda = 589e-9;
+            params.n = 1.0;
+            params.ringsToShow = 15;
+            params.selectedRing = null;
+            
+            updateParamDisplays();
+            drawNewtonRings();
+            drawPrincipleDiagram();
+            document.getElementById('current-ring').textContent = '未选择';
+            
+            // 重置填空题
+            document.getElementById('blank1').value = '';
+            document.getElementById('blank2').value = '';
+            document.getElementById('blank3').value = '';
+            
+            // 重置填空题样式
+            const blankInputs = document.querySelectorAll('.blank-input');
+            blankInputs.forEach(input => {
+                input.style.borderColor = '#5c6bc0';
+                input.style.backgroundColor = 'white';
+            });
+            
+            // 清除反馈消息
+            document.querySelectorAll('.blank-feedback').forEach(el => el.remove());
+            
+            // 重置选择题
+            document.querySelectorAll('.option').forEach(option => {
+                option.classList.remove('selected', 'correct', 'incorrect');
+            });
+            
+            // 隐藏分析面板
+            analysisPanel.style.display = 'none';
+        });
+        
+        // 自动演示按钮
+        let autoInterval;
+        autoBtn.addEventListener('click', function() {
+            params.autoMode = !params.autoMode;
+            
+            if (params.autoMode) {
+                autoBtn.innerHTML = '<i class="fas fa-pause"></i> 停止演示';
+                let wavelength = 400;
+                let direction = 1;
+                
+                autoInterval = setInterval(() => {
+                    wavelength += direction * 10;
+                    if (wavelength >= 700) direction = -1;
+                    if (wavelength <= 400) direction = 1;
+                    
+                    wavelengthSlider.value = wavelength;
+                    params.lambda = wavelength * 1e-9;
+                    updateParamDisplays();
+                    drawNewtonRings();
+                    drawPrincipleDiagram();
+                }, 200);
+            } else {
+                autoBtn.innerHTML = '<i class="fas fa-play"></i> 自动演示';
+                clearInterval(autoInterval);
+            }
+        });
+        
+        // ========== 答题功能 ==========
+        
+        // 辅助函数：检查填空题答案
+        function checkBlankAnswer(userAnswer, correctAnswers) {
+            if (!userAnswer) return false;
+            
+            const normalizedUserAnswer = userAnswer.replace(/[\s，,、]/g, '');
+            
+            for (let answer of correctAnswers) {
+                const normalizedCorrectAnswer = answer.replace(/[\s，,、]/g, '');
+                if (normalizedUserAnswer === normalizedCorrectAnswer) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        // 辅助函数：添加反馈提示
+        function addFeedback(inputId, message, isCorrect) {
+            const inputElement = document.getElementById(inputId);
+            
+            const existingFeedback = inputElement.parentNode.querySelector('.blank-feedback');
+            if (existingFeedback) {
+                existingFeedback.remove();
+            }
+            
+            const feedbackDiv = document.createElement('div');
+            feedbackDiv.className = 'blank-feedback';
+            feedbackDiv.style.fontSize = '0.85rem';
+            feedbackDiv.style.marginTop = '5px';
+            feedbackDiv.style.padding = '5px 10px';
+            feedbackDiv.style.borderRadius = '4px';
+            feedbackDiv.style.color = isCorrect ? '#2e7d32' : '#d32f2f';
+            feedbackDiv.style.backgroundColor = isCorrect ? '#e8f5e9' : '#ffebee';
+            feedbackDiv.textContent = message;
+            
+            inputElement.parentNode.insertBefore(feedbackDiv, inputElement.nextSibling);
+        }
+        
+        // 检查填空题
+        checkBlankBtn.addEventListener('click', function() {
+            const blank1 = document.getElementById('blank1').value.trim();
+            const blank2 = document.getElementById('blank2').value.trim();
+            const blank3 = document.getElementById('blank3').value.trim();
+            
+            let score = 0;
+            
+            const correctAnswers = {
+                1: {
+                    answers: [
+                        '暗,0,λ/2',
+                        '暗，0，λ/2', 
+                        '暗 0 λ/2',
+                        '暗,0,半波长',
+                        '暗斑,0,半波长',
+                        '暗,0,半波损失'
+                    ],
+                    explanation: '由于存在半波损失，牛顿环中心为暗斑，薄膜厚度为0，光程差为半波长(λ/2)'
+                },
+                2: {
+                    answers: [
+                        '密集,稀疏',
+                        '密集，稀疏',
+                        '密集 稀疏',
+                        '密集,稀疏',
+                        '密集、稀疏'
+                    ],
+                    explanation: '曲率半径增大时条纹变密集；波长增大时条纹变稀疏'
+                },
+                3: {
+                    answers: [
+                        '等厚,同心',
+                        '等厚，同心',
+                        '等厚 同心',
+                        '等厚,同心圆',
+                        '等厚、同心'
+                    ],
+                    explanation: '牛顿环是等厚干涉，形成以接触点为中心的同心圆环'
+                }
+            };
+            
+            // 检查第一题答案
+            const answer1Correct = checkBlankAnswer(blank1.toLowerCase(), correctAnswers[1].answers);
+            if (answer1Correct) {
+                document.getElementById('blank1').style.borderColor = '#4caf50';
+                document.getElementById('blank1').style.backgroundColor = '#f0f9f0';
+                addFeedback('blank1', '✓ 正确！' + correctAnswers[1].explanation, true);
+                score++;
+            } else {
+                document.getElementById('blank1').style.borderColor = '#f44336';
+                document.getElementById('blank1').style.backgroundColor = '#fff0f0';
+                addFeedback('blank1', '✗ ' + correctAnswers[1].explanation, false);
+            }
+            
+            // 检查第二题答案
+            const answer2Correct = checkBlankAnswer(blank2.toLowerCase(), correctAnswers[2].answers);
+            if (answer2Correct) {
+                document.getElementById('blank2').style.borderColor = '#4caf50';
+                document.getElementById('blank2').style.backgroundColor = '#f0f9f0';
+                addFeedback('blank2', '✓ 正确！' + correctAnswers[2].explanation, true);
+                score++;
+            } else {
+                document.getElementById('blank2').style.borderColor = '#f44336';
+                document.getElementById('blank2').style.backgroundColor = '#fff0f0';
+                addFeedback('blank2', '✗ ' + correctAnswers[2].explanation, false);
+            }
+            
+            // 检查第三题答案
+            const answer3Correct = checkBlankAnswer(blank3.toLowerCase(), correctAnswers[3].answers);
+            if (answer3Correct) {
+                document.getElementById('blank3').style.borderColor = '#4caf50';
+                document.getElementById('blank3').style.backgroundColor = '#f0f9f0';
+                addFeedback('blank3', '✓ 正确！' + correctAnswers[3].explanation, true);
+                score++;
+            } else {
+                document.getElementById('blank3').style.borderColor = '#f44336';
+                document.getElementById('blank3').style.backgroundColor = '#fff0f0';
+                addFeedback('blank3', '✗ ' + correctAnswers[3].explanation, false);
+            }
+            
+            document.getElementById('blank-score').textContent = `${score}/3`;
+            analysisPanel.style.display = 'block';
+            
+            setTimeout(() => {
+                analysisPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        });
+        
+        // 选择题交互
+        document.querySelectorAll('.option').forEach(option => {
+            option.addEventListener('click', function() {
+                const questionId = this.getAttribute('data-id');
+                const answer = this.getAttribute('data-answer');
+                
+                document.querySelectorAll(`.option[data-id="${questionId}"]`).forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                
+                this.classList.add('selected');
+            });
+        });
+        
+        // 检查选择题
+        checkQuizBtn.addEventListener('click', function() {
+            const correctAnswers = {
+                1: 'B',
+                2: 'B',
+                3: 'B'
+            };
+            
+            let score = 0;
+            let userAnswers = {};
+            
+            document.querySelectorAll('.option.selected').forEach(option => {
+                const questionId = option.getAttribute('data-id');
+                const answer = option.getAttribute('data-answer');
+                userAnswers[questionId] = answer;
+            });
+            
+            for (let i = 1; i <= 3; i++) {
+                const questionOptions = document.querySelectorAll(`.option[data-id="${i}"]`);
+                
+                questionOptions.forEach(option => {
+                    const answer = option.getAttribute('data-answer');
+                    
+                    if (answer === correctAnswers[i]) {
+                        option.classList.add('correct');
+                    }
+                    
+                    if (option.classList.contains('selected') && answer !== correctAnswers[i]) {
+                        option.classList.add('incorrect');
+                    }
+                });
+                
+                if (userAnswers[i] === correctAnswers[i]) {
+                    score++;
+                }
+            }
+            
+            document.getElementById('quiz-score').textContent = `${score}/3`;
+            
+            let suggestion = '';
+            if (score === 3) {
+                suggestion = '优秀！您已经掌握了牛顿环实验的核心概念。';
+                document.getElementById('mastery-level').textContent = '优秀';
+            } else if (score === 2) {
+                suggestion = '良好！请回顾错误题目对应的知识点。';
+                document.getElementById('mastery-level').textContent = '良好';
+            } else if (score === 1) {
+                suggestion = '需要加强学习，建议重新观察实验现象并理解原理。';
+                document.getElementById('mastery-level').textContent = '需加强';
+            } else {
+                suggestion = '请重新学习牛顿环实验原理，观察参数变化对现象的影响。';
+                document.getElementById('mastery-level').textContent = '需努力';
+            }
+            
+            document.getElementById('learning-suggestion').textContent = suggestion;
+            analysisPanel.style.display = 'block';
+            
+            setTimeout(() => {
+                analysisPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        });
+        
+        // 点击牛顿环选择
+        canvas.addEventListener('click', function(event) {
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            
+            const width = canvas.width;
+            const height = canvas.height;
+            const centerX = width / 2;
+            const centerY = height / 2;
+            
+            const distance = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
+            const maxRadius = Math.min(width, height) * 0.45;
+            
+            const actualDistance = distance / (maxRadius * 100);
+            
+            let minDiff = Infinity;
+            let selectedK = null;
+            let selectedType = null;
+            
+            for (let k = 0; k <= params.ringsToShow; k++) {
+                const brightRadius = Math.sqrt((k - 0.5) * params.R * params.lambda / params.n);
+                const brightDiff = Math.abs(actualDistance - brightRadius);
+                
+                const darkRadius = Math.sqrt(k * params.R * params.lambda / params.n);
+                const darkDiff = Math.abs(actualDistance - darkRadius);
+                
+                if (brightDiff < minDiff && brightRadius > 0) {
+                    minDiff = brightDiff;
+                    selectedK = k;
+                    selectedType = 'bright';
+                }
+                
+                if (darkDiff < minDiff && darkRadius > 0) {
+                    minDiff = darkDiff;
+                    selectedK = k;
+                    selectedType = 'dark';
+                }
+            }
+            
+            if (selectedK !== null && minDiff < 0.01) {
+                params.selectedRing = selectedK;
+                params.selectedRingType = selectedType;
+                
+                const ringType = selectedType === 'bright' ? '明环' : '暗环';
+                document.getElementById('current-ring').textContent = `第${selectedK}级${ringType}`;
+                
+                drawNewtonRings();
+            }
+        });
+        
+        // 窗口大小改变时调整canvas
+        window.addEventListener('resize', resizeCanvas);
+        
+        // 初始化
+        updateParamDisplays();
+        resizeCanvas();
+        
+        // 添加键盘快捷键
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'r' || event.key === 'R') {
+                resetBtn.click();
+            }
+            if (event.key === 'a' || event.key === 'A') {
+                autoBtn.click();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>四种基本相互作用演示</title>
+    <style>
+        body {
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2, #667eea);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(90deg, #2c3e50, #4a6478);
+            color: white;
+            text-align: center;
+            padding: 25px;
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 28px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-top: 8px;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding: 20px;
+        }
+        
+        .interaction-display {
+            flex: 1;
+            min-width: 550px;
+            height: 500px;
+            border: 3px solid #2c3e50;
+            border-radius: 10px;
+            background: linear-gradient(to bottom, #1a237e, #283593, #3949ab);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .force-info-panel {
+            flex: 1;
+            min-width: 550px;
+            height: 500px;
+            border: 3px solid #2c3e50;
+            border-radius: 10px;
+            background-color: white;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+            background-color: #ecf0f1;
+            flex-wrap: wrap;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 150px;
+        }
+        
+        label {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+        
+        select {
+            width: 140px;
+            padding: 8px;
+            border: 2px solid #3498db;
+            border-radius: 5px;
+            font-size: 16px;
+            background-color: white;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.6);
+        }
+        
+        .force-card {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+        
+        .force-card.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .force-title {
+            font-size: 24px;
+            margin: 0 0 15px 0;
+            text-align: center;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            padding-bottom: 10px;
+        }
+        
+        .force-properties {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .property-card {
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .property-label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+        
+        .property-value {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .force-description {
+            line-height: 1.6;
+            margin: 15px 0;
+        }
+        
+        .force-examples {
+            margin: 15px 0;
+        }
+        
+        .example-item {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 5px;
+            border-left: 3px solid white;
+        }
+        
+        /* 可视化元素样式 */
+        .celestial-body {
+            position: absolute;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+        }
+        
+        .gravitational-field {
+            position: absolute;
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: pulse 3s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.3; }
+            50% { transform: scale(1.1); opacity: 0.6; }
+            100% { transform: scale(1); opacity: 0.3; }
+        }
+        
+        .electromagnetic-field {
+            position: absolute;
+            border: 2px solid;
+            border-radius: 50%;
+            animation: field-oscillate 2s infinite alternate;
+        }
+        
+        @keyframes field-oscillate {
+            0% { transform: scale(1); opacity: 0.7; }
+            100% { transform: scale(1.2); opacity: 0.9; }
+        }
+        
+        .strong-force-region {
+            position: absolute;
+            background: radial-gradient(circle, rgba(255, 0, 0, 0.8), transparent);
+            border-radius: 50%;
+            animation: strong-pulse 1s infinite;
+        }
+        
+        @keyframes strong-pulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(0.8); opacity: 0.4; }
+            100% { transform: scale(1); opacity: 0.8; }
+        }
+        
+        .weak-force-effect {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background-color: #9c27b0;
+            border-radius: 50%;
+            animation: weak-flicker 0.5s infinite alternate;
+        }
+        
+        @keyframes weak-flicker {
+            0% { opacity: 0.3; transform: scale(1); }
+            100% { opacity: 0.8; transform: scale(1.5); }
+        }
+        
+        .force-comparison {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        
+        .comparison-table th {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <header>
+            <h1>四种基本相互作用演示</h1>
+            <div class="subtitle">探索自然界最基本的力 | 高中物理基础理论</div>
+        </header>
+        
+        <div class="main-content">
+            <div class="interaction-display" id="interactionDisplay">
+                <!-- 可视化元素将在这里动态生成 -->
+            </div>
+            
+            <div class="force-info-panel">
+                <!-- 引力卡片 -->
+                <div class="force-card active" id="gravityCard">
+                    <h3 class="force-title">万有引力</h3>
+                    <div class="force-properties">
+                        <div class="property-card">
+                            <div class="property-label">相对强度</div>
+                            <div class="property-value">1 (最弱)</div>
+                        </div>
+                        <div class="property-card">
+                            <div class="property-label">作用范围</div>
+                            <div class="property-value">无限远</div>
+                        </div>
+                        <div class="property-card">
+                            <div class="property-label">力程特性</div>
+                            <div class="property-value">长程力</div>
+                        </div>
+                        <div class="property-card">
+                            <div class="property-label">传递粒子</div>
+                            <div class="property-value">引力子(理论)</div>
+                        </div>
+                    </div>
+                    <div class="force-description">
+                        <p>万有引力是四种基本相互作用中最弱的，但作用范围最大。它存在于一切有质量的物体之间，强度随距离平方衰减。引力决定了天体运动和宇宙结构。</p>
+                    </div>
+                    <div class="force-examples">
+                        <div class="example-item">苹果落地</div>
+                        <div class="example-item">行星绕太阳运行</div>
+                        <div class="example-item">星系形成和演化</div>
+                        <div class="example-item">潮汐现象</div>
+                    </div>
+                </div>
+                
+                <!-- 电磁力卡片 -->
+                <div class="force-card" id="electromagneticCard">
+                    <h3 class="force-title">电磁相互作用</h3>
+                    <div class="force-properties">
+                        <div class="property-card">
+                            <div class="property-label">相对强度</div>
+                            <div class="property-value">10³⁶</div>
+                        </div>
+                        <div class="property-card">
+                            <div class="property-label">作用范围</div>
+                            <div class="property-value">无限远</div>
+                        </div>
+                        <div class="property-card">
+                            <div class="property-label">力程特性</div>
+                            <div class="property-value">长程力</div>
+                        </div>
+                        <div class="property-card">
+                            <div class="property-label">传递粒子</div>
+                            <div class="property-value">光子</div>
+                        </div>
+                    </div>
+                    <div class="force-description">
+                        <p>电磁相互作用是日常生活中最常见的力，包括静电力和磁力。它比引力强约10³⁶倍，负责原子结构、化学键合和宏观物体间的接触力。</p>
+                    </div>
+                    <div class="force-examples">
+                        <div class="example-item">摩擦力和弹力</div>
+                        <div class="example-item">电磁铁和电机</div>
+                        <div class="example-item">原子和分子结构</div>
+                        <div class="example-item">光的传播</div>
+                    </div>
+                </div>
+                
+                <!-- 强相互作用卡片 -->
+                <div class="force-card" id="strongCard">
+                    <h3 class="force-title">强相互作用</h3>
+                    <div class="force-properties">
+                        <div class="property-card">
+                            <div class="property-label">相对强度</div>
+                            <div class="property-value">10³⁸</div>
+                        </div>
+                        <div class="property-card">
+                            <div class="property-label">作用范围</div>
+                            <div class="property-value">10⁻¹⁵ m</div>
+                        </div>
+                        <div class="property-card">
+                            <div class="property-label">力程特性</div>
+                            <div class="property-value">短程力</div>
+                        </div>
+                        <div class="property-card">
+                            <div class="property-label">传递粒子</div>
+                            <div class="property-value">胶子</div>
+                        </div>
+                    </div>
+                    <div class="force-description">
+                        <p>强相互作用是四种力中最强的，但作用范围极短。它将夸克束缚成质子和中子，并将核子束缚在原子核内。</p>
+                    </div>
+                    <div class="force-examples">
+                        <div class="example-item">原子核稳定性</div>
+                        <div class="example-item">核反应和核能</div>
+                        <div class="example-item">夸克禁闭</div>
+                        <div class="example-item">质子和中子结构</div>
+                    </div>
+                </div>
+                
+                <!-- 弱相互作用卡片 -->
+                <div class="force-card" id="weakCard">
+                    <h3 class="force-title">弱相互作用</h3>
+                    <div class="force-properties">
+                        <div class="property-card">
+                            <div class="property-label">相对强度</div>
+                            <div class="property-value">10²⁵</div>
+                        </div>
+                        <div class="property-card">
+                            <div class="property-label">作用范围</div>
+                            <div class="property-value">10⁻¹⁸ m</div>
+                        </div>
+                        <div class="property-card">
+                            <div class="property-label">力程特性</div>
+                            <div class="property-value">短程力</div>
+                        </div>
+                        <div class="property-card">
+                            <div class="property-label">传递粒子</div>
+                            <div class="property-value">W/Z玻色子</div>
+                        </div>
+                    </div>
+                    <div class="force-description">
+                        <p>弱相互作用负责某些类型的放射性衰变，如β衰变。它在粒子物理中起重要作用，强度介于电磁力和引力之间。</p>
+                    </div>
+                    <div class="force-examples">
+                        <div class="example-item">β放射性衰变</div>
+                        <div class="example-item">中子衰变为质子</div>
+                        <div class="example-item">太阳内部核反应</div>
+                        <div class="example-item">粒子加速器实验</div>
+                    </div>
+                </div>
+                
+                <!-- 力的比较表格 -->
+                <div class="force-comparison">
+                    <h3 style="color: #2c3e50; text-align: center; margin-top: 0;">四种基本力比较</h3>
+                    <table class="comparison-table">
+                        <tr>
+                            <th>相互作用</th>
+                            <th>相对强度</th>
+                            <th>作用范围</th>
+                            <th>主要现象</th>
+                        </tr>
+                        <tr>
+                            <td>引力</td>
+                            <td>1</td>
+                            <td>无限远</td>
+                            <td>天体运动</td>
+                        </tr>
+                        <tr>
+                            <td>弱力</td>
+                            <td>10²⁵</td>
+                            <td>10⁻¹⁸ m</td>
+                            <td>放射性衰变</td>
+                        </tr>
+                        <tr>
+                            <td>电磁力</td>
+                            <td>10³⁶</td>
+                            <td>无限远</td>
+                            <td>原子分子</td>
+                        </tr>
+                        <tr>
+                            <td>强力</td>
+                            <td>10³⁸</td>
+                            <td>10⁻¹⁵ m</td>
+                            <td>原子核</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="forceSelect">选择相互作用</label>
+                <select id="forceSelect">
+                    <option value="gravity">万有引力</option>
+                    <option value="electromagnetic">电磁相互作用</option>
+                    <option value="strong">强相互作用</option>
+                    <option value="weak">弱相互作用</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <button id="demonstrateBtn">演示效果</button>
+            </div>
+            
+            <div class="control-group">
+                <button id="compareBtn">力的比较</button>
+            </div>
+            
+            <div class="control-group">
+                <button id="resetBtn">重置演示</button>
+            </div>
+        </div>
+        
+        <footer>
+            <p>基于现代物理学理论的科学演示 | 适用于高中物理教学 | 自然界四种基本相互作用</p>
+        </footer>
+    </div>
+
+    <script>
+        // DOM元素引用
+        const forceSelect = document.getElementById('forceSelect');
+        const demonstrateBtn = document.getElementById('demonstrateBtn');
+        const compareBtn = document.getElementById('compareBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const interactionDisplay = document.getElementById('interactionDisplay');
+        
+        // 力的卡片元素
+        const forceCards = {
+            gravity: document.getElementById('gravityCard'),
+            electromagnetic: document.getElementById('electromagneticCard'),
+            strong: document.getElementById('strongCard'),
+            weak: document.getElementById('weakCard')
+        };
+        
+        // 当前激活的力
+        let currentForce = 'gravity';
+        
+        // 事件监听器
+        forceSelect.addEventListener('change', changeForce);
+        demonstrateBtn.addEventListener('click', demonstrateForce);
+        compareBtn.addEventListener('click', showComparison);
+        resetBtn.addEventListener('click', resetDemonstration);
+        
+        // 初始化
+        updateForceDisplay();
+        
+        /**
+         * 切换力的显示
+         */
+        function changeForce() {
+            currentForce = forceSelect.value;
+            updateForceDisplay();
+        }
+        
+        /**
+         * 更新力的信息显示
+         */
+        function updateForceDisplay() {
+            // 隐藏所有卡片
+            Object.values(forceCards).forEach(card => {
+                card.classList.remove('active');
+            });
+            
+            // 显示当前选择的卡片
+            forceCards[currentForce].classList.add('active');
+        }
+        
+        /**
+         * 演示选定的相互作用
+         */
+        function demonstrateForce() {
+            // 清空显示区域
+            interactionDisplay.innerHTML = '';
+            
+            switch(currentForce) {
+                case 'gravity':
+                    demonstrateGravity();
+                    break;
+                case 'electromagnetic':
+                    demonstrateElectromagnetic();
+                    break;
+                case 'strong':
+                    demonstrateStrongForce();
+                    break;
+                case 'weak':
+                    demonstrateWeakForce();
+                    break;
+            }
+        }
+        
+        /**
+         * 演示万有引力
+         */
+        function demonstrateGravity() {
+            // 创建天体
+            const sun = createCelestialBody(200, 150, 60, '#FFD700', '太阳');
+            const earth = createCelestialBody(350, 150, 20, '#1E90FF', '地球');
+            
+            // 创建引力场
+            const field1 = createGravitationalField(200, 150, 120);
+            const field2 = createGravitationalField(350, 150, 40);
+            
+            // 添加轨道动画
+            animateOrbit(earth, 200, 150, 150, 5000);
+            
+            interactionDisplay.appendChild(sun);
+            interactionDisplay.appendChild(field1);
+            interactionDisplay.appendChild(earth);
+            interactionDisplay.appendChild(field2);
+        }
+        
+        /**
+         * 演示电磁相互作用
+         */
+        function demonstrateElectromagnetic() {
+            // 创建带电粒子
+            const positiveCharge = createChargedParticle(180, 150, 25, '#FF4136', '+');
+            const negativeCharge = createChargedParticle(320, 150, 25, '#0074D9', '-');
+            
+            // 创建电磁场
+            const field1 = createElectromagneticField(180, 150, 50, '#FF4136');
+            const field2 = createElectromagneticField(320, 150, 50, '#0074D9');
+            
+            // 添加吸引力动画
+            animateAttraction(positiveCharge, negativeCharge, 3000);
+            
+            interactionDisplay.appendChild(positiveCharge);
+            interactionDisplay.appendChild(negativeCharge);
+            interactionDisplay.appendChild(field1);
+            interactionDisplay.appendChild(field2);
+        }
+        
+        /**
+         * 演示强相互作用
+         */
+        function demonstrateStrongForce() {
+            // 创建核子
+            const proton1 = createNucleon(180, 150, 15, '#FF6B6B', 'p');
+            const neutron = createNucleon(220, 150, 15, '#4ECDC4', 'n');
+            const proton2 = createNucleon(260, 150, 15, '#FF6B6B', 'p');
+            
+            // 创建强力区域
+            const strongRegion = createStrongForceRegion(220, 150, 80);
+            
+            // 添加束缚动画
+            animateBinding([proton1, neutron, proton2], 220, 150, 2000);
+            
+            interactionDisplay.appendChild(strongRegion);
+            interactionDisplay.appendChild(proton1);
+            interactionDisplay.appendChild(neutron);
+            interactionDisplay.appendChild(proton2);
+        }
+        
+        /**
+         * 演示弱相互作用
+         */
+        function demonstrateWeakForce() {
+            // 创建粒子
+            const neutron = createParticle(200, 150, 20, '#4ECDC4', 'n');
+            const proton = createParticle(300, 150, 20, '#FF6B6B', 'p');
+            const electron = createParticle(350, 150, 12, '#9C27B0', 'e⁻');
+            
+            // 创建弱力效应
+            const weakEffects = createWeakForceEffects(200, 150, 8);
+            
+            // 添加衰变动画
+            animateDecay(neutron, proton, electron, 4000);
+            
+            interactionDisplay.appendChild(neutron);
+            weakEffects.forEach(effect => interactionDisplay.appendChild(effect));
+            setTimeout(() => {
+                interactionDisplay.appendChild(proton);
+                interactionDisplay.appendChild(electron);
+            }, 2000);
+        }
+        
+        /**
+         * 显示力的比较
+         */
+        function showComparison() {
+            alert(`
+                四种基本相互作用强度比较：
+                
+                引力：相对强度 1（最弱）
+                弱力：相对强度 10²⁵
+                电磁力：相对强度 10³⁶
+                强力：相对强度 10³⁸（最强）
+                
+                作用范围比较：
+                引力和电磁力：无限远（长程力）
+                强力：约10⁻¹⁵米（短程力）
+                弱力：约10⁻¹⁸米（短程力）
+                
+                这种巨大的强度差异体现了自然界力的层次结构！
+            `);
+        }
+        
+        /**
+         * 重置演示
+         */
+        function resetDemonstration() {
+            interactionDisplay.innerHTML = '';
+            currentForce = 'gravity';
+            forceSelect.value = 'gravity';
+            updateForceDisplay();
+        }
+        
+        // 辅助函数
+        
+        function createCelestialBody(x, y, size, color, label) {
+            const body = document.createElement('div');
+            body.className = 'celestial-body';
+            body.style.left = (x - size/2) + 'px';
+            body.style.top = (y - size/2) + 'px';
+            body.style.width = size + 'px';
+            body.style.height = size + 'px';
+            body.style.backgroundColor = color;
+            body.textContent = label;
+            return body;
+        }
+        
+        function createGravitationalField(x, y, radius) {
+            const field = document.createElement('div');
+            field.className = 'gravitational-field';
+            field.style.left = (x - radius) + 'px';
+            field.style.top = (y - radius) + 'px';
+            field.style.width = (radius * 2) + 'px';
+            field.style.height = (radius * 2) + 'px';
+            return field;
+        }
+        
+        function createChargedParticle(x, y, size, color, charge) {
+            const particle = document.createElement('div');
+            particle.className = 'celestial-body';
+            particle.style.left = (x - size/2) + 'px';
+            particle.style.top = (y - size/2) + 'px';
+            particle.style.width = size + 'px';
+            particle.style.height = size + 'px';
+            particle.style.backgroundColor = color;
+            particle.textContent = charge;
+            return particle;
+        }
+        
+        function createElectromagneticField(x, y, radius, color) {
+            const field = document.createElement('div');
+            field.className = 'electromagnetic-field';
+            field.style.left = (x - radius) + 'px';
+            field.style.top = (y - radius) + 'px';
+            field.style.width = (radius * 2) + 'px';
+            field.style.height = (radius * 2) + 'px';
+            field.style.borderColor = color;
+            return field;
+        }
+        
+        function createNucleon(x, y, size, color, symbol) {
+            const nucleon = document.createElement('div');
+            nucleon.className = 'celestial-body';
+            nucleon.style.left = (x - size/2) + 'px';
+            nucleon.style.top = (y - size/2) + 'px';
+            nucleon.style.width = size + 'px';
+            nucleon.style.height = size + 'px';
+            nucleon.style.backgroundColor = color;
+            nucleon.style.fontSize = '12px';
+            nucleon.textContent = symbol;
+            return nucleon;
+        }
+        
+        function createStrongForceRegion(x, y, radius) {
+            const region = document.createElement('div');
+            region.className = 'strong-force-region';
+            region.style.left = (x - radius) + 'px';
+            region.style.top = (y - radius) + 'px';
+            region.style.width = (radius * 2) + 'px';
+            region.style.height = (radius * 2) + 'px';
+            return region;
+        }
+        
+        function createParticle(x, y, size, color, symbol) {
+            const particle = document.createElement('div');
+            particle.className = 'celestial-body';
+            particle.style.left = (x - size/2) + 'px';
+            particle.style.top = (y - size/2) + 'px';
+            particle.style.width = size + 'px';
+            particle.style.height = size + 'px';
+            particle.style.backgroundColor = color;
+            particle.style.fontSize = '10px';
+            particle.textContent = symbol;
+            return particle;
+        }
+        
+        function createWeakForceEffects(x, y, count) {
+            const effects = [];
+            for (let i = 0; i < count; i++) {
+                const effect = document.createElement('div');
+                effect.className = 'weak-force-effect';
+                effect.style.left = (x - 4 + Math.random() * 8) + 'px';
+                effect.style.top = (y - 4 + Math.random() * 8) + 'px';
+                effects.push(effect);
+            }
+            return effects;
+        }
+        
+        // 动画函数
+        
+        function animateOrbit(element, centerX, centerY, radius, duration) {
+            let startTime = null;
+            const animate = (timestamp) => {
+                if (!startTime) startTime = timestamp;
+                const elapsed = timestamp - startTime;
+                const progress = (elapsed % duration) / duration;
+                const angle = progress * 2 * Math.PI;
+                
+                const x = centerX + radius * Math.cos(angle);
+                const y = centerY + radius * Math.sin(angle);
+                
+                element.style.left = (x - element.offsetWidth/2) + 'px';
+                element.style.top = (y - element.offsetHeight/2) + 'px';
+                
+                requestAnimationFrame(animate);
+            };
+            requestAnimationFrame(animate);
+        }
+        
+        function animateAttraction(element1, element2, duration) {
+            const startX1 = parseInt(element1.style.left);
+            const startY1 = parseInt(element1.style.top);
+            const startX2 = parseInt(element2.style.left);
+            const startY2 = parseInt(element2.style.top);
+            
+            const targetX = (startX1 + startX2) / 2;
+            const targetY = (startY1 + startY2) / 2;
+            
+            let startTime = null;
+            const animate = (timestamp) => {
+                if (!startTime) startTime = timestamp;
+                const elapsed = timestamp - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                const currentX1 = startX1 + (targetX - startX1) * progress;
+                const currentY1 = startY1 + (targetY - startY1) * progress;
+                const currentX2 = startX2 + (targetX - startX2) * progress;
+                const currentY2 = startY2 + (targetY - startY2) * progress;
+                
+                element1.style.left = currentX1 + 'px';
+                element1.style.top = currentY1 + 'px';
+                element2.style.left = currentX2 + 'px';
+                element2.style.top = currentY2 + 'px';
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                }
+            };
+            requestAnimationFrame(animate);
+        }
+        
+        function animateBinding(elements, centerX, centerY, duration) {
+            let startTime = null;
+            const animate = (timestamp) => {
+                if (!startTime) startTime = timestamp;
+                const elapsed = timestamp - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const scale = 0.8 + 0.2 * Math.cos(progress * Math.PI);
+                
+                elements.forEach(element => {
+                    const rect = element.getBoundingClientRect();
+                    const currentCenterX = rect.left + rect.width/2;
+                    const currentCenterY = rect.top + rect.height/2;
+                    
+                    const targetX = centerX + (currentCenterX - centerX) * scale;
+                    const targetY = centerY + (currentCenterY - centerY) * scale;
+                    
+                    element.style.left = (targetX - element.offsetWidth/2) + 'px';
+                    element.style.top = (targetY - element.offsetHeight/2) + 'px';
+                });
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                }
+            };
+            requestAnimationFrame(animate);
+        }
+        
+        function animateDecay(initialParticle, finalParticle1, finalParticle2, duration) {
+            let startTime = null;
+            const animate = (timestamp) => {
+                if (!startTime) startTime = timestamp;
+                const elapsed = timestamp - startTime;
+                const progress = elapsed / duration;
+                
+                if (progress >= 0.5 && initialParticle.parentNode) {
+                    initialParticle.parentNode.removeChild(initialParticle);
+                }
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                }
+            };
+            requestAnimationFrame(animate);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>弹簧振子 · 简谐运动 x-t v-t a-t 对比</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background: #162330;
+            font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+        .container {
+            max-width: 1300px;
+            width: 100%;
+            background: #0d1f2e;
+            border-radius: 40px;
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.7);
+            border: 1px solid #2b4f72;
+        }
+        /* 标题 */
+        .title {
+            font-size: 2.2rem;
+            font-weight: 500;
+            color: #e9f3ff;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .title span {
+            background: #264f73;
+            font-size: 1rem;
+            padding: 6px 18px;
+            border-radius: 40px;
+            color: #cde2ff;
+        }
+        /* 控制面板 */
+        .control-panel {
+            background: #122f44;
+            border-radius: 36px;
+            padding: 22px 28px;
+            margin: 20px 0 24px;
+            border: 1px solid #2d5e8a;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            align-items: flex-end;
+        }
+        .slider-group {
+            flex: 1 1 160px;
+        }
+        .slider-group label {
+            display: flex;
+            justify-content: space-between;
+            color: #d2e8ff;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        .slider-group label span {
+            background: #1d4a6b;
+            padding: 3px 14px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+        }
+        input[type=range] {
+            width: 100%;
+            height: 8px;
+            background: #23527a;
+            border-radius: 20px;
+            -webkit-appearance: none;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            background: #6bb0ff;
+            border-radius: 50%;
+            border: 2px solid #d2e6ff;
+            cursor: pointer;
+            box-shadow: 0 2px 8px black;
+            margin-top: -7px;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 16px;
+            margin-left: auto;
+        }
+        .action-buttons button {
+            background: #2a5a82;
+            border: none;
+            color: white;
+            padding: 12px 32px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1rem;
+            border: 1px solid #5085b9;
+            box-shadow: 0 5px 0 #0b2235;
+            transition: 0.1s;
+        }
+        .action-buttons button:hover {
+            background: #3b73a5;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 0 #0b2235;
+        }
+        /* 动画区 */
+        .animation-area {
+            background: #0f263b;
+            border-radius: 40px;
+            padding: 30px 20px 20px;
+            border: 1px solid #2e6190;
+            margin-bottom: 24px;
+        }
+        #springCanvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: #0b1e30;
+            border-radius: 32px;
+            border: 1px solid #3070a5;
+            margin-bottom: 8px;
+        }
+        .canvas-caption {
+            color: #a1c0e0;
+            padding-left: 16px;
+            font-size: 0.9rem;
+        }
+        /* 三曲线图区 */
+        .plot-area {
+            background: #0f273d;
+            border-radius: 36px;
+            padding: 20px 20px 15px;
+            border: 1px solid #2c6191;
+            margin-bottom: 24px;
+        }
+        .plot-header {
+            display: flex;
+            justify-content: space-between;
+            color: #c1dcff;
+            margin-bottom: 12px;
+            padding: 0 8px;
+        }
+        .legend span {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            margin-right: 4px;
+        }
+        #plotCanvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: #0b1e30;
+            border-radius: 28px;
+            border: 1px solid #3070a5;
+        }
+        /* 数据区 */
+        .data-panel {
+            background: #102b40;
+            border-radius: 36px;
+            padding: 22px 28px;
+            border: 1px solid #2d6496;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-bottom: 24px;
+        }
+        .data-col {
+            flex: 1 1 200px;
+        }
+        .data-title {
+            color: #b2d4fc;
+            font-size: 1rem;
+            margin-bottom: 16px;
+            font-weight: 500;
+            border-left: 4px solid #4f96cf;
+            padding-left: 12px;
+        }
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            background: #0a2338;
+            padding: 10px 18px;
+            border-radius: 30px;
+            margin: 10px 0;
+            color: #d4eaff;
+            border: 1px solid #285e8e;
+        }
+        .data-row .value {
+            font-family: 'JetBrains Mono', monospace;
+            background: #021524;
+            padding: 3px 16px;
+            border-radius: 30px;
+            color: #a7ceff;
+        }
+        .instant-values {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .value-box {
+            background: #0d2a42;
+            border-radius: 28px;
+            padding: 14px 22px;
+            flex: 1 1 120px;
+            text-align: center;
+            border: 1px solid #3473ad;
+        }
+        .value-box .label {
+            color: #b9d9ff;
+            margin-bottom: 6px;
+        }
+        .value-box .number {
+            font-size: 1.7rem;
+            font-weight: 600;
+            color: #ffda9e;
+        }
+        /* 底部结论 */
+        .conclusion {
+            background: #124160;
+            border-radius: 60px;
+            padding: 18px 28px;
+            color: #e3f0ff;
+            border: 1px solid #3980b7;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+        .conclusion div {
+            background: #1d5780;
+            padding: 6px 22px;
+            border-radius: 40px;
+            font-size: 0.98rem;
+        }
+        hr {
+            border: 0.5px solid #2f6996;
+            margin: 12px 0;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+<div class="container">
+    <div class="title">
+        🌀 弹簧振子 · 简谐运动
+        <span>x-t / v-t / a-t 同步对比</span>
+    </div>
+
+    <!-- 控制面板 -->
+    <div class="control-panel">
+        <div class="slider-group">
+            <label>🔩 劲度系数 k <span id="kVal">20.0 N/m</span></label>
+            <input type="range" id="kSlider" min="5" max="50" value="20" step="0.5">
+        </div>
+        <div class="slider-group">
+            <label>⚖️ 质量 m <span id="mVal">2.0 kg</span></label>
+            <input type="range" id="mSlider" min="0.5" max="8" value="2" step="0.1">
+        </div>
+        <div class="slider-group">
+            <label>📐 振幅 A <span id="AVal">1.5 m</span></label>
+            <input type="range" id="ASlider" min="0.5" max="3" value="1.5" step="0.1">
+        </div>
+        <div class="action-buttons">
+            <button id="playPauseBtn">⏸️ 暂停</button>
+            <button id="resetBtn">↺ 重置</button>
+        </div>
+    </div>
+
+    <!-- 动画区 -->
+    <div class="animation-area">
+        <canvas id="springCanvas" width="900" height="200"></canvas>
+        <div class="canvas-caption">弹簧振子 | 平衡位置 (虚线)</div>
+    </div>
+
+    <!-- 曲线区 -->
+    <div class="plot-area">
+        <div class="plot-header">
+            <span>📈 x-t (位移)  v-t (速度)  a-t (加速度)</span>
+            <div class="legend">
+                <span style="background:#ffaa33;"></span> 位移 x
+                <span style="background:#4db8ff; margin-left:12px;"></span> 速度 v
+                <span style="background:#ff6b6b; margin-left:12px;"></span> 加速度 a
+            </div>
+        </div>
+        <canvas id="plotCanvas" width="900" height="240"></canvas>
+    </div>
+
+    <!-- 数据区 -->
+    <div class="data-panel">
+        <div class="data-col">
+            <div class="data-title">⏱️ 周期/频率</div>
+            <div class="data-row"><span>周期 T</span><span class="value" id="TValue">1.99 s</span></div>
+            <div class="data-row"><span>频率 f</span><span class="value" id="fValue">0.50 Hz</span></div>
+        </div>
+        <div class="data-col">
+            <div class="data-title">📐 瞬时值</div>
+            <div class="instant-values">
+                <div class="value-box"><span class="label">位移 x</span><span class="number" id="xNow">1.50</span></div>
+                <div class="value-box"><span class="label">速度 v</span><span class="number" id="vNow">0.00</span></div>
+                <div class="value-box"><span class="label">加速度 a</span><span class="number" id="aNow">-15.00</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部固定结论 -->
+    <div class="conclusion">
+        <div>1️⃣ 简谐运动 x-t 图像为正弦曲线</div>
+        <div>2️⃣ 加速度与位移大小成正比、方向相反</div>
+        <div>3️⃣ 周期只与 m、k 有关，与振幅无关</div>
+    </div>
+</div>
+
+<script>
+(function() {
+    // ----- 物理参数 -----
+    let k = 20.0;           // N/m
+    let m = 2.0;            // kg
+    let A = 1.5;            // m (振幅)
+    let omega = Math.sqrt(k / m);  // 角频率
+
+    // 时间状态 (解析解: x = A * cos(ωt), v = -Aω sin(ωt), a = -Aω² cos(ωt))
+    let t = 0.0;             // 当前时间 (s)
+    let isPlaying = true;    // 默认播放
+
+    // 曲线历史数据 (最近 10 秒，步长 0.05)
+    const MAX_HISTORY = 500;
+    let historyX = [];
+    let historyV = [];
+    let historyA = [];
+    let historyT = [];
+
+    // DOM 元素
+    const kSlider = document.getElementById('kSlider');
+    const mSlider = document.getElementById('mSlider');
+    const ASlider = document.getElementById('ASlider');
+    const kVal = document.getElementById('kVal');
+    const mVal = document.getElementById('mVal');
+    const AVal = document.getElementById('AVal');
+
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    const TValue = document.getElementById('TValue');
+    const fValue = document.getElementById('fValue');
+    const xNow = document.getElementById('xNow');
+    const vNow = document.getElementById('vNow');
+    const aNow = document.getElementById('aNow');
+
+    const springCanvas = document.getElementById('springCanvas');
+    const ctxSpring = springCanvas.getContext('2d');
+    const plotCanvas = document.getElementById('plotCanvas');
+    const ctxPlot = plotCanvas.getContext('2d');
+
+    // 更新 omega 和显示
+    function updateOmegaAndPeriod() {
+        omega = Math.sqrt(k / m);
+        const T = 2 * Math.PI / omega;
+        const f = 1 / T;
+        TValue.innerText = T.toFixed(2) + ' s';
+        fValue.innerText = f.toFixed(2) + ' Hz';
+    }
+
+    // 从滑块读取值并重置
+    function readSliders() {
+        k = parseFloat(kSlider.value);
+        m = parseFloat(mSlider.value);
+        A = parseFloat(ASlider.value);
+        kVal.innerText = k.toFixed(1) + ' N/m';
+        mVal.innerText = m.toFixed(1) + ' kg';
+        AVal.innerText = A.toFixed(1) + ' m';
+        updateOmegaAndPeriod();
+    }
+
+    // 重置时间与历史
+    function resetTime() {
+        t = 0.0;
+        historyX = [];
+        historyV = [];
+        historyA = [];
+        historyT = [];
+        // 添加初始点
+        recordCurrent();
+    }
+
+    // 记录当前状态到历史
+    function recordCurrent() {
+        const x = A * Math.cos(omega * t);
+        const v = -A * omega * Math.sin(omega * t);
+        const a = -A * omega * omega * Math.cos(omega * t);
+        historyT.push(t);
+        historyX.push(x);
+        historyV.push(v);
+        historyA.push(a);
+
+        // 限制长度
+        if (historyT.length > MAX_HISTORY) {
+            historyT.shift();
+            historyX.shift();
+            historyV.shift();
+            historyA.shift();
+        }
+    }
+
+    // 重置模拟 (滑块改变时调用)
+    function resetSimulation() {
+        readSliders();
+        resetTime();
+    }
+
+    // 更新瞬时值显示
+    function updateInstantValues() {
+        const x = A * Math.cos(omega * t);
+        const v = -A * omega * Math.sin(omega * t);
+        const a = -A * omega * omega * Math.cos(omega * t);
+        xNow.innerText = x.toFixed(2);
+        vNow.innerText = v.toFixed(2);
+        aNow.innerText = a.toFixed(2);
+    }
+
+    // 动画绘制
+    function drawSpring() {
+        const w = springCanvas.width;
+        const h = springCanvas.height;
+        ctxSpring.clearRect(0, 0, w, h);
+
+        // 画平衡位置虚线
+        ctxSpring.strokeStyle = '#4f8bbf';
+        ctxSpring.lineWidth = 1.5;
+        ctxSpring.setLineDash([8, 6]);
+        ctxSpring.beginPath();
+        ctxSpring.moveTo(50, h/2);
+        ctxSpring.lineTo(w-50, h/2);
+        ctxSpring.stroke();
+        ctxSpring.setLineDash([]);
+
+        // 计算当前位移 (x 偏移)
+        const x = A * Math.cos(omega * t);
+        // 映射到画布: 平衡位置在 300px 处, 范围 ±150px 对应振幅 A (假设 A_max=3 映射到 ±120)
+        const scale = 40; // 像素/米, 使得 A=1.5 约偏移 60px
+        const offsetX = x * scale;
+        const ballX = 300 + offsetX;  // 固定左侧墙壁在 100px, 小球平衡在 300px
+        const leftWallX = 120;
+
+        // 画墙壁 (左侧)
+        ctxSpring.fillStyle = '#5a7f9c';
+        ctxSpring.fillRect(leftWallX-10, h/2-30, 15, 60);
+        // 画弹簧 (波浪线)
+        ctxSpring.beginPath();
+        ctxSpring.strokeStyle = '#e0c38c';
+        ctxSpring.lineWidth = 3;
+        const steps = 20;
+        const startX = leftWallX + 5;
+        const endX = ballX - 20; // 球半径 20
+        for (let i = 0; i <= steps; i++) {
+            const tSpring = i / steps;
+            const xPos = startX * (1 - tSpring) + endX * tSpring;
+            const yPos = h/2 + 12 * Math.sin(i * 1.2); // 波浪
+            if (i === 0) ctxSpring.moveTo(xPos, yPos);
+            else ctxSpring.lineTo(xPos, yPos);
+        }
+        ctxSpring.stroke();
+
+        // 画小球
+        ctxSpring.shadowColor = '#7ab7ff';
+        ctxSpring.shadowBlur = 12;
+        ctxSpring.beginPath();
+        ctxSpring.arc(ballX, h/2, 20, 0, 2 * Math.PI);
+        ctxSpring.fillStyle = '#ffaa33';
+        ctxSpring.fill();
+        ctxSpring.strokeStyle = '#ffffff';
+        ctxSpring.lineWidth = 2;
+        ctxSpring.stroke();
+        ctxSpring.shadowBlur = 0;
+
+        // 标注
+        ctxSpring.fillStyle = '#ddf0ff';
+        ctxSpring.font = '14px "Segoe UI"';
+        ctxSpring.fillText('振子', ballX-22, h/2-25);
+    }
+
+    // 绘制三条曲线
+    function drawPlots() {
+        const w = plotCanvas.width;
+        const h = plotCanvas.height;
+        ctxPlot.clearRect(0, 0, w, h);
+
+        if (historyT.length < 2) return;
+
+        // 坐标轴
+        ctxPlot.strokeStyle = '#46729e';
+        ctxPlot.lineWidth = 1;
+        ctxPlot.beginPath();
+        ctxPlot.moveTo(60, 20);
+        ctxPlot.lineTo(60, h-20);
+        ctxPlot.lineTo(w-40, h-20);
+        ctxPlot.stroke();
+
+        // 找到时间范围 (最近 10 秒)
+        const tMin = Math.max(0, historyT[0]);
+        const tMax = historyT[historyT.length-1];
+        if (tMax - tMin < 0.01) return;
+
+        // 找出最大值用于归一化 (位移、速度、加速度各自范围)
+        const xMax = Math.max(...historyX.map(Math.abs), 0.1);
+        const vMax = Math.max(...historyV.map(Math.abs), 0.1);
+        const aMax = Math.max(...historyA.map(Math.abs), 0.1);
+
+        const mapX = (tx) => 60 + (w-100) * (tx - tMin) / (tMax - tMin);
+        const mapY = (val, maxVal) => h/2 - (val / maxVal) * (h/2 - 30); // 居中显示
+
+        // 绘制三条曲线
+        function drawLine(history, color, maxVal) {
+            ctxPlot.beginPath();
+            ctxPlot.strokeStyle = color;
+            ctxPlot.lineWidth = 2.5;
+            for (let i = 0; i < historyT.length; i++) {
+                const x = mapX(historyT[i]);
+                const y = mapY(history[i], maxVal);
+                if (i === 0) ctxPlot.moveTo(x, y);
+                else ctxPlot.lineTo(x, y);
+            }
+            ctxPlot.stroke();
+        }
+
+        drawLine(historyX, '#ffaa33', xMax);
+        drawLine(historyV, '#4db8ff', vMax);
+        drawLine(historyA, '#ff6b6b', aMax);
+
+        // 图例文字
+        ctxPlot.fillStyle = '#aac9f0';
+        ctxPlot.font = '12px monospace';
+        ctxPlot.fillText('x', w-80, 50);
+        ctxPlot.fillText('v', w-80, 70);
+        ctxPlot.fillText('a', w-80, 90);
+    }
+
+    // 物理更新 (每帧)
+    function updatePhysics() {
+        if (!isPlaying) return;
+
+        const dt = 0.03; // 时间步长 (s)
+        t += dt;
+        recordCurrent();
+        updateInstantValues();
+    }
+
+    // 动画循环
+    function animate() {
+        updatePhysics();
+        drawSpring();
+        drawPlots();
+        requestAnimationFrame(animate);
+    }
+
+    // 开始/暂停
+    function togglePlay() {
+        isPlaying = !isPlaying;
+        playPauseBtn.innerHTML = isPlaying ? '⏸️ 暂停' : '▶ 开始';
+    }
+
+    // 事件绑定
+    kSlider.addEventListener('input', () => {
+        k = parseFloat(kSlider.value);
+        kVal.innerText = k.toFixed(1) + ' N/m';
+        updateOmegaAndPeriod();
+        resetTime();
+    });
+    mSlider.addEventListener('input', () => {
+        m = parseFloat(mSlider.value);
+        mVal.innerText = m.toFixed(1) + ' kg';
+        updateOmegaAndPeriod();
+        resetTime();
+    });
+    ASlider.addEventListener('input', () => {
+        A = parseFloat(ASlider.value);
+        AVal.innerText = A.toFixed(1) + ' m';
+        resetTime();
+    });
+
+    playPauseBtn.addEventListener('click', togglePlay);
+    resetBtn.addEventListener('click', resetSimulation);
+
+    // 初始化
+    function init() {
+        readSliders();
+        resetTime();
+        animate();
+    }
+    init();
+
+    // 清理 (无)
+})();
+</script>
+</body>
+</html>

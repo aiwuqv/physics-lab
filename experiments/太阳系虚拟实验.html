@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>太阳系虚拟实验</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #000;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(0, 0, 30, 0.8);
+            border-radius: 10px;
+            padding: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #4A90E2;
+        }
+        
+        .canvas-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        canvas {
+            background: #000;
+            border: 1px solid #444;
+            border-radius: 5px;
+        }
+        
+        .controls {
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        button {
+            background: #4A90E2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        button:hover {
+            background: #3a7bc8;
+        }
+        
+        .info {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(100, 100, 150, 0.3);
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .physics-principles {
+            margin: 20px auto;
+            padding: 15px;
+            background: rgba(50, 100, 150, 0.4);
+            border-radius: 8px;
+            max-width: 800px;
+        }
+        
+        .physics-principles h3 {
+            color: #4A90E2;
+            text-align: center;
+            margin-top: 0;
+        }
+        
+        .principle {
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(80, 120, 160, 0.3);
+            border-radius: 5px;
+        }
+        
+        .principle h4 {
+            color: #6BABDF;
+            margin-top: 0;
+        }
+        
+        .principle p {
+            margin: 8px 0;
+        }
+        
+        .principle strong {
+            background: rgba(100, 150, 200, 0.4);
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        
+        .planet-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(80, 80, 120, 0.5);
+            border-radius: 5px;
+            min-height: 50px;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <h1>太阳系虚拟实验</h1>
+        
+        <div class="physics-principles">
+            <h3>物理学原理</h3>
+            <div class="principle">
+                <h4>万有引力定律</h4>
+                <p><strong>F = G × (m₁ × m₂) / r²</strong></p>
+                <p>其中：F为两物体间的引力，G为万有引力常数，m₁和m₂为两个物体的质量，r为两物体间的距离。</p>
+                <p>万有引力是太阳系行星围绕太阳运动的根本原因，太阳的巨大质量产生的引力使行星保持在各自的轨道上。</p>
+            </div>
+            <div class="principle">
+                <h4>开普勒第三定律</h4>
+                <p><strong>T² / R³ = 常数</strong></p>
+                <p>其中：T为行星公转周期，R为轨道半长轴。</p>
+                <p>这一定律表明行星公转周期的平方与其轨道半长轴的立方成正比，解释了为什么内层行星运动更快，外层行星运动更慢。</p>
+            </div>
+        </div>
+        
+        <div class="canvas-container">
+            <canvas id="solarSystem" width="800" height="600"></canvas>
+        </div>
+        
+        <div class="controls">
+            <button onclick="toggleOrbits()">切换轨道显示</button>
+            <button onclick="toggleAnimation()" id="animationBtn">开始动画</button>
+            <button onclick="resetView()">重置视图</button>
+            <button onclick="openQuiz()">知识检测</button>
+        </div>
+        
+        <div class="planet-info" id="planetInfo">
+            点击行星查看详细信息
+        </div>
+        
+        <div class="info">
+            <h3>太阳系简介</h3>
+            <p>太阳系是以太阳为中心，和所有受到太阳的引力约束天体的集合体。</p>
+            <p>包括八大行星（由离太阳从近到远的顺序）：水星、金星、地球、火星、木星、土星、天王星、海王星。</p>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('solarSystem');
+        const ctx = canvas.getContext('2d');
+        const planetInfo = document.getElementById('planetInfo');
+        
+        // 太阳系数据
+        const sun = {
+            name: "太阳",
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            radius: 30,
+            color: "#FDB813",
+            mass: 1.989e30, // 太阳质量（kg）
+            realRadius: 695700, // 太阳实际半径（km）
+            info: "太阳是太阳系的中心恒星，占据了太阳系总质量的99.86%。它是一颗黄矮星，通过核聚变反应产生巨大的能量。"
+        };        
+        
+        const planets = [
+            {
+                name: "水星",
+                distance: 80,
+                radius: 5,
+                color: "#B7B8B9",
+                angle: 0,
+                orbitalPeriod: 88,  // 公转周期（天）
+                orbitalSpeed: 0.04, // 角速度（弧度/天）
+                mass: 3.3011e23, // 质量（kg）
+                realRadius: 2439.7, // 实际半径（km）
+                info: "水星是离太阳最近的行星，表面温度变化极大，白天可达427°C，夜晚降至-173°C。"
+            },
+            {
+                name: "金星",
+                distance: 120,
+                radius: 8,
+                color: "#E7CDCD",
+                angle: Math.PI/3,
+                orbitalPeriod: 225,
+                orbitalSpeed: 0.015,
+                mass: 4.8675e24, // 质量（kg）
+                realRadius: 6051.8, // 实际半径（km）
+                info: "金星是太阳系中最热的行星，拥有浓厚的大气层，主要由二氧化碳组成。"
+            },
+            {
+                name: "地球",
+                distance: 160,
+                radius: 9,
+                color: "#6B93D6",
+                angle: Math.PI/2,
+                orbitalPeriod: 365,
+                orbitalSpeed: 0.01,
+                mass: 5.9724e24, // 质量（kg）
+                realRadius: 6371.0, // 实际半径（km）
+                info: "地球是我们居住的行星，是目前已知唯一有生命存在的星球，拥有液态水和适宜的大气。"
+            },
+            {
+                name: "火星",
+                distance: 200,
+                radius: 7,
+                color: "#C1440E",
+                angle: Math.PI,
+                orbitalPeriod: 687,
+                orbitalSpeed: 0.008,
+                mass: 6.4171e23, // 质量（kg）
+                realRadius: 3389.5, // 实际半径（km）
+                info: "火星被称为红色星球，因为其表面富含氧化铁。科学家认为火星上曾存在液态水。"
+            },
+            {
+                name: "木星",
+                distance: 260,
+                radius: 20,
+                color: "#D8CA9D",
+                angle: 3*Math.PI/2,
+                orbitalPeriod: 4333,
+                orbitalSpeed: 0.004,
+                mass: 1.8982e27, // 质量（kg）
+                realRadius: 69911, // 实际半径（km）
+                info: "木星是太阳系中最大的行星，是一个气态巨行星，拥有著名的大红斑风暴。"
+            },
+            {
+                name: "土星",
+                distance: 320,
+                radius: 18,
+                color: "#C5AB6E",
+                angle: Math.PI/4,
+                orbitalPeriod: 10759,
+                orbitalSpeed: 0.003,
+                mass: 5.6834e26, // 质量（kg）
+                realRadius: 58232, // 实际半径（km）
+                info: "土星以其壮观的环系统而闻名，这些环主要由冰和岩石碎片组成。"
+            },
+            {
+                name: "天王星",
+                distance: 370,
+                radius: 12,
+                color: "#D1E7E7",
+                angle: Math.PI/1.5,
+                orbitalPeriod: 30687,
+                orbitalSpeed: 0.0015,
+                mass: 8.6810e25, // 质量（kg）
+                realRadius: 25362, // 实际半径（km）
+                info: "天王星是冰巨行星，其自转轴几乎躺在公转轨道面上，看起来像'躺着'自转。"
+            },
+            {
+                name: "海王星",
+                distance: 420,
+                radius: 12,
+                color: "#4D80A3",
+                angle: Math.PI/6,
+                orbitalPeriod: 60190,
+                orbitalSpeed: 0.001,
+                mass: 1.0241e26, // 质量（kg）
+                realRadius: 24622, // 实际半径（km）
+                info: "海王星是太阳系最外层的行星，拥有太阳系中最强的风，风速可达2100公里/小时。"
+            }
+        ];
+        
+        let showOrbits = true;
+        let selectedPlanet = null;
+        let animationRunning = false;
+        let animationId = null;
+        
+        // 绘制太阳系
+        function drawSolarSystem() {
+            // 清空画布
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制星空背景
+            drawStars();
+            
+            // 绘制轨道
+            if (showOrbits) {
+                planets.forEach(planet => {
+                    ctx.beginPath();
+                    ctx.arc(sun.x, sun.y, planet.distance, 0, Math.PI * 2);
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+                    ctx.stroke();
+                });
+            }
+            
+            // 绘制太阳
+            drawSun();
+            
+            // 绘制行星
+            planets.forEach(planet => {
+                const x = sun.x + Math.cos(planet.angle) * planet.distance;
+                const y = sun.y + Math.sin(planet.angle) * planet.distance;
+                
+                // 绘制行星
+                ctx.beginPath();
+                ctx.arc(x, y, planet.radius, 0, Math.PI * 2);
+                ctx.fillStyle = planet.color;
+                ctx.fill();
+                
+                // 绘制行星名称
+                ctx.fillStyle = 'white';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(planet.name, x, y - planet.radius - 10);
+                
+                // 如果是选中的行星，绘制高亮效果
+                if (selectedPlanet === planet) {
+                    ctx.beginPath();
+                    ctx.arc(x, y, planet.radius + 5, 0, Math.PI * 2);
+                    ctx.strokeStyle = '#00ff00';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+            });
+        }
+        
+        // 绘制太阳
+        function drawSun() {
+            const gradient = ctx.createRadialGradient(
+                sun.x, sun.y, 0,
+                sun.x, sun.y, sun.radius
+            );
+            gradient.addColorStop(0, '#FFFFFF');
+            gradient.addColorStop(0.2, '#FDB813');
+            gradient.addColorStop(1, '#FF8C00');
+            
+            ctx.beginPath();
+            ctx.arc(sun.x, sun.y, sun.radius, 0, Math.PI * 2);
+            ctx.fillStyle = gradient;
+            ctx.fill();
+            
+            // 绘制太阳名称
+            ctx.fillStyle = 'white';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(sun.name, sun.x, sun.y - sun.radius - 10);
+        }
+        
+        // 绘制星空背景
+        function drawStars() {
+            // 创建固定的星星背景
+            if (!window.stars) {
+                window.stars = [];
+                for (let i = 0; i < 100; i++) {
+                    window.stars.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        size: Math.random() * 1.5,
+                        opacity: 0.5 + Math.random() * 0.5
+                    });
+                }
+            }
+            
+            // 绘制星星
+            window.stars.forEach(star => {
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
+                ctx.fill();
+            });
+        }
+        
+        // 切换轨道显示
+        function toggleOrbits() {
+            showOrbits = !showOrbits;
+            drawSolarSystem();
+        }
+        
+        // 重置视图
+        function resetView() {
+            selectedPlanet = null;
+            planetInfo.textContent = '点击行星查看详细信息';
+            drawSolarSystem();
+        }
+        
+        // 切换动画
+        function toggleAnimation() {
+            animationRunning = !animationRunning;
+            const btn = document.getElementById('animationBtn');
+            
+            if (animationRunning) {
+                btn.textContent = '暂停动画';
+                startAnimation();
+            } else {
+                btn.textContent = '开始动画';
+                stopAnimation();
+            }
+        }
+        
+        // 开始动画
+        function startAnimation() {
+            if (!animationId) {
+                animate();
+            }
+        }
+        
+        // 停止动画
+        function stopAnimation() {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+        }
+        
+        // 动画循环
+        function animate() {
+            // 更新行星位置
+            planets.forEach(planet => {
+                // 根据开普勒第三定律，行星的角速度与其轨道半径的3/2次方成反比
+                // 简化处理，使用轨道周期的倒数作为基本速度
+                planet.angle += planet.orbitalSpeed;
+            });
+            
+            // 绘制太阳系
+            drawSolarSystem();
+            
+            // 继续动画循环
+            if (animationRunning) {
+                animationId = requestAnimationFrame(animate);
+            }
+        }
+        
+        // 点击事件处理
+        canvas.addEventListener('click', function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            
+            // 检查是否点击了太阳
+            const sunDistance = Math.sqrt((mouseX - sun.x) ** 2 + (mouseY - sun.y) ** 2);
+            if (sunDistance <= sun.radius) {
+                selectedPlanet = sun;
+                planetInfo.innerHTML = `
+                    <strong>${sun.name}</strong><br>
+                    ${sun.info}<br>
+                    <br>
+                    <strong>实际半径:</strong> ${sun.realRadius.toLocaleString()} 公里<br>
+                    <strong>质量:</strong> ${(sun.mass / 1e29).toFixed(2)} × 10²⁹ kg
+                `;
+                drawSolarSystem();
+                return;
+            }
+            
+            // 检查是否点击了某个行星
+            for (let i = planets.length - 1; i >= 0; i--) {
+                const planet = planets[i];
+                const planetX = sun.x + Math.cos(planet.angle) * planet.distance;
+                const planetY = sun.y + Math.sin(planet.angle) * planet.distance;
+                const distance = Math.sqrt((mouseX - planetX) ** 2 + (mouseY - planetY) ** 2);
+                
+                if (distance <= planet.radius + 5) {
+                    selectedPlanet = planet;
+                    planetInfo.innerHTML = `
+                        <strong>${planet.name}</strong><br>
+                        ${planet.info}<br>
+                        <br>
+                        <strong>实际半径:</strong> ${planet.realRadius.toLocaleString()} 公里<br>
+                        <strong>公转周期:</strong> ${planet.orbitalPeriod} 天<br>
+                        <strong>质量:</strong> ${(planet.mass / 1e24).toFixed(2)} × 10²⁴ kg
+                    `;
+                    drawSolarSystem();
+                    break;
+                }
+            }
+        });
+        
+        // 初始化
+        drawSolarSystem();
+        // 知识检测功能
+        function openQuiz() {
+            // 创建模态窗口
+            const quizModal = document.createElement('div');
+            quizModal.id = 'quizModal';
+            quizModal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0,0,0,0.7);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+            `;
+            
+            quizModal.innerHTML = `
+                <div id="quizContainer" style="
+                    background: #2c3e50;
+                    padding: 25px;
+                    border-radius: 10px;
+                    width: 500px;
+                    max-height: 80vh;
+                    overflow-y: auto;
+                    position: relative;
+                    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+                ">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h2 style="color: #ecf0f1; margin: 0;">太阳系知识检测</h2>
+                        <button onclick="closeQuiz()" style="
+                            background: #e74c3c;
+                            color: white;
+                            border: none;
+                            padding: 5px 10px;
+                            border-radius: 5px;
+                            cursor: pointer;
+                        ">&times;</button>
+                    </div>
+                    <div id="quizContent">
+                        <div style="margin-bottom: 15px; padding: 10px; background: #34495e; border-radius: 5px;">
+                            <strong>题目1:</strong> 万有引力定律的公式是什么？
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px;"><input type="radio" name="q1" value="A"> A. F=ma</label>
+                            <label style="display: block; margin-bottom: 5px;"><input type="radio" name="q1" value="B"> B. F=G×(m₁×m₂)/r²</label>
+                            <label style="display: block; margin-bottom: 5px;"><input type="radio" name="q1" value="C"> C. E=mc²</label>
+                            <label style="display: block; margin-bottom: 5px;"><input type="radio" name="q1" value="D"> D. T²/R³=常数</label>
+                        </div>
+                        
+                        <div style="margin-bottom: 15px; padding: 10px; background: #34495e; border-radius: 5px;">
+                            <strong>题目2:</strong> 开普勒第三定律的公式是什么？
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px;"><input type="radio" name="q2" value="A"> A. F=G×(m₁×m₂)/r²</label>
+                            <label style="display: block; margin-bottom: 5px;"><input type="radio" name="q2" value="B"> B. F=ma</label>
+                            <label style="display: block; margin-bottom: 5px;"><input type="radio" name="q2" value="C"> C. T²/R³=常数</label>
+                            <label style="display: block; margin-bottom: 5px;"><input type="radio" name="q2" value="D"> D. v=s/t</label>
+                        </div>
+                        
+                        <div style="margin-bottom: 15px; padding: 10px; background: #34495e; border-radius: 5px;">
+                            <strong>题目3:</strong> 在万有引力公式F=G×(m₁×m₂)/r²中，G代表什么？
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px;"><input type="radio" name="q3" value="A"> A. 加速度</label>
+                            <label style="display: block; margin-bottom: 5px;"><input type="radio" name="q3" value="B"> B. 万有引力常数</label>
+                            <label style="display: block; margin-bottom: 5px;"><input type="radio" name="q3" value="C"> C. 能量</label>
+                            <label style="display: block; margin-bottom: 5px;"><input type="radio" name="q3" value="D"> D. 速度</label>
+                        </div>
+                        
+                        <div style="margin-bottom: 15px; padding: 10px; background: #34495e; border-radius: 5px;">
+                            <strong>题目4:</strong> 根据开普勒第三定律，行星公转周期的平方与什么成正比？
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px;"><input type="radio" name="q4" value="A"> A. 行星质量</label>
+                            <label style="display: block; margin-bottom: 5px;"><input type="radio" name="q4" value="B"> B. 行星半径</label>
+                            <label style="display: block; margin-bottom: 5px;"><input type="radio" name="q4" value="C"> C. 轨道半长轴的立方</label>
+                            <label style="display: block; margin-bottom: 5px;"><input type="radio" name="q4" value="D"> D. 太阳质量</label>
+                        </div>
+                        
+                        <div style="margin-bottom: 15px; padding: 10px; background: #34495e; border-radius: 5px;">
+                            <strong>题目5:</strong> 万有引力的大小与两物体间距离的关系是什么？
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px;"><input type="radio" name="q5" value="A"> A. 与距离成正比</label>
+                            <label style="display: block; margin-bottom: 5px;"><input type="radio" name="q5" value="B"> B. 与距离的平方成正比</label>
+                            <label style="display: block; margin-bottom: 5px;"><input type="radio" name="q5" value="C"> C. 与距离成反比</label>
+                            <label style="display: block; margin-bottom: 5px;"><input type="radio" name="q5" value="D"> D. 与距离的平方成反比</label>
+                        </div>
+                        
+                        <button onclick="checkAnswers()" style="
+                            background: #27ae60;
+                            color: white;
+                            border: none;
+                            padding: 10px 20px;
+                            border-radius: 5px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            margin-right: 10px;
+                        ">提交答案</button>
+                        <button onclick="closeQuiz()" style="
+                            background: #3498db;
+                            color: white;
+                            border: none;
+                            padding: 10px 20px;
+                            border-radius: 5px;
+                            cursor: pointer;
+                            font-size: 16px;
+                        ">取消</button>
+                        
+                        <div id="result" style="margin-top: 15px; padding: 10px; display: none;"></div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(quizModal);
+        }
+        
+        function closeQuiz() {
+            const quizModal = document.getElementById('quizModal');
+            if (quizModal) {
+                quizModal.remove();
+            }
+        }
+        
+        function checkAnswers() {
+            // 正确答案
+            const correctAnswers = {
+                q1: 'B',  // 万有引力定律的公式是F=G×(m₁×m₂)/r²
+                q2: 'C',  // 开普勒第三定律的公式是T²/R³=常数
+                q3: 'B',  // G是万有引力常数
+                q4: 'C',  // 行星公转周期的平方与轨道半长轴的立方成正比
+                q5: 'D'   // 万有引力与距离的平方成反比
+            };
+            
+            let score = 0;
+            let total = Object.keys(correctAnswers).length;
+            
+            // 检查每个问题的答案
+            for (const question in correctAnswers) {
+                const selectedOption = document.querySelector(`input[name=${question}]:checked`);
+                if (selectedOption && selectedOption.value === correctAnswers[question]) {
+                    score++;
+                }
+            }
+            
+            // 显示结果
+            const resultDiv = document.getElementById('result');
+            
+            // 学情分析
+            let analysis = '';
+            let advice = '';
+            
+            if (score === total) {
+                analysis = '太棒了！你完全掌握了万有引力定律和开普勒第三定律的知识！';
+                advice = '继续保持，你已经很好地理解了太阳系中行星运动的物理原理。';
+            } else if (score >= total * 0.8) {
+                analysis = '很好！你对万有引力定律和开普勒第三定律有很好的理解。';
+                advice = '你掌握了大部分知识点，可以再复习一下薄弱环节。';
+            } else if (score >= total * 0.6) {
+                analysis = '还不错！你对基本概念有一定了解。';
+                advice = '建议加强对万有引力定律和开普勒第三定律的理解，特别是公式中各符号的含义。';
+            } else {
+                analysis = '需要加强学习，回顾一下万有引力定律和开普勒第三定律的基本知识吧！';
+                advice = '请仔细复习万有引力定律（F=G×(m₁×m₂)/r²）和开普勒第三定律（T²/R³=常数）的概念和应用。';
+            }
+            
+            resultDiv.innerHTML = `
+                <div style="padding: 10px; border-radius: 5px; background: ${score === total ? '#27ae60' : '#f39c12'};">
+                    <h3 style="color: white; margin: 0;">你的得分: ${score}/${total}</h3>
+                    <p style="color: white; margin: 10px 0;">${analysis}</p>
+                    <p style="color: white; margin: 10px 0;"><strong>学情分析与建议：</strong> ${advice}</p>
+                    <div style="margin-top: 10px; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 4px;">
+                        <p style="color: white; margin: 5px 0;"><strong>知识点回顾：</strong></p>
+                        <ul style="color: white; margin: 5px 0; padding-left: 20px;">
+                            <li>万有引力定律: F=G×(m₁×m₂)/r²，描述了物体间的引力与质量乘积成正比，与距离平方成反比</li>
+                            <li>开普勒第三定律: T²/R³=常数，描述了行星公转周期与轨道半径的关系</li>
+                            <li>万有引力是行星绕太阳运动的原因</li>
+                            <li>开普勒定律解释了为什么外层行星公转周期更长</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+            resultDiv.style.display = 'block';
+            
+            // 滚动到结果部分
+            resultDiv.scrollIntoView({behavior: 'smooth'});
+        }
+        
+        // 添加键盘事件监听，ESC键关闭模态框
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeQuiz();
+            }
+        });
+        
+        // 在全局作用域定义函数，以便HTML中的onclick事件可以访问
+        window.openQuiz = openQuiz;
+        window.closeQuiz = closeQuiz;
+        window.checkAnswers = checkAnswers;
+    </script>
+</body>
+</html>

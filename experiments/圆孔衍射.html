@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>圆孔夫琅禾费衍射强度分布</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #4a6fa5;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        h2 {
+            color: #3498db;
+            border-left: 4px solid #3498db;
+            padding-left: 10px;
+            margin-top: 30px;
+        }
+        
+        h3 {
+            color: #2c3e50;
+            margin-top: 25px;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 1100px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .panel {
+            background-color: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+        
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            margin: 15px 0;
+            background-color: #0a1931;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 250px;
+            margin: 15px 0;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .control-panel {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .slider-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 600px) {
+            .slider-group {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .slider-container {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            background: #ddd;
+            border-radius: 4px;
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #3498db;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        .value-display {
+            display: flex;
+            justify-content: space-between;
+            background-color: #e8f4fc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-weight: 600;
+        }
+        
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            flex: 1;
+            min-width: 140px;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        button.secondary {
+            background-color: #6c757d;
+        }
+        
+        button.secondary:hover {
+            background-color: #5a6268;
+        }
+        
+        .theory-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+        }
+        
+        .formula-box {
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #f0f7ff;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .key-point {
+            background-color: #fff8e1;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .key-point h4 {
+            margin-top: 0;
+            color: #ff9800;
+        }
+        
+        .intensity-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .info-item {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .info-value {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #3498db;
+            margin: 5px 0;
+        }
+        
+        .info-label {
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+        
+        .exercise-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 40px;
+        }
+        
+        .question {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .answer {
+            display: none;
+            background-color: #e8f4fc;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border-left: 4px solid #2ecc71;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+        
+        .tab-container {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            border-bottom: 3px solid #3498db;
+            font-weight: bold;
+            color: #3498db;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <header>
+        <h1>圆孔夫琅禾费衍射强度分布</h1>
+        <p>交互式物理教学工具 - 高中与大学物理</p>
+    </header>
+    
+    <div class="container">
+        <div class="panel">
+            <h2>衍射图案模拟</h2>
+            <p>观察圆孔夫琅禾费衍射的艾里斑和衍射环结构。</p>
+            
+            <div class="canvas-container">
+                <canvas id="diffractionCanvas"></canvas>
+            </div>
+            
+            <div class="intensity-info">
+                <div class="info-item">
+                    <div class="info-label">中央极大强度</div>
+                    <div class="info-value" id="centralIntensity">1.00</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">第一暗环位置</div>
+                    <div class="info-value" id="firstMinima">1.22π</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">第一亮环强度</div>
+                    <div class="info-value" id="firstMaxima">0.0175</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">瑞利判据角</div>
+                    <div class="info-value" id="rayleighAngle">1.22 λ/D</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h2>强度分布曲线</h2>
+            <p>圆孔衍射归一化强度分布 I/I₀ = [2J₁(x)/x]²，其中 x = (πD sinθ)/λ</p>
+            
+            <div class="chart-container">
+                <canvas id="intensityChart"></canvas>
+            </div>
+            
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #3498db;"></div>
+                    <span>归一化强度 I/I₀</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #ff6b6b;"></div>
+                    <span>一阶贝塞尔函数 J₁(x)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #2ecc71;"></div>
+                    <span>衍射环位置</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="control-panel">
+        <div class="slider-group">
+            <div class="slider-container">
+                <label for="apertureSlider">圆孔直径 D: <span id="apertureValue">1.0</span> mm</label>
+                <input type="range" id="apertureSlider" min="0.2" max="3.0" step="0.1" value="1.0">
+                <div style="display: flex; justify-content: space-between; font-size: 0.9em; color: #666;">
+                    <span>小孔径</span><span>中等孔径</span><span>大孔径</span>
+                </div>
+            </div>
+            
+            <div class="slider-container">
+                <label for="wavelengthSlider">光波长 λ: <span id="wavelengthValue">550</span> nm</label>
+                <input type="range" id="wavelengthSlider" min="400" max="700" step="10" value="550">
+                <div style="display: flex; justify-content: space-between; font-size: 0.9em; color: #666;">
+                    <span>紫光</span><span>绿光</span><span>红光</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="slider-group">
+            <div class="slider-container">
+                <label for="distanceSlider">观察距离 L: <span id="distanceValue">1000</span> mm</label>
+                <input type="range" id="distanceSlider" min="500" max="2000" step="100" value="1000">
+            </div>
+            
+            <div class="slider-container">
+                <label for="detailSlider">显示细节: <span id="detailValue">高</span></label>
+                <input type="range" id="detailSlider" min="1" max="3" step="1" value="3">
+                <div style="display: flex; justify-content: space-between; font-size: 0.9em; color: #666;">
+                    <span>低</span><span>中</span><span>高</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="value-display">
+            <div>
+                <div class="info-label">艾里斑角半径</div>
+                <div class="info-value" id="airyRadius">0.000671 rad</div>
+            </div>
+            <div>
+                <div class="info-label">艾里斑线半径</div>
+                <div class="info-value" id="airyLinearRadius">0.671 mm</div>
+            </div>
+            <div>
+                <div class="info-label">光学分辨率</div>
+                <div class="info-value" id="resolutionValue">较高</div>
+            </div>
+        </div>
+        
+        <div class="buttons">
+            <button id="resetBtn">重置参数</button>
+            <button id="showPatternBtn" class="secondary">显示/隐藏衍射环</button>
+            <button id="showBesselBtn" class="secondary">显示/隐藏贝塞尔函数</button>
+            <button id="animateBtn">孔径变化动画</button>
+        </div>
+    </div>
+    
+    <div class="theory-container">
+        <div class="tab-container">
+            <div class="tab active" data-tab="theory">理论原理</div>
+            <div class="tab" data-tab="formula">公式推导</div>
+            <div class="tab" data-tab="application">实际应用</div>
+        </div>
+        
+        <div id="theory-content" class="tab-content active">
+            <h3>圆孔夫琅禾费衍射</h3>
+            <p>当平行光通过圆孔时，由于光的波动性，会发生衍射现象。在夫琅禾费衍射（远场衍射）条件下，在远处的观察屏上会形成明暗相间的同心圆环，中央是一个明亮的圆斑，称为<strong>艾里斑</strong>。</p>
+            
+            <div class="formula-box">
+                I(θ) = I₀ [2J₁(x)/x]²，其中 x = (πD sinθ)/λ
+            </div>
+            
+            <p>其中：</p>
+            <ul>
+                <li>I(θ) - 角度θ处的衍射光强</li>
+                <li>I₀ - 中央极大光强（θ=0处的光强）</li>
+                <li>J₁(x) - 一阶第一类贝塞尔函数</li>
+                <li>D - 圆孔直径</li>
+                <li>λ - 光波长</li>
+                <li>θ - 衍射角（与光轴的夹角）</li>
+            </ul>
+            
+            <div class="key-point">
+                <h4>关键特征</h4>
+                <p><strong>艾里斑</strong>：中央亮斑，包含约84%的衍射光能量。</p>
+                <p><strong>第一暗环</strong>：出现在 x = 1.22π 处，对应 sinθ = 1.22λ/D。</p>
+                <p><strong>次级亮环</strong>：亮度迅速衰减，第一亮环强度仅为中央亮斑的1.75%。</p>
+            </div>
+        </div>
+        
+        <div id="formula-content" class="tab-content">
+            <h3>公式推导要点</h3>
+            <p>圆孔夫琅禾费衍射的强度分布公式推导基于惠更斯-菲涅耳原理：</p>
+            
+            <ol>
+                <li>将圆孔面分割为无数个面元，每个面元作为次波源</li>
+                <li>计算所有次波在观察点的叠加（积分）</li>
+                <li>由于圆对称性，积分可简化为贝塞尔函数形式</li>
+                <li>最终得到归一化强度公式 I/I₀ = [2J₁(x)/x]²</li>
+            </ol>
+            
+            <div class="formula-box">
+                第一暗环条件：J₁(x) = 0 的第一个非零根为 x = 3.8317 ≈ 1.22π
+            </div>
+            
+            <p>由此得到艾里斑的角半径公式：</p>
+            
+            <div class="formula-box">
+                θ₀ = arcsin(1.22λ/D) ≈ 1.22λ/D (当θ很小时)
+            </div>
+            
+            <p>这就是著名的<strong>瑞利判据</strong>：两个点光源恰好能分辨时，一个点光源的艾里斑中心落在另一个点光源的艾里斑第一暗环上。</p>
+        </div>
+        
+        <div id="application-content" class="tab-content">
+            <h3>实际应用</h3>
+            
+            <div class="key-point">
+                <h4>光学仪器分辨率</h4>
+                <p>任何光学仪器（望远镜、显微镜、相机等）的分辨率都受到圆孔衍射的限制。根据瑞利判据，最小分辨角为：</p>
+                <p style="text-align: center; font-weight: bold;">δθ = 1.22 λ / D</p>
+                <p>要提高分辨率，可以：增大孔径D 或 使用更短波长λ。</p>
+            </div>
+            
+            <h4>应用实例</h4>
+            <ul>
+                <li><strong>天文望远镜</strong>：大型望远镜（如哈勃望远镜D=2.4m）具有高分辨率，能分辨遥远星体的细节</li>
+                <li><strong>显微镜</strong>：使用短波长的紫外光或电子束（电子显微镜）来提高分辨率</li>
+                <li><strong>相机镜头</strong>：大光圈镜头在弱光下表现更好，但小光圈时衍射效应更明显</li>
+                <li><strong>激光束</strong>：激光通过小孔后的衍射图案用于测量光束质量和模式</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="exercise-container">
+        <h2>思考与练习</h2>
+        
+        <div class="question">
+            <p><strong>问题1：</strong>根据模拟结果，分析圆孔直径对艾里斑大小和衍射图案的影响规律。</p>
+            <button class="showAnswerBtn" data-target="answer1">显示分析</button>
+            <div class="answer" id="answer1">
+                <p>圆孔直径D越小，艾里斑角半径θ₀=1.22λ/D越大，衍射现象越明显，中央亮斑越大，衍射环间距也越大。反之，D越大，艾里斑越小，衍射图案更集中，分辨率越高。</p>
+            </div>
+        </div>
+        
+        <div class="question">
+            <p><strong>问题2：</strong>计算波长为500nm的光通过直径2mm的圆孔后，艾里斑的角半径和在1m远处的线半径。</p>
+            <button class="showAnswerBtn" data-target="answer2">显示计算</button>
+            <div class="answer" id="answer2">
+                <p>已知：λ=500nm=5×10⁻⁷m，D=2mm=2×10⁻³m，L=1m</p>
+                <p>艾里斑角半径：θ₀ = 1.22λ/D = 1.22×5×10⁻⁷/(2×10⁻³) = 3.05×10⁻⁴ rad</p>
+                <p>艾里斑线半径：r₀ = L·θ₀ = 1×3.05×10⁻⁴ = 3.05×10⁻⁴ m = 0.305 mm</p>
+            </div>
+        </div>
+        
+        <div class="question">
+            <p><strong>问题3：</strong>解释为什么电子显微镜比光学显微镜有更高的分辨率？</p>
+            <button class="showAnswerBtn" data-target="answer3">显示解释</button>
+            <div class="answer" id="answer3">
+                <p>根据瑞利判据δθ=1.22λ/D，分辨率与波长λ成反比。光学显微镜使用可见光（λ≈400-700nm），而电子显微镜使用电子束，其德布罗意波长比可见光短得多（典型值0.001-0.01nm），因此分辨率大大提高。</p>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>圆孔夫琅禾费衍射强度分布交互教学工具 | 高中与大学物理教学资源</p>
+        <p>© 2023 物理教学实验室 | 使用HTML5 Canvas和JavaScript开发</p>
+    </footer>
+
+    <script>
+        // 获取Canvas元素和上下文
+        const diffractionCanvas = document.getElementById('diffractionCanvas');
+        const diffractionCtx = diffractionCanvas.getContext('2d');
+        const intensityChartCanvas = document.getElementById('intensityChart');
+        const intensityChartCtx = intensityChartCanvas.getContext('2d');
+        
+        // 设置Canvas尺寸
+        function resizeCanvases() {
+            const diffractionContainer = diffractionCanvas.parentElement;
+            diffractionCanvas.width = diffractionContainer.clientWidth;
+            diffractionCanvas.height = diffractionContainer.clientHeight;
+            
+            const chartContainer = intensityChartCanvas.parentElement;
+            intensityChartCanvas.width = chartContainer.clientWidth;
+            intensityChartCanvas.height = chartContainer.clientHeight;
+            
+            drawDiffractionPattern();
+            drawIntensityChart();
+        }
+        
+        // 初始参数
+        let aperture = 1.0;      // 圆孔直径，单位mm
+        let wavelength = 550;    // 光波长，单位nm
+        let distance = 1000;     // 观察距离，单位mm
+        let detailLevel = 3;     // 细节级别 1-3
+        let showRings = true;    // 是否显示衍射环
+        let showBessel = false;  // 是否显示贝塞尔函数
+        let isAnimating = false; // 是否正在动画
+        
+        // 获取DOM元素
+        const apertureSlider = document.getElementById('apertureSlider');
+        const apertureValue = document.getElementById('apertureValue');
+        const wavelengthSlider = document.getElementById('wavelengthSlider');
+        const wavelengthValue = document.getElementById('wavelengthValue');
+        const distanceSlider = document.getElementById('distanceSlider');
+        const distanceValue = document.getElementById('distanceValue');
+        const detailSlider = document.getElementById('detailSlider');
+        const detailValue = document.getElementById('detailValue');
+        
+        const airyRadius = document.getElementById('airyRadius');
+        const airyLinearRadius = document.getElementById('airyLinearRadius');
+        const resolutionValue = document.getElementById('resolutionValue');
+        
+        const centralIntensity = document.getElementById('centralIntensity');
+        const firstMinima = document.getElementById('firstMinima');
+        const firstMaxima = document.getElementById('firstMaxima');
+        const rayleighAngle = document.getElementById('rayleighAngle');
+        
+        const resetBtn = document.getElementById('resetBtn');
+        const showPatternBtn = document.getElementById('showPatternBtn');
+        const showBesselBtn = document.getElementById('showBesselBtn');
+        const animateBtn = document.getElementById('animateBtn');
+        
+        // 标签页切换
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabId = this.getAttribute('data-tab');
+                
+                // 更新标签状态
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                // 更新内容显示
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                document.getElementById(tabId + '-content').classList.add('active');
+            });
+        });
+        
+        // 初始化
+        window.addEventListener('load', () => {
+            resizeCanvases();
+            updateValues();
+            
+            // 设置初始标签页
+            document.querySelectorAll('.tab')[0].click();
+        });
+        
+        window.addEventListener('resize', resizeCanvases);
+        
+        // 更新孔径
+        apertureSlider.addEventListener('input', function() {
+            aperture = parseFloat(this.value);
+            apertureValue.textContent = aperture.toFixed(1);
+            updateValues();
+            drawDiffractionPattern();
+            drawIntensityChart();
+        });
+        
+        // 更新波长
+        wavelengthSlider.addEventListener('input', function() {
+            wavelength = parseInt(this.value);
+            wavelengthValue.textContent = wavelength;
+            updateValues();
+            drawDiffractionPattern();
+            drawIntensityChart();
+        });
+        
+        // 更新距离
+        distanceSlider.addEventListener('input', function() {
+            distance = parseInt(this.value);
+            distanceValue.textContent = distance;
+            updateValues();
+            drawDiffractionPattern();
+        });
+        
+        // 更新细节级别
+        detailSlider.addEventListener('input', function() {
+            detailLevel = parseInt(this.value);
+            detailValue.textContent = ['低', '中', '高'][detailLevel-1];
+            drawDiffractionPattern();
+            drawIntensityChart();
+        });
+        
+        // 重置按钮
+        resetBtn.addEventListener('click', function() {
+            apertureSlider.value = 1.0;
+            wavelengthSlider.value = 550;
+            distanceSlider.value = 1000;
+            detailSlider.value = 3;
+            
+            aperture = 1.0;
+            wavelength = 550;
+            distance = 1000;
+            detailLevel = 3;
+            
+            apertureValue.textContent = '1.0';
+            wavelengthValue.textContent = '550';
+            distanceValue.textContent = '1000';
+            detailValue.textContent = '高';
+            
+            updateValues();
+            drawDiffractionPattern();
+            drawIntensityChart();
+        });
+        
+        // 显示/隐藏衍射环
+        showPatternBtn.addEventListener('click', function() {
+            showRings = !showRings;
+            drawDiffractionPattern();
+        });
+        
+        // 显示/隐藏贝塞尔函数
+        showBesselBtn.addEventListener('click', function() {
+            showBessel = !showBessel;
+            drawIntensityChart();
+        });
+        
+        // 孔径变化动画
+        animateBtn.addEventListener('click', function() {
+            if (isAnimating) {
+                isAnimating = false;
+                animateBtn.textContent = "孔径变化动画";
+                return;
+            }
+            
+            isAnimating = true;
+            animateBtn.textContent = "停止动画";
+            
+            let startTime = Date.now();
+            const duration = 8000; // 动画持续时间（ms）
+            
+            function animate() {
+                if (!isAnimating) return;
+                
+                const elapsed = Date.now() - startTime;
+                const progress = (elapsed % duration) / duration;
+                
+                // 使用正弦函数使孔径在0.2-3.0mm之间平滑变化
+                aperture = 0.2 + 2.8 * (0.5 - 0.5 * Math.cos(2 * Math.PI * progress));
+                apertureSlider.value = aperture;
+                apertureValue.textContent = aperture.toFixed(1);
+                
+                updateValues();
+                drawDiffractionPattern();
+                drawIntensityChart();
+                
+                requestAnimationFrame(animate);
+            }
+            
+            animate();
+        });
+        
+        // 显示答案按钮
+        document.querySelectorAll('.showAnswerBtn').forEach(button => {
+            button.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                const answer = document.getElementById(targetId);
+                
+                if (answer.style.display === 'block') {
+                    answer.style.display = 'none';
+                    this.textContent = '显示' + (targetId.includes('answer') ? '答案' : '分析');
+                } else {
+                    answer.style.display = 'block';
+                    this.textContent = '隐藏' + (targetId.includes('answer') ? '答案' : '分析');
+                }
+            });
+        });
+        
+        // 一阶贝塞尔函数 J1(x) 的近似计算
+        function besselJ1(x) {
+            // 对于小x使用级数展开
+            if (Math.abs(x) < 3) {
+                const x2 = x * x;
+                const x4 = x2 * x2;
+                return x/2 * (1 - x2/8 + x4/192 - x2*x4/9216);
+            }
+            
+            // 对于较大的x使用渐近展开
+            return Math.sqrt(2/(Math.PI*x)) * 
+                   Math.cos(x - 3*Math.PI/4) * 
+                   (1 + 3/(8*x) - 21/(128*x*x));
+        }
+        
+        // 计算圆孔衍射归一化强度
+        function circularApertureIntensity(x) {
+            if (Math.abs(x) < 1e-6) return 1.0; // 避免除以零
+            const j1 = besselJ1(x);
+            return Math.pow(2 * j1 / x, 2);
+        }
+        
+        // 更新计算值
+        function updateValues() {
+            // 计算艾里斑角半径 (弧度)
+            const lambda_mm = wavelength * 1e-6; // 转换为mm
+            const theta = 1.22 * lambda_mm / aperture;
+            
+            airyRadius.textContent = theta.toExponential(2) + " rad";
+            
+            // 计算艾里斑线半径
+            const linearRadius = distance * theta;
+            airyLinearRadius.textContent = linearRadius.toFixed(3) + " mm";
+            
+            // 根据孔径大小评估分辨率
+            if (aperture >= 2.0) {
+                resolutionValue.textContent = "很高";
+            } else if (aperture >= 1.0) {
+                resolutionValue.textContent = "高";
+            } else if (aperture >= 0.5) {
+                resolutionValue.textContent = "中等";
+            } else {
+                resolutionValue.textContent = "较低";
+            }
+            
+            // 更新强度信息
+            centralIntensity.textContent = "1.00";
+            firstMinima.textContent = "1.22π";
+            
+            // 计算第一亮环强度（x ≈ 1.635π）
+            const firstMaxX = 1.635 * Math.PI;
+            const firstMaxIntensity = circularApertureIntensity(firstMaxX);
+            firstMaxima.textContent = firstMaxIntensity.toFixed(4);
+            
+            // 更新瑞利判据角
+            rayleighAngle.textContent = `1.22×${wavelength}nm/${aperture.toFixed(1)}mm`;
+        }
+        
+        // 绘制衍射图案
+        function drawDiffractionPattern() {
+            const width = diffractionCanvas.width;
+            const height = diffractionCanvas.height;
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const maxRadius = Math.min(width, height) * 0.4;
+            
+            // 清空画布
+            diffractionCtx.fillStyle = '#0a1931';
+            diffractionCtx.fillRect(0, 0, width, height);
+            
+            // 根据波长设置颜色
+            let r, g, b;
+            if (wavelength < 440) {
+                // 紫色到蓝色
+                r = 100 + Math.floor(155 * (wavelength - 400) / 40);
+                g = 0;
+                b = 200;
+            } else if (wavelength < 490) {
+                // 蓝色到青色
+                r = 0;
+                g = Math.floor(255 * (wavelength - 440) / 50);
+                b = 255;
+            } else if (wavelength < 510) {
+                // 青色到绿色
+                r = 0;
+                g = 255;
+                b = 255 - Math.floor(255 * (wavelength - 490) / 20);
+            } else if (wavelength < 580) {
+                // 绿色到黄色
+                r = Math.floor(255 * (wavelength - 510) / 70);
+                g = 255;
+                b = 0;
+            } else if (wavelength < 645) {
+                // 黄色到橙色
+                r = 255;
+                g = 255 - Math.floor(255 * (wavelength - 580) / 65);
+                b = 0;
+            } else {
+                // 橙色到红色
+                r = 255;
+                g = 0;
+                b = 0;
+            }
+            
+            // 计算缩放因子：孔径越小，艾里斑越大
+            const scaleFactor = 0.5 / aperture;
+            const airyRadiusPx = Math.min(maxRadius, maxRadius * scaleFactor);
+            
+            // 绘制衍射图案
+            const imageData = diffractionCtx.createImageData(width, height);
+            const data = imageData.data;
+            
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const dx = x - centerX;
+                    const dy = y - centerY;
+                    const distanceFromCenter = Math.sqrt(dx*dx + dy*dy);
+                    
+                    // 归一化距离 (以艾里斑半径为基准)
+                    const normalizedDistance = distanceFromCenter / airyRadiusPx;
+                    
+                    // 计算对应的x值 (x = (πD sinθ)/λ ≈ (πD * r/L)/λ)
+                    // 简化处理：使用归一化距离乘以π
+                    const xVal = normalizedDistance * Math.PI;
+                    
+                    // 计算强度
+                    let intensity = circularApertureIntensity(xVal);
+                    
+                    // 应用细节级别
+                    if (detailLevel === 1) {
+                        // 低细节：只显示艾里斑
+                        intensity = (normalizedDistance < 1) ? intensity : 0;
+                    } else if (detailLevel === 2) {
+                        // 中等细节：显示前几个衍射环
+                        if (normalizedDistance > 3) intensity = 0;
+                    }
+                    // 高细节：显示所有衍射环
+                    
+                    // 设置像素颜色
+                    const idx = (y * width + x) * 4;
+                    data[idx] = Math.min(255, r * intensity);     // R
+                    data[idx+1] = Math.min(255, g * intensity);   // G
+                    data[idx+2] = Math.min(255, b * intensity);   // B
+                    data[idx+3] = 255;                            // A
+                }
+            }
+            
+            diffractionCtx.putImageData(imageData, 0, 0);
+            
+            // 绘制衍射环标记（如果需要）
+            if (showRings) {
+                const ringPositions = [1.22, 2.23, 3.24, 4.24]; // 暗环位置（单位：艾里斑半径）
+                
+                diffractionCtx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+                diffractionCtx.lineWidth = 1;
+                diffractionCtx.setLineDash([5, 3]);
+                
+                ringPositions.forEach(pos => {
+                    const radius = pos * airyRadiusPx;
+                    if (radius < maxRadius * 1.5) {
+                        diffractionCtx.beginPath();
+                        diffractionCtx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+                        diffractionCtx.stroke();
+                    }
+                });
+                
+                diffractionCtx.setLineDash([]);
+            }
+            
+            // 绘制中心标记
+            diffractionCtx.beginPath();
+            diffractionCtx.arc(centerX, centerY, 3, 0, Math.PI * 2);
+            diffractionCtx.fillStyle = '#ffffff';
+            diffractionCtx.fill();
+            
+            // 绘制艾里斑边界
+            diffractionCtx.beginPath();
+            diffractionCtx.arc(centerX, centerY, airyRadiusPx, 0, Math.PI * 2);
+            diffractionCtx.strokeStyle = '#2ecc71';
+            diffractionCtx.lineWidth = 2;
+            diffractionCtx.stroke();
+            
+            // 标注艾里斑
+            diffractionCtx.fillStyle = '#2ecc71';
+            diffractionCtx.font = 'bold 16px Arial';
+            diffractionCtx.textAlign = 'center';
+            diffractionCtx.fillText('艾里斑', centerX, centerY - airyRadiusPx - 15);
+        }
+        
+        // 绘制强度分布图表
+        function drawIntensityChart() {
+            const width = intensityChartCanvas.width;
+            const height = intensityChartCanvas.height;
+            const padding = {top: 20, right: 20, bottom: 40, left: 60};
+            const chartWidth = width - padding.left - padding.right;
+            const chartHeight = height - padding.top - padding.bottom;
+            
+            // 清空画布
+            intensityChartCtx.fillStyle = 'white';
+            intensityChartCtx.fillRect(0, 0, width, height);
+            
+            // 绘制坐标轴
+            intensityChartCtx.strokeStyle = '#333';
+            intensityChartCtx.lineWidth = 1;
+            
+            // X轴
+            intensityChartCtx.beginPath();
+            intensityChartCtx.moveTo(padding.left, height - padding.bottom);
+            intensityChartCtx.lineTo(width - padding.right, height - padding.bottom);
+            intensityChartCtx.stroke();
+            
+            // Y轴
+            intensityChartCtx.beginPath();
+            intensityChartCtx.moveTo(padding.left, padding.top);
+            intensityChartCtx.lineTo(padding.left, height - padding.bottom);
+            intensityChartCtx.stroke();
+            
+            // 绘制网格
+            intensityChartCtx.strokeStyle = '#eee';
+            intensityChartCtx.lineWidth = 0.5;
+            
+            // 垂直网格线
+            for (let i = 0; i <= 10; i++) {
+                const x = padding.left + (i / 10) * chartWidth;
+                intensityChartCtx.beginPath();
+                intensityChartCtx.moveTo(x, padding.top);
+                intensityChartCtx.lineTo(x, height - padding.bottom);
+                intensityChartCtx.stroke();
+                
+                // X轴标签
+                if (i % 2 === 0) {
+                    intensityChartCtx.fillStyle = '#666';
+                    intensityChartCtx.font = '12px Arial';
+                    intensityChartCtx.textAlign = 'center';
+                    intensityChartCtx.fillText((i/2).toFixed(1) + 'π', x, height - padding.bottom + 15);
+                }
+            }
+            
+            // 水平网格线
+            for (let i = 0; i <= 10; i++) {
+                const y = height - padding.bottom - (i / 10) * chartHeight;
+                intensityChartCtx.beginPath();
+                intensityChartCtx.moveTo(padding.left, y);
+                intensityChartCtx.lineTo(width - padding.right, y);
+                intensityChartCtx.stroke();
+                
+                // Y轴标签
+                if (i % 2 === 0) {
+                    intensityChartCtx.fillStyle = '#666';
+                    intensityChartCtx.font = '12px Arial';
+                    intensityChartCtx.textAlign = 'right';
+                    intensityChartCtx.fillText((i/10).toFixed(1), padding.left - 10, y + 4);
+                }
+            }
+            
+            // 坐标轴标签
+            intensityChartCtx.fillStyle = '#333';
+            intensityChartCtx.font = 'bold 14px Arial';
+            intensityChartCtx.textAlign = 'center';
+            intensityChartCtx.fillText('x = (πD sinθ)/λ', width/2, height - 5);
+            
+            intensityChartCtx.save();
+            intensityChartCtx.translate(15, height/2);
+            intensityChartCtx.rotate(-Math.PI/2);
+            intensityChartCtx.fillText('归一化强度 I/I₀', 0, 0);
+            intensityChartCtx.restore();
+            
+            // 绘制强度曲线
+            intensityChartCtx.beginPath();
+            intensityChartCtx.moveTo(padding.left, height - padding.bottom);
+            
+            const dataPoints = 500;
+            let firstZeroX = null;
+            let firstMaxIntensity = 0;
+            let firstMaxX = null;
+            
+            for (let i = 0; i <= dataPoints; i++) {
+                const x = (i / dataPoints) * 5 * Math.PI; // 从0到5π
+                const intensity = circularApertureIntensity(x);
+                
+                const chartX = padding.left + (x / (5 * Math.PI)) * chartWidth;
+                const chartY = height - padding.bottom - intensity * chartHeight;
+                
+                if (i === 0) {
+                    intensityChartCtx.moveTo(chartX, chartY);
+                } else {
+                    intensityChartCtx.lineTo(chartX, chartY);
+                }
+                
+                // 记录第一个零点（第一暗环）
+                if (firstZeroX === null && intensity < 0.01 && i > 10) {
+                    firstZeroX = x;
+                }
+                
+                // 记录第一个次极大
+                if (x > 4 && x < 6 && intensity > firstMaxIntensity) {
+                    firstMaxIntensity = intensity;
+                    firstMaxX = x;
+                }
+            }
+            
+            intensityChartCtx.strokeStyle = '#3498db';
+            intensityChartCtx.lineWidth = 3;
+            intensityChartCtx.stroke();
+            
+            // 绘制贝塞尔函数（如果启用）
+            if (showBessel) {
+                intensityChartCtx.beginPath();
+                intensityChartCtx.moveTo(padding.left, height - padding.bottom);
+                
+                for (let i = 0; i <= dataPoints; i++) {
+                    const x = (i / dataPoints) * 5 * Math.PI;
+                    const besselValue = besselJ1(x);
+                    
+                    const chartX = padding.left + (x / (5 * Math.PI)) * chartWidth;
+                    const chartY = height - padding.bottom - (besselValue + 1) * 0.5 * chartHeight;
+                    
+                    if (i === 0) {
+                        intensityChartCtx.moveTo(chartX, chartY);
+                    } else {
+                        intensityChartCtx.lineTo(chartX, chartY);
+                    }
+                }
+                
+                intensityChartCtx.strokeStyle = '#ff6b6b';
+                intensityChartCtx.lineWidth = 2;
+                intensityChartCtx.setLineDash([5, 3]);
+                intensityChartCtx.stroke();
+                intensityChartCtx.setLineDash([]);
+            }
+            
+            // 标记关键点
+            // 第一暗环（第一零点）
+            if (firstZeroX) {
+                const chartX = padding.left + (firstZeroX / (5 * Math.PI)) * chartWidth;
+                
+                intensityChartCtx.beginPath();
+                intensityChartCtx.arc(chartX, height - padding.bottom, 6, 0, Math.PI * 2);
+                intensityChartCtx.fillStyle = '#2ecc71';
+                intensityChartCtx.fill();
+                intensityChartCtx.strokeStyle = '#333';
+                intensityChartCtx.lineWidth = 1;
+                intensityChartCtx.stroke();
+                
+                // 添加标签
+                intensityChartCtx.fillStyle = '#2ecc71';
+                intensityChartCtx.font = 'bold 12px Arial';
+                intensityChartCtx.textAlign = 'center';
+                intensityChartCtx.fillText('第一暗环', chartX, height - padding.bottom - 20);
+                intensityChartCtx.fillText('x=1.22π', chartX, height - padding.bottom - 35);
+            }
+            
+            // 第一亮环
+            if (firstMaxX) {
+                const chartX = padding.left + (firstMaxX / (5 * Math.PI)) * chartWidth;
+                const intensity = circularApertureIntensity(firstMaxX);
+                const chartY = height - padding.bottom - intensity * chartHeight;
+                
+                intensityChartCtx.beginPath();
+                intensityChartCtx.arc(chartX, chartY, 6, 0, Math.PI * 2);
+                intensityChartCtx.fillStyle = '#e74c3c';
+                intensityChartCtx.fill();
+                intensityChartCtx.strokeStyle = '#333';
+                intensityChartCtx.lineWidth = 1;
+                intensityChartCtx.stroke();
+                
+                // 添加标签
+                intensityChartCtx.fillStyle = '#e74c3c';
+                intensityChartCtx.font = 'bold 12px Arial';
+                intensityChartCtx.textAlign = 'center';
+                intensityChartCtx.fillText('第一亮环', chartX, chartY - 20);
+                intensityChartCtx.fillText(`I=${firstMaxIntensity.toFixed(4)}`, chartX, chartY - 35);
+            }
+            
+            // 标记中央极大
+            intensityChartCtx.beginPath();
+            intensityChartCtx.arc(padding.left, height - padding.bottom - chartHeight, 8, 0, Math.PI * 2);
+            intensityChartCtx.fillStyle = '#f39c12';
+            intensityChartCtx.fill();
+            intensityChartCtx.strokeStyle = '#333';
+            intensityChartCtx.lineWidth = 1;
+            intensityChartCtx.stroke();
+            
+            // 添加中央极大标签
+            intensityChartCtx.fillStyle = '#f39c12';
+            intensityChartCtx.font = 'bold 12px Arial';
+            intensityChartCtx.textAlign = 'left';
+            intensityChartCtx.fillText('中央极大 I=1.00', padding.left + 15, height - padding.bottom - chartHeight + 5);
+            
+            // 图表标题
+            intensityChartCtx.fillStyle = '#333';
+            intensityChartCtx.font = 'bold 16px Arial';
+            intensityChartCtx.textAlign = 'center';
+            intensityChartCtx.fillText('圆孔衍射归一化强度分布 I/I₀ = [2J₁(x)/x]²', width/2, padding.top - 5);
+        }
+        
+        // 初始绘制
+        resizeCanvases();
+    </script>
+</body>
+</html>

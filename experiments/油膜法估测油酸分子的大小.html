@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>油膜法估测油酸分子的大小</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+
+        body {
+            padding: 2rem;
+            line-height: 1.6;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 2.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 2rem;
+            font-size: 1.8rem;
+        }
+
+        h2 {
+            color: #34495e;
+            margin: 1.5rem 0 1rem;
+            font-size: 1.4rem;
+        }
+
+        h3 {
+            color: #2c3e50;
+            margin: 1rem 0 0.8rem;
+            font-size: 1.2rem;
+        }
+
+        p, li {
+            font-size: 1rem;
+            margin-bottom: 0.8rem;
+        }
+
+        ul, ol {
+            padding-left: 2rem;
+        }
+
+        /* 按钮通用样式 */
+        .btn {
+            display: inline-block;
+            height: 45px;
+            line-height: 45px;
+            text-align: center;
+            background: #3498db;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 0 1.5rem;
+            transition: background 0.3s;
+            margin: 0 0.5rem;
+        }
+        .btn:hover {
+            background: #2980b9;
+        }
+        .demo-do-btn {background: #27ae60;}
+        .demo-do-btn:hover {background: #219653;}
+        .demo-reset-btn {background: #95a5a6;}
+        .demo-reset-btn:hover {background: #7f8c8d;}
+        .demo-prev-btn {background: #f39c12;}
+        .demo-prev-btn:hover {background: #e67e22;}
+        .demo-test-btn {background: #e74c3c;}
+        .demo-test-btn:hover {background: #c0392b;}
+        .btn:disabled {opacity: 0.6; cursor: not-allowed;}
+
+        /* 演示区核心样式 */
+        .demo-main-area {
+            margin: 2rem 0;
+            padding: 2rem;
+            border-radius: 10px;
+            background: #f8f9fa;
+            border: 1px solid #eee;
+            text-align: center;
+        }
+        .demo-control-bar {
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .drop-count-select {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 1rem;
+            color: #34495e;
+        }
+        .drop-count-select select {
+            padding: 0.5rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 1rem;
+            color: #34495e;
+            cursor: pointer;
+            min-width: 120px;
+        }
+        .demo-tip {
+            text-align: center;
+            color: #e74c3c;
+            font-size: 1.1rem;
+            margin: 1rem 0;
+            min-height: 24px;
+            font-weight: 500;
+        }
+        .demo-step-info {
+            text-align: center;
+            color: #34495e;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        /* 双视图容器 */
+        .demo-double-view {
+            display: flex;
+            gap: 1rem;
+            width: 100%;
+            height: 400px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border: 2px solid #e2e8f0;
+        }
+        .demo-view {
+            flex: 1;
+            border-radius: 6px;
+            background: #fff;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid #e2e8f0;
+        }
+        .view-title {
+            position: absolute;
+            top: 0.5rem;
+            left: 0.5rem;
+            background: rgba(148, 163, 184, 0.8);
+            color: #fff;
+            padding: 0.2rem 0.8rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            z-index: 99;
+        }
+
+        /* 正面视图 - 浅盘80%宽度，水80%宽度+贴底居中，完全匹配 */
+        .demo-front-plate {
+            width: 80%;
+            height: 220px;
+            background: #fff;
+            border: 3px solid #000;
+            border-radius: 4px;
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+        }
+        .demo-front-water {
+            width: 80%;
+            height: 150px;
+            background: #bfdbfe;
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.8s ease;
+            z-index: 2;
+        }
+        .demo-front-powder {
+            width: 80%;
+            height: 2px;
+            background: #f3f4f6;
+            position: absolute;
+            bottom: 170px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.8s ease;
+            z-index: 3;
+        }
+        .demo-front-syringe {
+            width: 40px;
+            height: 80px;
+            background: #e2e8f0;
+            border: 2px solid #94a3b8;
+            border-radius: 2px 0 0 0;
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: all 0.8s ease;
+            z-index: 4;
+        }
+        .demo-front-drop {
+            width: 10px;
+            height: 10px;
+            background: #3b82f6; /* 修改为蓝色系油酸滴 */
+            border-radius: 50%;
+            position: absolute;
+            top: 140px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: all 1s ease;
+            z-index: 5;
+        }
+        .demo-front-film {
+            width: 30%;
+            height: 1px;
+            background: rgba(59, 130, 246, 0.7); /* 修改为蓝色系油膜 */
+            border-radius: 50%;
+            position: absolute;
+            bottom: 170px;
+            left: 50%;
+            transform: translateX(-50%) scale(0);
+            opacity: 0;
+            transition: all 1.5s ease;
+            z-index: 6;
+        }
+        .demo-front-glass {
+            width: 90%;
+            height: 240px;
+            border: 2px solid #cbd5e1;
+            border-radius: 4px;
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.8s ease;
+            z-index: 7;
+            background: rgba(255,255,255,0.1);
+        }
+
+        /* 俯视视图 - 网格置顶 */
+        .demo-top-plate {
+            width: 90%;
+            height: 90%;
+            background: #fff;
+            border: 3px solid #000;
+            border-radius: 4px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+            overflow: hidden;
+        }
+        .demo-top-water {
+            width: 100%;
+            height: 95%;
+            background: #bfdbfe;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            transition: opacity 0.8s ease;
+            z-index: 2;
+        }
+        .demo-top-powder {
+            width: 100%;
+            height: 100%;
+            background: rgba(243,244,246,0.6);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            transition: opacity 0.8s ease;
+            z-index: 4;
+        }
+        .demo-top-drop {
+            width: 8px;
+            height: 8px;
+            background: #3b82f6; /* 修改为蓝色系油酸滴 */
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            transition: all 0.8s ease;
+            z-index: 5;
+        }
+        .demo-top-film {
+            border: 1px solid rgba(59, 130, 246, 0.9); /* 修改为蓝色系油膜边框 */
+            background: rgba(59, 130, 246, 0.1); /* 增加蓝色油膜背景 */
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            opacity: 0;
+            transition: all 1.5s ease;
+            z-index: 6;
+            width: 30%;
+            height: 30%;
+        }
+        .demo-top-glass {
+            width: 95%;
+            height: 95%;
+            border: 2px solid #cbd5e1;
+            border-radius: 4px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            transition: opacity 0.8s ease;
+            z-index: 7;
+            background: rgba(255,255,255,0.1);
+        }
+        .demo-top-grid {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+            background-image: 
+                linear-gradient(to right, #ccc 1px, transparent 1px),
+                linear-gradient(to bottom, #ccc 1px, transparent 1px);
+            background-size: 20px 20px;
+            pointer-events: none;
+        }
+
+        /* 演示元素状态 */
+        .demo-show {opacity: 1 !important;}
+        .demo-drop-fall {top: 130px; opacity: 0; transition: all 1s ease;}
+        .demo-drop-spread {transform: translate(-50%, -50%) scale(1.2); opacity: 0; transition: all 1s ease;}
+
+        /* 知识检测弹窗样式 */
+        .modal-mask {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .modal-container {
+            width: 100%;
+            max-width: 800px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            position: relative;
+            max-height: 90vh;
+        }
+        .modal-header {
+            padding: 1.2rem 1.5rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-title {
+            font-size: 1.3rem;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #f8f9fa;
+            border: none;
+            font-size: 1.2rem;
+            color: #666;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        .modal-close:hover {
+            background: #e9ecef;
+            color: #e74c3c;
+        }
+        .modal-content {
+            padding: 1.5rem;
+            overflow-y: auto;
+            max-height: calc(90vh - 120px);
+            scrollbar-width: thin;
+            scrollbar-color: #3498db #f1f5f9;
+            scroll-behavior: smooth; /* 平滑滚动 */
+        }
+        .modal-content::-webkit-scrollbar {
+            width: 6px;
+        }
+        .modal-content::-webkit-scrollbar-thumb {
+            background: #3498db;
+            border-radius: 3px;
+        }
+        .modal-content::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .modal-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid #eee;
+            text-align: right;
+        }
+
+        /* 题目样式 */
+        .question-item {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+        .question-title {
+            font-weight: 600;
+            margin-bottom: 0.8rem;
+            color: #34495e;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        /* 未答题高亮样式强化 */
+        .question-unanswered {
+            border-color: #e74c3c;
+            background: #ffebee;
+            border-width: 2px; /* 加粗边框更醒目 */
+        }
+        .question-unanswered .question-title {
+            color: #e74c3c;
+            font-weight: 700; /* 标题加粗 */
+        }
+        .option-item {
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            padding: 0.3rem 0.5rem;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        .option-item:hover {
+            background: #f8f9fa;
+        }
+        .option-item input {
+            cursor: pointer;
+        }
+
+        /* 答题结果样式 */
+        .answer-correct {
+            color: #27ae60;
+            font-weight: 500;
+        }
+        .answer-wrong {
+            color: #e74c3c;
+            font-weight: 500;
+        }
+        .answer-result {
+            margin-top: 0.8rem;
+            padding-top: 0.8rem;
+            border-top: 1px dashed #e2e8f0;
+        }
+        .my-answer, .correct-answer {
+            margin: 0.3rem 0;
+        }
+        .score-result {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .score-num {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #e74c3c;
+            margin: 0.5rem 0;
+        }
+        .score-level {
+            font-size: 1.2rem;
+            color: #34495e;
+            margin-bottom: 0.5rem;
+        }
+        .analysis-box {
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: #f1f5f9;
+            border-radius: 6px;
+        }
+        .analysis-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        /* 响应式适配 */
+        @media (max-width: 768px) {
+            body {padding: 1rem;}
+            .container {padding: 1.5rem;}
+            .demo-double-view {flex-direction: column; height: 600px; gap: 0.5rem; padding: 0.5rem;}
+            .demo-control-bar {flex-direction: column; width: 100%;}
+            .btn {margin: 0.5rem 0; width: 100%;}
+            .drop-count-select {width: 100%; justify-content: center;}
+            .modal-container {max-width: 100%;}
+            .score-num {font-size: 2.5rem;}
+        }
+        @media (max-width: 480px) {
+            .demo-double-view {height: 500px;}
+            .modal-header {padding: 1rem;}
+            .modal-content {padding: 1rem;}
+            .modal-footer {padding: 0.8rem 1rem;}
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <h1>油膜法估测油酸分子的大小</h1>
+        
+        <h2>一、实验原理</h2>
+        <p>把油酸分子视为球形且紧密排列，油酸滴在水面会形成单分子油膜。测算出油酸膜面积S和纯油酸体积V，由公式d = V/S可估算分子直径d。<strong>滴数越多，纯油酸体积越大，油膜面积越大（体积与滴数成正比）</strong>。</p>
+
+        <h2>二、实验器材</h2>
+        <ul>
+            <li>油酸酒精溶液、清水、痱子粉（或石膏粉）</li>
+            <li>注射器（或胶头滴管）、量筒、浅盘、玻璃板、彩笔、坐标纸</li>
+        </ul>
+
+        <div class="demo-main-area">
+            <h2>三、实验演示（直接操作）</h2>
+            <p>选择1-10滴油酸，左侧正面视角+右侧<strong>置顶计数网格</strong>俯视视角同步演示，滴数可全程调节，油膜实时缩放</p>
+            
+            <div class="demo-control-bar">
+                <div class="drop-count-select">
+                    <label for="dropCount">油酸滴数：</label>
+                    <select id="dropCount">
+                        <option value="1">1滴</option><option value="2">2滴</option><option value="3">3滴</option>
+                        <option value="4">4滴</option><option value="5">5滴</option><option value="6">6滴</option>
+                        <option value="7">7滴</option><option value="8">8滴</option><option value="9">9滴</option>
+                        <option value="10">10滴（最大）</option>
+                    </select>
+                </div>
+                <button class="btn demo-do-btn" id="doStepBtn">执行当前步骤</button>
+                <button class="btn demo-prev-btn" id="prevStepBtn" disabled>上一步</button>
+                <button class="btn demo-reset-btn" id="resetDemoBtn">重置实验</button>
+                <button class="btn demo-test-btn" id="startTestBtn">知识检测</button>
+            </div>
+
+            <div class="demo-tip" id="demoOperateTip">点击「执行当前步骤」开始，1-10滴可全程调节，油膜实时更新</div>
+            <div class="demo-step-info" id="demoStepInfo">当前步骤：0/5 | 实验准备</div>
+
+            <div class="demo-double-view">
+                <!-- 正面视图 -->
+                <div class="demo-view demo-front-view">
+                    <div class="view-title">正面视角</div>
+                    <div class="demo-front-plate"></div>
+                    <div class="demo-front-water" id="frontWater"></div>
+                    <div class="demo-front-powder" id="frontPowder"></div>
+                    <div class="demo-front-syringe" id="frontSyringe"></div>
+                    <div class="demo-front-drop" id="frontDrop"></div>
+                    <div class="demo-front-film" id="frontFilm"></div>
+                    <div class="demo-front-glass" id="frontGlass"></div>
+                </div>
+                <!-- 俯视视图 -->
+                <div class="demo-view demo-top-view">
+                    <div class="view-title">俯视视角（计数网格）</div>
+                    <div class="demo-top-plate"></div>
+                    <div class="demo-top-water" id="topWater"></div>
+                    <div class="demo-top-powder" id="topPowder"></div>
+                    <div class="demo-top-drop" id="topDrop"></div>
+                    <div class="demo-top-film" id="topFilm"></div>
+                    <div class="demo-top-glass" id="topGlass"></div>
+                    <div class="demo-top-grid" id="topGrid"></div>
+                </div>
+            </div>
+        </div>
+
+        <h2>四、实验步骤（物理选择性必修第三册标准流程）</h2>
+        <ol>
+            <li>配置油酸酒精溶液：取1mL油酸溶于酒精中，制成200mL油酸酒精溶液，计算溶液中油酸的浓度（体积分数）。</li>
+            <li>测定一滴油酸酒精溶液的体积：用注射器将配制好的油酸酒精溶液一滴一滴地滴入量筒中，记录滴入一定体积（如1mL）的滴数n，计算出每滴油酸酒精溶液的体积V₀ = 1/n mL。</li>
+            <li>准备浅水盘：往浅盘里倒入约2cm深的清水，将痱子粉（或石膏粉）均匀地撒在水面上，使粉层薄而均匀。</li>
+            <li>滴入油酸溶液并形成油膜：用注射器（或胶头滴管）向水面滴入1~10滴油酸酒精溶液，待油酸薄膜的形状稳定后，观察油膜的扩散过程。</li>
+            <li>测量油膜面积：将玻璃板盖在浅盘上，用彩笔将油酸薄膜的轮廓描画在玻璃板上；将画有油膜轮廓的玻璃板放在坐标纸上，以坐标纸边长为1cm的正方形为单位，数出轮廓内的方格数（不足半个的舍去，多于半个的算一个），计算出油膜的面积S（单位：cm²）。</li>
+            <li>计算油酸分子直径：根据油酸酒精溶液的浓度，算出一滴溶液中纯油酸的体积V（V = V₀×浓度×滴数）；利用公式d = V/S计算油酸分子的直径（注意单位换算，结果一般用m作单位，数量级为10⁻¹⁰m）。</li>
+        </ol>
+
+        <h2>五、注意事项</h2>
+        <ul>
+            <li>油酸酒精溶液浓度要适中，浓度过大油膜过厚，过小则油膜不易观察。</li>
+            <li>痱子粉需撒得薄且均匀，否则会影响油膜的形成和轮廓观察。</li>
+            <li>滴入溶液时，滴管需垂直、离水面稍高，避免油酸滴溅起破坏水面。</li>
+            <li>网格为坐标纸模拟，<strong>置顶显示</strong>方便计数，数方格时严格遵循“不足半格舍，超半格算1”。</li>
+            <li>滴数越多纯油酸体积越大，油膜面积越大，计算时需用「总滴数×单滴纯油酸体积」。</li>
+            <li>1-10滴可全程自由调节，油膜实时缩放，无需重置实验，便于对比不同滴数的油膜大小。</li>
+            <li>10滴为最大滴数，油膜已适配浅盘尺寸，无溢出，符合实际实验操作规范。</li>
+            <li>油膜扩散过程采用蓝色系显示，更符合教材图示规范，便于观察油膜边界。</li>
+        </ul>
+    </div>
+
+    <script>
+        // 元素获取
+        const dropCountSelect = document.getElementById('dropCount');
+        const doStepBtn = document.getElementById('doStepBtn');
+        const prevStepBtn = document.getElementById('prevStepBtn');
+        const resetDemoBtn = document.getElementById('resetDemoBtn');
+        const startTestBtn = document.getElementById('startTestBtn');
+        const demoOperateTip = document.getElementById('demoOperateTip');
+        const demoStepInfo = document.getElementById('demoStepInfo');
+        const frontWater = document.getElementById('frontWater'), frontPowder = document.getElementById('frontPowder');
+        const frontSyringe = document.getElementById('frontSyringe'), frontDrop = document.getElementById('frontDrop');
+        const frontFilm = document.getElementById('frontFilm'), frontGlass = document.getElementById('frontGlass');
+        const topWater = document.getElementById('topWater'), topGrid = document.getElementById('topGrid');
+        const topPowder = document.getElementById('topPowder'), topDrop = document.getElementById('topDrop');
+        const topFilm = document.getElementById('topFilm'), topGlass = document.getElementById('topGlass');
+
+        // 基础配置
+        let currentStep = 0;
+        const maxStep = 5;
+        const dropScaleMap = {
+            1:0.4,2:0.6,3:0.8,4:1.0,5:1.2,
+            6:1.4,7:1.6,8:1.8,9:2.0,10:2.2
+        };
+        // 知识检测题目配置
+        const testQuestions = [
+            {
+                id: 1,
+                title: '油膜法估测油酸分子大小的实验原理中，油酸分子在水面上形成的是？',
+                options: [
+                    { value: 'A', text: '多分子油膜' },
+                    { value: 'B', text: '单分子油膜' },
+                    { value: 'C', text: '双层分子油膜' },
+                    { value: 'D', text: '无规则排列的油膜' }
+                ],
+                answer: 'B',
+                myAnswer: ''
+            },
+            {
+                id: 2,
+                title: '油膜法计算分子直径的公式是（V为纯油酸体积，S为油膜面积）？',
+                options: [
+                    { value: 'A', text: 'd = S/V' },
+                    { value: 'B', text: 'd = V/S' },
+                    { value: 'C', text: 'd = √(V/S)' },
+                    { value: 'D', text: 'd = V×S' }
+                ],
+                answer: 'B',
+                myAnswer: ''
+            },
+            {
+                id: 3,
+                title: '实验中在水面撒痱子粉的主要目的是？',
+                options: [
+                    { value: 'A', text: '增加水的表面张力' },
+                    { value: 'B', text: '清晰显示油酸膜的轮廓' },
+                    { value: 'C', text: '防止油酸挥发' },
+                    { value: 'D', text: '让油酸滴更快扩散' }
+                ],
+                answer: 'B',
+                myAnswer: ''
+            },
+            {
+                id: 4,
+                title: '若滴入的油酸滴数增加（浓度不变），油酸膜的面积会？',
+                options: [
+                    { value: 'A', text: '不变' },
+                    { value: 'B', text: '减小' },
+                    { value: 'C', text: '增大' },
+                    { value: 'D', text: '先增大后减小' }
+                ],
+                answer: 'C',
+                myAnswer: ''
+            },
+            {
+                id: 5,
+                title: '数油膜轮廓方格数时，不足半个的方格和多于半个的方格分别如何处理？',
+                options: [
+                    { value: 'A', text: '舍去、算一个' },
+                    { value: 'B', text: '算一个、舍去' },
+                    { value: 'C', text: '都舍去' },
+                    { value: 'D', text: '都算一个' }
+                ],
+                answer: 'A',
+                myAnswer: ''
+            }
+        ];
+        let testModal = null;
+        let resultModal = null;
+
+        // 实时更新油膜大小
+        function updateFilmByDrop() {
+            const drop = dropCountSelect.value;
+            const scale = dropScaleMap[drop];
+            if (topFilm.classList.contains('demo-show')) {
+                topFilm.style.transform = `translate(-50%, -50%) scale(${scale})`;
+            }
+            if (frontFilm.classList.contains('demo-show')) {
+                frontFilm.style.transform = `translate(-50%, -50%) scale(${scale})`;
+            }
+            if (currentStep >=3) {
+                demoOperateTip.textContent = `当前${drop}滴油酸，蓝色油膜已实时更新（1-10滴可自由调节）`;
+                demoOperateTip.style.color = '#27ae60';
+            }
+        }
+
+        // 实验步骤配置（适配教材标准流程）
+        const experimentSteps = [
+            {
+                tip: '步骤1：倒入清水', // 移除网格相关描述
+                // 【修改1】步骤1移除网格显示
+                do:()=>{frontWater.classList.add('demo-show');topWater.classList.add('demo-show');demoOperateTip.style.color='#27ae60';demoOperateTip.textContent='清水已倒入，准备撒痱子粉'},
+                prev:()=>{frontWater.classList.remove('demo-show');topWater.classList.remove('demo-show');}
+            },
+            {
+                tip: '步骤2：在水面均匀撒上痱子粉',
+                do:()=>{frontPowder.classList.add('demo-show');topPowder.classList.add('demo-show');demoOperateTip.textContent='已撒痱子粉，可选择1-10滴油酸准备滴入'},
+                prev:()=>{frontPowder.classList.remove('demo-show');topPowder.classList.remove('demo-show');}
+            },
+            {
+                tip: `步骤3：滴入${dropCountSelect.value}滴油酸溶液（1-10滴可调节）`,
+                do:()=>{
+                    frontSyringe.classList.add('demo-show');frontDrop.classList.add('demo-show');
+                    topDrop.classList.add('demo-show');
+                    setTimeout(()=>{frontDrop.classList.add('demo-drop-fall');topDrop.classList.add('demo-drop-spread');},800);
+                    demoOperateTip.textContent = `已滴入${dropCountSelect.value}滴油酸，调节1-10滴可实时更新蓝色油膜大小`;
+                },
+                prev:()=>{
+                    frontSyringe.classList.remove('demo-show');frontDrop.classList.remove('demo-show','demo-drop-fall');
+                    topDrop.classList.remove('demo-show','demo-drop-spread');
+                }
+            },
+            {
+                tip: '步骤4：油酸扩散形成蓝色单分子油膜（滴数越多面积越大）',
+                do:()=>{
+                    frontFilm.classList.add('demo-show');frontFilm.style.transform=`translate(-50%, -50%) scale(${dropScaleMap[dropCountSelect.value]})`;
+                    topFilm.classList.add('demo-show');topFilm.style.transform=`translate(-50%, -50%) scale(${dropScaleMap[dropCountSelect.value]})`;
+                },
+                prev:()=>{
+                    frontFilm.classList.remove('demo-show');frontFilm.style.transform='translate(-50%, -50%) scale(0)';
+                    topFilm.classList.remove('demo-show');topFilm.style.transform='translate(-50%, -50%) scale(0)';
+                }
+            },
+            {
+                tip: '步骤5：盖上玻璃板，显示计数网格并计数蓝色油膜面积', // 修改提示文字
+                // 【修改2】步骤5添加网格显示
+                do:()=>{
+                    frontGlass.classList.add('demo-show');topGlass.classList.add('demo-show');
+                    topGrid.classList.add('demo-show'); // 显示计数网格
+                    demoOperateTip.textContent = `✅ 实验完成！当前${dropCountSelect.value}滴，1-10滴可自由调节，网格已显示可直接计数蓝色油膜面积`;
+                },
+                prev:()=>{
+                    frontGlass.classList.remove('demo-show');topGlass.classList.remove('demo-show');
+                    topGrid.classList.remove('demo-show'); // 隐藏计数网格
+                    demoOperateTip.style.color='#e74c3c';
+                }
+            }
+        ];
+
+        // 重置实验
+        function resetExperiment() {
+            currentStep = 0;
+            doStepBtn.disabled = false;
+            prevStepBtn.disabled = true;
+            dropCountSelect.value = 1;
+            demoOperateTip.textContent = '点击「执行当前步骤」开始，1-10滴可全程调节，蓝色油膜实时更新';
+            demoOperateTip.style.color = '#e74c3c';
+            updateStepInfo();
+            [frontWater,frontPowder,frontSyringe,frontDrop,frontFilm,frontGlass,
+             topWater,topGrid,topPowder,topDrop,topFilm,topGlass].forEach(el=>{
+                el.classList.remove('demo-show','demo-drop-fall','demo-drop-spread');
+                el.style.transform = '';
+            });
+        }
+
+        // 更新步骤信息
+        function updateStepInfo() {
+            let desc = '实验准备';
+            if (currentStep>0 && currentStep<=maxStep) {
+                desc = currentStep===3 ? `步骤3：滴入${dropCountSelect.value}滴油酸溶液（1-10滴可调节）` : experimentSteps[currentStep-1].tip;
+            } else if (currentStep>maxStep) {
+                desc = '实验完成';
+            }
+            demoStepInfo.textContent = `当前步骤：${currentStep}/${maxStep} | ${desc}`;
+        }
+
+        // 知识检测 - 创建弹窗
+        function createModal(title, content, footerBtn) {
+            const oldMask = document.querySelector('.modal-mask');
+            if (oldMask) oldMask.remove();
+            const mask = document.createElement('div');
+            mask.className = 'modal-mask';
+            const container = document.createElement('div');
+            container.className = 'modal-container';
+            const header = document.createElement('div');
+            header.className = 'modal-header';
+            const modalTitle = document.createElement('div');
+            modalTitle.className = 'modal-title';
+            modalTitle.textContent = title;
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'modal-close';
+            closeBtn.textContent = '×';
+            closeBtn.onclick = () => mask.remove();
+            header.append(modalTitle, closeBtn);
+            const contentWrap = document.createElement('div');
+            contentWrap.className = 'modal-content';
+            contentWrap.innerHTML = content;
+            const footer = document.createElement('div');
+            footer.className = 'modal-footer';
+            footer.append(footerBtn);
+            container.append(header, contentWrap, footer);
+            mask.append(container);
+            document.body.append(mask);
+            return mask;
+        }
+
+        // 知识检测 - 渲染答题弹窗
+        function renderTestModal() {
+            testQuestions.forEach(q => q.myAnswer = '');
+            let questionsHtml = '';
+            testQuestions.forEach(question => {
+                let optionsHtml = '';
+                question.options.forEach(option => {
+                    optionsHtml += `
+                        <div class="option-item">
+                            <input type="radio" name="question${question.id}" value="${option.value}" id="opt${question.id}${option.value}">
+                            <label for="opt${question.id}${option.value}">${option.value}. ${option.text}</label>
+                        </div>
+                    `;
+                });
+                questionsHtml += `
+                    <div class="question-item" data-id="${question.id}" id="q${question.id}">
+                        <div class="question-title">第${question.id}题：${question.title}</div>
+                        <div class="option-list">${optionsHtml}</div>
+                    </div>
+                `;
+            });
+            const submitBtn = document.createElement('button');
+            submitBtn.className = 'btn demo-do-btn';
+            submitBtn.textContent = '提交答案';
+            submitBtn.onclick = checkAnswers;
+            testModal = createModal('油膜法实验知识检测（共5题，每题20分，总分100）', questionsHtml, submitBtn);
+            document.querySelectorAll('.option-item input').forEach(input => {
+                input.onchange = function() {
+                    const qId = parseInt(this.name.replace('question', ''));
+                    const question = testQuestions.find(q => q.id === qId);
+                    question.myAnswer = this.value;
+                    const qItem = document.querySelector(`.question-item[data-id="${qId}"]`);
+                    qItem.classList.remove('question-unanswered');
+                };
+            });
+        }
+
+        // 知识检测 - 校验答题（核心优化：高亮+自动定位第一道未答题）
+        function checkAnswers() {
+            let isAllAnswered = true;
+            const unansweredIds = [];
+            // 收集未答题ID
+            testQuestions.forEach(question => {
+                if (!question.myAnswer) {
+                    isAllAnswered = false;
+                    unansweredIds.push(question.id);
+                }
+            });
+            // 未答完处理
+            if (!isAllAnswered) {
+                alert(`请完成所有题目后再提交！未答题：第${unansweredIds.join('、')}题`);
+                // 高亮所有未答题
+                unansweredIds.forEach(id => {
+                    const qItem = document.querySelector(`.question-item[data-id="${id}"]`);
+                    qItem.classList.add('question-unanswered');
+                });
+                // 自动定位到**第一道**未答题（平滑滚动）
+                const firstUnansweredId = unansweredIds[0];
+                const firstUnansweredQ = document.getElementById(`q${firstUnansweredId}`);
+                const modalContent = document.querySelector('.modal-content');
+                // 计算定位位置（弹窗内容区顶部对齐未答题顶部，留少量边距）
+                const topOffset = firstUnansweredQ.offsetTop - 20;
+                modalContent.scrollTop = topOffset;
+                return;
+            }
+            // 答完则计分
+            calculateScore();
+        }
+
+        // 知识检测 - 计算分数
+        function calculateScore() {
+            let score = 0;
+            testQuestions.forEach(question => {
+                if (question.myAnswer === question.answer) score += 20;
+            });
+            renderResultModal(score);
+            if (testModal) testModal.remove();
+        }
+
+        // 知识检测 - 渲染结果弹窗
+        function renderResultModal(score) {
+            let level = '', analysis = '';
+            const correctNum = testQuestions.filter(q => q.myAnswer === q.answer).length;
+            const wrongNum = 5 - correctNum;
+            if (score === 100) {
+                level = '优秀';
+                analysis = '你对油膜法估测油酸分子大小的实验知识掌握得非常扎实，实验原理、公式、操作注意事项都能准确掌握，继续保持！';
+            } else if (score >= 80) {
+                level = '良好';
+                analysis = '你对油膜法实验的核心知识掌握较好，仅有少量知识点需要巩固，建议重点查看答错的题目，强化记忆！';
+            } else if (score >= 60) {
+                level = '及格';
+                analysis = '你基本掌握了油膜法实验的核心原理，但仍有部分知识点理解有误，建议重新阅读实验原理和注意事项，结合演示加深理解！';
+            } else {
+                level = '待提升';
+                analysis = '你对油膜法实验的知识掌握较为薄弱，建议先认真学习实验原理、步骤和计算公式，再结合实验演示反复理解，完成错题订正！';
+            }
+
+            let resultHtml = `
+                <div class="score-result">
+                    <div>你的检测得分</div>
+                    <div class="score-num">${score}</div>
+                    <div class="score-level">等级：${level}（答对${correctNum}题，答错${wrongNum}题）</div>
+                </div>
+                <div class="analysis-box">
+                    <div class="analysis-title">学情分析</div>
+                    <div>${analysis}</div>
+                </div>
+                <div class="answer-list">
+                    <h3 style="margin-bottom:1rem;">答案详情（正确✅绿色，错误❌红色）</h3>
+            `;
+            testQuestions.forEach(question => {
+                const isCorrect = question.myAnswer === question.answer;
+                const correctText = question.options.find(o => o.value === question.answer).text;
+                const myAnswerText = question.myAnswer ? question.options.find(o => o.value === question.myAnswer).text : '未作答';
+                resultHtml += `
+                    <div class="question-item" style="margin-bottom:1rem;">
+                        <div class="question-title">
+                            第${question.id}题：${question.title}
+                            <span class="${isCorrect ? 'answer-correct' : 'answer-wrong'}">
+                                ${isCorrect ? '✅ 答对' : '❌ 答错'}
+                            </span>
+                        </div>
+                        <div class="answer-result">
+                            <div class="my-answer"><strong>我的答案：</strong>
+                                <span class="${isCorrect ? 'answer-correct' : 'answer-wrong'}">
+                                    ${question.myAnswer}. ${myAnswerText}
+                                </span>
+                            </div>
+                            <div class="correct-answer"><strong>正确答案：</strong>
+                                <span class="answer-correct">${question.answer}. ${correctText}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            resultHtml += '</div>';
+
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'btn demo-reset-btn';
+            closeBtn.textContent = '关闭结果';
+            closeBtn.onclick = () => { if (resultModal) resultModal.remove(); };
+            resultModal = createModal(`检测结果：你的得分为${score}分`, resultHtml, closeBtn);
+        }
+
+        // 事件绑定
+        resetExperiment();
+        doStepBtn.addEventListener('click',()=>{
+            if (currentStep>=maxStep) return;
+            experimentSteps[currentStep].do();
+            currentStep++;
+            updateStepInfo();
+            prevStepBtn.disabled = false;
+            if (currentStep>=maxStep) doStepBtn.disabled = true;
+            updateFilmByDrop();
+        });
+        prevStepBtn.addEventListener('click',()=>{
+            if (currentStep<=0) return;
+            currentStep--;
+            experimentSteps[currentStep].prev();
+            updateStepInfo();
+            doStepBtn.disabled = false;
+            if (currentStep<=0) prevStepBtn.disabled = true;
+        });
+        resetDemoBtn.addEventListener('click',resetExperiment);
+        dropCountSelect.addEventListener('change',()=>{
+            updateFilmByDrop();
+            updateStepInfo();
+        });
+        startTestBtn.addEventListener('click', renderTestModal);
+    </script>
+</body>
+</html>
+

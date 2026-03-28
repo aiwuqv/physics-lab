@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>α、β、γ射线在磁场中的偏转</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f8ff;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            font-size: 32px;
+        }
+        
+        #simulation-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        #simulation-area {
+            position: relative;
+            width: 800px;
+            height: 500px;
+            border: 2px solid #333;
+            background: linear-gradient(to right, #ffffff 0%, #ffffff 35%, #e6f3ff 35%, #e6f3ff 65%, #ffffff 65%, #ffffff 100%);
+        }
+                
+        #magnetic-field-area {
+            position: absolute;
+            left: 35%;
+            top: 0;
+            width: 30%;
+            height: 100%;
+            background-color: rgba(173, 216, 230, 0.3);
+            border-left: 2px dashed #333;
+            border-right: 2px dashed #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        #screen {
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 20px;
+            height: 100%;
+            background-color: #f0f0f0;
+            border-left: 2px solid #333;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 15px;
+            background-color: #ecf0f1;
+            border-radius: 8px;
+            width: 800px;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        footer {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #ecf0f1;
+            border-radius: 8px;
+            width: 800px;
+        }
+        
+        .particle-info {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .particle-label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .color-box {
+            width: 15px;
+            height: 15px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <!-- 标题区 -->
+    <header>
+        <h1>α、β、γ射线在磁场中的偏转</h1>
+    </header>
+
+    <!-- 交互展示区 -->
+    <main id="interactive-area">
+        <div id="simulation-container">
+            <div id="simulation-area">
+                <div id="source-box" style="position: absolute; left: 80px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border: 2px solid #333; background-color: #f9f9f9; display: flex; justify-content: center; align-items: center; font-weight: bold; color: #333;">源</div>
+                <div id="magnetic-field-area"><span id="magnetic-field-value-display">磁场区域 (B = 0.025T)</span><br><div style="position: absolute; top: 10px; right: 10px; font-size: 14px; color: #000;">磁场方向: ⊗ (垂直纸面向内)</div></div>
+                <div id="screen">屏幕</div>
+                <!-- 粒子轨迹将在此处绘制 -->
+            </div>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <label for="velocity">初速度 (×10⁶ m/s):</label>
+                    <input type="range" id="velocity" min="1" max="100" value="20" step="1">
+                    <span id="velocity-value">20</span>
+                </div>
+                
+                <div class="control-group">
+                    <label for="magnetic-field">磁场强度 (T):</label>
+                    <input type="range" id="magnetic-field" min="0" max="0.05" value="0.025" step="0.001">
+                    <span id="magnetic-field-value">0.025</span>
+                </div>
+                
+                <button id="start-btn">发射三种粒子</button>
+                <button id="pause-btn">暂停</button>
+                <button id="reset-btn">重置</button>
+                <button id="quiz-btn">知识检测</button>
+
+            </div>
+            
+            <div class="particle-info">
+                <div class="particle-label">
+                    <div class="color-box" style="background-color: #FF0000;"></div>
+                    <span>α射线 (氦核)</span>
+                </div>
+                <div class="particle-label">
+                    <div class="color-box" style="background-color: #00FF00;"></div>
+                    <span>β射线 (电子)</span>
+                </div>
+                <div class="particle-label">
+                    <div class="color-box" style="background-color: #0000FF;"></div>
+                    <span>γ射线 (光子)</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 信息说明区 -->
+    <footer>
+        <h3>物理原理说明</h3>
+        <p><strong>洛伦兹力公式：</strong> F = qvB</p>
+        <p><strong>圆周运动半径：</strong> r = mv/(|q|B) (仅适用于带电粒子)</p>
+        <p>带电粒子在磁场中会受到洛伦兹力作用而发生偏转，不带电粒子在磁场中不受影响，沿直线运动。磁场方向垂直纸面向内(⊗)，可以通过调节磁场强度（0-0.05T）观察不同磁场强度对带电粒子偏转的影响。</p>
+        <ul>
+            <li>α射线：带正电(电量+2e)，质量较大(约4个原子质量单位)，在磁场中向上偏转，偏转半径大</li>
+            <li>β射线：带负电(电量-e)，质量小(约1/1836个原子质量单位)，在磁场中向下偏转，偏转半径小</li>
+            <li>γ射线：不带电(光子)，无静止质量，在磁场中不发生偏转，沿直线运动</li>
+        </ul>
+        <p>注意：α射线和β射线是带电粒子流，在磁场中受洛伦兹力作用发生偏转；γ射线是电磁波，不带电，因此不受磁场影响。</p>
+    </footer>
+
+    <script>
+        // 物理常量
+        const ELEMENTARY_CHARGE = 1.6e-19; // 基元电荷
+        const PROTON_MASS = 1.67e-27; // 质子质量
+        const ELECTRON_MASS = 9.11e-31; // 电子质量
+        
+        // 粒子参数
+        const particles = {
+            alpha: { // α射线（氦核）
+                charge: 2 * ELEMENTARY_CHARGE,
+                mass: 4 * PROTON_MASS,
+                color: "#FF0000",
+                name: "α射线 (氦核)",
+                isDeflected: true // 在磁场中会偏转
+            },
+            beta: { // β射线（电子）
+                charge: -1 * ELEMENTARY_CHARGE,
+                mass: ELECTRON_MASS,
+                color: "#00FF00",
+                name: "β射线 (电子)",
+                isDeflected: true // 在磁场中会偏转
+            },
+            gamma: { // γ射线（光子）
+                charge: 0, // 不带电
+                mass: 0, // 静止质量为0
+                color: "#0000FF",
+                name: "γ射线 (光子)",
+                isDeflected: false // 在磁场中不偏转
+            }
+        };
+        
+        // 获取DOM元素
+        const simulationArea = document.getElementById("simulation-area");
+        const velocitySlider = document.getElementById("velocity");
+        const velocityValue = document.getElementById("velocity-value");
+        const magneticFieldSlider = document.getElementById("magnetic-field");
+        const magneticFieldValue = document.getElementById("magnetic-field-value");
+        const startBtn = document.getElementById("start-btn");
+        const pauseBtn = document.getElementById("pause-btn");
+        const resetBtn = document.getElementById("reset-btn");
+        const quizBtn = document.getElementById("quiz-btn");
+
+        
+        // 初始化参数
+        let velocity = 20; // ×10⁶ m/s
+        let magneticField = 0.2; // T
+        let animationId = null;
+        let trajectories = [];
+        let isPaused = false;
+        
+        // 更新显示值
+        velocitySlider.value = velocity;
+        magneticFieldSlider.value = magneticField;
+        velocityValue.textContent = velocity;
+        magneticFieldValue.textContent = magneticField;
+        
+        // 事件监听器
+        velocitySlider.addEventListener("input", function() {
+            velocity = parseInt(this.value);
+            velocityValue.textContent = velocity;
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+        });
+        
+        magneticFieldSlider.addEventListener("input", function() {
+            magneticField = parseFloat(this.value);
+            magneticFieldValue.textContent = magneticField;
+            // 更新磁场区域的显示
+            document.getElementById("magnetic-field-value-display").innerHTML = `磁场区域 (B = ${magneticField}T)`;
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+        });
+        
+        startBtn.addEventListener("click", startSimulation);
+        pauseBtn.addEventListener("click", togglePause);
+        resetBtn.addEventListener("click", resetSimulation);
+        quizBtn.addEventListener("click", showQuiz);
+
+        
+        // 暂停/继续功能
+        function togglePause() {
+            isPaused = !isPaused;
+            if (isPaused) {
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                    animationId = null;
+                }
+                pauseBtn.textContent = "继续";
+            } else {
+                pauseBtn.textContent = "暂停";
+                // 重新开始动画
+                for (let particleType in particles) {
+                    setTimeout(() => {
+                        simulateParticle(particleType);
+                    }, 500);
+                }
+            }
+        }
+        
+        // 开始模拟（同时发射三种粒子）
+        function startSimulation() {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            resetSimulation();
+            // 同时模拟三种粒子
+            for (let particleType in particles) {
+                setTimeout(() => {
+                    simulateParticle(particleType);
+                }, 500); // 延迟发射以区分轨迹
+            }
+        }
+        
+        // 重置模拟
+        function resetSimulation() {
+            // 清除所有粒子和轨迹元素
+            const existingParticles = document.querySelectorAll(".particle, .trajectory, .trajectory-dot");
+            existingParticles.forEach(p => p.remove());
+            
+            // 重置轨迹数组
+            trajectories = [];
+            
+            // 取消动画帧
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            
+            // 重置按钮文本
+            startBtn.textContent = "开始模拟";
+        }
+        
+        // 计算粒子轨迹
+        function calculateTrajectory(particleType) {
+            const particle = particles[particleType];
+            const v = velocity * 1e6; // 实际速度
+            const B = magneticField; // 磁场强度
+            const q = particle.charge; // 电荷量
+            const m = particle.mass; // 质量
+            
+            // 所有射线从同一位置发出
+            const startX = 100; // 起始x坐标
+            const startY = simulationArea.offsetHeight / 2; // 起始y坐标（同一位置）
+            
+            // 模拟参数
+            const magneticLeft = simulationArea.offsetWidth * 0.35; // 磁场左边界
+            const magneticRight = simulationArea.offsetWidth * 0.65; // 磁场右边界
+            
+            // 轨迹点数组
+            const trajectory = [];
+            
+            // 直线运动部分 (磁场外)
+            let x = startX;
+            let y = startY;
+            const step = 1; // 每次移动的像素数
+            
+            // 在磁场左边做直线运动
+            while (x < magneticLeft) {
+                trajectory.push({x: x, y: y});
+                x += step;
+            }
+            
+            // 根据粒子类型决定是否在磁场中偏转
+            if (particle.isDeflected) {
+                // 带电粒子在磁场中做圆周运动
+                if (q !== 0) { // 确保电荷不为0
+                    // 计算圆周运动半径 (简化模型)
+                    const r = (m * v) / Math.abs(q * B);
+                    
+                    // 简化计算：将物理单位转换为屏幕像素单位
+                    // 根据粒子类型调整缩放比例，使β射线轨迹更明显
+                    let scale;
+                    if (particleType === 'beta') {
+                        // β射线质量小，半径小，需要更大的缩放比例
+                        scale = 1000; // 在新的低磁场强度下，需要更大的缩放
+                    } else {
+                        scale = 5; // α射线和γ射线使用正常缩放
+                    }
+                    const radius = r * scale;
+                    
+                    // 在磁场中做圆周运动
+                    if (x >= magneticLeft && x <= magneticRight) {
+                        // 计算圆心位置
+                        // 根据洛伦兹力方向，正电荷逆时针偏转，负电荷顺时针偏转
+                        const direction = q > 0 ? -1 : 1; // 正电荷向上偏转，负电荷向下偏转
+                        
+                        // 确定圆心位置
+                        const centerX = x;
+                        const centerY = y + direction * radius;
+                        
+                        // 计算进入磁场时的角度
+                        let angle = Math.PI * 1.5; // 从底部开始 (对应向右运动)
+                        
+                        // 在磁场中做圆周运动
+                        while (x < magneticRight && angle < Math.PI * 2.5) {
+                            angle += step / radius;
+                            x = centerX + radius * Math.cos(angle);
+                            y = centerY + direction * radius * Math.sin(angle);
+                            
+                            trajectory.push({x: x, y: y});
+                        }
+                    }
+                }
+            } else {
+                // γ射线（不带电）在磁场中不偏转，继续直线运动
+                while (x < magneticRight) {
+                    x += step;
+                    trajectory.push({x: x, y: y});
+                }
+            }
+            
+            // 离开磁场后的直线运动
+            if (x > magneticRight) {
+                // 计算离开磁场时的切线方向
+                let initialAngle;
+                if (trajectory.length >= 2) {
+                    initialAngle = Math.atan2(trajectory[trajectory.length-1].y - trajectory[trajectory.length-2].y, 
+                                           trajectory[trajectory.length-1].x - trajectory[trajectory.length-2].x);
+                } else {
+                    initialAngle = 0; // 默认向右
+                }
+                
+                // 继续直线运动直到屏幕边缘或屏幕
+                while (x < simulationArea.offsetWidth - 20 && y > 0 && y < simulationArea.offsetHeight) {
+                    x += Math.cos(initialAngle) * step;
+                    y += Math.sin(initialAngle) * step;
+                    trajectory.push({x: x, y: y});
+                }
+            }
+            
+            return trajectory;
+        }
+        
+        // 绘制轨迹
+        function drawTrajectory(trajectory, color) {
+            let index = 0;
+            
+            function animate() {
+                if (!isPaused && index < trajectory.length) {
+                    const point = trajectory[index];
+                    
+                    // 创建轨迹点
+                    const dot = document.createElement("div");
+                    dot.className = "trajectory-dot";
+                    dot.style.position = "absolute";
+                    dot.style.width = "2px";
+                    dot.style.height = "2px";
+                    dot.style.backgroundColor = color;
+                    dot.style.borderRadius = "50%";
+                    dot.style.left = point.x + "px";
+                    dot.style.top = point.y + "px";
+                    simulationArea.appendChild(dot);
+                    
+                    index++;
+                    animationId = requestAnimationFrame(animate);
+                } else if (index >= trajectory.length) {
+                    startBtn.textContent = "重新开始";
+                }
+                // 如果暂停了，动画会自然停止，因为条件判断会阻止继续执行
+            }
+            
+            animate();
+        }
+        
+        // 模拟粒子运动
+        function simulateParticle(particleType) {
+            const trajectory = calculateTrajectory(particleType);
+            const particle = particles[particleType];
+            drawTrajectory(trajectory, particle.color);
+        }
+        
+        // 初始化显示
+        resetSimulation();
+        
+        // 知识检测功能
+        function showQuiz() {
+            // 创建弹出窗口
+            const quizOverlay = document.createElement('div');
+            quizOverlay.style.position = 'fixed';
+            quizOverlay.style.top = '0';
+            quizOverlay.style.left = '0';
+            quizOverlay.style.width = '100%';
+            quizOverlay.style.height = '100%';
+            quizOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+            quizOverlay.style.zIndex = '1000';
+            quizOverlay.style.display = 'flex';
+            quizOverlay.style.justifyContent = 'center';
+            quizOverlay.style.alignItems = 'center';
+            
+            const quizWindow = document.createElement('div');
+            quizWindow.style.backgroundColor = 'white';
+            quizWindow.style.padding = '20px';
+            quizWindow.style.borderRadius = '10px';
+            quizWindow.style.width = '600px';
+            quizWindow.style.maxHeight = '80vh';
+            quizWindow.style.overflowY = 'auto';
+            quizWindow.style.boxShadow = '0 0 20px rgba(0, 0, 0, 0.5)';
+            
+            // 知识检测题目
+            const quizQuestions = [
+                {
+                    question: "1. α射线在磁场中的偏转方向与β射线相比如何？",
+                    options: ["相同", "相反", "不偏转", "无法确定"],
+                    correct: 1
+                },
+                {
+                    question: "2. γ射线在磁场中会发生偏转吗？",
+                    options: ["会，偏转很大", "会，偏转很小", "不会偏转", "视情况而定"],
+                    correct: 2
+                },
+                {
+                    question: "3. 粒子在磁场中受到的力叫做什么？",
+                    options: ["库仑力", "洛伦兹力", "安培力", "重力"],
+                    correct: 1
+                },
+                {
+                    question: "4. 当磁场强度增大时，带电粒子的轨道半径如何变化？",
+                    options: ["增大", "减小", "不变", "先增大后减小"],
+                    correct: 1
+                },
+                {
+                    question: "5. 以下哪种射线质量最大？",
+                    options: ["α射线", "β射线", "γ射线", "三者质量相同"],
+                    correct: 0
+                }
+            ];
+            
+            let currentQuestion = 0;
+            let userAnswers = new Array(quizQuestions.length).fill(null);
+            
+            function renderQuestion() {
+                quizWindow.innerHTML = '';
+                
+                const question = quizQuestions[currentQuestion];
+                
+                const questionDiv = document.createElement('div');
+                questionDiv.innerHTML = `
+                    <h3>题目 ${currentQuestion + 1}/${quizQuestions.length}</h3>
+                    <p><strong>${question.question}</strong></p>
+                `;
+                
+                question.options.forEach((option, index) => {
+                    const optionDiv = document.createElement('div');
+                    optionDiv.style.margin = '10px 0';
+                    
+                    const radio = document.createElement('input');
+                    radio.type = 'radio';
+                    radio.name = 'question_' + currentQuestion;
+                    radio.value = index;
+                    radio.id = 'q' + currentQuestion + '_opt' + index;
+                    if (userAnswers[currentQuestion] === index) {
+                        radio.checked = true;
+                    }
+                    
+                    radio.addEventListener('change', function() {
+                        userAnswers[currentQuestion] = parseInt(this.value);
+                    });
+                    
+                    const label = document.createElement('label');
+                    label.htmlFor = 'q' + currentQuestion + '_opt' + index;
+                    label.textContent = option;
+                    label.style.marginLeft = '5px';
+                    
+                    optionDiv.appendChild(radio);
+                    optionDiv.appendChild(label);
+                    questionDiv.appendChild(optionDiv);
+                });
+                
+                quizWindow.appendChild(questionDiv);
+                
+                // 导航按钮
+                const navDiv = document.createElement('div');
+                navDiv.style.display = 'flex';
+                navDiv.style.justifyContent = 'space-between';
+                navDiv.style.marginTop = '20px';
+                
+                const prevBtn = document.createElement('button');
+                prevBtn.textContent = '上一题';
+                prevBtn.disabled = currentQuestion === 0;
+                prevBtn.addEventListener('click', () => {
+                    if (currentQuestion > 0) {
+                        currentQuestion--;
+                        renderQuestion();
+                    }
+                });
+                
+                const nextBtn = document.createElement('button');
+                nextBtn.textContent = currentQuestion === quizQuestions.length - 1 ? '提交' : '下一题';
+                nextBtn.addEventListener('click', () => {
+                    if (currentQuestion < quizQuestions.length - 1) {
+                        currentQuestion++;
+                        renderQuestion();
+                    } else {
+                        submitQuiz();
+                    }
+                });
+                
+                navDiv.appendChild(prevBtn);
+                navDiv.appendChild(nextBtn);
+                quizWindow.appendChild(navDiv);
+            }
+            
+            function submitQuiz() {
+                // 计算得分
+                let correctCount = 0;
+                let incorrectQuestions = [];
+                
+                quizQuestions.forEach((q, index) => {
+                    if (userAnswers[index] === q.correct) {
+                        correctCount++;
+                    } else {
+                        incorrectQuestions.push({
+                            question: q.question,
+                            correctAnswer: q.options[q.correct],
+                            userAnswer: userAnswers[index] !== null ? q.options[userAnswers[index]] : '未回答'
+                        });
+                    }
+                });
+                
+                const score = Math.round((correctCount / quizQuestions.length) * 100);
+                
+                // 显示结果
+                quizWindow.innerHTML = '';
+                
+                const resultDiv = document.createElement('div');
+                resultDiv.innerHTML = `
+                    <h3>测试结果</h3>
+                    <p><strong>得分: ${score}/100</strong></p>
+                    <p>答对: ${correctCount} 题</p>
+                    <p>答错: ${quizQuestions.length - correctCount} 题</p>
+                    
+                    <h4>学情分析:</h4>
+                    <ul>
+                        ${score >= 80 ? '<li>优秀！您对带电粒子在磁场中的运动规律掌握得很好。</li>' : 
+                          score >= 60 ? '<li>良好！您对基本概念有一定了解，但还需加强某些知识点。</li>' : 
+                          '<li>需要加强！建议重新学习相关知识点。</li>'}
+                        <li>本次测试考察了α、β、γ射线在磁场中的不同行为，以及洛伦兹力等相关概念。</li>
+                    </ul>
+                    
+                    ${incorrectQuestions.length > 0 ? `
+                        <h4>错题纠正:</h4>
+                        <ul>
+                            ${incorrectQuestions.map(q => `
+                                <li>
+                                    <p><strong>题目:</strong> ${q.question}</p>
+                                    <p><strong>您的答案:</strong> ${q.userAnswer}</p>
+                                    <p><strong>正确答案:</strong> ${q.correctAnswer}</p>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    ` : '<h4>恭喜！全部答对了！</h4>'}
+                `;
+                
+                const closeBtn = document.createElement('button');
+                closeBtn.textContent = '关闭';
+                closeBtn.style.marginTop = '20px';
+                closeBtn.addEventListener('click', () => {
+                    document.body.removeChild(quizOverlay);
+                });
+                
+                quizWindow.appendChild(resultDiv);
+                quizWindow.appendChild(closeBtn);
+            }
+            
+            renderQuestion();
+            quizOverlay.appendChild(quizWindow);
+            document.body.appendChild(quizOverlay);
+        }
+    </script>
+</body>
+</html>

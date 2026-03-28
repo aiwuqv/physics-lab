@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>康普顿效应模拟实验</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        
+        .simulation-area {
+            width: 800px;
+            height: 500px;
+            border: 2px solid #333;
+            position: relative;
+            background: linear-gradient(to bottom, #e6f7ff, #ffffff);
+            margin: 20px auto;
+            overflow: hidden;
+        }
+        
+        .electron {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: #007BFF;
+            border-radius: 50%;
+            top: 240px;
+            left: 390px;
+            border: 2px solid #0056b3;
+        }
+        
+        .photon {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #FFD700;
+            border-radius: 50%;
+            top: 245px;
+            left: 100px;
+            box-shadow: 0 0 10px #FFD700;
+        }
+        
+        .controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        
+        button:hover {
+            background-color: #0056b3;
+        }
+        
+        .info-panel {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #007BFF;
+        }
+        
+        .trajectory {
+            position: absolute;
+            height: 2px;
+            background-color: transparent;
+            border-top: 2px dashed rgba(255, 215, 0, 0.8);
+            transform-origin: 0 0;
+        }
+        
+        .scattered-trajectory {
+            position: absolute;
+            height: 2px;
+            background-color: transparent;
+            border-top: 2px dashed rgba(255, 100, 100, 0.8);
+            transform-origin: 0 0;
+        }
+        
+        .electron-trajectory {
+            position: absolute;
+            height: 2px;
+            background-color: transparent;
+            border-top: 2px dashed rgba(0, 206, 209, 0.8);
+            transform-origin: 0 0;
+        }
+        
+        .particle-label {
+            position: absolute;
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+            pointer-events: none;
+            user-select: none;
+        }
+        
+        .info-table {
+            text-align: center;
+            margin: 10px auto;
+            width: 800px;
+        }
+        
+        .basic-info-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #333;
+            margin: 0 auto;
+            background-color: #f8f9fa;
+        }
+        
+        .basic-info-table th,
+        .basic-info-table td {
+            border: 1px solid #333;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        .basic-info-table th {
+            background-color: #007BFF;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .explanation {
+            margin-top: 20px;
+            line-height: 1.6;
+        }
+        
+        .knowledge-test {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 500px;
+            background-color: white;
+            border: 2px solid #007BFF;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 1000;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+        
+        .close-btn {
+            float: right;
+            cursor: pointer;
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <h1>康普顿效应模拟实验</h1>
+        
+        <!-- 基础信息表格 -->
+        <div class="info-table">
+            <table class="basic-info-table">
+                <tr>
+                    <th colspan="2">康普顿效应基础信息</th>
+                </tr>
+                <tr>
+                    <td>入射光子能量</td>
+                    <td id="incidentPhotonEnergy">E₀ = hν₀</td>
+                </tr>
+                <tr>
+                    <td>散射光子能量</td>
+                    <td id="scatteredPhotonEnergy">E₁ = hν₁</td>
+                </tr>
+                <tr>
+                    <td>电子动能</td>
+                    <td id="electronKineticEnergy">Kₑ = E₀ - E₁</td>
+                </tr>
+                <tr>
+                    <td>散射角度</td>
+                    <td id="scatteringAngle">θ = 30°</td>
+                </tr>
+                <tr>
+                    <td>康普顿波长变化</td>
+                    <td id="comptonWavelengthChange">Δλ = λ₁ - λ₀</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="simulation-area" id="simulationArea">
+            <!-- 静止电子 -->
+            <div class="electron" id="electron"></div>
+            <div class="particle-label" id="electronLabel">电子</div>
+            
+            <!-- 入射光子 -->
+            <div class="photon" id="photon"></div>
+            <div class="particle-label" id="photonLabel">光子</div>
+            
+            <!-- 轨迹线 -->
+            <div class="trajectory" id="incomingTrajectory" style="width: 300px; top: 249px; left: 100px;"></div>
+            <div class="scattered-trajectory" id="scatteredPhoton" style="display: none;"></div>
+            <div class="electron-trajectory" id="scatteredElectron" style="display: none;"></div>
+        </div>
+        
+        <div class="controls">
+            <button onclick="startSimulation()">开始模拟</button>
+            <button onclick="resetSimulation()">重置</button>
+            <button onclick="showInfo()">显示说明</button>
+            <button onclick="showKnowledgeTest()">知识检测</button>
+        </div>
+        
+        <div class="info-panel" id="infoPanel" style="display: none;">
+            <h3>康普顿效应说明</h3>
+            <p><strong>康普顿效应</strong>是指X射线或伽马射线的光子与物质中的电子发生弹性碰撞时，光子将部分能量传递给电子，使光子的能量减小、波长变长的现象。</p>
+            <p><strong>康普顿散射公式：</strong> Δλ = λ' - λ = (h/m₀c)(1 - cos θ)</p>
+            <p>其中：λ 是入射光子波长，λ' 是散射光子波长，θ 是散射角，h 是普朗克常数，m₀ 是电子静止质量，c 是光速。</p>
+        </div>
+        
+        <div class="explanation">
+            <h3>实验说明</h3>
+            <ul>
+                <li>黄色圆点代表入射的高能光子（如X射线或伽马射线）</li>
+                <li>蓝色圆点代表静止的自由电子</li>
+                <li>光子撞击电子后，光子能量减少（波长变长），改变运动方向</li>
+                <li>电子获得动能，沿另一方向飞出</li>
+                <li>此现象证实了光的粒子性，证明光子具有动量</li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- 知识检测模态对话框 -->
+    <div class="overlay" id="overlay" onclick="closeKnowledgeTest()"></div>
+    <div class="knowledge-test" id="knowledgeTest">
+        <span class="close-btn" onclick="closeKnowledgeTest()">&times;</span>
+        <h3>康普顿效应知识检测</h3>
+        <form id="testForm">
+            <p><strong>1. 康普顿效应证明了光具有什么性质？</strong></p>
+            <input type="radio" name="q1" value="A"> 波动性<br>
+            <input type="radio" name="q1" value="B"> 粒子性<br>
+            <input type="radio" name="q1" value="C"> 磁性<br>
+            <input type="radio" name="q1" value="D"> 电性<br>
+            
+            <p><strong>2. 在康普顿散射中，散射光子的波长相比于入射光子：</strong></p>
+            <input type="radio" name="q2" value="A"> 变短<br>
+            <input type="radio" name="q2" value="B"> 不变<br>
+            <input type="radio" name="q2" value="C"> 变长<br>
+            <input type="radio" name="q2" value="D"> 无法确定<br>
+            
+            <p><strong>3. 康普顿效应中，光子与哪种粒子发生碰撞？</strong></p>
+            <input type="radio" name="q3" value="A"> 质子<br>
+            <input type="radio" name="q3" value="B"> 中子<br>
+            <input type="radio" name="q3" value="C"> 电子<br>
+            <input type="radio" name="q3" value="D"> 原子核<br>
+            
+            <br>
+            <button type="button" onclick="submitTest()">提交答案</button>
+            <button type="button" onclick="resetTest()">重置答案</button>
+        </form>
+        <div id="result"></div>
+    </div>
+    
+    <script>
+        let animationId = null;
+        const simulationArea = document.getElementById('simulationArea');
+        const photon = document.getElementById('photon');
+        const electron = document.getElementById('electron');
+        const photonLabel = document.getElementById('photonLabel');
+        const electronLabel = document.getElementById('electronLabel');
+        const incomingTrajectory = document.getElementById('incomingTrajectory');
+        const scatteredPhoton = document.getElementById('scatteredPhoton');
+        const scatteredElectron = document.getElementById('scatteredElectron');
+        
+        // 基础信息表格元素
+        const incidentPhotonEnergy = document.getElementById('incidentPhotonEnergy');
+        const scatteredPhotonEnergy = document.getElementById('scatteredPhotonEnergy');
+        const electronKineticEnergy = document.getElementById('electronKineticEnergy');
+        const scatteringAngle = document.getElementById('scatteringAngle');
+        const comptonWavelengthChange = document.getElementById('comptonWavelengthChange');
+
+        function startSimulation() {
+            // 清除之前的动画
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            
+            // 重置位置
+            resetSimulation();
+            
+            // 隐藏散射轨迹
+            scatteredPhoton.style.display = 'none';
+            scatteredElectron.style.display = 'none';
+            
+            // 开始动画
+            animatePhoton();
+        }
+
+        function animatePhoton() {
+            let pos = 100; // 初始位置
+            const speed = 3; // 移动速度
+            
+            function move() {
+                pos += speed;
+                
+                // 更新光子位置
+                photon.style.left = pos + 'px';
+                // 同步更新光子标签位置
+                photonLabel.style.left = (pos - 5) + 'px';
+                photonLabel.style.top = '225px';
+                
+                // 当光子到达电子位置时，发生碰撞
+                if (pos >= 380) { // 接近电子的位置
+                    collisionEffect();
+                    return;
+                }
+                
+                animationId = requestAnimationFrame(move);
+            }
+            
+            move();
+        }
+
+        function collisionEffect() {
+            // 不隐藏光子，而是改变其属性和轨迹
+            
+            // 创建散射效果
+            setTimeout(() => {
+                // 显示散射轨迹
+                showScattering();
+                
+                // 改变现有光子和电子的状态
+                updateParticles();
+            }, 300);
+        }
+
+        function showScattering() {
+            // 显示散射光子轨迹 (右上方)
+            scatteredPhoton.style.display = 'block';
+            scatteredPhoton.style.width = '300px';
+            scatteredPhoton.style.top = '249px';
+            scatteredPhoton.style.left = '390px';
+            scatteredPhoton.style.transform = 'rotate(-30deg)';
+            
+            // 显示反冲电子轨迹 (右下方)
+            scatteredElectron.style.display = 'block';
+            scatteredElectron.style.width = '250px';
+            scatteredElectron.style.top = '249px';
+            scatteredElectron.style.left = '390px';
+            scatteredElectron.style.transform = 'rotate(20deg)';
+        }
+
+        function updateParticles() {
+            // 改变光子的外观（颜色和亮度），表示能量降低
+            photon.style.backgroundColor = '#FFA500'; // 橙色表示能量较低
+            photon.style.boxShadow = '0 0 8px #FFA500';
+            
+            // 更新光子标签，表示散射后的光子
+            photonLabel.innerHTML = '散射光子';
+            
+            // 重置光子位置到碰撞点
+            photon.style.left = '390px';
+            photon.style.top = '245px';
+            
+            // 更新基础信息表格
+            updateBasicInfoTable();
+            
+            // 动画散射光子
+            let phPos = 0;
+            let phAngle = -30 * Math.PI / 180; // -30度转弧度
+            const phSpeed = 2;
+            
+            function moveScatteredPhoton() {
+                phPos += phSpeed;
+                const x = 390 + phPos * Math.cos(phAngle);
+                const y = 245 + phPos * Math.sin(phAngle);
+                
+                photon.style.left = x + 'px';
+                photon.style.top = y + 'px';
+                
+                // 同步更新光子标签位置
+                photonLabel.style.left = (x - 10) + 'px';
+                photonLabel.style.top = (y - 20) + 'px';
+                
+                if (phPos < 300) {
+                    requestAnimationFrame(moveScatteredPhoton);
+                }
+            }
+            
+            // 改变电子的外观，表示获得了能量
+            electron.style.backgroundColor = '#00CED1'; // 青色表示被撞击后的电子
+            electron.style.border = '2px solid #008B8B';
+            
+            // 更新电子标签，表示反冲电子
+            electronLabel.innerHTML = '反冲电子';
+            
+            // 动画反冲电子
+            let elPos = 0;
+            let elAngle = 20 * Math.PI / 180; // 20度转弧度
+            const elSpeed = 1.5;
+            
+            function moveRecoilElectron() {
+                elPos += elSpeed;
+                const x = 390 + elPos * Math.cos(elAngle);
+                const y = 240 + elPos * Math.sin(elAngle);
+                
+                electron.style.left = x + 'px';
+                electron.style.top = y + 'px';
+                
+                // 同步更新电子标签位置
+                electronLabel.style.left = (x - 10) + 'px';
+                electronLabel.style.top = (y - 20) + 'px';
+                
+                if (elPos < 250) {
+                    requestAnimationFrame(moveRecoilElectron);
+                }
+            }
+            
+            moveScatteredPhoton();
+            moveRecoilElectron();
+        }
+        
+        function updateBasicInfoTable() {
+            // 设置散射角度
+            const angleInDegrees = 30;
+            const angleInRadians = angleInDegrees * Math.PI / 180;
+            
+            // 更新散射角度
+            scatteringAngle.innerHTML = `θ = ${angleInDegrees}°`;
+            
+            // 计算康普顿波长变化 (Δλ = (h/m₀c)(1 - cos θ))
+            // 其中 h/m₀c ≈ 2.43×10⁻¹² m
+            const hDivM0C = 2.43e-12; // 康普顿波长
+            const wavelengthChange = hDivM0C * (1 - Math.cos(angleInRadians));
+            
+            comptonWavelengthChange.innerHTML = `Δλ = ${(wavelengthChange * 1e12).toFixed(2)} pm`;
+            
+            // 更新能量信息
+            incidentPhotonEnergy.innerHTML = 'E₀ = hν₀';
+            scatteredPhotonEnergy.innerHTML = 'E₁ = hν₁ < E₀';
+            electronKineticEnergy.innerHTML = 'Kₑ = E₀ - E₁ > 0';
+        }
+
+        function resetSimulation() {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            
+            // 重置光子位置和状态
+            photon.style.left = '100px';
+            photon.style.top = '245px';
+            photon.style.backgroundColor = '#FFD700';
+            photon.style.boxShadow = '0 0 10px #FFD700';
+            
+            // 重置光子标签
+            photonLabel.innerHTML = '光子';
+            photonLabel.style.left = '95px';
+            photonLabel.style.top = '225px';
+            
+            // 重置电子位置和状态
+            electron.style.left = '390px';
+            electron.style.top = '240px';
+            electron.style.backgroundColor = '#007BFF';
+            electron.style.border = '2px solid #0056b3';
+            
+            // 重置电子标签
+            electronLabel.innerHTML = '电子';
+            electronLabel.style.left = '385px';
+            electronLabel.style.top = '220px';
+            
+            // 重置基础信息表格
+            incidentPhotonEnergy.innerHTML = 'E₀ = hν₀';
+            scatteredPhotonEnergy.innerHTML = 'E₁ = hν₁';
+            electronKineticEnergy.innerHTML = 'Kₑ = E₀ - E₁';
+            scatteringAngle.innerHTML = 'θ = 0°';
+            comptonWavelengthChange.innerHTML = 'Δλ = λ₁ - λ₀';
+            
+            // 隐藏散射轨迹
+            scatteredPhoton.style.display = 'none';
+            scatteredElectron.style.display = 'none';
+        }
+
+        function showInfo() {
+            const infoPanel = document.getElementById('infoPanel');
+            infoPanel.style.display = infoPanel.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        function showKnowledgeTest() {
+            const knowledgeTest = document.getElementById('knowledgeTest');
+            const overlay = document.getElementById('overlay');
+            knowledgeTest.style.display = 'block';
+            overlay.style.display = 'block';
+        }
+        
+        function closeKnowledgeTest() {
+            const knowledgeTest = document.getElementById('knowledgeTest');
+            const overlay = document.getElementById('overlay');
+            knowledgeTest.style.display = 'none';
+            overlay.style.display = 'none';
+            
+            // 重置表单
+            document.getElementById('testForm').reset();
+            document.getElementById('result').innerHTML = '';
+        }
+        
+        function submitTest() {
+            const answers = {
+                q1: 'B', // 粒子性
+                q2: 'C', // 变长
+                q3: 'C'  // 电子
+            };
+                    
+            let score = 0;
+            const totalQuestions = 3;
+            let wrongAnswers = [];
+        
+            for (let i = 1; i <= totalQuestions; i++) {
+                const selectedOption = document.querySelector(`input[name='q${i}']:checked`);
+                if (selectedOption && selectedOption.value === answers[`q${i}`]) {
+                    score++;
+                } else {
+                    if (selectedOption) {
+                        wrongAnswers.push(i);
+                    }
+                }
+            }
+                    
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `<h4>得分: ${score}/${totalQuestions}</h4>`;
+                    
+            // 生成学情分析报告
+            let analysisReport = '<h4>学情分析报告</h4>';
+                    
+            if (score === totalQuestions) {
+                analysisReport += '<p><strong>掌握情况：</strong>优秀！您已完全掌握康普顿效应的核心概念。</p>';
+                analysisReport += '<p><strong>学习建议：</strong>可以进一步探索康普顿散射在天体物理学和医学成像中的应用。</p>';
+            } else if (score >= totalQuestions / 2) {
+                analysisReport += '<p><strong>掌握情况：</strong>良好！您对康普顿效应有基本的理解，但还有提升空间。</p>';
+                analysisReport += '<p><strong>学习建议：</strong>建议重点复习答错的题目，加深对光子与电子相互作用机制的理解。</p>';
+            } else {
+                analysisReport += '<p><strong>掌握情况：</strong>需要加强。您对康普顿效应的基本概念还不够熟悉。</p>';
+                analysisReport += '<p><strong>学习建议：</strong>建议重新观看模拟实验，重点关注光的粒子性和康普顿散射公式。</p>';
+            }
+                    
+            // 错题分析
+            if (wrongAnswers.length > 0) {
+                analysisReport += '<p><strong>错题分析：</strong></p><ul>';
+                wrongAnswers.forEach(qNum => {
+                    switch(qNum) {
+                        case 1:
+                            analysisReport += '<li>第1题：康普顿效应证明了光的粒子性，这是光子理论的重要证据之一。</li>';
+                            break;
+                        case 2:
+                            analysisReport += '<li>第2题：在康普顿散射中，光子将部分能量传递给电子，因此散射光子波长变长（能量降低）。</li>';
+                            break;
+                        case 3:
+                            analysisReport += '<li>第3题：康普顿效应是光子与物质中电子发生的弹性碰撞，通常指束缚较弱的外层电子。</li>';
+                            break;
+                    }
+                });
+                analysisReport += '</ul>';
+            }
+                    
+            resultDiv.innerHTML += analysisReport;
+                    
+            // 根据成绩提供个性化建议
+            if (score === totalQuestions) {
+                resultDiv.innerHTML += '<div style="background-color: #d4edda; padding: 10px; border-radius: 5px; margin-top: 10px;">🎉 恭喜！您已掌握康普顿效应的核心概念，可以尝试挑战更高难度的相关问题了。</div>';
+            } else {
+                resultDiv.innerHTML += '<div style="background-color: #fff3cd; padding: 10px; border-radius: 5px; margin-top: 10px;">💡 学习提示：回顾康普顿散射公式 Δλ = (h/m₀c)(1 - cos θ)，理解物理意义。</div>';
+            }
+        }
+        
+        function resetTest() {
+            document.getElementById('testForm').reset();
+            document.getElementById('result').innerHTML = '';
+        }
+        
+        // 页面加载完成后初始化
+        window.onload = function() {
+            resetSimulation();
+            
+            // 初始化标签位置
+            photonLabel.style.left = '95px';
+            photonLabel.style.top = '225px';
+            electronLabel.style.left = '385px';
+            electronLabel.style.top = '220px';
+        };
+    </script>
+</body>
+</html>

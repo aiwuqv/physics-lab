@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>导线切割磁感线实验 - 最终修正版</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f0f2f5;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        header {
+            text-align: center;
+            background: linear-gradient(135deg, #1a6bb3, #0d47a1);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+        }
+        
+        .experiment-area {
+            flex: 1;
+            min-width: 700px;
+            background-color: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+        }
+        
+        .controls-area {
+            flex: 0 0 350px;
+            background-color: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+        }
+        
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: #f8f9fa;
+            margin: 20px 0;
+        }
+        
+        #experimentCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        .formula-box {
+            background-color: #e8f4fd;
+            border-left: 5px solid #2196f3;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+            text-align: center;
+        }
+        
+        .formula {
+            font-size: 2rem;
+            color: #0d47a1;
+            margin: 10px 0;
+        }
+        
+        .note {
+            font-style: italic;
+            color: #666;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        
+        .control-group {
+            margin-bottom: 25px;
+        }
+        
+        h2 {
+            color: #1a6bb3;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #eaeaea;
+        }
+        
+        h3 {
+            color: #444;
+            margin-bottom: 15px;
+        }
+        
+        .slider-container {
+            margin-bottom: 20px;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .slider-label span:first-child {
+            font-weight: 600;
+        }
+        
+        .slider-label span:last-child {
+            color: #1a6bb3;
+            font-weight: 700;
+        }
+        
+        .slider {
+            width: 100%;
+            height: 10px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #d1d8e0;
+            outline: none;
+            border-radius: 5px;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #1a6bb3;
+            cursor: pointer;
+            border: 3px solid white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .btn-start {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .btn-start:hover {
+            background-color: #3d8b40;
+        }
+        
+        .btn-pause {
+            background-color: #FF9800;
+            color: white;
+        }
+        
+        .btn-pause:hover {
+            background-color: #e68900;
+        }
+        
+        .btn-reset {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        .btn-reset:hover {
+            background-color: #d32f2f;
+        }
+        
+        .btn-test {
+            background-color: #9C27B0;
+            color: white;
+            margin-top: 15px;
+            padding: 12px;
+        }
+        
+        .btn-test:hover {
+            background-color: #7b1fa2;
+        }
+        
+        .values-display {
+            background-color: #f5f9ff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 25px;
+        }
+        
+        .value-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px dashed #d1e3ff;
+        }
+        
+        .value-row:last-child {
+            border-bottom: none;
+        }
+        
+        .value-label {
+            font-weight: 600;
+        }
+        
+        .value-number {
+            color: #1a6bb3;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+        
+        .experiment-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eaeaea;
+        }
+        
+        .info-item {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .info-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #1a6bb3;
+        }
+        
+        .info-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        /* 弹窗样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            width: 90%;
+            max-width: 800px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, #1a6bb3, #0d47a1);
+            color: white;
+            padding: 20px 25px;
+        }
+        
+        .modal-header h2 {
+            color: white;
+            border: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .modal-body {
+            padding: 30px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        
+        .question {
+            margin-bottom: 30px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .question:last-child {
+            border-bottom: none;
+        }
+        
+        .question-text {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .option {
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .option:hover {
+            background-color: #f5f9ff;
+            border-color: #a0c8ff;
+        }
+        
+        .option.selected {
+            background-color: #e3f2fd;
+            border-color: #2196f3;
+        }
+        
+        .option.correct {
+            background-color: #e8f5e9;
+            border-color: #4CAF50;
+        }
+        
+        .option.incorrect {
+            background-color: #ffebee;
+            border-color: #f44336;
+        }
+        
+        .explanation {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .modal-footer {
+            padding: 20px 25px;
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .score {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1a6bb3;
+        }
+        
+        .close-btn {
+            background-color: #1a6bb3;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .close-btn:hover {
+            background-color: #0d47a1;
+        }
+        
+        @media (max-width: 1200px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            .experiment-area, .controls-area {
+                min-width: 100%;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .canvas-container {
+                height: 400px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-bolt"></i> 导线切割磁感线实验 - 最终修正版</h1>
+            <p class="subtitle">交互式电磁感应实验 - CD和NM都是矩形的宽，NM从CD开始向右运动</p>
+        </header>
+        
+        <div class="content">
+            <div class="experiment-area">
+                <h2><i class="fas fa-flask"></i> 实验区域</h2>
+                <p>观察矩形线圈CDMN在磁场中的运动。CD边在左边固定不动，NM边在右边从CD边附近开始向右运动。</p>
+                
+                <div class="canvas-container" id="canvasContainer">
+                    <canvas id="experimentCanvas"></canvas>
+                </div>
+                
+                <div class="formula-box">
+                    <h3>物理公式关系</h3>
+                    <div class="formula" id="formulaDisplay">
+                        ε = B·L·v &nbsp;&nbsp;→&nbsp;&nbsp; I = ε/R = (B·L·v)/R &nbsp;&nbsp;→&nbsp;&nbsp; F = B·I·L = B²·L²·v/R
+                    </div>
+                    <div class="note">
+                        <p><i class="fas fa-info-circle"></i> 在本交互实验中，导线运动方向始终垂直于磁场方向，因此 sinθ = sin90° = 1。</p>
+                        <p>根据右手定则，感应电流方向始终为逆时针方向，安培力方向与运动方向相反。</p>
+                    </div>
+                </div>
+                
+                <div class="experiment-info">
+                    <div class="info-item">
+                        <div class="info-value" id="currentEpsilon">0.00</div>
+                        <div class="info-label">感应电动势 ε (V)</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-value" id="currentForce">0.000</div>
+                        <div class="info-label">安培力 F (N)</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-value" id="currentDistance">0.50</div>
+                        <div class="info-label">CD-NM距离 (m)</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="controls-area">
+                <h2><i class="fas fa-sliders-h"></i> 实验控制</h2>
+                
+                <div class="control-group">
+                    <h3>参数调节</h3>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>磁场强度 B</span>
+                            <span id="bValue">1.0 T</span>
+                        </div>
+                        <input type="range" min="0.1" max="5.0" step="0.1" value="1.0" class="slider" id="bSlider">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>导线长度 L（矩形高度）</span>
+                            <span id="lValue">0.5 m</span>
+                        </div>
+                        <input type="range" min="0.1" max="2.0" step="0.1" value="0.5" class="slider" id="lSlider">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>运动速度 v</span>
+                            <span id="vValue">2.0 m/s</span>
+                        </div>
+                        <input type="range" min="0" max="20.0" step="0.2" value="2.0" class="slider" id="vSlider">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>回路电阻 R</span>
+                            <span id="rValue">2.0 Ω</span>
+                        </div>
+                        <input type="range" min="0.5" max="10.0" step="0.1" value="2.0" class="slider" id="rSlider">
+                    </div>
+                </div>
+                
+                <div class="values-display">
+                    <h3>当前实验值</h3>
+                    <div class="value-row">
+                        <span class="value-label">磁场强度 B:</span>
+                        <span class="value-number" id="displayB">1.0 T</span>
+                    </div>
+                    <div class="value-row">
+                        <span class="value-label">导线长度 L:</span>
+                        <span class="value-number" id="displayL">0.5 m</span>
+                    </div>
+                    <div class="value-row">
+                        <span class="value-label">运动速度 v:</span>
+                        <span class="value-number" id="displayV">2.0 m/s</span>
+                    </div>
+                    <div class="value-row">
+                        <span class="value-label">回路电阻 R:</span>
+                        <span class="value-number" id="displayR">2.0 Ω</span>
+                    </div>
+                    <div class="value-row">
+                        <span class="value-label">感应电动势 ε:</span>
+                        <span class="value-number" id="displayEpsilon">1.00 V</span>
+                    </div>
+                    <div class="value-row">
+                        <span class="value-label">感应电流 I:</span>
+                        <span class="value-number" id="displayCurrent">0.50 A</span>
+                    </div>
+                    <div class="value-row">
+                        <span class="value-label">安培力 F:</span>
+                        <span class="value-number" id="displayForce">0.250 N</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3>实验控制</h3>
+                    <div class="button-group">
+                        <button class="btn-start" id="startBtn">
+                            <i class="fas fa-play"></i> 开始
+                        </button>
+                        <button class="btn-pause" id="pauseBtn">
+                            <i class="fas fa-pause"></i> 暂停
+                        </button>
+                        <button class="btn-reset" id="resetBtn">
+                            <i class="fas fa-redo"></i> 重置
+                        </button>
+                    </div>
+                    
+                    <button class="btn-test" id="testBtn">
+                        <i class="fas fa-question-circle"></i> 学习检测
+                    </button>
+                </div>
+                
+                <div class="note">
+                    <p><i class="fas fa-lightbulb"></i> <strong>实验说明：</strong> CD边在左侧固定不动，NM边从CD边附近开始向右运动。调节导线长度L时，矩形的高度相应改变。磁场垂直纸面向里（×表示），安培力F（黄色箭头）作用在NM边上，方向向左阻碍运动。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 学习检测弹窗 -->
+    <div class="modal" id="testModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-graduation-cap"></i> 电磁感应学习检测</h2>
+            </div>
+            <div class="modal-body">
+                <p>请回答以下关于导线切割磁感线的5个问题，完成后将显示得分和解析。</p>
+                
+                <div class="question" id="question1">
+                    <div class="question-text">1. 当导线在磁场中运动时，产生感应电动势的基本公式是什么？</div>
+                    <div class="options">
+                        <div class="option" data-index="0">A. ε = BIL</div>
+                        <div class="option" data-index="1">B. ε = BLv</div>
+                        <div class="option" data-index="2">C. ε = IR</div>
+                        <div class="option" data-index="3">D. ε = F/q</div>
+                    </div>
+                    <div class="explanation" id="explanation1">
+                        <strong>正确答案：B</strong><br>
+                        导线切割磁感线产生感应电动势的基本公式是 ε = BLv（当导线方向、运动方向和磁场方向两两垂直时）。
+                    </div>
+                </div>
+                
+                <div class="question" id="question2">
+                    <div class="question-text">2. 根据右手定则，在本实验中感应电流的方向是什么？</div>
+                    <div class="options">
+                        <div class="option" data-index="0">A. 顺时针方向</div>
+                        <div class="option" data-index="1">B. 逆时针方向</div>
+                        <div class="option" data-index="2">C. 没有感应电流</div>
+                        <div class="option" data-index="3">D. 方向不断变化</div>
+                    </div>
+                    <div class="explanation" id="explanation2">
+                        <strong>正确答案：B</strong><br>
+                        根据右手定则，当导线向右运动切割垂直纸面向里的磁场时，感应电流方向为逆时针方向。
+                    </div>
+                </div>
+                
+                <div class="question" id="question3">
+                    <div class="question-text">3. 导线受到的安培力F与哪些物理量有关？</div>
+                    <div class="options">
+                        <div class="option" data-index="0">A. F = BIL</div>
+                        <div class="option" data-index="1">B. F = B²L²v/R</div>
+                        <div class="option" data-index="2">C. F = BLv</div>
+                        <div class="option" data-index="3">D. A和B都对</div>
+                    </div>
+                    <div class="explanation" id="explanation3">
+                        <strong>正确答案：D</strong><br>
+                        安培力的基本公式是 F = BIL，结合 ε = BLv 和 I = ε/R，可得 F = B²L²v/R。两个表达式都是正确的。
+                    </div>
+                </div>
+                
+                <div class="question" id="question4">
+                    <div class="question-text">4. 如果导线长度L增大为原来的2倍，其他条件不变，安培力将如何变化？</div>
+                    <div class="options">
+                        <div class="option" data-index="0">A. 不变</div>
+                        <div class="option" data-index="1">B. 变为原来的2倍</div>
+                        <div class="option" data-index="2">C. 变为原来的4倍</div>
+                        <div class="option" data-index="3">D. 变为原来的1/2</div>
+                    </div>
+                    <div class="explanation" id="explanation4">
+                        <strong>正确答案：C</strong><br>
+                        根据 F = B²L²v/R，当 L 变为原来的2倍，B、v、R 不变时，F 变为原来的4倍（因为L²变为4倍）。
+                    </div>
+                </div>
+                
+                <div class="question" id="question5">
+                    <div class="question-text">5. 当导线运动速度v=0时，以下哪个物理量不为零？</div>
+                    <div class="options">
+                        <div class="option" data-index="0">A. 感应电动势ε</div>
+                        <div class="option" data-index="1">B. 感应电流I</div>
+                        <div class="option" data-index="2">C. 安培力F</div>
+                        <div class="option" data-index="3">D. 以上都为零</div>
+                    </div>
+                    <div class="explanation" id="explanation5">
+                        <strong>正确答案：D</strong><br>
+                        根据公式 ε = BLv，当 v=0 时，ε=0；根据 I = ε/R，I=0；根据 F = BIL，F=0。所以三个物理量都为零。
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="score" id="scoreDisplay">得分: 0/5</div>
+                <button class="close-btn" id="closeModalBtn">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 获取Canvas元素和上下文
+        const canvas = document.getElementById('experimentCanvas');
+        const ctx = canvas.getContext('2d');
+        const canvasContainer = document.getElementById('canvasContainer');
+        
+        // 调整Canvas大小以适应容器
+        function resizeCanvas() {
+            canvas.width = canvasContainer.clientWidth;
+            canvas.height = canvasContainer.clientHeight;
+            drawExperiment();
+        }
+        
+        // 实验参数
+        let B = 1.0;   // 磁场强度 (T)
+        let L = 0.5;   // 导线长度 (m)，也是矩形线圈的高度
+        let v = 2.0;   // 运动速度 (m/s)
+        let R = 2.0;   // 回路电阻 (Ω)
+        let epsilon = 0.0; // 感应电动势 (V)
+        let I = 0.0;   // 感应电流 (A)
+        let F = 0.0;   // 安培力 (N)
+        
+        // 实验状态
+        let isRunning = false;
+        let animationId = null;
+        let position = 0; // NM边的X位置（相对于初始位置）
+        let reachedEnd = false; // 是否到达边界
+        
+        // 矩形线圈的固定参数
+        let cdX, cdY, nmX, nmY; // C、D、N、M点的坐标
+        let initialNMX; // NM边的初始X位置
+        let baseRectHeight = 150; // 矩形基础高度（像素），对应L=0.5m
+        let initialDistance = 50; // 初始时NM边与CD边的距离（像素）
+        let maxDistance = 0; // 最大距离（根据Canvas宽度计算）
+        
+        // 获取DOM元素
+        const bSlider = document.getElementById('bSlider');
+        const lSlider = document.getElementById('lSlider');
+        const vSlider = document.getElementById('vSlider');
+        const rSlider = document.getElementById('rSlider');
+        const bValue = document.getElementById('bValue');
+        const lValue = document.getElementById('lValue');
+        const vValue = document.getElementById('vValue');
+        const rValue = document.getElementById('rValue');
+        const displayB = document.getElementById('displayB');
+        const displayL = document.getElementById('displayL');
+        const displayV = document.getElementById('displayV');
+        const displayR = document.getElementById('displayR');
+        const displayEpsilon = document.getElementById('displayEpsilon');
+        const displayCurrent = document.getElementById('displayCurrent');
+        const displayForce = document.getElementById('displayForce');
+        const currentEpsilon = document.getElementById('currentEpsilon');
+        const currentForce = document.getElementById('currentForce');
+        const currentDistance = document.getElementById('currentDistance');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const testBtn = document.getElementById('testBtn');
+        const testModal = document.getElementById('testModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        
+        // 初始化
+        function init() {
+            resizeCanvas();
+            updateParameters();
+            drawExperiment();
+            
+            // 窗口大小变化时重新调整Canvas
+            window.addEventListener('resize', resizeCanvas);
+            
+            // 绑定滑块事件
+            bSlider.addEventListener('input', updateParameters);
+            lSlider.addEventListener('input', updateParameters);
+            vSlider.addEventListener('input', updateParameters);
+            rSlider.addEventListener('input', updateParameters);
+            
+            // 绑定按钮事件
+            startBtn.addEventListener('click', startExperiment);
+            pauseBtn.addEventListener('click', pauseExperiment);
+            resetBtn.addEventListener('click', resetExperiment);
+            testBtn.addEventListener('click', () => {
+                testModal.style.display = 'flex';
+                resetTest();
+            });
+            closeModalBtn.addEventListener('click', () => {
+                testModal.style.display = 'none';
+            });
+            
+            // 绑定测试题选项事件
+            document.querySelectorAll('.option').forEach(option => {
+                option.addEventListener('click', handleOptionClick);
+            });
+        }
+        
+        // 更新参数
+        function updateParameters() {
+            B = parseFloat(bSlider.value);
+            L = parseFloat(lSlider.value);
+            v = parseFloat(vSlider.value);
+            R = parseFloat(rSlider.value);
+            
+            // 更新显示值
+            bValue.textContent = B.toFixed(1) + ' T';
+            lValue.textContent = L.toFixed(1) + ' m';
+            vValue.textContent = v.toFixed(1) + ' m/s';
+            rValue.textContent = R.toFixed(1) + ' Ω';
+            displayB.textContent = B.toFixed(1) + ' T';
+            displayL.textContent = L.toFixed(1) + ' m';
+            displayV.textContent = v.toFixed(1) + ' m/s';
+            displayR.textContent = R.toFixed(1) + ' Ω';
+            
+            // 计算电动势、电流和安培力
+            // 注意：这里使用当前的实际速度计算，如果到达边界则速度为0
+            let currentV = reachedEnd ? 0 : v;
+            epsilon = B * L * currentV; // sinθ = 1
+            I = epsilon / R;
+            F = (B * B * L * L * currentV) / R; // F = B²L²v/R
+            
+            // 更新显示
+            displayEpsilon.textContent = epsilon.toFixed(2) + ' V';
+            displayCurrent.textContent = I.toFixed(3) + ' A';
+            displayForce.textContent = F.toFixed(3) + ' N';
+            
+            currentEpsilon.textContent = epsilon.toFixed(2);
+            currentForce.textContent = F.toFixed(3);
+            
+            // 计算并显示CD-NM距离
+            const distanceMeters = (nmX - cdX) / 100; // 转换为米（假设100像素=1米）
+            currentDistance.textContent = distanceMeters.toFixed(2);
+            
+            // 重新绘制实验
+            drawExperiment();
+        }
+        
+        // 计算矩形线圈的尺寸和位置
+        function calculateCoilDimensions() {
+            // 计算矩形的高度（与L成正比）
+            const heightScale = L / 0.5; // 以L=0.5m时高度为baseRectHeight为基准
+            const rectHeight = baseRectHeight * heightScale;
+            
+            // CD边的位置（固定，在左侧）
+            cdX = canvas.width * 0.2;
+            cdY = (canvas.height - rectHeight) / 2;
+            
+            // NM边的初始位置（距离CD边initialDistance）
+            initialNMX = cdX + initialDistance;
+            
+            // 计算当前NM边的X位置
+            nmX = initialNMX + position;
+            
+            // 最大移动距离（防止移出画布）
+            maxDistance = canvas.width - initialNMX - 80;
+            
+            // 检查是否到达边界
+            if (nmX >= cdX + maxDistance) {
+                nmX = cdX + maxDistance;
+                reachedEnd = true;
+            }
+            
+            // N点和M点的Y坐标
+            nmY = cdY; // N点Y坐标（上边）
+            
+            return rectHeight;
+        }
+        
+        // 绘制实验场景
+        function drawExperiment() {
+            // 清除画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 计算矩形线圈的尺寸和位置
+            const rectHeight = calculateCoilDimensions();
+            
+            // 绘制磁场（布满整个画面）
+            drawMagneticField();
+            
+            // 绘制矩形线圈
+            drawRectangularCoil(rectHeight);
+            
+            // 绘制NM边上的物理量指示
+            drawPhysicalIndicators(rectHeight);
+            
+            // 绘制标签
+            drawLabels(rectHeight);
+            
+            // 绘制方向指示
+            drawDirectionIndicators();
+        }
+        
+        // 绘制磁场（布满整个画面）
+        function drawMagneticField() {
+            ctx.fillStyle = '#1a6bb3';
+            ctx.font = 'bold 20px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // 在整个画布上绘制×符号
+            const spacing = 35;
+            const startX = 20;
+            const startY = 20;
+            const endX = canvas.width - 20;
+            const endY = canvas.height - 20;
+            
+            for (let x = startX; x <= endX; x += spacing) {
+                for (let y = startY; y <= endY; y += spacing) {
+                    ctx.fillText('×', x, y);
+                }
+            }
+            
+            // 绘制磁场方向说明
+            ctx.fillStyle = '#666';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText('磁场方向: 垂直纸面向里 (×)', cdX, cdY - 30);
+        }
+        
+        // 绘制矩形线圈
+        function drawRectangularCoil(rectHeight) {
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([]);
+            
+            // 绘制矩形线圈的四条边
+            ctx.beginPath();
+            
+            // 上边：C到N
+            ctx.moveTo(cdX, cdY); // C点
+            ctx.lineTo(nmX, cdY); // N点
+            
+            // 右边：N到M（M点在NM边的下端）
+            ctx.lineTo(nmX, cdY + rectHeight); // M点
+            
+            // 下边：M到D（D点在CD边的下端）
+            ctx.lineTo(cdX, cdY + rectHeight); // D点
+            
+            // 左边：D到C
+            ctx.lineTo(cdX, cdY); // 回到C点
+            
+            ctx.stroke();
+            
+            // 用不同颜色标记固定边和可动边
+            // 固定边（CD、CD边）用蓝色
+            ctx.strokeStyle = '#1a6bb3';
+            ctx.lineWidth = 3;
+            
+            // 左边 CD（实际上是垂直边，从C到D）
+            ctx.beginPath();
+            ctx.moveTo(cdX, cdY);
+            ctx.lineTo(cdX, cdY + rectHeight);
+            ctx.stroke();
+            
+            // 可动边（NM）用红色
+            ctx.strokeStyle = '#e53935';
+            ctx.lineWidth = 5;
+            
+            // NM边（垂直边）
+            ctx.beginPath();
+            ctx.moveTo(nmX, cdY);
+            ctx.lineTo(nmX, cdY + rectHeight);
+            ctx.stroke();
+            
+            // 用虚线绘制水平边，表示这些边不切割磁感线
+            ctx.strokeStyle = '#666';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 3]);
+            
+            // 上边（C到N）
+            ctx.beginPath();
+            ctx.moveTo(cdX, cdY);
+            ctx.lineTo(nmX, cdY);
+            ctx.stroke();
+            
+            // 下边（D到M）
+            ctx.beginPath();
+            ctx.moveTo(cdX, cdY + rectHeight);
+            ctx.lineTo(nmX, cdY + rectHeight);
+            ctx.stroke();
+            
+            ctx.setLineDash([]);
+        }
+        
+        // 绘制NM边上的物理量指示
+        function drawPhysicalIndicators(rectHeight) {
+            const arrowSize = 15;
+            
+            // 在NM边上绘制电流方向（向上的绿色箭头）
+            const currentY = cdY + rectHeight / 2;
+            
+            // 绘制电流方向箭头（只有箭头，没有竖线）
+            ctx.fillStyle = '#4CAF50';
+            
+            // 绘制向上的箭头（没有中间的竖线）
+            ctx.beginPath();
+            // 箭头头部（向上）
+            ctx.moveTo(nmX, currentY - arrowSize);
+            ctx.lineTo(nmX - arrowSize/2, currentY);
+            ctx.lineTo(nmX + arrowSize/2, currentY);
+            ctx.closePath();
+            ctx.fill();
+            
+            // 电流标签
+            ctx.fillStyle = '#4CAF50';
+            ctx.font = 'bold 18px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('I', nmX + 25, currentY);
+            
+            // 绘制安培力方向（向左的黄色箭头）
+            // 安培力箭头固定在NM边上
+            const forceY = cdY + rectHeight * 0.75;
+            
+            ctx.fillStyle = '#FF9800';
+            ctx.strokeStyle = '#FF9800';
+            ctx.lineWidth = 4;
+            
+            // 安培力箭头线（向左）
+            ctx.beginPath();
+            ctx.moveTo(nmX + arrowSize * 2, forceY);
+            ctx.lineTo(nmX - arrowSize * 2, forceY);
+            ctx.stroke();
+            
+            // 安培力箭头头部（向左）
+            ctx.beginPath();
+            ctx.moveTo(nmX - arrowSize * 2, forceY);
+            ctx.lineTo(nmX - arrowSize * 2 + arrowSize, forceY - arrowSize/2);
+            ctx.lineTo(nmX - arrowSize * 2 + arrowSize, forceY + arrowSize/2);
+            ctx.closePath();
+            ctx.fill();
+            
+            // 安培力标签
+            ctx.fillStyle = '#FF9800';
+            ctx.font = 'bold 18px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('F', nmX - arrowSize * 3, forceY - 20);
+            
+            // 绘制运动方向箭头（向右的红色箭头）
+            const velocityY = cdY + rectHeight * 0.25;
+            
+            ctx.fillStyle = '#e53935';
+            ctx.strokeStyle = '#e53935';
+            ctx.lineWidth = 3;
+            
+            // 速度箭头线（向右）
+            ctx.beginPath();
+            ctx.moveTo(nmX - arrowSize * 4, velocityY);
+            ctx.lineTo(nmX - arrowSize, velocityY);
+            ctx.stroke();
+            
+            // 速度箭头头部（向右）
+            ctx.beginPath();
+            ctx.moveTo(nmX - arrowSize, velocityY);
+            ctx.lineTo(nmX - arrowSize * 2, velocityY - arrowSize/2);
+            ctx.lineTo(nmX - arrowSize * 2, velocityY + arrowSize/2);
+            ctx.closePath();
+            ctx.fill();
+            
+            // 速度标签
+            ctx.fillStyle = '#e53935';
+            ctx.font = 'bold 18px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('v', nmX - arrowSize * 5, velocityY - 20);
+            
+            // 在NM边旁边标注长度L
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 18px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText(`L = ${L.toFixed(1)} m`, nmX + 15, currentY);
+            
+            // 恢复默认样式
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 1;
+        }
+        
+        // 绘制标签
+        function drawLabels(rectHeight) {
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 22px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // 标注C点 (左上角，固定)
+            ctx.fillStyle = '#1a6bb3';
+            ctx.fillText('C', cdX - 15, cdY - 15);
+            ctx.beginPath();
+            ctx.arc(cdX, cdY, 5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 标注N点 (NM边的上端点，可移动)
+            ctx.fillStyle = '#e53935';
+            ctx.fillText('N', nmX - 15, cdY - 15);
+            ctx.beginPath();
+            ctx.arc(nmX, cdY, 5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 标注D点 (左下角，固定) - 修正：D在CD边的下端
+            ctx.fillStyle = '#1a6bb3';
+            ctx.fillText('D', cdX - 15, cdY + rectHeight + 15);
+            ctx.beginPath();
+            ctx.arc(cdX, cdY + rectHeight, 5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 标注M点 (NM边的下端点，可移动) - 修正：M在NM边的下端
+            ctx.fillStyle = '#e53935';
+            ctx.fillText('M', nmX + 15, cdY + rectHeight + 15);
+            ctx.beginPath();
+            ctx.arc(nmX, cdY + rectHeight, 5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 标注CD和NM之间的距离
+            const distance = (nmX - cdX) / 100; // 转换为米（假设100像素=1米）
+            ctx.fillStyle = '#666';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(`距离: ${distance.toFixed(2)} m`, (cdX + nmX) / 2, cdY + rectHeight + 40);
+        }
+        
+        // 绘制方向指示
+        function drawDirectionIndicators() {
+            ctx.fillStyle = '#666';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'left';
+            
+            // 磁场方向
+            ctx.fillText('磁场 B: 垂直纸面向里', 20, 30);
+            
+            // 运动方向
+            ctx.fillText('运动方向 v: 向右 (红色箭头)', 20, 60);
+            
+            // 电流方向
+            ctx.fillText('感应电流 I: 向上 (绿色箭头，逆时针)', 20, 90);
+            
+            // 安培力方向
+            ctx.fillText('安培力 F: 向左 (黄色箭头，阻碍运动)', 20, 120);
+            
+            // 绘制右手定则示意图
+            const handX = canvas.width - 150;
+            const handY = 70;
+            
+            ctx.strokeStyle = '#FF9800';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(handX, handY, 30, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            ctx.fillStyle = '#FF9800';
+            ctx.font = 'bold 20px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('✋', handX, handY + 8);
+            ctx.fillStyle = '#666';
+            ctx.font = '14px Arial';
+            ctx.fillText('右手定则', handX, handY + 50);
+        }
+        
+        // 开始实验
+        function startExperiment() {
+            if (isRunning || reachedEnd) return;
+            
+            isRunning = true;
+            animate();
+        }
+        
+        // 暂停实验
+        function pauseExperiment() {
+            isRunning = false;
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+        }
+        
+        // 重置实验
+        function resetExperiment() {
+            pauseExperiment();
+            position = 0;
+            reachedEnd = false;
+            
+            // 恢复速度滑块的值
+            vSlider.value = 2.0;
+            v = 2.0;
+            
+            updateParameters();
+            drawExperiment();
+        }
+        
+        // 动画循环
+        function animate() {
+            if (!isRunning) return;
+            
+            // 更新NM边的位置
+            if (!reachedEnd) {
+                // 将速度v（m/s）转换为像素/秒
+                // 假设100像素对应1米
+                const pixelsPerMeter = 100;
+                const velocityPixelsPerSec = v * pixelsPerMeter;
+                
+                // 每帧移动的距离（假设60fps）
+                position += velocityPixelsPerSec / 60;
+                
+                // 检查是否到达边界
+                if (position >= maxDistance) {
+                    position = maxDistance;
+                    reachedEnd = true;
+                    pauseExperiment();
+                    
+                    // 到达边界后速度为0
+                    vSlider.value = 0;
+                    v = 0;
+                }
+            }
+            
+            // 更新物理量（速度可能已变为0）
+            updateParameters();
+            
+            // 重新绘制
+            drawExperiment();
+            
+            // 继续动画
+            animationId = requestAnimationFrame(animate);
+        }
+        
+        // 学习检测相关函数
+        function resetTest() {
+            // 重置所有选项
+            document.querySelectorAll('.option').forEach(option => {
+                option.classList.remove('selected', 'correct', 'incorrect');
+            });
+            
+            // 隐藏所有解析
+            document.querySelectorAll('.explanation').forEach(explanation => {
+                explanation.style.display = 'none';
+            });
+            
+            // 重置得分
+            scoreDisplay.textContent = '得分: 0/5';
+        }
+        
+        function handleOptionClick(event) {
+            const option = event.currentTarget;
+            const question = option.closest('.question');
+            const questionId = question.id;
+            const questionIndex = parseInt(questionId.replace('question', '')) - 1;
+            const optionIndex = parseInt(option.getAttribute('data-index'));
+            
+            // 如果已经选择了选项，则忽略
+            if (option.classList.contains('selected')) return;
+            
+            // 正确答案索引
+            const correctAnswers = [1, 1, 3, 2, 3];
+            
+            // 移除同问题其他选项的选择状态
+            question.querySelectorAll('.option').forEach(opt => {
+                opt.classList.remove('selected', 'correct', 'incorrect');
+            });
+            
+            // 标记当前选项为已选择
+            option.classList.add('selected');
+            
+            // 检查答案
+            const isCorrect = optionIndex === correctAnswers[questionIndex];
+            
+            if (isCorrect) {
+                option.classList.add('correct');
+            } else {
+                option.classList.add('incorrect');
+                
+                // 显示正确答案
+                question.querySelectorAll('.option').forEach(opt => {
+                    if (parseInt(opt.getAttribute('data-index')) === correctAnswers[questionIndex]) {
+                        opt.classList.add('correct');
+                    }
+                });
+            }
+            
+            // 显示解析
+            const explanation = document.getElementById(`explanation${questionIndex + 1}`);
+            explanation.style.display = 'block';
+            
+            // 更新得分
+            updateScore();
+        }
+        
+        function updateScore() {
+            let score = 0;
+            document.querySelectorAll('.question').forEach(question => {
+                if (question.querySelector('.option.correct.selected')) {
+                    score++;
+                }
+            });
+            
+            scoreDisplay.textContent = `得分: ${score}/5`;
+        }
+        
+        // 初始化
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>

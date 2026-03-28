@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简谐运动 · 回复力与能量 (弹簧振子)</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
+        body {
+            background: linear-gradient(145deg, #2a4b6e 0%, #1a3b54 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .card {
+            max-width: 1300px;
+            width: 100%;
+            background: rgba(240, 248, 255, 0.9);
+            backdrop-filter: blur(8px);
+            border-radius: 56px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+            padding: 28px 30px;
+            border: 2px solid rgba(255, 255, 255, 0.7);
+        }
+        h1 {
+            font-size: 2.6rem;
+            font-weight: 600;
+            margin: 0 0 5px 0;
+            color: #022c44;
+        }
+        .sub {
+            color: #1d5377;
+            margin-bottom: 25px;
+            font-style: italic;
+            background: #c4e2ff;
+            display: inline-block;
+            padding: 6px 32px;
+            border-radius: 60px;
+        }
+        .dashboard {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+        /* 控制面板 */
+        .control-panel {
+            background: #e2f0fc;
+            border-radius: 48px;
+            padding: 25px 20px;
+            box-shadow: inset 0 2px 8px #ffffff, 0 12px 24px #1b405a;
+            border: 1px solid #ffffff;
+        }
+        .control-panel h3 {
+            margin: 0 0 25px 0;
+            color: #0c3857;
+            font-size: 1.7rem;
+            border-bottom: 3px solid #b0cde0;
+            padding-bottom: 8px;
+        }
+        .slider-group {
+            margin-bottom: 28px;
+        }
+        .slider-group label {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            color: #104369;
+            font-size: 1.15rem;
+            margin-bottom: 5px;
+        }
+        .value-badge {
+            background: #1e628b;
+            color: white;
+            padding: 5px 18px;
+            border-radius: 40px;
+            font-family: 'Courier New', monospace;
+        }
+        input[type=range] {
+            width: 100%;
+            height: 8px;
+            background: #8db5d2;
+            border-radius: 20px;
+            -webkit-appearance: none;
+            margin: 8px 0;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            background: #f0a55a;
+            border-radius: 50%;
+            box-shadow: 0 4px 8px #0b3147;
+            border: 2px solid white;
+            cursor: pointer;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .btn {
+            flex: 1;
+            background: #eaf2f9;
+            border: none;
+            padding: 16px 0;
+            border-radius: 60px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #003a60;
+            box-shadow: 0 6px 0 #507f9f, 0 10px 20px #0a2a3b;
+            cursor: pointer;
+            transition: 0.05s linear;
+        }
+        .btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 1px 0 #507f9f, 0 8px 16px #0a2a3b;
+        }
+        .btn.reset {
+            background: #fed7b0;
+            color: #733c1a;
+        }
+        .info-box {
+            background: #bed9f0;
+            border-radius: 36px;
+            padding: 16px;
+            text-align: center;
+            font-size: 1.1rem;
+            margin-top: 20px;
+        }
+        /* 动画区 */
+        .canvas-area {
+            background: #cde3f7;
+            border-radius: 48px;
+            padding: 20px;
+            box-shadow: inset 0 -4px 12px #8db1cc, 0 16px 28px #123b52;
+            border: 2px solid #ffffff;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: #dbeefb;
+            border-radius: 36px;
+            box-shadow: 0 0 0 4px #a1bedb, inset 0 0 0 2px #2d577b;
+        }
+        .data-row {
+            background: #e2f0fa;
+            border-radius: 40px;
+            padding: 18px 20px;
+            margin-top: 18px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            font-weight: 600;
+            color: #013352;
+        }
+        .data-item {
+            background: #ffffffd6;
+            border-radius: 60px;
+            padding: 14px 8px;
+            text-align: center;
+            box-shadow: inset 0 2px 8px #c1dfff;
+        }
+        .data-item span {
+            font-family: 'Courier New', monospace;
+            background: #1a4b70;
+            color: #fff2b5;
+            padding: 8px 18px;
+            border-radius: 40px;
+            margin-left: 12px;
+            font-size: 1.2rem;
+        }
+        /* 底部结论 */
+        .conclusion {
+            background: #0f344b;
+            border-radius: 40px;
+            padding: 22px 32px;
+            margin-top: 25px;
+            color: #f0efd8;
+            box-shadow: inset 0 3px 12px #5d8fb0, 0 12px 24px #021520;
+        }
+        .conclusion h3 {
+            font-size: 1.9rem;
+            color: #ffd894;
+            margin: 0 0 16px 0;
+        }
+        .conclusion p {
+            margin: 10px 0;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .conc-tag {
+            background: #2e6392;
+            padding: 5px 24px;
+            border-radius: 40px;
+            font-family: monospace;
+            color: #ffd98c;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+<div class="card">
+    <h1>🔄 简谐运动 · 回复力与能量</h1>
+    <div class="sub">弹簧振子 · F = -kx · 机械能守恒</div>
+
+    <div class="dashboard">
+        <!-- 控制面板 -->
+        <div class="control-panel">
+            <h3>⚙️ 振子参数</h3>
+            <div class="slider-group">
+                <label>劲度系数 k <span class="value-badge" id="kVal">20.0 N/m</span></label>
+                <input type="range" id="kSlider" min="5" max="50" value="20" step="0.5">
+            </div>
+            <div class="slider-group">
+                <label>振子质量 m <span class="value-badge" id="mVal">1.0 kg</span></label>
+                <input type="range" id="mSlider" min="0.2" max="3.0" value="1.0" step="0.1">
+            </div>
+            <div class="slider-group">
+                <label>振幅 A <span class="value-badge" id="aVal">1.2 m</span></label>
+                <input type="range" id="aSlider" min="0.3" max="2.5" value="1.2" step="0.1">
+            </div>
+            <div class="action-buttons">
+                <button class="btn" id="pauseBtn">⏸️ 暂停</button>
+                <button class="btn reset" id="resetBtn">↺ 重置</button>
+            </div>
+            <div class="info-box">
+                <div>🔹 平衡位置: v最大</div>
+                <div>🔸 两端点: a最大</div>
+                <div>⚡ 机械能守恒 (无阻尼)</div>
+            </div>
+        </div>
+
+        <!-- 动画区 + 数据 -->
+        <div class="canvas-area">
+            <canvas id="oscillatorCanvas" width="750" height="300"></canvas>
+            <div class="data-row">
+                <div class="data-item">位移 x <span id="dispX">0.00</span> m</div>
+                <div class="data-item">回复力 F <span id="forceF">0.00</span> N</div>
+                <div class="data-item">动能 Ek <span id="kineticE">0.00</span> J</div>
+                <div class="data-item">势能 Ep <span id="potentialE">0.00</span> J</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部实验结论 -->
+    <div class="conclusion">
+        <h3>📌 实验结论 · 简谐运动</h3>
+        <p><span class="conc-tag">①</span> 简谐运动回复力与位移成正比、方向相反 (F = -kx)。</p>
+        <p><span class="conc-tag">②</span> 平衡位置速度最大，两端点加速度最大。</p>
+        <p><span class="conc-tag">③</span> 不计阻力时，简谐运动机械能保持守恒。</p>
+    </div>
+</div>
+
+<script>
+(function() {
+    // ----- 常量与元素 -----
+    const canvas = document.getElementById('oscillatorCanvas');
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width, height = canvas.height;
+
+    // 滑块
+    const kSlider = document.getElementById('kSlider');
+    const mSlider = document.getElementById('mSlider');
+    const aSlider = document.getElementById('aSlider');
+    const kVal = document.getElementById('kVal');
+    const mVal = document.getElementById('mVal');
+    const aVal = document.getElementById('aVal');
+
+    // 数据显示
+    const dispX = document.getElementById('dispX');
+    const forceF = document.getElementById('forceF');
+    const kineticE = document.getElementById('kineticE');
+    const potentialE = document.getElementById('potentialE');
+
+    // 按钮
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    // ----- 可调参数 -----
+    let k = 20.0;        // N/m
+    let m = 1.0;         // kg
+    let A = 1.2;         // m
+
+    // ----- 运动状态 -----
+    let time = 0.0;               // 模拟时间 (s)
+    let omega = Math.sqrt(k / m); // 角频率
+    let paused = false;
+
+    // 动画帧
+    let animFrame = null;
+    let animActive = true;
+
+    // 更新滑块显示
+    function updateSliderReadout() {
+        k = parseFloat(kSlider.value);
+        m = parseFloat(mSlider.value);
+        A = parseFloat(aSlider.value);
+        kVal.innerText = k.toFixed(1) + ' N/m';
+        mVal.innerText = m.toFixed(1) + ' kg';
+        aVal.innerText = A.toFixed(1) + ' m';
+        omega = Math.sqrt(k / m);   // 重新计算角频率
+    }
+
+    // 重置相位 (从最大位移开始)
+    function resetPhase() {
+        time = 0.0;
+    }
+
+    // 根据当前时间计算位移、速度、加速度
+    function getMotion(time) {
+        let x = A * Math.cos(omega * time);      // 位移 (平衡位置为0，向右为正)
+        let v = -A * omega * Math.sin(omega * time);
+        let a_acc = -A * omega * omega * Math.cos(omega * time); // 加速度
+        return { x, v, a: a_acc };
+    }
+
+    // 更新数据区
+    function updateData() {
+        let { x, v } = getMotion(time);
+        let F = -k * x;
+        let Ek = 0.5 * m * v * v;
+        let Ep = 0.5 * k * x * x;
+        dispX.innerText = x.toFixed(2);
+        forceF.innerText = F.toFixed(2);
+        kineticE.innerText = Ek.toFixed(2);
+        potentialE.innerText = Ep.toFixed(2);
+    }
+
+    // 绘制画布
+    function draw() {
+        ctx.clearRect(0, 0, width, height);
+
+        // 背景
+        ctx.fillStyle = '#e6f3ff';
+        ctx.fillRect(0, 0, width, height);
+
+        // 画参考线: 平衡位置竖直线
+        ctx.beginPath();
+        ctx.strokeStyle = '#aaa';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
+        ctx.moveTo(width/2, 50);
+        ctx.lineTo(width/2, height-50);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 标注平衡位置、两端点标记
+        ctx.font = 'bold 14px "Segoe UI"';
+        ctx.fillStyle = '#033b5e';
+        ctx.fillText('平衡位置 (v_max)', width/2-70, 40);
+
+        // 左右端点位置 (像素)
+        const centerX = width / 2;
+        const baseY = height / 2 + 20; // 振子中心y
+        const scale = 50; // 1米 = 50像素
+        let xMeter = getMotion(time).x;
+        let blockX = centerX + xMeter * scale;
+
+        // 绘制弹簧 (从左墙到滑块)
+        const leftWallX = 80;
+        const rightWallX = width - 80;
+        // 左墙
+        ctx.fillStyle = '#8b6e4b';
+        ctx.fillRect(leftWallX-10, baseY-25, 15, 50);
+        // 右墙 (弹簧固定端)
+        ctx.fillStyle = '#8b6e4b';
+        ctx.fillRect(rightWallX-5, baseY-25, 15, 50);
+
+        // 弹簧 (用波浪线)
+        ctx.beginPath();
+        ctx.strokeStyle = '#4a2e1e';
+        ctx.lineWidth = 3;
+        let steps = 12;
+        let startX = leftWallX + 10;
+        let endX = blockX - 15; // 滑块左侧
+        if (endX > startX) {
+            let step = (endX - startX) / steps;
+            ctx.moveTo(startX, baseY);
+            for (let i = 0; i <= steps; i++) {
+                let x = startX + i * step;
+                let y = baseY + (i % 2 === 0 ? 8 : -8);
+                ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+        }
+
+        // 滑块 (矩形)
+        ctx.fillStyle = '#c97d3d';
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = '#7b572a';
+        ctx.fillRect(blockX-15, baseY-20, 30, 40);
+        ctx.shadowBlur = 0;
+        // 滑块上的高光
+        ctx.fillStyle = '#f5b85c';
+        ctx.fillRect(blockX-10, baseY-15, 20, 30);
+
+        // 绘制回复力箭头 (指向平衡位置)
+        if (Math.abs(xMeter) > 0.02) {
+            let arrowLength = Math.min(60, Math.abs(xMeter) * scale * 0.8);
+            let direction = (xMeter > 0) ? -1 : 1; // 向左或向右
+            let arrowX = blockX + direction * 20;
+            let arrowY = baseY - 35;
+            ctx.beginPath();
+            ctx.strokeStyle = '#c44b3c';
+            ctx.lineWidth = 3;
+            ctx.moveTo(arrowX, arrowY);
+            ctx.lineTo(arrowX + direction * arrowLength, arrowY);
+            ctx.stroke();
+            // 箭头
+            ctx.fillStyle = '#c44b3c';
+            ctx.beginPath();
+            ctx.moveTo(arrowX + direction * arrowLength, arrowY);
+            ctx.lineTo(arrowX + direction * (arrowLength-10), arrowY-6);
+            ctx.lineTo(arrowX + direction * (arrowLength-10), arrowY+6);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.font = 'bold 14px "Segoe UI"';
+            ctx.fillText('回复力', arrowX + (direction>0?20:-80), arrowY-10);
+        }
+
+        // 标注最大速度位置 (平衡位置下方)
+        ctx.fillStyle = '#1e5c2e';
+        ctx.font = 'bold 13px "Segoe UI"';
+        ctx.fillText('v_max', centerX-25, baseY+35);
+        // 标注最大加速度位置 (两端点)
+        let leftEndX = centerX - A * scale;
+        let rightEndX = centerX + A * scale;
+        ctx.fillStyle = '#a03d2f';
+        ctx.fillText('a_max', leftEndX-40, baseY-40);
+        ctx.fillText('a_max', rightEndX+10, baseY-40);
+
+        // 显示瞬时位移数值
+        ctx.font = 'bold 16px "Courier New"';
+        ctx.fillStyle = '#012b44';
+        ctx.fillText(`x = ${xMeter.toFixed(2)} m`, 550, 60);
+    }
+
+    // 物理更新 (每帧)
+    function update() {
+        if (!paused) {
+            time += 0.02; // 时间步长 0.02 秒
+        }
+        updateData();
+        draw();
+    }
+
+    // 动画循环
+    function animate() {
+        if (animActive) {
+            update();
+        }
+        animFrame = requestAnimationFrame(animate);
+    }
+
+    // 启动动画
+    animFrame = requestAnimationFrame(animate);
+
+    // 滑块事件
+    function slidersChanged() {
+        updateSliderReadout();
+        resetPhase(); // 滑块变动时重置相位，避免跳跃
+        if (!paused) updateData();
+    }
+
+    kSlider.addEventListener('input', slidersChanged);
+    mSlider.addEventListener('input', slidersChanged);
+    aSlider.addEventListener('input', slidersChanged);
+
+    // 暂停/继续
+    pauseBtn.addEventListener('click', () => {
+        paused = !paused;
+        pauseBtn.innerText = paused ? '▶ 启动' : '⏸️ 暂停';
+    });
+
+    // 重置
+    resetBtn.addEventListener('click', () => {
+        resetPhase();
+        if (!paused) updateData();
+    });
+
+    // 初始化
+    updateSliderReadout();
+    resetPhase();
+    updateData();
+    draw();
+})();
+</script>
+</body>
+</html>

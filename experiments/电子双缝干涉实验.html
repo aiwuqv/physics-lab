@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电子双缝干涉实验模拟</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1a2a6c, #2a4a6c, #1a2a6c);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(0, 0, 30, 0.8);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #4A90E2;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            animation: glow 2s infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { text-shadow: 0 0 5px #fff, 0 0 10px #4A90E2; }
+            to { text-shadow: 0 0 10px #fff, 0 0 20px #4A90E2, 0 0 30px #4A90E2; }
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #6BABDF;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+        }
+        
+        .theory-section {
+            background: rgba(30, 30, 60, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        .theory-section h2 {
+            color: #FFD700;
+            border-bottom: 2px solid #4A90E2;
+            padding-bottom: 10px;
+        }
+        
+        .experiment-setup {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .canvas-container {
+            flex: 1;
+            min-width: 500px;
+            background: black;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        canvas {
+            width: 100%;
+            height: 400px;
+            background: black;
+            display: block;
+        }
+        
+        .full-interference-container {
+            flex: 1;
+            min-width: 500px;
+            background: black;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            margin-top: 20px;
+        }
+        
+        .full-interference-canvas {
+            width: 100%;
+            height: 300px;
+            background: black;
+            display: block;
+        }
+        
+        .controls {
+            flex: 0 0 300px;
+            background: rgba(30, 30, 60, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(50, 50, 80, 0.5);
+            border-radius: 5px;
+        }
+        
+        .control-group h3 {
+            color: #4A90E2;
+            margin-top: 0;
+        }
+        
+        label {
+            display: block;
+            margin: 8px 0 5px 0;
+            color: #6BABDF;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            margin: 5px 0;
+        }
+        
+        .value-display {
+            display: inline-block;
+            width: 60px;
+            text-align: right;
+            color: #FFD700;
+        }
+        
+        button {
+            background: linear-gradient(to bottom, #4A90E2, #2A5AA0);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background: linear-gradient(to bottom, #5AA0F2, #3A6AC0);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .stat-box {
+            background: rgba(74, 144, 226, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            min-width: 150px;
+            margin: 10px;
+        }
+        
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #4A90E2;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            color: #6BABDF;
+        }
+        
+        .principle {
+            background: rgba(30, 30, 60, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            line-height: 1.6;
+        }
+        
+        .principle h2 {
+            color: #FFD700;
+            border-bottom: 2px solid #4A90E2;
+            padding-bottom: 10px;
+        }
+        
+        .formula {
+            text-align: center;
+            font-size: 1.2em;
+            margin: 15px 0;
+            color: #FFD700;
+            font-family: 'Times New Roman', serif;
+        }
+        
+        .highlight {
+            background: rgba(255, 215, 0, 0.2);
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        
+        /* 知识检测样式 */
+        .quiz-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .quiz-container {
+            background: rgba(30, 30, 60, 0.95);
+            border-radius: 15px;
+            width: 80%;
+            max-width: 700px;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 25px;
+            box-shadow: 0 0 30px rgba(74, 144, 226, 0.5);
+            position: relative;
+        }
+        
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #4A90E2;
+        }
+        
+        .quiz-question {
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(50, 50, 80, 0.5);
+            border-radius: 8px;
+        }
+        
+        .quiz-options {
+            margin: 10px 0;
+        }
+        
+        .quiz-option {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            background: rgba(74, 144, 226, 0.3);
+            border: 1px solid #4A90E2;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            text-align: left;
+        }
+        
+        .quiz-option:hover {
+            background: rgba(74, 144, 226, 0.5);
+        }
+        
+        .quiz-option.selected {
+            background: rgba(74, 144, 226, 0.7);
+            border-color: #FFD700;
+        }
+        
+        .quiz-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .quiz-progress {
+            text-align: center;
+            margin: 15px 0;
+            font-size: 1.1em;
+            color: #6BABDF;
+        }
+        
+        .result-container {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .analysis-container {
+            display: none;
+            text-align: left;
+            padding: 20px;
+            background: rgba(50, 50, 80, 0.5);
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .close-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        
+        .close-btn:hover {
+            background: #c0392b;
+        }
+        
+        .recommendation {
+            background: rgba(100, 200, 100, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #2ecc71;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <h1>电子双缝干涉实验模拟</h1>
+        <p class="subtitle">探索电子的波动性质与干涉现象</p>
+        
+        <div class="theory-section">
+            <h2>双缝干涉理论基础</h2>
+            <p><span class="highlight">德布罗意假说</span>指出，实物粒子也具有波动性，其波长由德布罗意公式给出：</p>
+            <div class="formula">λ = h/p = h/(mv)</div>
+            <p>其中，λ 是物质波波长，h 是普朗克常数，p 是粒子动量，m 是粒子质量，v 是粒子速度。</p>
+            <p>当电子束通过双缝时，会发生<span class="highlight">干涉现象</span>，这证实了电子的波动性。双缝干涉会在屏幕上形成明暗相间的直线条纹，这是由于从两个狭缝发出的电子波相互叠加造成的。当两列波同相位时，产生相长干涉形成亮条纹；当两列波反相位时，产生相消干涉形成暗条纹。</p>
+            <p>双缝干涉条纹间距由公式决定：<span class="formula">Δx = Lλ/d</span>，其中 L 是双缝到屏的距离，λ 是电子波长，d 是双缝间距。</p>
+        </div>
+        
+        <div class="experiment-setup">
+            <div class="canvas-container">
+                <canvas id="interferenceCanvas"></canvas>
+            </div>
+            
+            <div class="controls">
+                <h2>实验控制面板</h2>
+                
+                <div class="control-group">
+                    <h3>电子束参数</h3>
+                    <label>
+                        电子加速电压: <span id="voltageValue" class="value-display">50</span>kV
+                        <input type="range" id="voltageControl" min="10" max="100" value="50">
+                    </label>
+                    <label>
+                        电子发射速率: <span id="intensityValue" class="value-display">50</span>
+                        <input type="range" id="intensityControl" min="1" max="100" value="50">
+                    </label>
+                </div>
+                
+                <div class="control-group">
+                    <h3>双缝参数</h3>
+                    <label>
+                        双缝间距: <span id="slitDistanceValue" class="value-display">0.1</span>mm
+                        <input type="range" id="slitDistanceControl" min="0.05" max="0.5" step="0.01" value="0.1">
+                    </label>
+                    <label>
+                        缝宽: <span id="slitWidthValue" class="value-display">0.02</span>mm
+                        <input type="range" id="slitWidthControl" min="0.01" max="0.1" step="0.01" value="0.02">
+                    </label>
+                </div>
+                
+                <div class="control-group">
+                    <h3>显示设置</h3>
+                    <label>
+                        干涉强度: <span id="brightnessValue" class="value-display">100</span>%
+                        <input type="range" id="brightnessControl" min="10" max="200" value="100">
+                    </label>
+                    <label>
+                        动画速度: <span id="speedValue" class="value-display">1.0</span>x
+                        <input type="range" id="speedControl" min="0.1" max="2" step="0.1" value="1.0">
+                    </label>
+                </div>
+                
+                <button id="startBtn">开始实验</button>
+                <button id="pauseBtn">暂停实验</button>
+                <button id="resetBtn">重置实验</button>
+                <button id="quizBtn">知识检测</button>
+            </div>
+        </div>
+        
+        <!-- 新增：完整的干涉图样显示 -->
+        <div class="full-interference-container">
+            <h3>完整干涉图样</h3>
+            <canvas id="fullInterferenceCanvas" class="full-interference-canvas"></canvas>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-value" id="electronCount">0</div>
+                <div class="stat-label">已发射电子</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="interferenceFringes">5</div>
+                <div class="stat-label">干涉条纹数</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="centralBright">▬</div>
+                <div class="stat-label">中央亮纹</div>
+            </div>
+        </div>
+        
+        <div class="principle">
+            <h2>双缝干涉原理</h2>
+            <p>双缝干涉的条纹间距由以下公式确定：</p>
+            <div class="formula">Δx = Lλ/d</div>
+            <p>其中，Δx 是相邻亮纹（或暗纹）之间的距离，L 是双缝到屏幕的距离，λ 是电子的德布罗意波长，d 是两缝之间的距离。</p>
+            <p>当屏上某点到两缝的光程差是波长的整数倍时，出现亮纹（相长干涉）；当光程差是半波长的奇数倍时，出现暗纹（相消干涉）：</p>
+            <div class="formula">亮纹条件: Δ = nλ (n = 0, ±1, ±2, ...)</div>
+            <div class="formula">暗纹条件: Δ = (n + 1/2)λ (n = 0, ±1, ±2, ...)</div>
+            <p>这意味着，当电子的波长 λ 越长（即加速电压越低）或双缝间距 d 越小时，条纹间距越大，干涉现象越明显。</p>
+        </div>
+    </div>
+    
+    <!-- 知识检测弹窗 -->
+    <div class="quiz-overlay" id="quizOverlay">
+        <div class="quiz-container">
+            <div class="quiz-header">
+                <h2>知识检测</h2>
+                <button class="close-btn" id="closeQuizBtn">关闭</button>
+            </div>
+            <div class="quiz-progress" id="quizProgress">第 1 题，共 5 题</div>
+            <div class="quiz-content" id="quizContent">
+                <!-- 题目内容将通过JavaScript动态加载 -->
+            </div>
+            <div class="quiz-navigation">
+                <button id="prevQuestionBtn">上一题</button>
+                <button id="nextQuestionBtn">下一题</button>
+                <button id="submitQuizBtn" style="display: none;">提交答案</button>
+            </div>
+            <div class="result-container" id="resultContainer">
+                <h3>答题结果</h3>
+                <p>您答对了 <span id="correctCount">0</span> 道题，共 <span id="totalCount">0</span> 道题</p>
+                <div class="analysis-container" id="analysisContainer">
+                    <h4>学情分析</h4>
+                    <p id="analysisText">正在分析您的学习情况...</p>
+                    <h4>学习建议</h4>
+                    <div id="recommendations" class="recommendation">正在生成个性化学习建议...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // 获取DOM元素
+        const canvas = document.getElementById('interferenceCanvas');
+        const fullInterferenceCanvas = document.getElementById('fullInterferenceCanvas');
+        const ctx = canvas.getContext('2d');
+        const fullInterferenceCtx = fullInterferenceCanvas.getContext('2d');
+        const voltageControl = document.getElementById('voltageControl');
+        const voltageValue = document.getElementById('voltageValue');
+        const intensityControl = document.getElementById('intensityControl');
+        const intensityValue = document.getElementById('intensityValue');
+        const slitDistanceControl = document.getElementById('slitDistanceControl');
+        const slitDistanceValue = document.getElementById('slitDistanceValue');
+        const slitWidthControl = document.getElementById('slitWidthControl');
+        const slitWidthValue = document.getElementById('slitWidthValue');
+        const brightnessControl = document.getElementById('brightnessControl');
+        const brightnessValue = document.getElementById('brightnessValue');
+        const speedControl = document.getElementById('speedControl');
+        const speedValue = document.getElementById('speedValue');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const electronCountEl = document.getElementById('electronCount');
+        const interferenceFringesEl = document.getElementById('interferenceFringes');
+        
+        // 知识检测相关DOM元素
+        const quizBtn = document.getElementById('quizBtn');
+        const quizOverlay = document.getElementById('quizOverlay');
+        const closeQuizBtn = document.getElementById('closeQuizBtn');
+        const quizContent = document.getElementById('quizContent');
+        const quizProgress = document.getElementById('quizProgress');
+        const prevQuestionBtn = document.getElementById('prevQuestionBtn');
+        const nextQuestionBtn = document.getElementById('nextQuestionBtn');
+        const submitQuizBtn = document.getElementById('submitQuizBtn');
+        const resultContainer = document.getElementById('resultContainer');
+        const correctCountSpan = document.getElementById('correctCount');
+        const totalCountSpan = document.getElementById('totalCount');
+        const analysisContainer = document.getElementById('analysisContainer');
+        const analysisText = document.getElementById('analysisText');
+        const recommendationsDiv = document.getElementById('recommendations');
+        
+        // 实验状态
+        let isRunning = false;
+        let animationId = null;
+        let electronCount = 0;
+        let electrons = [];
+        
+        // 初始化屏幕撞击点数组
+        window.screenImpacts = [];
+        
+        // 设置canvas大小
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth - 20;
+            canvas.height = 400;
+            
+            // 设置完整干涉图样画布大小
+            fullInterferenceCanvas.width = fullInterferenceCanvas.parentElement.clientWidth - 20;
+            fullInterferenceCanvas.height = 300;
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        
+        // 更新显示值
+        function updateDisplayValues() {
+            voltageValue.textContent = voltageControl.value;
+            intensityValue.textContent = intensityControl.value;
+            slitDistanceValue.textContent = slitDistanceControl.value;
+            slitWidthValue.textContent = slitWidthControl.value;
+            brightnessValue.textContent = brightnessControl.value;
+            speedValue.textContent = speedControl.value;
+        }
+        
+        // 控制滑块事件
+        voltageControl.addEventListener('input', updateDisplayValues);
+        intensityControl.addEventListener('input', updateDisplayValues);
+        slitDistanceControl.addEventListener('input', updateDisplayValues);
+        slitWidthControl.addEventListener('input', updateDisplayValues);
+        brightnessControl.addEventListener('input', updateDisplayValues);
+        speedControl.addEventListener('input', updateDisplayValues);
+        
+        // 获取参数值
+        function getParameters() {
+            const voltage = parseFloat(voltageControl.value); // kV
+            const slitDistance = parseFloat(slitDistanceControl.value); // mm
+            const slitWidth = parseFloat(slitWidthControl.value); // mm
+            const intensity = parseFloat(intensityControl.value);
+            const brightness = parseFloat(brightnessControl.value) / 100;
+            const speed = parseFloat(speedControl.value);
+            
+            // 计算德布罗意波长 (更精确的公式，单位：埃)
+            // λ = h/√(2meU) ≈ 12.27/√U (U单位为V，λ单位为埃)
+            // 考虑相对论修正: λ = hc/√(2mc²U(1+U/2mc²))
+            const U_eV = voltage * 1000; // 转换为电子伏特
+            let wavelength;
+            
+            // 非相对论近似 (适用于较低电压)
+            if (voltage < 50) {
+                wavelength = 12.27 / Math.sqrt(U_eV); // 埃
+            } else {
+                // 相对论修正
+                const factor = 1 + U_eV / (2 * 511000); // 511 keV 是电子静止能量
+                wavelength = 12.27 / Math.sqrt(U_eV * factor); // 埃
+            }
+            
+            return {
+                voltage,
+                slitDistance,
+                slitWidth,
+                intensity,
+                brightness,
+                speed,
+                wavelength
+            };
+        }
+        
+        // 计算双缝干涉强度
+        function calculateInterferenceIntensity(x, params) {
+            const centerX = canvas.width / 2;
+            const offset = x - centerX;
+            
+            // 根据双缝干涉公式计算强度
+            // I = I₀cos²(πdx/λL)
+            const L = 200; // 屏幕距离（像素）
+            const d = params.slitDistance * 100; // 双缝间距（像素）
+            const lambda = params.wavelength; // 波长（埃）
+            
+            // 避免除零错误
+            if (lambda === 0) return 1;
+            
+            const phase = Math.PI * d * offset / (lambda * L);
+            return Math.cos(phase) * Math.cos(phase);
+        }
+        
+        // 电子类
+        class Electron {
+            constructor() {
+                this.vx = 0;
+                this.vy = 0;
+                this.reset();
+            }
+            
+            reset() {
+                // 从电子源发射电子
+                const centerX = canvas.width / 2;
+                this.x = centerX + (Math.random() - 0.5) * 20; // 限制在电子源区域内
+                this.y = 20; // 电子源位置
+                this.originalX = this.x;
+                this.originalY = this.y;
+                this.active = true;
+                this.path = [];
+                this.maxPathLength = 20;
+                // 初始速度向下
+                this.vx = 0;
+                this.vy = 2 * getParameters().speed; // 较慢的初始速度
+            }
+            
+            // 生成符合双缝干涉强度分布的位置
+            generateInterferencePosition(params) {
+                // 双缝干涉的强度分布遵循 I = I₀cos²(πdx/λL)，其中x是屏幕上的位置
+                // 我们需要更精确地模拟干涉强度分布
+                
+                // 获取当前参数
+                const L = 200; // 双缝到屏幕的距离（像素）
+                const d = params.slitDistance * 100; // 双缝间距（转换为像素）
+                
+                // 计算在屏幕上的位置
+                // 我们使用一个更精确的方法来模拟干涉图样
+                const screenCenter = canvas.width / 2;
+                
+                // 使用拒绝采样方法生成符合干涉强度分布的位置
+                let attempts = 0;
+                const maxAttempts = 100; // 防止无限循环
+                
+                while (attempts < maxAttempts) {
+                    // 在屏幕范围内生成一个随机位置
+                    let candidateX = screenCenter + (Math.random() - 0.5) * (canvas.width * 0.6); // 限制在屏幕中央大部分区域
+                    
+                    // 计算该位置对应的干涉强度
+                    const xFromCenter = candidateX - screenCenter;
+                    
+                    // 避免除零错误
+                    if (params.wavelength === 0) {
+                        return screenCenter; // 返回中心位置
+                    }
+                    
+                    const beta = Math.PI * d * xFromCenter / (params.wavelength * L);
+                    const interferenceIntensity = Math.cos(beta) * Math.cos(beta); // 干涉项
+                    
+                    // 使用拒绝采样：只有当随机数小于干涉强度时才接受该点
+                    if (Math.random() < interferenceIntensity) {
+                        return candidateX;
+                    }
+                    
+                    attempts++;
+                }
+                
+                // 如果多次尝试后仍未找到合适位置，则返回中央亮纹区域
+                return screenCenter + (Math.random() - 0.5) * 15;
+            }
+            
+            update() {
+                if (!this.active) return;
+                            
+                // 根据双缝干涉特性移动电子
+                const params = getParameters();
+                            
+                // 模拟电子在自由空间中的直线运动
+                this.x += this.vx;
+                this.y += this.vy;
+                            
+                // 当电子到达双缝位置时，模拟通过双缝的过程
+                if (this.y >= 150 && this.y <= 170) {
+                    // 在双缝处，电子处于通过两个缝的叠加态
+                    // 模拟量子力学中的双缝干涉现象
+                    // 保持电子继续前进，但根据干涉原理调整最终落点
+                                
+                    // 计算通过双缝后电子的最终落点
+                    // 根据量子力学原理，电子的概率波通过两个缝后产生干涉
+                    const targetX = this.generateInterferencePosition(params);
+                    const targetY = canvas.height - 50; // 屏幕位置（精确到屏幕）
+                                
+                    // 计算到达目标的速度分量
+                    const distX = targetX - this.x;
+                    const distY = targetY - this.y;
+                    const distTotal = Math.sqrt(distX * distX + distY * distY);
+                                
+                    const speed = 3 * params.speed;
+                    this.vx = (distX / distTotal) * speed;
+                    this.vy = (distY / distTotal) * speed;
+                }
+                            
+                // 当电子接近屏幕时，确保其准确命中屏幕
+                if (this.y >= canvas.height - 50) {
+                    this.y = canvas.height - 50; // 确保电子正好在屏幕上
+                    this.x = Math.max(50, Math.min(canvas.width - 50, this.x)); // 限制在屏幕范围内
+                    this.vx = 0; // 到达屏幕后停止移动
+                    this.vy = 0;
+                }
+                
+                // 添加到路径
+                this.path.push({x: this.x, y: this.y});
+                if (this.path.length > this.maxPathLength) {
+                    this.path.shift();
+                }
+                
+                // 检查是否到达屏幕
+                if (this.y >= canvas.height - 50) { // 确保电子准确到达屏幕
+                    // 确保电子位置在屏幕范围内
+                    this.x = Math.max(50, Math.min(canvas.width - 50, this.x));
+                    this.y = canvas.height - 50; // 精确设置为屏幕位置
+                    this.recordImpact(); // 记录撞击点
+                    this.active = false;
+                    electronCount++;
+                    electronCountEl.textContent = electronCount;
+                }
+                
+                // 如果电子跑出画布边界，则移除
+                if (this.x < 0 || this.x > canvas.width || this.y > canvas.height) {
+                    this.active = false;
+                }
+            }
+            
+            draw() {
+                if (!this.active) return;
+                
+                // 绘制电子轨迹
+                if (this.path.length > 1) {
+                    ctx.beginPath();
+                    ctx.moveTo(this.path[0].x, this.path[0].y);
+                    for (let i = 1; i < this.path.length; i++) {
+                        ctx.lineTo(this.path[i].x, this.path[i].y);
+                    }
+                                
+                    // 当电子接近屏幕时，增加轨迹线宽以增强视觉效果
+                    const distanceToScreen = canvas.height - 50 - this.y;
+                    if (distanceToScreen < 100) {
+                        // 接近屏幕时增加轨迹亮度和粗细
+                        ctx.strokeStyle = `rgba(0, 255, 255, ${0.5 + 0.5 * (1 - distanceToScreen/100)})`;
+                        ctx.lineWidth = 1 + 2 * (1 - distanceToScreen/100);
+                    } else {
+                        ctx.strokeStyle = 'rgba(0, 255, 255, 0.5)';
+                        ctx.lineWidth = 1;
+                    }
+                                
+                    ctx.stroke();
+                }
+                
+                // 绘制电子
+                ctx.beginPath();
+                            
+                // 根据电子位置调整半径
+                let electronRadius = 2;
+                if (this.y >= 150 && this.y <= 170) {
+                    // 当电子经过双缝区域时，稍微放大并改变颜色以突出显示
+                    electronRadius = 3;
+                    ctx.fillStyle = '#FF6600'; // 橙色表示正在通过双缝
+                } else if (this.y >= canvas.height - 50) {
+                    // 当电子到达屏幕时，稍微放大以显示撞击效果
+                    electronRadius = 3;
+                    ctx.fillStyle = '#00FFFF';
+                } else {
+                    // 其他时候保持正常颜色
+                    electronRadius = 2;
+                    ctx.fillStyle = '#00FFFF';
+                }
+                            
+                ctx.arc(this.x, this.y, electronRadius, 0, Math.PI * 2);
+                ctx.fill();
+                            
+                // 添加发光效果
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, electronRadius * 2, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0, 255, 255, 0.3)';
+                ctx.fill();
+                            
+                // 如果电子刚刚击中屏幕，绘制撞击效果
+                if (this.y >= canvas.height - 50 && this.active === false) {
+                    // 绘制一个短暂的撞击效果
+                    const now = Date.now();
+                    const timeSinceHit = now - (this.hitTimestamp || now);
+                    const hitEffectDuration = 300; // 300毫秒效果持续时间
+                                
+                    if (timeSinceHit < hitEffectDuration) {
+                        const effectRadius = 3 + (timeSinceHit / hitEffectDuration) * 8; // 从3扩大到11像素
+                        const effectOpacity = 1 - (timeSinceHit / hitEffectDuration); // 透明度逐渐减少
+                                    
+                        ctx.beginPath();
+                        ctx.arc(this.x, this.y, effectRadius, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(255, 255, 0, ${effectOpacity * 0.6})`;
+                        ctx.fill();
+                                    
+                        ctx.beginPath();
+                        ctx.arc(this.x, this.y, effectRadius * 1.5, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(255, 100, 0, ${effectOpacity * 0.3})`;
+                        ctx.fill();
+                    }
+                }
+            }
+            
+            // 当电子到达屏幕时，记录撞击点
+            recordImpact() {
+                // 在屏幕上绘制单个电子撞击点，体现颗粒感
+                if (this.y >= canvas.height - 50 && this.active) {
+                    // 将电子位置记录到屏幕撞击点数组
+                    if (typeof window.screenImpacts === 'undefined') {
+                        window.screenImpacts = [];
+                    }
+                    
+                    // 添加撞击点信息
+                    window.screenImpacts.push({
+                        x: this.x,
+                        y: canvas.height - 50, // 确保y坐标是屏幕位置
+                        timestamp: Date.now(),
+                        size: 2, // 撞击点大小
+                        brightness: 1.0 // 撞击点亮度
+                    });
+                    
+                    // 记录撞击时间用于特效
+                    this.hitTimestamp = Date.now();
+                }
+            }
+            
+
+        }
+        
+        // 绘制实验装置
+        function drawSetup() {
+            const centerX = canvas.width / 2;
+            const params = getParameters();
+            
+            // 绘制电子源
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(centerX - 20, 5, 40, 20);
+            ctx.fillStyle = '#FFF';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('电子源', centerX, 20);
+            
+            // 绘制电子源发射的电子束方向指示线
+            ctx.strokeStyle = 'rgba(139, 69, 19, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(centerX, 25); // 电子源中心
+            ctx.lineTo(centerX, 140); // 指向双缝
+            ctx.stroke();
+            ctx.setLineDash([]); // 重置虚线设置
+            
+            // 绘制双缝 - 用长方形中间挖去两个长条来表示
+            const slitSeparation = params.slitDistance * 100; // 转换为像素
+            const slitWidthPx = params.slitWidth * 100; // 转换为像素
+            const barrierWidth = 200; // 障碍物总宽度
+            const barrierHeight = 20; // 障碍物高度
+            const barrierY = 150; // 障碍物Y坐标
+            
+            // 绘制整个障碍物（包含缝隙）
+            ctx.fillStyle = '#8B4513'; // 使用深棕色表示障碍物
+            ctx.fillRect(centerX - barrierWidth/2, barrierY, barrierWidth, barrierHeight);
+            
+            // 挖去两个缝（用浅灰色表示缝隙，模拟光线通过）
+            ctx.fillStyle = '#333333'; // 深灰色表示缝隙
+            
+            // 左缝位置
+            const leftSlitX = centerX - slitSeparation/2 - slitWidthPx/2;
+            ctx.fillRect(leftSlitX, barrierY, slitWidthPx, barrierHeight);
+            
+            // 右缝位置
+            const rightSlitX = centerX + slitSeparation/2 - slitWidthPx/2;
+            ctx.fillRect(rightSlitX, barrierY, slitWidthPx, barrierHeight);
+            
+            // 绘制缝隙边界的细线，使缝隙更清晰
+            ctx.strokeStyle = '#FFD700'; // 金色边框
+            ctx.lineWidth = 1;
+            ctx.strokeRect(leftSlitX, barrierY, slitWidthPx, barrierHeight);
+            ctx.strokeRect(rightSlitX, barrierY, slitWidthPx, barrierHeight);
+            
+            // 标记双缝
+            ctx.fillStyle = '#FFD700';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(`左缝`, leftSlitX + slitWidthPx/2, barrierY - 5);
+            ctx.fillText(`右缝`, rightSlitX + slitWidthPx/2, barrierY - 5);
+            
+            // 绘制屏幕
+            ctx.fillStyle = 'rgba(100, 100, 100, 0.3)';
+            ctx.fillRect(50, canvas.height - 50, canvas.width - 100, 40);
+            ctx.strokeStyle = '#6BABDF';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(50, canvas.height - 50, canvas.width - 100, 40);
+            ctx.fillStyle = '#6BABDF';
+            ctx.textAlign = 'center';
+            ctx.fillText('探测屏幕', centerX, canvas.height - 20);
+        }
+        
+        // 绘制光屏上的干涉图样（实际撞击点）
+        function drawScreenInterferencePattern() {
+            // 这个函数专门绘制光屏上的电子撞击点
+            if (window.screenImpacts) {
+                // 清除过期的撞击点（保留最近的点）
+                const now = Date.now();
+                window.screenImpacts = window.screenImpacts.filter(impact => now - impact.timestamp < 10000); // 保留10秒内的点
+                
+                // 绘制所有撞击点
+                for (const impact of window.screenImpacts) {
+                    // 根据撞击时间和密度调整亮度
+                    const elapsed = now - impact.timestamp;
+                    const fadeFactor = Math.max(0, 1 - elapsed / 10000); // 逐渐淡出
+                    
+                    // 计算撞击点位置相对于中心的偏移
+                    const centerX = canvas.width / 2;
+                    const offset = impact.x - centerX;
+                    
+                    // 根据双缝干涉理论计算该位置的理论强度
+                    const params = getParameters();
+                    const L = 200; // 屏幕距离（像素）
+                    const d = params.slitDistance * 100; // 双缝间距（像素）
+                    const lambda = params.wavelength; // 波长（埃）
+                    
+                    // 计算干涉强度
+                    const phase = Math.PI * d * offset / (lambda * L);
+                    const interferenceIntensity = Math.cos(phase) * Math.cos(phase);
+                    
+                    // 绘制撞击点
+                    ctx.beginPath();
+                    ctx.arc(impact.x, impact.y, impact.size * 1.5, 0, Math.PI * 2); // 稍微放大撞击点
+                    ctx.fillStyle = `rgba(255, 50, 50, ${impact.brightness * fadeFactor * 0.9 * (0.3 + 0.7 * interferenceIntensity)})`;
+                    ctx.fill();
+                    
+                    // 添加微弱的发光效果
+                    ctx.beginPath();
+                    ctx.arc(impact.x, impact.y, impact.size * 3, 0, Math.PI * 2); // 扩大发光范围
+                    ctx.fillStyle = `rgba(255, 100, 100, ${impact.brightness * fadeFactor * 0.4 * (0.3 + 0.7 * interferenceIntensity)})`;
+                    ctx.fill();
+                    
+                    // 如果撞击点比较新，添加一个额外的闪烁效果
+                    if (elapsed < 300) { // 0.3秒内的新撞击点
+                        const flashIntensity = (300 - elapsed) / 300; // 随时间减弱
+                        ctx.beginPath();
+                        ctx.arc(impact.x, impact.y, 8 + flashIntensity * 5, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(255, 255, 0, ${flashIntensity * 0.3})`;
+                        ctx.fill();
+                    }
+                }
+            }
+        }
+        
+        // 绘制完整的干涉图样（理论图样）
+        function drawFullInterferencePattern() {
+            const centerX = fullInterferenceCanvas.width / 2;
+            const centerY = fullInterferenceCanvas.height / 2;
+            const params = getParameters();
+            
+            // 清空画布
+            fullInterferenceCtx.clearRect(0, 0, fullInterferenceCanvas.width, fullInterferenceCanvas.height);
+            
+            // 根据双缝干涉理论，计算理论干涉图案
+            // 条纹间距 Δx = Lλ/d
+            const L = 200; // 屏幕距离（像素）
+            const d = params.slitDistance * 100; // 双缝间距（像素）
+            const lambda = params.wavelength; // 波长（埃）
+            
+            // 转换到画布坐标系下的条纹间距
+            let fringeSpacing = (L * lambda) / d;
+            
+            // 限制条纹间距在合理范围内
+            if (isNaN(fringeSpacing) || fringeSpacing < 1) {
+                fringeSpacing = 10;
+            } else if (fringeSpacing > 50) {
+                fringeSpacing = 50;
+            }
+            
+            // 绘制干涉条纹
+            // 使用正弦函数模拟干涉强度分布
+            for (let x = 0; x < fullInterferenceCanvas.width; x++) {
+                // 计算相对于中心的偏移
+                const offset = x - centerX;
+                
+                // 根据双缝干涉公式计算强度
+                // I = I₀cos²(πdx/λL)
+                const phase = Math.PI * d * offset / (lambda * L);
+                const intensity = Math.cos(phase) * Math.cos(phase);
+                
+                // 根据强度设置颜色
+                const alpha = params.brightness * intensity * 0.8;
+                fullInterferenceCtx.fillStyle = `rgba(255, 255, 100, ${alpha})`;
+                
+                // 绘制垂直线段
+                fullInterferenceCtx.fillRect(x, centerY - 50, 1, 100);
+            }
+            
+            // 绘制中央亮纹（零级条纹）
+            fullInterferenceCtx.fillStyle = `rgba(255, 215, 0, ${params.brightness * 0.9})`;
+            fullInterferenceCtx.fillRect(centerX - 2, centerY - 50, 4, 100);
+            
+            // 添加标尺以显示条纹间距
+            fullInterferenceCtx.strokeStyle = `rgba(100, 100, 255, 0.7)`;
+            fullInterferenceCtx.lineWidth = 1;
+            fullInterferenceCtx.setLineDash([5, 3]); // 虚线
+            
+            // 标记几个主要的亮纹位置
+            if (!isNaN(fringeSpacing) && fringeSpacing > 0) {
+                for (let i = 1; i <= 3; i++) {
+                    // 正方向
+                    const pos_x = centerX + i * fringeSpacing;
+                    if (pos_x < fullInterferenceCanvas.width) {
+                        fullInterferenceCtx.beginPath();
+                        fullInterferenceCtx.moveTo(pos_x, centerY - 60);
+                        fullInterferenceCtx.lineTo(pos_x, centerY + 60);
+                        fullInterferenceCtx.stroke();
+                    }
+                    
+                    // 负方向
+                    const neg_x = centerX - i * fringeSpacing;
+                    if (neg_x > 0) {
+                        fullInterferenceCtx.beginPath();
+                        fullInterferenceCtx.moveTo(neg_x, centerY - 60);
+                        fullInterferenceCtx.lineTo(neg_x, centerY + 60);
+                        fullInterferenceCtx.stroke();
+                    }
+                }
+            }
+            
+            fullInterferenceCtx.setLineDash([]); // 重置虚线设置
+        }
+        
+        // 主动画循环
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制实验装置
+            drawSetup();
+            
+            // 更新和绘制电子
+            for (let i = electrons.length - 1; i >= 0; i--) {
+                electrons[i].update();
+                electrons[i].draw();
+                
+                // 移除不活跃的电子
+                if (!electrons[i].active) {
+                    electrons.splice(i, 1);
+                }
+            }
+            
+            // 绘制光屏上的干涉图样（实际撞击点）
+            drawScreenInterferencePattern();
+            
+            // 绘制完整的干涉图样（理论图样）
+            drawFullInterferencePattern();
+            
+            // 根据强度参数随机发射新电子
+            const params = getParameters();
+            const emissionRate = params.intensity / 10;
+            
+            if (isRunning && Math.random() < emissionRate / 100) {
+                electrons.push(new Electron());
+            }
+            
+            if (isRunning) {
+                animationId = requestAnimationFrame(animate);
+            }
+        }
+        
+        // 事件监听器
+        startBtn.addEventListener('click', () => {
+            if (!isRunning) {
+                isRunning = true;
+                if (!animationId) {
+                    animate();
+                }
+            }
+        });
+        
+        pauseBtn.addEventListener('click', () => {
+            isRunning = false;
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+        });
+        
+        resetBtn.addEventListener('click', () => {
+            isRunning = false;
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            electrons = [];
+            electronCount = 0;
+            electronCountEl.textContent = electronCount;
+            // 清空屏幕撞击点
+            window.screenImpacts = [];
+        });
+        
+        // 初始化显示
+        updateDisplayValues();
+        
+        // 更新干涉条纹显示
+        function updateInterferenceInfo() {
+            const params = getParameters();
+            // 根据波长和双缝间距比例计算可见干涉条纹数量
+            // 条纹间距 Δx = Lλ/d
+            const L = 200; // 屏幕距离（像素）
+            const d = params.slitDistance * 100; // 双缝间距（像素）
+            const lambda = params.wavelength; // 波长（埃）
+            
+            // 计算条纹间距
+            let fringeSpacing = (L * lambda) / d;
+            if (isNaN(fringeSpacing) || fringeSpacing === 0) {
+                fringeSpacing = 10; // 默认值
+            }
+            
+            // 计算大约能看到多少条条纹
+            const visibleFringes = Math.min(20, Math.floor(canvas.width / (fringeSpacing * 2)));
+            interferenceFringesEl.textContent = visibleFringes > 0 ? visibleFringes : 5;
+            
+            // 验证物理关系：当电压增加时，波长减小，条纹间距应减小
+            const expectedBehavior = lambda > 0 && d > 0;
+            if(expectedBehavior) {
+                console.log(`物理验证: 电压=${params.voltage}kV, 波长=${lambda.toFixed(3)}Å, 条纹间距=${fringeSpacing.toFixed(2)}像素`);
+            }
+        }
+        
+        // 每秒更新一次干涉信息
+        setInterval(updateInterferenceInfo, 1000);
+        
+        // 知识检测功能
+        // 题库
+        const quizQuestions = [
+            {
+                question: "德布罗意波长公式是什么？",
+                options: [
+                    "λ = mv/p",
+                    "λ = h/p",
+                    "λ = hp",
+                    "λ = m/v"
+                ],
+                correctAnswer: 1,
+                explanation: "德布罗意波长公式为 λ = h/p，其中h是普朗克常数，p是粒子动量。"
+            },
+            {
+                question: "双缝干涉条纹间距的公式是什么？",
+                options: [
+                    "Δx = λ/d",
+                    "Δx = Lλ/d",
+                    "Δx = L/d",
+                    "Δx = λLd"
+                ],
+                correctAnswer: 1,
+                explanation: "双缝干涉条纹间距公式为 Δx = Lλ/d，其中L是双缝到屏的距离，λ是波长，d是双缝间距。"
+            },
+            {
+                question: "当电子加速电压增大时，干涉条纹间距会如何变化？",
+                options: [
+                    "条纹间距增大",
+                    "条纹间距减小",
+                    "条纹间距不变",
+                    "条纹消失"
+                ],
+                correctAnswer: 1,
+                explanation: "加速电压增大，电子动量增大，德布罗意波长减小，根据Δx = Lλ/d，条纹间距减小。"
+            },
+            {
+                question: "在双缝干涉实验中，什么是波粒二象性的体现？",
+                options: [
+                    "电子只能表现出波动性",
+                    "电子只能表现出粒子性", 
+                    "单个电子表现为粒子，大量电子的分布表现为波动性",
+                    "电子同时表现出两种性质"
+                ],
+                correctAnswer: 2,
+                explanation: "单个电子到达屏幕时表现为粒子（一个点），但大量电子的分布表现为波动性（干涉条纹）。"
+            },
+            {
+                question: "双缝干涉实验中，如果试图观测电子通过哪个缝，会出现什么现象？",
+                options: [
+                    "干涉图样更清晰",
+                    "仍然出现干涉条纹",
+                    "只出现两条亮纹（粒子性）",
+                    "条纹间距变大"
+                ],
+                correctAnswer: 2,
+                explanation: "观测行为会影响量子态，导致干涉图样消失，只出现对应两个单缝衍射的两条亮纹。"
+            }
+        ];
+        
+        // 问卷状态
+        let currentQuestionIndex = 0;
+        let userAnswers = new Array(quizQuestions.length).fill(null);
+        let isQuizCompleted = false;
+        
+        // 显示题目
+        function displayQuestion(index) {
+            const question = quizQuestions[index];
+            let optionsHtml = '';
+            
+            question.options.forEach((option, i) => {
+                const isSelected = userAnswers[index] === i;
+                optionsHtml += `
+                    <label class="quiz-option ${isSelected ? 'selected' : ''}" onclick="selectOption(${i})">
+                        <input type="radio" name="question${index}" value="${i}" style="display:none;" ${isSelected ? 'checked' : ''}>
+                        ${String.fromCharCode(65 + i)}. ${option}
+                    </label>
+                `;
+            });
+            
+            quizContent.innerHTML = `
+                <div class="quiz-question">
+                    <h3>${index + 1}. ${question.question}</h3>
+                    <div class="quiz-options">
+                        ${optionsHtml}
+                    </div>
+                </div>
+            `;
+            
+            // 更新进度
+            quizProgress.textContent = `第 ${index + 1} 题，共 ${quizQuestions.length} 题`;
+            
+            // 控制按钮显示
+            prevQuestionBtn.style.display = index > 0 ? 'inline-block' : 'none';
+            nextQuestionBtn.style.display = index < quizQuestions.length - 1 ? 'inline-block' : 'none';
+            submitQuizBtn.style.display = index === quizQuestions.length - 1 ? 'inline-block' : 'none';
+        }
+        
+        // 选择选项
+        function selectOption(optionIndex) {
+            userAnswers[currentQuestionIndex] = optionIndex;
+            displayQuestion(currentQuestionIndex);
+        }
+        
+        // 下一题
+        function goToNextQuestion() {
+            if (currentQuestionIndex < quizQuestions.length - 1) {
+                currentQuestionIndex++;
+                displayQuestion(currentQuestionIndex);
+            }
+        }
+        
+        // 上一题
+        function goToPrevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                displayQuestion(currentQuestionIndex);
+            }
+        }
+        
+        // 提交问卷
+        function submitQuiz() {
+            // 检查是否所有题目都已回答
+            const unanswered = userAnswers.filter(answer => answer === null).length;
+            if (unanswered > 0) {
+                if (confirm(`您还有 ${unanswered} 道题未作答，确定要提交吗？`)) {
+                    calculateResults();
+                }
+            } else {
+                calculateResults();
+            }
+        }
+        
+        // 计算结果
+        function calculateResults() {
+            let correctCount = 0;
+            let incorrectIndices = [];
+            
+            for (let i = 0; i < quizQuestions.length; i++) {
+                if (userAnswers[i] === quizQuestions[i].correctAnswer) {
+                    correctCount++;
+                } else {
+                    incorrectIndices.push(i);
+                }
+            }
+            
+            // 显示结果
+            correctCountSpan.textContent = correctCount;
+            totalCountSpan.textContent = quizQuestions.length;
+            resultContainer.style.display = 'block';
+            
+            // 生成学情分析
+            const scorePercentage = (correctCount / quizQuestions.length) * 100;
+            let analysis = '';
+            let recommendations = '';
+            
+            if (scorePercentage >= 80) {
+                analysis = `恭喜！您获得了 ${scorePercentage}% 的高分，对电子双缝干涉概念掌握扎实。`;
+                recommendations = `
+                    <p>继续保持深入学习的热情！您可以：</p>
+                    <ul>
+                        <li>探索更复杂的量子力学概念</li>
+                        <li>研究量子纠缠等高级现象</li>
+                        <li>了解双缝干涉在量子计算中的应用</li>
+                    </ul>
+                `;
+            } else if (scorePercentage >= 60) {
+                analysis = `您的得分为 ${scorePercentage}%，对基础知识有一定了解，但仍有提升空间。`;
+                recommendations = `
+                    <p>建议加强以下知识点的学习：</p>
+                    <ul>
+                        <li>回顾德布罗意波长公式的推导和应用</li>
+                        <li>深入理解波粒二象性概念</li>
+                        <li>练习干涉条纹间距的计算</li>
+                    </ul>
+                `;
+            } else {
+                analysis = `您的得分为 ${scorePercentage}%，需要加强对电子双缝干涉基本概念的理解。`;
+                recommendations = `
+                    <p>建议从基础开始巩固：</p>
+                    <ul>
+                        <li>重新观看本实验演示</li>
+                        <li>重点学习德布罗意假说和波粒二象性</li>
+                        <li>复习双缝干涉的基本原理</li>
+                        <li>多做相关练习题加深理解</li>
+                    </ul>
+                `;
+            }
+            
+            // 添加错题分析
+            if (incorrectIndices.length > 0) {
+                analysis += `<br><br>您在以下题目上需要加强：<br>`;
+                incorrectIndices.forEach(idx => {
+                    analysis += `• 第${idx + 1}题: ${quizQuestions[idx].question}<br>`;
+                });
+            }
+            
+            analysisText.innerHTML = analysis;
+            recommendationsDiv.innerHTML = recommendations;
+            analysisContainer.style.display = 'block';
+            
+            // 隐藏题目导航，只保留关闭按钮
+            prevQuestionBtn.style.display = 'none';
+            nextQuestionBtn.style.display = 'none';
+            submitQuizBtn.style.display = 'none';
+        }
+        
+        // 打开知识检测
+        quizBtn.addEventListener('click', () => {
+            currentQuestionIndex = 0;
+            userAnswers = new Array(quizQuestions.length).fill(null);
+            isQuizCompleted = false;
+            
+            resultContainer.style.display = 'none';
+            analysisContainer.style.display = 'none';
+            quizOverlay.style.display = 'flex';
+            displayQuestion(currentQuestionIndex);
+        });
+        
+        // 关闭知识检测
+        closeQuizBtn.addEventListener('click', () => {
+            quizOverlay.style.display = 'none';
+        });
+        
+        // 导航按钮事件
+        nextQuestionBtn.addEventListener('click', goToNextQuestion);
+        prevQuestionBtn.addEventListener('click', goToPrevQuestion);
+        submitQuizBtn.addEventListener('click', submitQuiz);
+        
+        // 点击遮罩层关闭
+        quizOverlay.addEventListener('click', (e) => {
+            if (e.target === quizOverlay) {
+                quizOverlay.style.display = 'none';
+            }
+        });
+
+    </script>
+</body>
+</html>

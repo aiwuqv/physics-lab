@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>卫星变轨 · 低圆 / 椭圆 / 高圆 (引力模拟)</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
+        body {
+            background: linear-gradient(145deg, #0a1a2b 0%, #1a3b54 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .card {
+            max-width: 1300px;
+            width: 100%;
+            background: rgba(230, 245, 255, 0.9);
+            backdrop-filter: blur(8px);
+            border-radius: 56px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+            padding: 28px 30px;
+            border: 2px solid rgba(255, 255, 255, 0.7);
+        }
+        h1 {
+            font-size: 2.6rem;
+            font-weight: 600;
+            margin: 0 0 5px 0;
+            color: #022c44;
+        }
+        .sub {
+            color: #1d5377;
+            margin-bottom: 25px;
+            font-style: italic;
+            background: #c4e2ff;
+            display: inline-block;
+            padding: 6px 32px;
+            border-radius: 60px;
+        }
+        .dashboard {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+        /* 控制面板 */
+        .control-panel {
+            background: #e2f0fc;
+            border-radius: 48px;
+            padding: 25px 20px;
+            box-shadow: inset 0 2px 8px #ffffff, 0 12px 24px #1b405a;
+            border: 1px solid #ffffff;
+        }
+        .control-panel h3 {
+            margin: 0 0 25px 0;
+            color: #0c3857;
+            font-size: 1.7rem;
+            border-bottom: 3px solid #b0cde0;
+            padding-bottom: 8px;
+        }
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            margin-bottom: 25px;
+        }
+        .btn {
+            background: #eaf2f9;
+            border: none;
+            padding: 18px 0;
+            border-radius: 60px;
+            font-weight: 700;
+            font-size: 1.4rem;
+            color: #003a60;
+            box-shadow: 0 6px 0 #507f9f, 0 10px 20px #0a2a3b;
+            cursor: pointer;
+            transition: 0.05s linear;
+        }
+        .btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 1px 0 #507f9f, 0 8px 16px #0a2a3b;
+        }
+        .btn.accelerate {
+            background: #ffe0b0;
+            color: #804d1a;
+        }
+        .btn.decelerate {
+            background: #b0d0ff;
+            color: #003c74;
+        }
+        .btn.reset {
+            background: #d6d6d6;
+            color: #2b2b2b;
+        }
+        .info-box {
+            background: #bed9f0;
+            border-radius: 36px;
+            padding: 16px;
+            text-align: center;
+            font-size: 1.1rem;
+            margin-top: 20px;
+        }
+        .info-box span {
+            background: #1f608b;
+            color: white;
+            padding: 6px 20px;
+            border-radius: 40px;
+            display: inline-block;
+            margin-top: 8px;
+        }
+        /* 动画区 */
+        .canvas-area {
+            background: #cde3f7;
+            border-radius: 48px;
+            padding: 20px;
+            box-shadow: inset 0 -4px 12px #8db1cc, 0 16px 28px #123b52;
+            border: 2px solid #ffffff;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: #0b1d2f;  /* 深色太空背景 */
+            border-radius: 36px;
+            box-shadow: 0 0 0 4px #a1bedb, inset 0 0 0 2px #2d577b;
+        }
+        .data-row {
+            background: #e2f0fa;
+            border-radius: 40px;
+            padding: 18px 20px;
+            margin-top: 18px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            font-weight: 600;
+            color: #013352;
+        }
+        .data-item {
+            background: #ffffffd6;
+            border-radius: 60px;
+            padding: 14px 8px;
+            text-align: center;
+            box-shadow: inset 0 2px 8px #c1dfff;
+        }
+        .data-item span {
+            font-family: 'Courier New', monospace;
+            background: #1a4b70;
+            color: #fff2b5;
+            padding: 8px 18px;
+            border-radius: 40px;
+            margin-left: 12px;
+            font-size: 1.2rem;
+        }
+        /* 底部结论 */
+        .conclusion {
+            background: #0f344b;
+            border-radius: 40px;
+            padding: 22px 32px;
+            margin-top: 25px;
+            color: #f0efd8;
+            box-shadow: inset 0 3px 12px #5d8fb0, 0 12px 24px #021520;
+        }
+        .conclusion h3 {
+            font-size: 1.9rem;
+            color: #ffd894;
+            margin: 0 0 16px 0;
+        }
+        .conclusion p {
+            margin: 10px 0;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .conc-tag {
+            background: #2e6392;
+            padding: 5px 24px;
+            border-radius: 40px;
+            font-family: monospace;
+            color: #ffd98c;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+<div class="card">
+    <h1>🛰️ 卫星变轨 · 低圆 ⇄ 椭圆 ⇄ 高圆</h1>
+    <div class="sub">切向加速/减速 · 近地点快 · 远地点慢</div>
+
+    <div class="dashboard">
+        <!-- 控制面板 -->
+        <div class="control-panel">
+            <h3>⚙️ 轨道控制</h3>
+            <div class="button-group">
+                <button class="btn accelerate" id="accelBtn">🚀 加速 (+Δv)</button>
+                <button class="btn decelerate" id="decelBtn">🔻 减速 (-Δv)</button>
+                <button class="btn reset" id="resetBtn">↺ 重置 (低圆轨道)</button>
+            </div>
+            <div class="info-box">
+                <div>🪐 地球在中心</div>
+                <div>🛸 白色轨迹为最近路径</div>
+                <div><span id="apPeriIndicator">当前：低圆轨道</span></div>
+                <div style="font-size:0.9rem; margin-top:10px;">* 在远地点加速可抬升近地点<br>在近地点减速可降低远地点</div>
+            </div>
+        </div>
+
+        <!-- 动画区 + 实时数据 -->
+        <div class="canvas-area">
+            <canvas id="orbitCanvas" width="700" height="500"></canvas>
+            <div class="data-row">
+                <div class="data-item">速度 v <span id="speedValue">0.00</span> px/帧</div>
+                <div class="data-item">动能 Ek <span id="kineticValue">0.00</span></div>
+                <div class="data-item">势能 Ep <span id="potentialValue">0.00</span></div>
+                <div class="data-item">机械能 E <span id="mechValue">0.00</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部实验结论 -->
+    <div class="conclusion">
+        <h3>📌 实验结论 · 卫星变轨</h3>
+        <p><span class="conc-tag">①</span> 卫星加速做离心运动，减速做近心运动。</p>
+        <p><span class="conc-tag">②</span> 椭圆轨道近地点速度最大，远地点最小。</p>
+        <p><span class="conc-tag">③</span> 点火加速机械能增加，减速机械能减少。</p>
+    </div>
+</div>
+
+<script>
+(function() {
+    // ----- 物理常数与画布设置 -----
+    const canvas = document.getElementById('orbitCanvas');
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width, height = canvas.height;
+    const centerX = width / 2, centerY = height / 2;
+
+    // 引力常数 (GM) —— 调整使运动速度合适
+    const GM = 6000;        // 像素^3/帧^2 量级
+
+    // 卫星质量设为1，能量单位即像素^2/帧^2
+    const m = 1.0;
+
+    // 初始低圆轨道半径 (像素)
+    const LOW_R = 120;
+
+    // 固定时间步长 (每帧)
+    const dt = 0.15;
+
+    // 加速/减速的切向速度增量大小
+    const DELTA_V = 1.2;
+
+    // 状态变量
+    let pos = { x: 0, y: 0 };      // 相对于地球中心
+    let vel = { x: 0, y: 0 };
+
+    // 轨迹存储 (最多500点)
+    let trail = [];
+    const MAX_TRAIL = 300;
+
+    // 动画控制
+    let animFrame = null;
+    let animActive = true;    // 默认运行
+
+    // 初始化卫星在低圆轨道 (位置在(0, -LOW_R) 即正下方，速度水平向右，逆时针)
+    function initLowCircular() {
+        // 位置: 在最低点 (0, -LOW_R) 即正下方
+        pos.x = 0;
+        pos.y = -LOW_R;
+        // 圆轨道速度大小 v = sqrt(GM / r)
+        let vCirc = Math.sqrt(GM / LOW_R);
+        // 逆时针: 在最低点速度方向为水平向右 (x正方向)
+        vel.x = vCirc;
+        vel.y = 0;
+        // 清空轨迹
+        trail = [];
+        addTrailPoint();
+    }
+
+    // 添加当前点到轨迹
+    function addTrailPoint() {
+        trail.push({ x: pos.x, y: pos.y });
+        if (trail.length > MAX_TRAIL) {
+            trail.shift();
+        }
+    }
+
+    // 计算引力加速度 (向量)
+    function gravityAccel(rx, ry) {
+        let r2 = rx * rx + ry * ry;
+        let r = Math.sqrt(r2);
+        if (r < 5) return { ax: 0, ay: 0 }; // 防止碰撞
+        let factor = -GM / (r2 * r);
+        return { ax: rx * factor, ay: ry * factor };
+    }
+
+    // 物理更新 (半隐式欧拉，稍好于欧拉)
+    function updatePhysics() {
+        // 计算加速度
+        let { ax, ay } = gravityAccel(pos.x, pos.y);
+
+        // 更新速度 (半隐式)
+        vel.x += ax * dt;
+        vel.y += ay * dt;
+
+        // 更新位置
+        pos.x += vel.x * dt;
+        pos.y += vel.y * dt;
+
+        // 避免撞入地球 (距离小于10像素则重置，但为了演示我们让它继续)
+        let r = Math.sqrt(pos.x*pos.x + pos.y*pos.y);
+        if (r < 15) {
+            // 坠毁，重置到低圆
+            initLowCircular();
+        }
+
+        // 添加轨迹点
+        addTrailPoint();
+
+        // 计算当前能量用于显示
+        let v2 = vel.x*vel.x + vel.y*vel.y;
+        let Ek = 0.5 * m * v2;
+        let Ep = -GM * m / r;
+        let E = Ek + Ep;
+
+        // 更新数据显示
+        document.getElementById('speedValue').innerText = Math.sqrt(v2).toFixed(2);
+        document.getElementById('kineticValue').innerText = Ek.toFixed(2);
+        document.getElementById('potentialValue').innerText = Ep.toFixed(2);
+        document.getElementById('mechValue').innerText = E.toFixed(2);
+
+        // 判断近地点/远地点 (通过径向速度符号变化，简单提示)
+        // 径向速度 = (pos·vel)/r
+        let vr = (pos.x*vel.x + pos.y*vel.y) / r;
+        // 用距离变化趋势简单提示
+        let indicator = document.getElementById('apPeriIndicator');
+        if (Math.abs(vr) < 0.3) {
+            // 可能是远地点或近地点，根据距离判断
+            if (r > LOW_R * 1.5) indicator.innerText = '🔵 远地点附近';
+            else if (r < LOW_R * 0.9) indicator.innerText = '🟢 近地点附近';
+            else indicator.innerText = '⏺️ 途中';
+        } else if (vr > 0) {
+            indicator.innerText = '⬆️ 远离地球';
+        } else {
+            indicator.innerText = '⬇️ 靠近地球';
+        }
+    }
+
+    // 绘制
+    function draw() {
+        ctx.clearRect(0, 0, width, height);
+
+        // 绘制背景星空 (简单点缀)
+        ctx.fillStyle = '#0a1a2b';
+        ctx.fillRect(0, 0, width, height);
+        for (let i=0; i<50; i++) {
+            if (i%2===0) continue; // 随机
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(20+ i*13, 30+ i*7, 1.5, 0, 2*Math.PI);
+            ctx.fill();
+        }
+
+        // 绘制地球
+        ctx.shadowColor = '#3c8dad';
+        ctx.shadowBlur = 30;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 25, 0, 2*Math.PI);
+        ctx.fillStyle = '#2a7faa';
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        // 地球内圈
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 20, 0, 2*Math.PI);
+        ctx.fillStyle = '#1f6a8a';
+        ctx.fill();
+        ctx.fillStyle = '#e3f2fd';
+        ctx.font = 'bold 20px "Segoe UI"';
+        ctx.fillText('🌍', centerX-15, centerY+8);
+
+        // 绘制轨道参考圆 (低圆和高圆虚线)
+        ctx.strokeStyle = '#aaccdd';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([5, 8]);
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, LOW_R, 0, 2*Math.PI);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 200, 0, 2*Math.PI); // 高圆示意
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 绘制轨迹
+        if (trail.length > 1) {
+            ctx.beginPath();
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1.5;
+            ctx.shadowBlur = 6;
+            ctx.shadowColor = '#7fc4e0';
+            ctx.moveTo(centerX + trail[0].x, centerY + trail[0].y);
+            for (let i=1; i<trail.length; i++) {
+                ctx.lineTo(centerX + trail[i].x, centerY + trail[i].y);
+            }
+            ctx.stroke();
+        }
+
+        // 绘制卫星
+        let satX = centerX + pos.x;
+        let satY = centerY + pos.y;
+        ctx.shadowBlur = 16;
+        ctx.shadowColor = '#ffbb66';
+        ctx.beginPath();
+        ctx.arc(satX, satY, 7, 0, 2*Math.PI);
+        ctx.fillStyle = '#f5d742';
+        ctx.fill();
+        ctx.shadowBlur = 8;
+        ctx.fillStyle = '#fff2b0';
+        ctx.beginPath();
+        ctx.arc(satX-2, satY-2, 4, 0, 2*Math.PI);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // 速度矢量箭头 (小)
+        ctx.beginPath();
+        ctx.strokeStyle = '#ff9933';
+        ctx.lineWidth = 2;
+        ctx.moveTo(satX, satY);
+        ctx.lineTo(satX + vel.x*2, satY + vel.y*2);
+        ctx.stroke();
+    }
+
+    // 动画循环
+    function animate() {
+        if (animActive) {
+            updatePhysics();
+            draw();
+        }
+        animFrame = requestAnimationFrame(animate);
+    }
+
+    // 启动动画
+    animFrame = requestAnimationFrame(animate);
+
+    // ----- 交互事件 -----
+    document.getElementById('accelBtn').addEventListener('click', () => {
+        // 切向加速: 沿速度方向增加速度大小
+        let v = Math.sqrt(vel.x*vel.x + vel.y*vel.y);
+        if (v > 0.01) {
+            let factor = 1 + DELTA_V / v;
+            vel.x *= factor;
+            vel.y *= factor;
+        } else {
+            // 如果速度极小，给一个固定方向
+            vel.x += DELTA_V;
+        }
+    });
+
+    document.getElementById('decelBtn').addEventListener('click', () => {
+        let v = Math.sqrt(vel.x*vel.x + vel.y*vel.y);
+        if (v > DELTA_V + 0.1) {
+            let factor = 1 - DELTA_V / v;
+            vel.x *= factor;
+            vel.y *= factor;
+        } else {
+            // 减速但不能反向，置为小速度
+            vel.x *= 0.5;
+            vel.y *= 0.5;
+        }
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+        initLowCircular();
+    });
+
+    // 初始化
+    initLowCircular();
+    draw();
+
+    // 窗口失焦时动画仍运行，没问题
+})();
+</script>
+</body>
+</html>

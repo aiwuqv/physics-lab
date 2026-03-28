@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>平抛运动规律 · 分运动轨迹可视化</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
+        body {
+            background: linear-gradient(145deg, #2b5a7a 0%, #1b3f5a 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .card {
+            max-width: 1300px;
+            width: 100%;
+            background: rgba(245, 250, 255, 0.9);
+            backdrop-filter: blur(8px);
+            border-radius: 56px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+            padding: 28px 30px;
+            border: 2px solid rgba(255, 255, 255, 0.7);
+        }
+        h1 {
+            font-size: 2.6rem;
+            font-weight: 600;
+            margin: 0 0 5px 0;
+            color: #022c44;
+        }
+        .sub {
+            color: #1d5377;
+            margin-bottom: 25px;
+            font-style: italic;
+            background: #c4e2ff;
+            display: inline-block;
+            padding: 6px 32px;
+            border-radius: 60px;
+        }
+        .dashboard {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+        .control-panel {
+            background: #e2f0fc;
+            border-radius: 48px;
+            padding: 25px 20px;
+            box-shadow: inset 0 2px 8px #ffffff, 0 12px 24px #1b405a;
+            border: 1px solid #ffffff;
+        }
+        .control-panel h3 {
+            margin: 0 0 25px 0;
+            color: #0c3857;
+            font-size: 1.7rem;
+            border-bottom: 3px solid #b0cde0;
+            padding-bottom: 8px;
+        }
+        .slider-group {
+            margin-bottom: 28px;
+        }
+        .slider-group label {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            color: #104369;
+            font-size: 1.15rem;
+            margin-bottom: 5px;
+        }
+        .value-badge {
+            background: #1e628b;
+            color: white;
+            padding: 5px 18px;
+            border-radius: 40px;
+            font-family: 'Courier New', monospace;
+        }
+        input[type=range] {
+            width: 100%;
+            height: 8px;
+            background: #8db5d2;
+            border-radius: 20px;
+            -webkit-appearance: none;
+            margin: 8px 0;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            background: #f0a55a;
+            border-radius: 50%;
+            box-shadow: 0 4px 8px #0b3147;
+            border: 2px solid white;
+            cursor: pointer;
+        }
+        .info-box {
+            background: #bed9f0;
+            border-radius: 36px;
+            padding: 16px;
+            text-align: center;
+            font-size: 1.1rem;
+            margin-top: 20px;
+        }
+        .info-box span {
+            background: #1f608b;
+            color: white;
+            padding: 6px 20px;
+            border-radius: 40px;
+            display: inline-block;
+            margin-top: 8px;
+        }
+        .canvas-area {
+            background: #cde3f7;
+            border-radius: 48px;
+            padding: 20px;
+            box-shadow: inset 0 -4px 12px #8db1cc, 0 16px 28px #123b52;
+            border: 2px solid #ffffff;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: #dbeefb;
+            border-radius: 36px;
+            box-shadow: 0 0 0 4px #a1bedb, inset 0 0 0 2px #2d577b;
+        }
+        .data-row {
+            background: #e2f0fa;
+            border-radius: 40px;
+            padding: 18px 20px;
+            margin-top: 18px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            font-weight: 600;
+            color: #013352;
+        }
+        .data-item {
+            background: #ffffffd6;
+            border-radius: 60px;
+            padding: 14px 8px;
+            text-align: center;
+            box-shadow: inset 0 2px 8px #c1dfff;
+        }
+        .data-item span {
+            font-family: 'Courier New', monospace;
+            background: #1a4b70;
+            color: #fff2b5;
+            padding: 8px 18px;
+            border-radius: 40px;
+            margin-left: 12px;
+            font-size: 1.2rem;
+        }
+        .conclusion {
+            background: #0f344b;
+            border-radius: 40px;
+            padding: 22px 32px;
+            margin-top: 25px;
+            color: #f0efd8;
+            box-shadow: inset 0 3px 12px #5d8fb0, 0 12px 24px #021520;
+        }
+        .conclusion h3 {
+            font-size: 1.9rem;
+            color: #ffd894;
+            margin: 0 0 16px 0;
+        }
+        .conclusion p {
+            margin: 10px 0;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .conc-tag {
+            background: #2e6392;
+            padding: 5px 24px;
+            border-radius: 40px;
+            font-family: monospace;
+            color: #ffd98c;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+<div class="card">
+    <h1>🎯 平抛运动规律 · 分运动轨迹可视化</h1>
+    <div class="sub">水平虚线 · 竖直虚线 · 分解与合成</div>
+
+    <div class="dashboard">
+        <!-- 控制面板 -->
+        <div class="control-panel">
+            <h3>⚙️ 实验参数</h3>
+            <div class="slider-group">
+                <label>初速度 v₀ <span class="value-badge" id="v0Val">8.0 m/s</span></label>
+                <input type="range" id="v0Slider" min="2" max="20" value="8" step="0.5">
+            </div>
+            <div class="slider-group">
+                <label>抛出高度 h <span class="value-badge" id="hVal">5.0 m</span></label>
+                <input type="range" id="hSlider" min="1" max="10" value="5" step="0.2">
+            </div>
+            <div class="info-box">
+                <div>🕒 运动时间 T = <span id="timeDisplay">1.01</span> s</div>
+                <div>📏 水平射程 X = <span id="rangeDisplay">8.08</span> m</div>
+                <div style="margin-top:12px;">⚡ 当前速度分量</div>
+                <div><span id="vxDisplay">8.00</span> m/s (水平)  <span id="vyDisplay">9.80</span> m/s (竖直)</div>
+            </div>
+        </div>
+
+        <!-- 动画区 -->
+        <div class="canvas-area">
+            <canvas id="projectileCanvas" width="800" height="400"></canvas>
+            <div class="data-row">
+                <div class="data-item">运动时间 T <span id="totalTime">1.01</span> s</div>
+                <div class="data-item">水平射程 X <span id="totalRange">8.08</span> m</div>
+                <div class="data-item">速度分量 <span id="speedComp">vx=8.0, vy=9.8</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部实验结论 -->
+    <div class="conclusion">
+        <h3>📌 实验结论 · 平抛运动</h3>
+        <p><span class="conc-tag">①</span> 平抛运动是匀变速曲线运动。</p>
+        <p><span class="conc-tag">②</span> 水平方向做匀速直线运动，竖直方向自由落体。</p>
+        <p><span class="conc-tag">③</span> 运动时间只由高度决定，射程由高度与初速度共同决定。</p>
+    </div>
+</div>
+
+<script>
+(function() {
+    // ----- 物理常数与画布设置 -----
+    const g = 9.8;                // 重力加速度 m/s²
+    const canvas = document.getElementById('projectileCanvas');
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width, height = canvas.height;
+
+    // 固定抛出点坐标 (像素)
+    const startX = 80;
+    const groundY = 340;          // 地面线 y 坐标 (像素)
+
+    // 比例尺: 1米 = 20像素 (使得高度10米对应200像素)
+    const scale = 20;             // px/m
+
+    // 滑块与显示
+    const v0Slider = document.getElementById('v0Slider');
+    const hSlider = document.getElementById('hSlider');
+    const v0Val = document.getElementById('v0Val');
+    const hVal = document.getElementById('hVal');
+    const timeDisplay = document.getElementById('timeDisplay');
+    const rangeDisplay = document.getElementById('rangeDisplay');
+    const vxDisplay = document.getElementById('vxDisplay');
+    const vyDisplay = document.getElementById('vyDisplay');
+    const totalTimeSpan = document.getElementById('totalTime');
+    const totalRangeSpan = document.getElementById('totalRange');
+    const speedCompSpan = document.getElementById('speedComp');
+
+    // 状态变量
+    let v0 = 8.0;                 // m/s
+    let h = 5.0;                  // m
+    let t = 0.0;                  // 当前时间 (s)
+    let T = Math.sqrt(2 * h / g); // 飞行时间 (s)
+    let X = v0 * T;               // 射程 (m)
+
+    // 轨迹点存储 (像素坐标)
+    let trail = [];
+    const MAX_TRAIL = 300;
+
+    // 动画控制
+    let animFrame = null;
+    let animActive = true;
+
+    // 更新滑块数值与参数
+    function updateSliderReadout() {
+        v0 = parseFloat(v0Slider.value);
+        h = parseFloat(hSlider.value);
+        v0Val.innerText = v0.toFixed(1) + ' m/s';
+        hVal.innerText = h.toFixed(1) + ' m';
+        // 重新计算T和X
+        T = Math.sqrt(2 * h / g);
+        X = v0 * T;
+        timeDisplay.innerText = T.toFixed(2);
+        rangeDisplay.innerText = X.toFixed(2);
+        totalTimeSpan.innerText = T.toFixed(2);
+        totalRangeSpan.innerText = X.toFixed(2);
+    }
+
+    // 重置运动 (滑块变化时调用)
+    function resetMotion() {
+        t = 0.0;
+        trail = [];
+        addTrailPoint(); // 加入起点
+        updateDataDisplays();
+    }
+
+    // 添加当前点到轨迹
+    function addTrailPoint() {
+        let { xPx, yPx } = getPixelCoords(t);
+        trail.push({ x: xPx, y: yPx });
+        if (trail.length > MAX_TRAIL) {
+            trail.shift();
+        }
+    }
+
+    // 根据当前时间t计算像素坐标
+    function getPixelCoords(time) {
+        // 物理位移 (米)
+        let xM = v0 * time;
+        let yM = 0.5 * g * time * time;   // 竖直下落距离
+        // 抛出点像素坐标: startX, startY (由高度决定)
+        let startY = groundY - h * scale;
+        let xPx = startX + xM * scale;
+        let yPx = startY + yM * scale;     // y向下增加
+        return { xPx, yPx };
+    }
+
+    // 更新数据区 (当前速度分量等)
+    function updateDataDisplays() {
+        let vy = g * t;
+        vxDisplay.innerText = v0.toFixed(2);
+        vyDisplay.innerText = vy.toFixed(2);
+        speedCompSpan.innerText = `vx=${v0.toFixed(2)}, vy=${vy.toFixed(2)}`;
+    }
+
+    // 物理更新 (每帧)
+    function updatePhysics() {
+        if (!animActive) return;
+
+        // 如果未落地，增加时间
+        if (t < T) {
+            t += 0.02;  // 每帧0.02秒
+            if (t > T) t = T;
+            addTrailPoint();
+        }
+        // 更新数据显示
+        updateDataDisplays();
+    }
+
+    // 绘制画布
+    function draw() {
+        ctx.clearRect(0, 0, width, height);
+
+        // 画天空渐变
+        let gradient = ctx.createLinearGradient(0, 0, 0, height);
+        gradient.addColorStop(0, '#c6e2ff');
+        gradient.addColorStop(1, '#e0f0fa');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, width, height);
+
+        // 画地面
+        ctx.fillStyle = '#5e8c6e';
+        ctx.fillRect(0, groundY, width, height - groundY + 5);
+        ctx.fillStyle = '#3d6b4f';
+        ctx.beginPath();
+        ctx.rect(0, groundY-3, width, 6);
+        ctx.fill();
+
+        // 抛出点垂直线 (高度参考)
+        let startY = groundY - h * scale;
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(startX, groundY);
+        ctx.strokeStyle = '#aaaaaa';
+        ctx.setLineDash([5, 5]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 绘制水平分运动轨迹 (灰色虚线) ==========
+        let horX = startX + v0 * t * scale;
+        let horY = startY;  // 水平分运动y坐标恒为抛出点高度
+        ctx.beginPath();
+        ctx.setLineDash([6, 4]);
+        ctx.strokeStyle = '#7f7f7f';
+        ctx.lineWidth = 2;
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(horX, horY);
+        ctx.stroke();
+
+        // 绘制竖直分运动轨迹 (灰色虚线)
+        let verX = startX;
+        let verY = startY + 0.5 * g * t * t * scale;
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(verX, verY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 绘制平抛轨迹 (红色实线)
+        if (trail.length > 1) {
+            ctx.beginPath();
+            ctx.strokeStyle = '#c44b3c';
+            ctx.lineWidth = 2.5;
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = '#d97a6b';
+            ctx.moveTo(trail[0].x, trail[0].y);
+            for (let i = 1; i < trail.length; i++) {
+                ctx.lineTo(trail[i].x, trail[i].y);
+            }
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+        }
+
+        // 绘制分运动小球 (半透明)
+        // 水平分运动小球
+        ctx.globalAlpha = 0.7;
+        ctx.beginPath();
+        ctx.arc(horX, horY, 8, 0, 2*Math.PI);
+        ctx.fillStyle = '#7f7f7f';
+        ctx.fill();
+        // 竖直分运动小球
+        ctx.beginPath();
+        ctx.arc(verX, verY, 8, 0, 2*Math.PI);
+        ctx.fillStyle = '#7f7f7f';
+        ctx.fill();
+        ctx.globalAlpha = 1.0;
+
+        // 绘制真实小球 (橙色)
+        let { xPx, yPx } = getPixelCoords(t);
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = '#2b4f6e';
+        ctx.beginPath();
+        ctx.arc(xPx, yPx, 12, 0, 2*Math.PI);
+        ctx.fillStyle = '#f5a342';
+        ctx.fill();
+        ctx.shadowBlur = 6;
+        ctx.fillStyle = '#ffe066';
+        ctx.beginPath();
+        ctx.arc(xPx-2, yPx-2, 8, 0, 2*Math.PI);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // 绘制连接虚线 (分运动与真实小球)
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(horX, horY);
+        ctx.lineTo(xPx, yPx);
+        ctx.strokeStyle = '#6b6b6b';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(verX, verY);
+        ctx.lineTo(xPx, yPx);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 标注文字 (放在轨迹旁边)
+        ctx.font = 'bold 14px "Segoe UI"';
+        ctx.fillStyle = '#033b5e';
+        ctx.fillText('抛出点', startX-45, startY-10);
+        ctx.fillText('地面', 10, groundY-10);
+        // 水平分运动文字放在水平轨迹中点下方
+        let midHorX = (startX + horX) / 2;
+        ctx.fillText('水平分运动', midHorX-45, startY+20);
+        // 竖直分运动文字放在竖直轨迹中点左侧
+        let midVerY = (startY + verY) / 2;
+        ctx.fillText('竖直分运动', startX-80, midVerY);
+    }
+
+    // 动画循环
+    function animate() {
+        if (animActive) {
+            updatePhysics();
+            draw();
+        }
+        animFrame = requestAnimationFrame(animate);
+    }
+
+    // 启动动画
+    animFrame = requestAnimationFrame(animate);
+
+    // ----- 事件绑定 -----
+    v0Slider.addEventListener('input', () => {
+        updateSliderReadout();
+        resetMotion();
+    });
+    hSlider.addEventListener('input', () => {
+        updateSliderReadout();
+        resetMotion();
+    });
+
+    // 初始化
+    updateSliderReadout();
+    resetMotion();
+    draw();
+})();
+</script>
+</body>
+</html>

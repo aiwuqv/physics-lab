@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>超重与失重 —— 电梯中的视重变化</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #142433;
+            font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            background: #0e2032;
+            border-radius: 40px;
+            padding: 24px 24px 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+            border: 1px solid #2b4f75;
+        }
+
+        .title {
+            font-size: 2.2rem;
+            font-weight: 500;
+            color: #edf6ff;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .title span {
+            background: #264f73;
+            font-size: 1rem;
+            padding: 6px 18px;
+            border-radius: 40px;
+            color: #cde2ff;
+        }
+
+        .control-panel {
+            background: #12364f;
+            border-radius: 36px;
+            padding: 22px 28px;
+            margin: 20px 0 24px;
+            border: 1px solid #2d6190;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            align-items: center;
+        }
+
+        .slider-group {
+            flex: 2 1 280px;
+        }
+
+        .slider-group label {
+            display: flex;
+            justify-content: space-between;
+            color: #d2e8ff;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .slider-group label span {
+            background: #1d4a6b;
+            padding: 3px 14px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+        }
+
+        input[type=range] {
+            width: 100%;
+            height: 8px;
+            background: #23527a;
+            border-radius: 20px;
+            -webkit-appearance: none;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            background: #6bb0ff;
+            border-radius: 50%;
+            border: 2px solid #d2e6ff;
+            cursor: pointer;
+            box-shadow: 0 2px 8px black;
+            margin-top: -7px;
+        }
+
+        .preset-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            background: #0e2a44;
+            padding: 12px 18px;
+            border-radius: 50px;
+            border: 1px solid #31699b;
+            flex: 3 1 500px;
+        }
+
+        .preset-btn {
+            background: #1c405e;
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            font-size: 0.9rem;
+            border: 1px solid #407bb0;
+            box-shadow: 0 3px 0 #082433;
+            transition: 0.1s;
+        }
+
+        .preset-btn:hover {
+            background: #3273aa;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 0 #082433;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-left: auto;
+        }
+
+        .action-buttons button {
+            background: #2a5a82;
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1rem;
+            border: 1px solid #5085b9;
+            box-shadow: 0 5px 0 #0b2235;
+        }
+
+        .action-buttons button:hover {
+            background: #3b73a5;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 0 #0b2235;
+        }
+
+        .animation-area {
+            background: #102c41;
+            border-radius: 40px;
+            padding: 20px;
+            border: 1px solid #2e6190;
+            margin-bottom: 24px;
+        }
+
+        #elevatorCanvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: #0b1e30;
+            border-radius: 32px;
+            border: 1px solid #3070a5;
+        }
+
+        .data-panel {
+            background: #102c42;
+            border-radius: 36px;
+            padding: 22px 28px;
+            border: 1px solid #2d6496;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-bottom: 24px;
+        }
+
+        .data-col {
+            flex: 1 1 180px;
+        }
+
+        .data-title {
+            color: #b2d4fc;
+            font-size: 1rem;
+            margin-bottom: 16px;
+            font-weight: 500;
+            border-left: 4px solid #4f96cf;
+            padding-left: 12px;
+        }
+
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            background: #0a2338;
+            padding: 10px 18px;
+            border-radius: 30px;
+            margin: 10px 0;
+            color: #d4eaff;
+            border: 1px solid #285e8e;
+        }
+
+        .data-row .value {
+            font-family: 'JetBrains Mono', monospace;
+            background: #021524;
+            padding: 3px 16px;
+            border-radius: 30px;
+            color: #a7ceff;
+        }
+
+        .state-badge {
+            background: #0e2a40;
+            border-radius: 30px;
+            padding: 16px 20px;
+            text-align: center;
+            border: 1px solid #3473ad;
+        }
+
+        .state-badge .big-number {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #ffda9e;
+        }
+
+        .conclusion {
+            background: #124160;
+            border-radius: 60px;
+            padding: 18px 28px;
+            color: #e3f0ff;
+            border: 1px solid #3980b7;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .conclusion div {
+            background: #1d5780;
+            padding: 6px 22px;
+            border-radius: 40px;
+            font-size: 0.98rem;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+<div class="container">
+    <div class="title">
+        ⚖️ 超重与失重 —— 电梯中的视重变化
+        <span>台秤指针 + 数字</span>
+    </div>
+
+    <!-- 控制面板：添加 data-state 属性以便识别 -->
+    <div class="control-panel">
+        <div class="slider-group">
+            <label>📊 电梯加速度 a <span id="aSliderValue">0.0</span> m/s²</label>
+            <input type="range" id="aSlider" min="-19.6" max="19.6" value="0" step="0.1">
+        </div>
+        <div class="preset-buttons">
+            <button class="preset-btn" data-state="still">⚪ 静止</button>
+            <button class="preset-btn" data-state="upAccel">⬆️ 加速上升 (+2.0)</button>
+            <button class="preset-btn" data-state="upDecel">⬆️ 减速上升 (-2.0)</button>
+            <button class="preset-btn" data-state="downAccel">⬇️ 加速下降 (-2.0)</button>
+            <button class="preset-btn" data-state="downDecel">⬇️ 减速下降 (+2.0)</button>
+        </div>
+        <div class="action-buttons">
+            <button id="playPauseBtn">⏸️ 暂停</button>
+            <button id="resetBtn">↺ 重置</button>
+        </div>
+    </div>
+
+    <div class="animation-area">
+        <canvas id="elevatorCanvas" width="900" height="360"></canvas>
+    </div>
+
+    <div class="data-panel">
+        <div class="data-col">
+            <div class="data-title">📐 实时测量</div>
+            <div class="data-row"><span>加速度 a</span><span class="value" id="aDisplay">0.00 m/s²</span></div>
+            <div class="data-row"><span>视重 F</span><span class="value" id="fDisplay">588.0 N</span></div>
+        </div>
+        <div class="data-col">
+            <div class="data-title">📊 当前状态</div>
+            <div class="state-badge">
+                <div style="color:#b9d9ff;">状态</div>
+                <div class="big-number" id="stateDisplay">正常</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="conclusion">
+        <div>1️⃣ 超重：加速度向上时，视重大于重力</div>
+        <div>2️⃣ 失重：加速度向下时，视重小于重力</div>
+        <div>3️⃣ 完全失重：加速度等于重力加速度向下时，视重为零</div>
+        <div>4️⃣ 超重失重时重力不变，支持力（视重）变化</div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // ---------- 固定物理参数 ----------
+        const g = 9.8;                // 重力加速度 m/s²
+        const m = 60;                 // 人体质量 kg
+        const mg = m * g;              // 真实重力 588 N
+
+        // 滑块范围 -2g ~ +2g
+        const MIN_A = -2 * g;          // -19.6
+        const MAX_A = 2 * g;           // 19.6
+
+        // ---------- DOM 元素 ----------
+        const canvas = document.getElementById('elevatorCanvas');
+        const ctx = canvas.getContext('2d');
+        const width = canvas.width;
+        const height = canvas.height;
+
+        const aSlider = document.getElementById('aSlider');
+        const aSliderValue = document.getElementById('aSliderValue');
+        const aDisplay = document.getElementById('aDisplay');
+        const fDisplay = document.getElementById('fDisplay');
+        const stateDisplay = document.getElementById('stateDisplay');
+
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+
+        // 所有预设按钮
+        const presetBtns = document.querySelectorAll('.preset-btn');
+
+        // ---------- 电梯状态 ----------
+        let a = 0.0;                    // 当前加速度 (m/s²)，向上为正
+        let velocity = 0.0;              // 电梯速度 (像素/帧)，向上为正
+        let position = 280;               // 电梯轿厢中心Y坐标 (初始在底部, 底部Y≈280)
+
+        // 运动边界 (防止电梯跑出画布)
+        const MIN_POS = 120;               // 最高位置 (顶部)
+        const MAX_POS = 280;               // 最低位置 (底部)
+
+        // 动画控制
+        let isPlaying = true;              // 默认开始
+        let animationId = null;
+
+        // ---------- 工具函数：根据加速度计算视重和状态 ----------
+        function computeValues(accel) {
+            const F = m * (g + accel);
+            const displayF = F < 0 ? 0 : F;
+            let state = '';
+            if (accel > 0) state = '超重';
+            else if (accel === 0) state = '正常';
+            else if (accel > -g) state = '失重';
+            else if (accel === -g) state = '完全失重';
+            else state = '失重';  // a < -g
+            return { F: displayF, state };
+        }
+
+        // 更新所有数值显示
+        function updateDisplay() {
+            const { F, state } = computeValues(a);
+            aDisplay.innerText = a.toFixed(2) + ' m/s²';
+            fDisplay.innerText = F.toFixed(1) + ' N';
+            stateDisplay.innerText = state;
+            aSliderValue.innerText = a.toFixed(1);
+        }
+
+        // 同步滑块值
+        function updateSliderFromA() {
+            aSlider.value = a;
+            aSliderValue.innerText = a.toFixed(1);
+        }
+
+        // 设置加速度 (仅滑块使用)
+        function setAcceleration(newA) {
+            if (newA < MIN_A) newA = MIN_A;
+            if (newA > MAX_A) newA = MAX_A;
+            a = newA;
+            updateSliderFromA();
+            updateDisplay();
+        }
+
+        // 根据状态名称设置完整的运动参数 (加速度、速度、位置)
+        function setState(state) {
+            switch (state) {
+                case 'still':
+                    a = 0;
+                    velocity = 0;
+                    position = MAX_POS;      // 静止在底部
+                    break;
+                case 'upAccel':               // 加速上升
+                    a = 2.0;
+                    velocity = 0;
+                    position = MAX_POS;      // 从底部开始向上加速
+                    break;
+                case 'upDecel':               // 减速上升
+                    a = -2.0;                 // 加速度向下
+                    velocity = 2.0;            // 有向上的初速度
+                    position = MAX_POS;        // 从底部开始向上减速
+                    break;
+                case 'downAccel':              // 加速下降
+                    a = -2.0;
+                    velocity = 0;
+                    position = MIN_POS;        // 从顶部开始向下加速
+                    break;
+                case 'downDecel':              // 减速下降
+                    a = 2.0;                   // 加速度向上
+                    velocity = -2.0;            // 有向下的初速度
+                    position = MIN_POS;         // 从顶部开始向下减速
+                    break;
+                default:
+                    return;
+            }
+            // 确保位置在边界内
+            if (position < MIN_POS) position = MIN_POS;
+            if (position > MAX_POS) position = MAX_POS;
+            updateSliderFromA();
+            updateDisplay();
+        }
+
+        // ---------- 电梯运动更新 (每帧) ----------
+        function updatePhysics() {
+            if (!isPlaying) return;
+
+            const dt = 0.5;
+            velocity += a * 0.03 * dt;      // 速度变化方向与加速度一致
+            position -= velocity;            // 画布Y轴向下，向上移动减小Y
+
+            // 边界限制
+            if (position < MIN_POS) {
+                position = MIN_POS;
+                velocity = 0;
+            }
+            if (position > MAX_POS) {
+                position = MAX_POS;
+                velocity = 0;
+            }
+
+            velocity *= 0.98;                 // 轻微阻尼
+        }
+
+        // ---------- 绘制 ----------
+        function drawScene() {
+            ctx.clearRect(0, 0, width, height);
+
+            // 背景井道
+            ctx.fillStyle = '#1d3e5a';
+            ctx.fillRect(0, 0, width, height);
+
+            // 左侧楼层刻度
+            ctx.strokeStyle = '#679ac2';
+            ctx.lineWidth = 1.5;
+            ctx.font = '14px "JetBrains Mono", monospace';
+            ctx.fillStyle = '#b3d9ff';
+            for (let floor = -2; floor <= 2; floor++) {
+                let y = MAX_POS - (floor + 2) * (MAX_POS - MIN_POS) / 4;
+                if (y < MIN_POS - 5 || y > MAX_POS + 5) continue;
+                ctx.beginPath();
+                ctx.moveTo(40, y);
+                ctx.lineTo(70, y);
+                ctx.strokeStyle = '#77aadd';
+                ctx.stroke();
+                ctx.fillStyle = '#c6e2ff';
+                ctx.fillText(floor + 'F', 15, y - 5);
+            }
+
+            // 电梯轿厢
+            const boxWidth = 180;
+            const boxHeight = 140;
+            const boxX = (width - boxWidth) / 2;
+            const boxY = position - boxHeight / 2;
+
+            ctx.fillStyle = '#5588aa';
+            ctx.globalAlpha = 0.7;
+            ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
+            ctx.globalAlpha = 1.0;
+            ctx.strokeStyle = '#b0e0ff';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(boxX, boxY, boxWidth, boxHeight);
+
+            // 电梯门
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(boxX + boxWidth / 2 - 20, boxY + 20);
+            ctx.lineTo(boxX + boxWidth / 2 - 20, boxY + boxHeight - 20);
+            ctx.moveTo(boxX + boxWidth / 2 + 20, boxY + 20);
+            ctx.lineTo(boxX + boxWidth / 2 + 20, boxY + boxHeight - 20);
+            ctx.stroke();
+
+            // 台秤
+            const scaleX = boxX + 40;
+            const scaleY = boxY + boxHeight - 45;
+            const scaleW = 100;
+            const scaleH = 15;
+            ctx.fillStyle = '#bc9e6b';
+            ctx.fillRect(scaleX, scaleY, scaleW, scaleH);
+            ctx.strokeStyle = '#6b4f2e';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(scaleX, scaleY, scaleW, scaleH);
+
+            const { F } = computeValues(a);
+            const displayF = F;
+
+            // 数字显示
+            ctx.fillStyle = '#000000';
+            ctx.font = 'bold 16px "Digital", "JetBrains Mono", monospace';
+            ctx.fillText(displayF.toFixed(0) + ' N', scaleX + 10, scaleY - 8);
+
+            // 指针表盘
+            const dialX = scaleX - 40;
+            const dialY = scaleY + scaleH / 2;
+            const dialR = 22;
+            ctx.beginPath();
+            ctx.arc(dialX, dialY, dialR, 0, 2 * Math.PI);
+            ctx.fillStyle = '#2d4055';
+            ctx.fill();
+            ctx.strokeStyle = '#aaccff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '10px monospace';
+            ctx.fillText('0', dialX-12, dialY-8);
+            ctx.fillText('588', dialX-20, dialY-25);
+            ctx.fillText('1176', dialX-24, dialY-40);
+            let angle = (displayF / 1200) * 1.2 - 0.6;
+            if (angle > 0.7) angle = 0.7;
+            if (angle < -0.7) angle = -0.7;
+            ctx.beginPath();
+            ctx.moveTo(dialX, dialY);
+            ctx.lineTo(dialX + Math.sin(angle) * 20, dialY - Math.cos(angle) * 20);
+            ctx.strokeStyle = '#ffaa33';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // 人物
+            const personX = boxX + 100;
+            const personY = scaleY - 25;
+            const isZero = (Math.abs(displayF) < 0.1);
+            const floatOffset = isZero ? -6 : 0;
+
+            ctx.beginPath();
+            ctx.arc(personX, personY - 15 + floatOffset, 8, 0, 2 * Math.PI);
+            ctx.fillStyle = '#ffdd99';
+            ctx.fill();
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(personX, personY - 7 + floatOffset);
+            ctx.lineTo(personX, personY + 8 + floatOffset);
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#5577aa';
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(personX - 6, personY - 2 + floatOffset);
+            ctx.lineTo(personX + 6, personY - 2 + floatOffset);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(personX, personY + 8 + floatOffset);
+            ctx.lineTo(personX - 6, personY + 18 + floatOffset);
+            ctx.moveTo(personX, personY + 8 + floatOffset);
+            ctx.lineTo(personX + 6, personY + 18 + floatOffset);
+            ctx.stroke();
+
+            if (isZero) {
+                ctx.fillStyle = '#ffcccc';
+                ctx.font = 'bold 14px sans-serif';
+                ctx.fillText('✨ 漂浮 ✨', personX - 30, personY - 35);
+            }
+
+            // 加速度箭头
+            if (Math.abs(a) > 0.01) {
+                ctx.fillStyle = a > 0 ? '#ffaa33' : '#88ccff';
+                ctx.beginPath();
+                const arrowX = width - 80;
+                const arrowY = 70;
+                if (a > 0) {
+                    ctx.moveTo(arrowX, arrowY - 20);
+                    ctx.lineTo(arrowX - 10, arrowY);
+                    ctx.lineTo(arrowX + 10, arrowY);
+                } else {
+                    ctx.moveTo(arrowX, arrowY + 20);
+                    ctx.lineTo(arrowX - 10, arrowY);
+                    ctx.lineTo(arrowX + 10, arrowY);
+                }
+                ctx.fill();
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 14px sans-serif';
+                ctx.fillText('a', arrowX - 5, arrowY + (a>0? -30: 30));
+            }
+        }
+
+        // 动画循环
+        function animate() {
+            updatePhysics();
+            drawScene();
+            animationId = requestAnimationFrame(animate);
+        }
+
+        // ---------- 事件绑定 ----------
+
+        // 滑块调整
+        aSlider.addEventListener('input', function(e) {
+            const newA = parseFloat(e.target.value);
+            setAcceleration(newA);
+        });
+
+        // 预设按钮：根据 data-state 设置完整状态
+        presetBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const state = this.dataset.state;
+                setState(state);
+            });
+        });
+
+        // 播放/暂停
+        playPauseBtn.addEventListener('click', function() {
+            isPlaying = !isPlaying;
+            playPauseBtn.innerHTML = isPlaying ? '⏸️ 暂停' : '▶ 开始';
+        });
+
+        // 重置：回到静止
+        resetBtn.addEventListener('click', function() {
+            setState('still');
+        });
+
+        // 初始化
+        function init() {
+            aSlider.min = MIN_A;
+            aSlider.max = MAX_A;
+            aSlider.step = 0.1;
+            setState('still');      // 初始静止
+            animate();
+        }
+
+        init();
+
+        window.addEventListener('beforeunload', function() {
+            if (animationId) cancelAnimationFrame(animationId);
+        });
+    })();
+</script>
+</body>
+</html>

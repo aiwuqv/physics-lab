@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>带电粒子在电磁场中运动模拟器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #1a1a2e;
+            color: #e6e6e6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 10px;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 15px;
+            background: linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%);
+            border-radius: 12px;
+            margin-bottom: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header h1 {
+            color: #4cc9f0;
+            margin-bottom: 8px;
+            font-size: 2.2rem;
+        }
+        
+        .header p {
+            color: #b0b0b0;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+        
+        .container {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+            min-height: 600px;
+        }
+        
+        .controls {
+            width: 320px;
+            background-color: #162447;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .control-group {
+            background-color: #1f4068;
+            padding: 18px;
+            border-radius: 10px;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .control-group h3 {
+            color: #4cc9f0;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            border-bottom: 2px solid #2d4263;
+            padding-bottom: 8px;
+        }
+        
+        .control-item {
+            margin-bottom: 15px;
+        }
+        
+        .control-item label {
+            display: block;
+            margin-bottom: 6px;
+            color: #b8d0e8;
+            font-weight: 500;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        input[type="range"] {
+            flex: 1;
+            height: 8px;
+            background: #2d4263;
+            border-radius: 4px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #4cc9f0;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        .value-display {
+            width: 60px;
+            text-align: center;
+            background-color: #2d4263;
+            padding: 5px;
+            border-radius: 5px;
+            font-weight: bold;
+            color: #ffffff;
+            font-family: monospace;
+        }
+        
+        .particle-selector {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .particle-btn {
+            flex: 1;
+            padding: 12px 5px;
+            border-radius: 8px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .particle-btn.positive {
+            background-color: #ff4d4d;
+            color: white;
+        }
+        
+        .particle-btn.negative {
+            background-color: #4dff88;
+            color: #1a1a2e;
+        }
+        
+        .particle-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .particle-btn.active {
+            transform: translateY(0);
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.4);
+            border: 2px solid white;
+        }
+        
+        .direction-controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .dir-btn {
+            flex: 1;
+            padding: 10px;
+            background-color: #2d4263;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .dir-btn:hover {
+            background-color: #365587;
+        }
+        
+        .dir-btn.active {
+            background-color: #4cc9f0;
+            color: #1a1a2e;
+            border: 2px solid white;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .action-btn {
+            flex: 1;
+            padding: 14px 5px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+        
+        .action-btn.start {
+            background-color: #2ecc71;
+            color: white;
+        }
+        
+        .action-btn.pause {
+            background-color: #f39c12;
+            color: white;
+        }
+        
+        .action-btn.reset {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .simulation-container {
+            flex: 1;
+            background-color: #0c1427;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+            position: relative;
+            min-height: 600px;
+        }
+        
+        #simulationCanvas {
+            display: block;
+            background-color: #0c1427;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .formula-display {
+            background-color: #1f4068;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+        
+        .formula {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #f8f8f8;
+            font-family: 'Cambria', 'Times New Roman', serif;
+        }
+        
+        .formula .force {
+            color: #ff9966;
+            font-weight: bold;
+        }
+        
+        .formula .electric {
+            color: #ff9966;
+        }
+        
+        .formula .magnetic {
+            color: #4cc9f0;
+        }
+        
+        .test-btn {
+            background-color: #9b59b6;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+            font-size: 1rem;
+        }
+        
+        .test-btn:hover {
+            background-color: #8e44ad;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background-color: #162447;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-header {
+            background-color: #1f4068;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 2px solid #2d4263;
+        }
+        
+        .modal-header h2 {
+            color: #4cc9f0;
+        }
+        
+        .modal-body {
+            padding: 25px;
+            overflow-y: auto;
+            max-height: calc(90vh - 140px);
+        }
+        
+        .question {
+            background-color: #1f4068;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .question h4 {
+            color: #f1c40f;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+        
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .option {
+            padding: 12px;
+            background-color: #2d4263;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .option:hover {
+            background-color: #365587;
+        }
+        
+        .option.selected {
+            background-color: #4cc9f0;
+            color: #1a1a2e;
+        }
+        
+        .option.correct {
+            background-color: #2ecc71;
+            color: white;
+        }
+        
+        .option.incorrect {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .explanation {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: rgba(44, 62, 80, 0.6);
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .explanation.show {
+            display: block;
+        }
+        
+        .modal-footer {
+            padding: 20px;
+            text-align: center;
+            background-color: #1f4068;
+            border-top: 2px solid #2d4263;
+        }
+        
+        .close-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .close-btn:hover {
+            background-color: #c0392b;
+        }
+        
+        .results {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+        }
+        
+        .results span {
+            color: #f1c40f;
+            font-weight: bold;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 15px;
+            margin-top: 15px;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            border-top: 1px solid #2d4263;
+        }
+        
+        .status-display {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #2d4263;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 1024px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .controls {
+                width: 100%;
+            }
+            
+            .simulation-container {
+                height: 500px;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="header">
+        <h1>带电粒子在电磁场中运动模拟器</h1>
+        <p>调节电场(E)和磁场(B)的强度和方向，观察带电粒子(正电荷红色，负电荷绿色)在电磁场中的运动轨迹。当qE=qvB时，粒子将保持匀速直线运动。</p>
+    </div>
+    
+    <div class="container">
+        <div class="controls">
+            <div class="control-group">
+                <h3>粒子选择</h3>
+                <div class="particle-selector">
+                    <button class="particle-btn positive active" id="positiveBtn">带正电粒子 (q>0)</button>
+                    <button class="particle-btn negative" id="negativeBtn">带负电粒子 (q<0)</button>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <h3>电场控制 (E)</h3>
+                <div class="control-item">
+                    <label>电场强度 E: <span id="eValue">2.0</span> N/C</label>
+                    <div class="slider-container">
+                        <input type="range" id="eField" min="0" max="5" step="0.1" value="2.0">
+                        <div class="value-display" id="eDisplay">2.0</div>
+                    </div>
+                </div>
+                <div class="control-item">
+                    <label>电场方向</label>
+                    <div class="direction-controls" id="eDirectionControls">
+                        <button class="dir-btn active" data-direction="down">向下 ↓</button>
+                        <button class="dir-btn" data-direction="up">向上 ↑</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <h3>磁场控制 (B)</h3>
+                <div class="control-item">
+                    <label>磁场强度 B: <span id="bValue">1.0</span> T</label>
+                    <div class="slider-container">
+                        <input type="range" id="bField" min="0" max="3" step="0.1" value="1.0">
+                        <div class="value-display" id="bDisplay">1.0</div>
+                    </div>
+                </div>
+                <div class="control-item">
+                    <label>磁场方向 (垂直于屏幕)</label>
+                    <div class="direction-controls" id="bDirectionControls">
+                        <button class="dir-btn" data-direction="in">向里 ×</button>
+                        <button class="dir-btn active" data-direction="out">向外 ·</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <h3>粒子属性</h3>
+                <div class="control-item">
+                    <label>初速度 v: <span id="vValue">2.0</span> m/s</label>
+                    <div class="slider-container">
+                        <input type="range" id="velocity" min="0.5" max="5" step="0.1" value="2.0">
+                        <div class="value-display" id="vDisplay">2.0</div>
+                    </div>
+                </div>
+                <div class="control-item">
+                    <label>电荷量 |q|: <span id="qValue">1.0</span> C</label>
+                    <div class="slider-container">
+                        <input type="range" id="chargeMagnitude" min="0.5" max="3" step="0.1" value="1.0">
+                        <div class="value-display" id="qDisplay">1.0</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <h3>控制面板</h3>
+                <div class="buttons">
+                    <button class="action-btn start" id="startBtn">开始运动</button>
+                    <button class="action-btn pause" id="pauseBtn">暂停</button>
+                    <button class="action-btn reset" id="resetBtn">重置</button>
+                </div>
+                <div class="status-display" id="statusDisplay">
+                    状态: 已停止 | qE = <span id="qeValue">2.0</span> | qvB = <span id="qvbValue">2.0</span>
+                </div>
+            </div>
+            
+            <div class="formula-display">
+                <div class="formula">
+                    合力: <span class="force">F = qE + q(v × B)</span><br>
+                    电场力: <span class="electric">F<sub>E</sub> = qE</span> | 
+                    磁场力: <span class="magnetic">F<sub>B</sub> = qvB</span>
+                </div>
+            </div>
+            
+            <button class="test-btn" id="testBtn">学习检测 (5道题)</button>
+        </div>
+        
+        <div class="simulation-container">
+            <canvas id="simulationCanvas"></canvas>
+        </div>
+    </div>
+    
+    <div class="modal-overlay" id="testModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>带电粒子在电磁场中运动 - 学习检测</h2>
+            </div>
+            <div class="modal-body" id="questionsContainer">
+                <!-- 试题将通过JS动态生成 -->
+            </div>
+            <div class="modal-footer">
+                <div class="results" id="resultsDisplay" style="display:none;">
+                    您的得分: <span id="score">0</span>/5
+                </div>
+                <button class="close-btn" id="closeModalBtn">关闭</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>模拟原理: 带电粒子在电磁场中受到洛伦兹力 F = q(E + v × B) | 当 qE = qvB 时，粒子保持匀速直线运动</p>
+        <p>© 2023 物理教学模拟 | 设计用于电磁学教学演示</p>
+    </div>
+
+    <script>
+        // 获取Canvas和上下文
+        const canvas = document.getElementById('simulationCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 初始化Canvas尺寸
+        function initCanvasSize() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+        }
+        
+        // 模拟参数
+        let simulationParams = {
+            electricField: 2.0,      // 电场强度 (N/C)
+            magneticField: 1.0,      // 磁场强度 (T)
+            velocity: 2.0,           // 粒子初速度 (m/s)
+            charge: 1.0,             // 电荷量 (C) - 正负表示电荷性质
+            eDirection: 'down',      // 电场方向: 'up' 或 'down'
+            bDirection: 'out',       // 磁场方向: 'in'(×) 或 'out'(·)
+            isRunning: false,        // 模拟是否运行
+            particle: {              // 粒子状态
+                x: 0,
+                y: 0,
+                vx: 2.0,
+                vy: 0,
+                radius: 10,
+                trail: []            // 轨迹点 - 保存完整轨迹
+            },
+            time: 0,                 // 模拟时间
+            mass: 1.0                // 粒子质量
+        };
+        
+        // 初始化粒子位置
+        function initParticlePosition() {
+            simulationParams.particle.x = 80;
+            simulationParams.particle.y = canvas.height / 2;
+            simulationParams.particle.vx = simulationParams.velocity;
+            simulationParams.particle.vy = 0;
+            simulationParams.particle.trail = [];
+            // 添加初始位置到轨迹
+            simulationParams.particle.trail.push({
+                x: simulationParams.particle.x, 
+                y: simulationParams.particle.y
+            });
+        }
+        
+        // 初始化控制元素
+        const eFieldSlider = document.getElementById('eField');
+        const bFieldSlider = document.getElementById('bField');
+        const velocitySlider = document.getElementById('velocity');
+        const chargeMagnitudeSlider = document.getElementById('chargeMagnitude');
+        const eValueDisplay = document.getElementById('eValue');
+        const bValueDisplay = document.getElementById('bValue');
+        const vValueDisplay = document.getElementById('vValue');
+        const qValueDisplay = document.getElementById('qValue');
+        const eDisplay = document.getElementById('eDisplay');
+        const bDisplay = document.getElementById('bDisplay');
+        const vDisplay = document.getElementById('vDisplay');
+        const qDisplay = document.getElementById('qDisplay');
+        
+        // 状态显示
+        const statusDisplay = document.getElementById('statusDisplay');
+        const qeValue = document.getElementById('qeValue');
+        const qvbValue = document.getElementById('qvbValue');
+        
+        // 粒子选择按钮
+        const positiveBtn = document.getElementById('positiveBtn');
+        const negativeBtn = document.getElementById('negativeBtn');
+        
+        // 动作按钮
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        
+        // 测试按钮和模态框
+        const testBtn = document.getElementById('testBtn');
+        const testModal = document.getElementById('testModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const questionsContainer = document.getElementById('questionsContainer');
+        const resultsDisplay = document.getElementById('resultsDisplay');
+        const scoreDisplay = document.getElementById('score');
+        
+        // 更新显示值
+        function updateDisplays() {
+            eValueDisplay.textContent = simulationParams.electricField.toFixed(1);
+            bValueDisplay.textContent = simulationParams.magneticField.toFixed(1);
+            vValueDisplay.textContent = simulationParams.velocity.toFixed(1);
+            qValueDisplay.textContent = Math.abs(simulationParams.charge).toFixed(1);
+            
+            eDisplay.textContent = simulationParams.electricField.toFixed(1);
+            bDisplay.textContent = simulationParams.magneticField.toFixed(1);
+            vDisplay.textContent = simulationParams.velocity.toFixed(1);
+            qDisplay.textContent = Math.abs(simulationParams.charge).toFixed(1);
+            
+            // 更新力值显示
+            const qE = Math.abs(simulationParams.charge * simulationParams.electricField);
+            const qvB = Math.abs(simulationParams.charge * simulationParams.velocity * simulationParams.magneticField);
+            qeValue.textContent = qE.toFixed(2);
+            qvbValue.textContent = qvB.toFixed(2);
+            
+            // 更新状态显示
+            const status = simulationParams.isRunning ? '运行中' : '已停止';
+            const forces = `qE = ${qE.toFixed(2)} | qvB = ${qvB.toFixed(2)}`;
+            statusDisplay.innerHTML = `状态: ${status} | ${forces}`;
+            
+            // 如果相等，特别显示
+            if (Math.abs(qE - qvB) < 0.1) {
+                statusDisplay.innerHTML += ' <span style="color:#2ecc71;">(平衡状态)</span>';
+            }
+        }
+        
+        // 粒子选择
+        positiveBtn.addEventListener('click', () => {
+            positiveBtn.classList.add('active');
+            negativeBtn.classList.remove('active');
+            const magnitude = Math.abs(simulationParams.charge);
+            simulationParams.charge = magnitude;
+            updateDisplays();
+            drawSimulation();
+        });
+        
+        negativeBtn.addEventListener('click', () => {
+            negativeBtn.classList.add('active');
+            positiveBtn.classList.remove('active');
+            const magnitude = Math.abs(simulationParams.charge);
+            simulationParams.charge = -magnitude;
+            updateDisplays();
+            drawSimulation();
+        });
+        
+        // 电场方向控制
+        const eDirectionBtns = document.querySelectorAll('#eDirectionControls .dir-btn');
+        eDirectionBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                eDirectionBtns.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                simulationParams.eDirection = this.getAttribute('data-direction');
+                drawSimulation();
+            });
+        });
+        
+        // 磁场方向控制
+        const bDirectionBtns = document.querySelectorAll('#bDirectionControls .dir-btn');
+        bDirectionBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                bDirectionBtns.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                simulationParams.bDirection = this.getAttribute('data-direction');
+                drawSimulation();
+            });
+        });
+        
+        // 滑块事件监听
+        eFieldSlider.addEventListener('input', function() {
+            simulationParams.electricField = parseFloat(this.value);
+            updateDisplays();
+            if (!simulationParams.isRunning) {
+                drawSimulation();
+            }
+        });
+        
+        bFieldSlider.addEventListener('input', function() {
+            simulationParams.magneticField = parseFloat(this.value);
+            updateDisplays();
+            if (!simulationParams.isRunning) {
+                drawSimulation();
+            }
+        });
+        
+        velocitySlider.addEventListener('input', function() {
+            simulationParams.velocity = parseFloat(this.value);
+            simulationParams.particle.vx = simulationParams.velocity;
+            updateDisplays();
+            if (!simulationParams.isRunning) {
+                drawSimulation();
+            }
+        });
+        
+        chargeMagnitudeSlider.addEventListener('input', function() {
+            const magnitude = parseFloat(this.value);
+            const sign = simulationParams.charge >= 0 ? 1 : -1;
+            simulationParams.charge = sign * magnitude;
+            updateDisplays();
+            if (!simulationParams.isRunning) {
+                drawSimulation();
+            }
+        });
+        
+        // 控制按钮事件
+        startBtn.addEventListener('click', function() {
+            if (!simulationParams.isRunning) {
+                simulationParams.isRunning = true;
+                simulate();
+            }
+        });
+        
+        pauseBtn.addEventListener('click', function() {
+            simulationParams.isRunning = false;
+            updateDisplays();
+        });
+        
+        resetBtn.addEventListener('click', function() {
+            simulationParams.isRunning = false;
+            initParticlePosition();
+            updateDisplays();
+            drawSimulation();
+        });
+        
+        // 绘制垂直电场线（白色）
+        function drawElectricField() {
+            const eLineSpacing = 40;
+            const eLineCount = Math.floor(canvas.width / eLineSpacing);
+            const eLineLength = canvas.height - 100;
+            
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            
+            // 根据电场方向绘制箭头
+            const arrowSize = 12;
+            const isEDown = simulationParams.eDirection === 'down';
+            
+            for (let i = 1; i < eLineCount; i++) {
+                const x = i * eLineSpacing;
+                
+                // 电场线（垂直线）
+                ctx.beginPath();
+                ctx.moveTo(x, 50);
+                ctx.lineTo(x, 50 + eLineLength);
+                ctx.stroke();
+                
+                // 电场箭头（在底部或顶部）
+                const arrowY = isEDown ? (50 + eLineLength - 20) : 70;
+                ctx.beginPath();
+                
+                if (isEDown) {
+                    // 向下箭头
+                    ctx.moveTo(x, arrowY);
+                    ctx.lineTo(x - arrowSize/2, arrowY - arrowSize);
+                    ctx.moveTo(x, arrowY);
+                    ctx.lineTo(x + arrowSize/2, arrowY - arrowSize);
+                } else {
+                    // 向上箭头
+                    ctx.moveTo(x, arrowY);
+                    ctx.lineTo(x - arrowSize/2, arrowY + arrowSize);
+                    ctx.moveTo(x, arrowY);
+                    ctx.lineTo(x + arrowSize/2, arrowY + arrowSize);
+                }
+                
+                ctx.stroke();
+            }
+            
+            // 绘制电场标签
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 18px Arial';
+            ctx.fillText('E', canvas.width / 2, 30);
+            
+            // 绘制电场方向说明
+            ctx.font = '14px Arial';
+            ctx.fillText(`电场方向: ${isEDown ? '向下 ↓' : '向上 ↑'}`, canvas.width - 150, 30);
+        }
+        
+        // 绘制磁场符号（蓝色×或·）
+        function drawMagneticField() {
+            const bSymbolSpacing = 35;
+            const bRows = Math.floor(canvas.height / bSymbolSpacing);
+            const bCols = Math.floor(canvas.width / bSymbolSpacing);
+            
+            ctx.fillStyle = '#4cc9f0';
+            ctx.strokeStyle = '#4cc9f0';
+            ctx.lineWidth = 2;
+            
+            const isBOut = simulationParams.bDirection === 'out';
+            
+            for (let row = 1; row < bRows; row++) {
+                for (let col = 1; col < bCols; col++) {
+                    const x = col * bSymbolSpacing;
+                    const y = row * bSymbolSpacing;
+                    
+                    if (isBOut) {
+                        // 向外（点）
+                        ctx.beginPath();
+                        ctx.arc(x, y, 4, 0, Math.PI * 2);
+                        ctx.fill();
+                    } else {
+                        // 向里（×）
+                        const size = 6;
+                        ctx.beginPath();
+                        ctx.moveTo(x - size, y - size);
+                        ctx.lineTo(x + size, y + size);
+                        ctx.moveTo(x + size, y - size);
+                        ctx.lineTo(x - size, y + size);
+                        ctx.stroke();
+                    }
+                }
+            }
+            
+            // 绘制磁场标签
+            ctx.fillStyle = '#4cc9f0';
+            ctx.font = 'bold 18px Arial';
+            ctx.fillText('B', canvas.width / 2, canvas.height - 30);
+            
+            // 绘制磁场方向说明
+            ctx.font = '14px Arial';
+            ctx.fillText(`磁场方向: ${isBOut ? '向外(·)' : '向里(×)'}`, canvas.width - 150, canvas.height - 30);
+        }
+        
+        // 绘制粒子轨迹（完整轨迹）
+        function drawParticleTrail() {
+            const p = simulationParams.particle;
+            
+            if (p.trail.length < 2) return;
+            
+            // 设置轨迹样式
+            ctx.strokeStyle = simulationParams.charge > 0 ? 
+                'rgba(255, 77, 77, 0.8)' : 'rgba(77, 255, 136, 0.8)';
+            ctx.lineWidth = 3;
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            
+            // 绘制完整轨迹
+            ctx.beginPath();
+            ctx.moveTo(p.trail[0].x, p.trail[0].y);
+            
+            for (let i = 1; i < p.trail.length; i++) {
+                ctx.lineTo(p.trail[i].x, p.trail[i].y);
+            }
+            
+            ctx.stroke();
+            
+            // 在轨迹起点添加一个小圆点标记
+            if (p.trail.length > 0) {
+                ctx.beginPath();
+                ctx.arc(p.trail[0].x, p.trail[0].y, 3, 0, Math.PI * 2);
+                ctx.fillStyle = simulationParams.charge > 0 ? '#ff4d4d' : '#4dff88';
+                ctx.fill();
+            }
+        }
+        
+        // 绘制粒子
+        function drawParticle() {
+            const p = simulationParams.particle;
+            
+            // 绘制粒子
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            ctx.fillStyle = simulationParams.charge > 0 ? '#ff4d4d' : '#4dff88';
+            ctx.fill();
+            
+            // 绘制粒子边框
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // 绘制电荷符号
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(simulationParams.charge > 0 ? '+' : '−', p.x, p.y);
+            
+            // 绘制速度箭头
+            const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+            if (speed > 0.1) {
+                const arrowLength = 25;
+                const angle = Math.atan2(p.vy, p.vx);
+                
+                ctx.strokeStyle = '#f1c40f';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+                ctx.lineTo(p.x + Math.cos(angle) * arrowLength, p.y + Math.sin(angle) * arrowLength);
+                
+                // 箭头头部
+                const headLength = 10;
+                ctx.lineTo(
+                    p.x + Math.cos(angle) * arrowLength - Math.cos(angle - Math.PI/6) * headLength,
+                    p.y + Math.sin(angle) * arrowLength - Math.sin(angle - Math.PI/6) * headLength
+                );
+                ctx.moveTo(p.x + Math.cos(angle) * arrowLength, p.y + Math.sin(angle) * arrowLength);
+                ctx.lineTo(
+                    p.x + Math.cos(angle) * arrowLength - Math.cos(angle + Math.PI/6) * headLength,
+                    p.y + Math.sin(angle) * arrowLength - Math.sin(angle + Math.PI/6) * headLength
+                );
+                ctx.stroke();
+            }
+        }
+        
+        // 绘制整个模拟
+        function drawSimulation() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawElectricField();
+            drawMagneticField();
+            drawParticleTrail();  // 先绘制轨迹
+            drawParticle();       // 再绘制粒子（在最上层）
+            
+            // 绘制坐标轴
+            drawAxes();
+        }
+        
+        // 绘制坐标轴
+        function drawAxes() {
+            ctx.strokeStyle = '#666666';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
+            
+            // x轴
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height / 2);
+            ctx.lineTo(canvas.width, canvas.height / 2);
+            ctx.stroke();
+            
+            // y轴
+            ctx.beginPath();
+            ctx.moveTo(canvas.width / 2, 0);
+            ctx.lineTo(canvas.width / 2, canvas.height);
+            ctx.stroke();
+            
+            ctx.setLineDash([]);
+            
+            // 标签
+            ctx.fillStyle = '#999999';
+            ctx.font = '12px Arial';
+            ctx.fillText('x (水平方向)', canvas.width - 50, canvas.height / 2 - 10);
+            ctx.fillText('y (垂直方向)', canvas.width / 2 + 10, 20);
+        }
+        
+        // 模拟物理过程
+        function simulate() {
+            if (!simulationParams.isRunning) return;
+            
+            const p = simulationParams.particle;
+            const dt = 0.03; // 时间步长
+            
+            // 计算电场力 (qE) - 电场在y方向
+            const eForce = simulationParams.charge * simulationParams.electricField;
+            
+            // 电场方向系数 - 向下为正，向上为负
+            const eDirCoeff = simulationParams.eDirection === 'down' ? 1 : -1;
+            
+            // 计算磁场力 (qvB) - 磁场垂直于屏幕(z方向)
+            // 简化模型：磁场力主要影响竖直方向
+            const magneticForceY = simulationParams.charge * p.vx * simulationParams.magneticField;
+            
+            // 磁场方向影响：向里或向外改变磁场力方向
+            const bDirCoeff = simulationParams.bDirection === 'out' ? 1 : -1;
+            const magneticForceYWithDir = magneticForceY * bDirCoeff;
+            
+            // 电场力在y方向
+            const electricForceY = eForce * eDirCoeff;
+            
+            // 计算合力
+            // x方向：没有力（假设理想情况）
+            const fx = 0;
+            
+            // y方向：电场力 + 磁场力
+            const fy = electricForceY + magneticForceYWithDir;
+            
+            // 计算加速度 (F = ma)
+            const ax = fx / simulationParams.mass;
+            const ay = fy / simulationParams.mass;
+            
+            // 更新速度
+            p.vx += ax * dt;
+            p.vy += ay * dt;
+            
+            // 更新位置
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+            
+            // 添加轨迹点 - 永远保存所有轨迹点
+            p.trail.push({x: p.x, y: p.y});
+            
+            // 边界检测
+            const margin = 50;
+            if (p.x < -margin || p.x > canvas.width + margin || 
+                p.y < -margin || p.y > canvas.height + margin) {
+                simulationParams.isRunning = false;
+                updateDisplays();
+            }
+            
+            // 绘制
+            drawSimulation();
+            
+            // 更新状态显示
+            updateDisplays();
+            
+            // 继续模拟
+            simulationParams.time += dt;
+            requestAnimationFrame(simulate);
+        }
+        
+        // 初始化
+        function init() {
+            initCanvasSize();
+            initParticlePosition();
+            updateDisplays();
+            drawSimulation();
+            
+            // 窗口大小变化时重新调整
+            window.addEventListener('resize', function() {
+                initCanvasSize();
+                initParticlePosition();
+                drawSimulation();
+            });
+        }
+        
+        // 学习检测功能
+        testBtn.addEventListener('click', function() {
+            showTestQuestions();
+            testModal.style.display = 'flex';
+        });
+        
+        closeModalBtn.addEventListener('click', function() {
+            testModal.style.display = 'none';
+        });
+        
+        // 测试题数据
+        const testQuestions = [
+            {
+                question: "1. 当带电粒子在正交电磁场中运动，且电场力和磁场力平衡时，粒子将如何运动？",
+                options: [
+                    "做圆周运动",
+                    "做类平抛运动",
+                    "做匀速直线运动",
+                    "做螺旋运动"
+                ],
+                correct: 2,
+                explanation: "正确答案是匀速直线运动。当电场力 qE 与磁场力 qvB 大小相等、方向相反时，合力为零，粒子将保持原来的速度做匀速直线运动。"
+            },
+            {
+                question: "2. 带电粒子在只有均匀磁场的情况下，初速度与磁场方向垂直，粒子将做什么运动？",
+                options: [
+                    "匀速直线运动",
+                    "匀加速直线运动",
+                    "匀速圆周运动",
+                    "螺旋运动"
+                ],
+                correct: 2,
+                explanation: "正确答案是匀速圆周运动。在均匀磁场中，当初速度与磁场方向垂直时，粒子受到大小不变的向心力，做匀速圆周运动，回旋半径 R = mv/(qB)。"
+            },
+            {
+                question: "3. 磁场对带电粒子的作用力方向如何确定？",
+                options: [
+                    "与速度方向相同",
+                    "与速度方向相反",
+                    "与速度方向和磁场方向都垂直",
+                    "与电场方向相同"
+                ],
+                correct: 2,
+                explanation: "正确答案是与速度方向和磁场方向都垂直。磁场力 F = q(v × B)，根据叉乘性质，磁场力垂直于速度v和磁场B所在的平面。"
+            },
+            {
+                question: "4. 正电荷和负电荷在相同电磁场中的运动轨迹有什么关系？",
+                options: [
+                    "完全相同",
+                    "关于某轴对称",
+                    "在电场中偏转方向相反",
+                    "在磁场中偏转方向相同"
+                ],
+                correct: 2,
+                explanation: "正确答案是在电场中偏转方向相反。因为电场力 F = qE，正负电荷受力方向相反；而磁场力 F = q(v × B)，正负电荷在磁场中偏转方向也相反。"
+            },
+            {
+                question: "5. 下列哪种情况带电粒子会做螺旋运动？",
+                options: [
+                    "只有电场，初速度与电场方向垂直",
+                    "只有磁场，初速度与磁场方向平行",
+                    "只有磁场，初速度与磁场方向有夹角",
+                    "电场和磁场正交，且qE=qvB"
+                ],
+                correct: 2,
+                explanation: "正确答案是只有磁场，初速度与磁场方向有夹角。此时速度可分解为平行和垂直于磁场方向的分量，垂直分量导致圆周运动，平行分量导致匀速直线运动，合成后为螺旋运动。"
+            }
+        ];
+        
+        // 显示测试题
+        function showTestQuestions() {
+            questionsContainer.innerHTML = '';
+            resultsDisplay.style.display = 'none';
+            
+            testQuestions.forEach((q, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question';
+                questionDiv.innerHTML = `
+                    <h4>${q.question}</h4>
+                    <div class="options" data-question="${index}">
+                        ${q.options.map((opt, i) => 
+                            `<div class="option" data-index="${i}">${opt}</div>`
+                        ).join('')}
+                    </div>
+                    <div class="explanation" id="explanation${index}">${q.explanation}</div>
+                `;
+                questionsContainer.appendChild(questionDiv);
+            });
+            
+            // 添加提交按钮
+            const submitDiv = document.createElement('div');
+            submitDiv.className = 'question';
+            submitDiv.innerHTML = `<button id="submitTest" class="action-btn start" style="width:100%;">提交答案</button>`;
+            questionsContainer.appendChild(submitDiv);
+            
+            // 为选项添加点击事件
+            document.querySelectorAll('.option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const questionIndex = this.parentElement.getAttribute('data-question');
+                    const optionIndex = parseInt(this.getAttribute('data-index'));
+                    
+                    // 清除同问题的其他选项的选择状态
+                    const siblings = this.parentElement.querySelectorAll('.option');
+                    siblings.forEach(sib => {
+                        sib.classList.remove('selected');
+                    });
+                    
+                    // 标记当前选项为选中
+                    this.classList.add('selected');
+                    this.setAttribute('data-selected', 'true');
+                });
+            });
+            
+            // 提交测试
+            document.getElementById('submitTest').addEventListener('click', function() {
+                let score = 0;
+                const userAnswers = [];
+                
+                // 检查每个问题的答案
+                testQuestions.forEach((q, index) => {
+                    const options = document.querySelectorAll(`.options[data-question="${index}"] .option`);
+                    let selectedOption = -1;
+                    
+                    options.forEach((opt, i) => {
+                        if (opt.classList.contains('selected')) {
+                            selectedOption = i;
+                        }
+                    });
+                    
+                    userAnswers.push(selectedOption);
+                    
+                    // 显示正确/错误
+                    options.forEach((opt, i) => {
+                        if (i === q.correct) {
+                            opt.classList.add('correct');
+                        } else if (i === selectedOption && i !== q.correct) {
+                            opt.classList.add('incorrect');
+                        }
+                        
+                        // 禁用进一步点击
+                        opt.style.pointerEvents = 'none';
+                    });
+                    
+                    // 显示解释
+                    document.getElementById(`explanation${index}`).classList.add('show');
+                    
+                    // 计分
+                    if (selectedOption === q.correct) {
+                        score++;
+                    }
+                });
+                
+                // 显示结果
+                scoreDisplay.textContent = score;
+                resultsDisplay.style.display = 'block';
+                
+                // 滚动到底部查看结果
+                resultsDisplay.scrollIntoView({ behavior: 'smooth' });
+            });
+        }
+        
+        // 启动初始化
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>

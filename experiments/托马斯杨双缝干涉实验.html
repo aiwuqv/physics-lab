@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>托马斯·杨双缝干涉实验（含原理图）</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #f0f2f5;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #0c2461, #1e3799);
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .experiment-panel {
+            flex: 3;
+            min-width: 500px;
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        
+        .explanation-panel {
+            flex: 2;
+            min-width: 400px;
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        
+        .panel-title {
+            color: #0c2461;
+            border-bottom: 2px solid #4a69bd;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        
+        .experiment-container {
+            width: 100%;
+            height: 450px;
+            background: #0a1931;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+            border: 3px solid #1a2980;
+        }
+        
+        canvas {
+            display: block;
+        }
+        
+        #experimentCanvas {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .interference-pattern-container {
+            width: 100%;
+            height: 200px;
+            background: #0a1931;
+            border-radius: 8px;
+            margin-top: 20px;
+            overflow: hidden;
+            border: 3px solid #1a2980;
+        }
+        
+        #patternCanvas {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .controls {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .control-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #0c2461;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            background: #ddd;
+            border-radius: 4px;
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #4a69bd;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid #0c2461;
+        }
+        
+        .value-display {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .wave-colors {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin: 15px 0;
+        }
+        
+        .wave-color {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .color-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+        
+        .color-1 {
+            background-color: #4FC3F7;
+        }
+        
+        .color-2 {
+            background-color: #FF4444;
+        }
+        
+        .color-result {
+            background: linear-gradient(90deg, #4FC3F7, #9b59b6, #FF4444);
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            background: #0c2461;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        button:hover {
+            background: #4a69bd;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        #playBtn {
+            background: #27ae60;
+        }
+        
+        #resetBtn {
+            background: #e67e22;
+        }
+        
+        #showWavesBtn {
+            background: #9b59b6;
+        }
+        
+        #showInterferenceBtn {
+            background: #3498db;
+        }
+        
+        #showPrincipleBtn {
+            background: #e74c3c;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 30px;
+            color: #666;
+            font-size: 0.9rem;
+            border-top: 1px solid #ddd;
+        }
+        
+        .highlight {
+            background: #fffacd;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        
+        .principle-box {
+            background: #e8f4fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #3498db;
+        }
+        
+        .comparison {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .comparison-item {
+            flex: 1;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .particle-theory {
+            background: #ffebee;
+            border: 2px solid #f44336;
+        }
+        
+        .wave-theory {
+            background: #e8f5e9;
+            border: 2px solid #4caf50;
+        }
+        
+        .expected-pattern {
+            font-size: 2rem;
+            margin: 10px 0;
+        }
+        
+        .formula {
+            background: #2c3e50;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            text-align: center;
+        }
+        
+        @media (max-width: 1100px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .experiment-panel, .explanation-panel {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <header>
+        <h1>托马斯·杨双缝干涉实验</h1>
+        <p class="subtitle">从双缝发出的两列光波相互干涉产生明暗条纹</p>
+    </header>
+    
+    <div class="container">
+        <div class="experiment-panel">
+            <h2 class="panel-title">实验动画演示</h2>
+            
+            <div class="experiment-container">
+                <canvas id="experimentCanvas"></canvas>
+            </div>
+            
+            <div class="wave-colors">
+                <div class="wave-color">
+                    <div class="color-box color-1"></div>
+                    <span>从缝1发出的波</span>
+                </div>
+                <div class="wave-color">
+                    <div class="color-box color-2"></div>
+                    <span>从缝2发出的波</span>
+                </div>
+                <div class="wave-color">
+                    <div class="color-box color-result"></div>
+                    <span>干涉叠加结果</span>
+                </div>
+            </div>
+            
+            <div class="interference-pattern-container">
+                <canvas id="patternCanvas"></canvas>
+            </div>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <label>实验阶段：</label>
+                    <input type="range" id="experimentStage" min="1" max="5" value="1" step="1">
+                    <div class="value-display">
+                        <span>① 光源与单缝</span>
+                        <span>② 双缝与两列波</span>
+                        <span>③ 干涉过程</span>
+                        <span>④ 最终条纹</span>
+                        <span>⑤ 原理图</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label>波显示强度：</label>
+                    <input type="range" id="waveIntensity" min="1" max="10" value="8" step="1">
+                    <div class="value-display">
+                        <span>弱</span>
+                        <span>正常</span>
+                        <span>强</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="buttons">
+                <button id="playBtn">播放/暂停</button>
+                <button id="resetBtn">重置</button>
+                <button id="showWavesBtn">显示两列波</button>
+                <button id="showInterferenceBtn">显示干涉条纹</button>
+                <button id="showPrincipleBtn">显示原理图</button>
+            </div>
+        </div>
+        
+        <div class="explanation-panel">
+            <h2 class="panel-title">实验原理</h2>
+            
+            <div class="principle-box">
+                <h3>🔬 核心原理：波的干涉</h3>
+                <p>光通过双缝后，每个缝都成为一个新波源，发出两列<strong>相干光波</strong>。</p>
+                <p>两列波在屏幕上相遇时：</p>
+                <ul style="margin-left: 20px; margin-top: 8px;">
+                    <li><strong>波峰+波峰</strong> → 光强增强 → <span class="highlight">亮条纹</span></li>
+                    <li><strong>波峰+波谷</strong> → 光强抵消 → <span class="highlight">暗条纹</span></li>
+                </ul>
+                
+                <div class="formula">
+                    亮纹条件：Δ = d·sinθ = mλ (m=0, ±1, ±2...)<br>
+                    暗纹条件：Δ = d·sinθ = (m+½)λ (m=0, ±1, ±2...)
+                </div>
+            </div>
+            
+            <div class="comparison">
+                <div class="comparison-item particle-theory">
+                    <div class="comparison-title">粒子说预测</div>
+                    <div class="expected-pattern">●●</div>
+                    <p>屏幕上应出现<br><span class="highlight">两条亮线</span></p>
+                </div>
+                <div class="comparison-item wave-theory">
+                    <div class="comparison-title">实际观察</div>
+                    <div class="expected-pattern">|━|━|━|━|━|</div>
+                    <p>屏幕上出现<br><span class="highlight">多条明暗条纹</span></p>
+                </div>
+            </div>
+            
+            <div style="background: #fff9e6; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #f39c12;">
+                <h3>💡 托马斯·杨的关键发现（1801年）</h3>
+                <p>✓ 观察到<strong>明暗相间的干涉条纹</strong></p>
+                <p>✓ 条纹<strong>等间距分布</strong>，中间最亮</p>
+                <p>✓ 这<strong>不是两条亮线</strong>！</p>
+                <p>✓ 证明光具有<strong>波动性</strong></p>
+                <p>✓ 推翻了牛顿的粒子说统治</p>
+            </div>
+            
+            <div style="background: #e8f6f3; padding: 15px; border-radius: 8px; margin-top: 20px;">
+                <h3>📐 干涉原理图说明</h3>
+                <p><strong style="color: #4FC3F7;">蓝色线</strong>：从缝1到屏幕的光路</p>
+                <p><strong style="color: #FF4444;">红色线</strong>：从缝2到屏幕的光路</p>
+                <p><strong style="color: #2ecc71;">绿色线</strong>：光程差 Δ = r₂ - r₁</p>
+                <p>• Δ = 0 → 中间亮纹 (m=0)</p>
+                <p>• Δ = λ → 一级亮纹 (m=1)</p>
+                <p>• Δ = λ/2 → 一级暗纹</p>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>托马斯·杨双缝干涉实验演示 | 1801年经典实验 | 包含干涉原理图</p>
+        <p>© 物理教学演示 | 重点：光程差决定明暗条纹位置</p>
+    </footer>
+
+    <script>
+        // 获取Canvas元素和上下文
+        const experimentCanvas = document.getElementById('experimentCanvas');
+        const patternCanvas = document.getElementById('patternCanvas');
+        const expCtx = experimentCanvas.getContext('2d');
+        const patCtx = patternCanvas.getContext('2d');
+        
+        // 获取控制元素
+        const experimentStage = document.getElementById('experimentStage');
+        const waveIntensity = document.getElementById('waveIntensity');
+        const playBtn = document.getElementById('playBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const showWavesBtn = document.getElementById('showWavesBtn');
+        const showInterferenceBtn = document.getElementById('showInterferenceBtn');
+        const showPrincipleBtn = document.getElementById('showPrincipleBtn');
+        
+        // 动画状态
+        let isPlaying = false;
+        let time = 0;
+        let currentStage = 1;
+        let animationId = null;
+        
+        // 调整Canvas大小
+        function resizeCanvases() {
+            const expContainer = experimentCanvas.parentElement;
+            const patContainer = patternCanvas.parentElement;
+            
+            experimentCanvas.width = expContainer.clientWidth;
+            experimentCanvas.height = expContainer.clientHeight;
+            
+            patternCanvas.width = patContainer.clientWidth;
+            patternCanvas.height = patContainer.clientHeight;
+            
+            drawAll();
+        }
+        
+        // 绘制所有内容
+        function drawAll() {
+            drawExperiment();
+            drawPattern();
+        }
+        
+        // 绘制实验装置
+        function drawExperiment() {
+            const width = experimentCanvas.width;
+            const height = experimentCanvas.height;
+            
+            // 清空画布
+            expCtx.clearRect(0, 0, width, height);
+            
+            // 绘制背景
+            expCtx.fillStyle = '#0a1931';
+            expCtx.fillRect(0, 0, width, height);
+            
+            // 根据阶段绘制
+            switch(currentStage) {
+                case 1: // 光源与单缝
+                    drawLightSourceAndSingleSlit(width, height);
+                    break;
+                case 2: // 双缝与两列波
+                    drawDoubleSlitAndWaves(width, height);
+                    break;
+                case 3: // 干涉过程
+                    drawInterferenceProcess(width, height);
+                    break;
+                case 4: // 最终条纹
+                    drawFinalPattern(width, height);
+                    break;
+                case 5: // 原理图
+                    drawPrincipleDiagram(width, height);
+                    break;
+            }
+            
+            // 绘制阶段标题
+            expCtx.fillStyle = 'white';
+            expCtx.font = 'bold 16px Arial';
+            expCtx.textAlign = 'center';
+            expCtx.fillText(getStageTitle(), width/2, 30);
+        }
+        
+        function getStageTitle() {
+            const titles = [
+                '',
+                '① 光源通过单缝产生柱面波',
+                '② 双缝产生两列相干波',
+                '③ 两列波在屏幕上干涉',
+                '④ 明暗干涉条纹形成',
+                '⑤ 干涉原理图（光程差分析）'
+            ];
+            return titles[currentStage];
+        }
+        
+        function drawLightSourceAndSingleSlit(width, height) {
+            // 绘制光源
+            expCtx.fillStyle = '#FFD700';
+            expCtx.beginPath();
+            expCtx.arc(width * 0.15, height/2, 18, 0, Math.PI * 2);
+            expCtx.fill();
+            
+            // 绘制单缝板
+            expCtx.fillStyle = '#2C3E50';
+            expCtx.fillRect(width * 0.35 - 12, height * 0.2, 24, height * 0.6);
+            
+            // 单缝开口
+            expCtx.fillStyle = '#ECF0F1';
+            expCtx.fillRect(width * 0.35 - 5, height/2 - 15, 10, 30);
+            
+            // 绘制从单缝发出的柱面波
+            const intensity = parseInt(waveIntensity.value) / 10;
+            const waveCount = 8;
+            
+            for (let i = 0; i < waveCount; i++) {
+                const waveRadius = 25 + i * 32;
+                const alpha = 0.15 + intensity * 0.2 * (1 - i/waveCount);
+                
+                expCtx.strokeStyle = `rgba(79, 195, 247, ${alpha})`;
+                expCtx.lineWidth = 2;
+                
+                // 绘制柱面波前（半圆）
+                expCtx.beginPath();
+                expCtx.arc(width * 0.35, height/2, waveRadius, -Math.PI/2, Math.PI/2);
+                expCtx.stroke();
+            }
+            
+            // 说明文字
+            expCtx.fillStyle = '#4FC3F7';
+            expCtx.font = '14px Arial';
+            expCtx.textAlign = 'center';
+            expCtx.fillText('单缝产生柱面波', width * 0.5, height * 0.15);
+        }
+        
+        function drawDoubleSlitAndWaves(width, height) {
+            // 绘制光源和单缝
+            drawLightSourceAndSingleSlit(width, height);
+            
+            // 绘制双缝板
+            const slitX = width * 0.55;
+            expCtx.fillStyle = '#2C3E50';
+            expCtx.fillRect(slitX - 12, height * 0.2, 24, height * 0.6);
+            
+            // 两个缝
+            const slitSpacing = 50;
+            const slit1Y = height/2 - slitSpacing/2;
+            const slit2Y = height/2 + slitSpacing/2;
+            
+            expCtx.fillStyle = '#ECF0F1';
+            expCtx.fillRect(slitX - 5, slit1Y - 8, 10, 16);
+            expCtx.fillRect(slitX - 5, slit2Y - 8, 10, 16);
+            
+            // 高亮双缝
+            expCtx.strokeStyle = '#FF4444';
+            expCtx.lineWidth = 3;
+            expCtx.strokeRect(slitX - 20, height/2 - slitSpacing/2 - 15, 40, slitSpacing + 30);
+            
+            // 绘制从双缝发出的两列波
+            const intensity = parseInt(waveIntensity.value) / 10;
+            const waveCount = 10;
+            
+            for (let i = 0; i < waveCount; i++) {
+                const waveRadius = 20 + i * 28;
+                const alpha = 0.12 + intensity * 0.18 * (1 - i/waveCount);
+                
+                // 蓝色波（缝1）
+                expCtx.strokeStyle = `rgba(79, 195, 247, ${alpha})`;
+                expCtx.lineWidth = 2;
+                expCtx.beginPath();
+                expCtx.arc(slitX, slit1Y, waveRadius, -Math.PI/2, Math.PI/2);
+                expCtx.stroke();
+                
+                // 红色波（缝2）
+                expCtx.strokeStyle = `rgba(255, 68, 68, ${alpha * 1.3})`;
+                expCtx.lineWidth = 2.2;
+                expCtx.beginPath();
+                expCtx.arc(slitX, slit2Y, waveRadius, -Math.PI/2, Math.PI/2);
+                expCtx.stroke();
+            }
+            
+            // 标记
+            expCtx.fillStyle = '#4FC3F7';
+            expCtx.font = '14px Arial';
+            expCtx.fillText('缝1', slitX - 30, slit1Y - 15);
+            
+            expCtx.fillStyle = '#FF4444';
+            expCtx.font = 'bold 14px Arial';
+            expCtx.fillText('缝2', slitX - 30, slit2Y + 20);
+            
+            expCtx.fillStyle = 'white';
+            expCtx.font = 'bold 16px Arial';
+            expCtx.fillText('双缝产生两列相干波', width * 0.75, height * 0.85);
+        }
+        
+        function drawInterferenceProcess(width, height) {
+            // 绘制装置
+            drawDoubleSlitAndWaves(width, height);
+            
+            // 屏幕位置
+            const screenX = width * 0.85;
+            const screenTop = height * 0.15;
+            const screenBottom = height * 0.85;
+            
+            // 绘制屏幕
+            expCtx.fillStyle = '#34495E';
+            expCtx.fillRect(screenX - 10, screenTop, 20, screenBottom - screenTop);
+            
+            // 在屏幕上绘制干涉条纹
+            const patternWidth = width * 0.15;
+            const patternHeight = screenBottom - screenTop;
+            const patternX = screenX - patternWidth/2;
+            
+            // 绘制静态条纹
+            const stripeCount = 13;
+            const stripeHeight = patternHeight / stripeCount;
+            
+            for (let i = 0; i < stripeCount; i++) {
+                const y = screenTop + i * stripeHeight;
+                
+                if (i % 2 === 0) {
+                    // 暗条纹
+                    expCtx.fillStyle = '#0a1931';
+                } else {
+                    // 亮条纹（中间最亮，向两边递减）
+                    const distanceFromCenter = Math.abs(i - Math.floor(stripeCount/2));
+                    const brightness = 220 - distanceFromCenter * 25;
+                    expCtx.fillStyle = `rgb(${brightness * 0.8}, ${brightness * 0.6}, ${brightness})`;
+                }
+                
+                expCtx.fillRect(patternX, y, patternWidth, stripeHeight);
+            }
+            
+            // 绘制光路
+            const slitX = width * 0.55;
+            const slitSpacing = 50;
+            const slit1Y = height/2 - slitSpacing/2;
+            const slit2Y = height/2 + slitSpacing/2;
+            
+            // 绘制几条主要的光路
+            for (let i = 0; i < 7; i++) {
+                const y = screenTop + (i * (patternHeight / 6));
+                
+                // 从缝1到屏幕
+                expCtx.strokeStyle = 'rgba(79, 195, 247, 0.3)';
+                expCtx.lineWidth = 1;
+                expCtx.beginPath();
+                expCtx.moveTo(slitX, slit1Y);
+                expCtx.lineTo(screenX, y);
+                expCtx.stroke();
+                
+                // 从缝2到屏幕
+                expCtx.strokeStyle = 'rgba(255, 68, 68, 0.4)';
+                expCtx.beginPath();
+                expCtx.moveTo(slitX, slit2Y);
+                expCtx.lineTo(screenX, y);
+                expCtx.stroke();
+            }
+            
+            // 说明文字
+            expCtx.fillStyle = '#2ecc71';
+            expCtx.font = 'bold 16px Arial';
+            expCtx.fillText('两列波在屏幕上干涉叠加', width * 0.75, height * 0.12);
+        }
+        
+        function drawFinalPattern(width, height) {
+            // 清空画布
+            expCtx.clearRect(0, 0, width, height);
+            expCtx.fillStyle = '#0a1931';
+            expCtx.fillRect(0, 0, width, height);
+            
+            // 标题
+            expCtx.fillStyle = '#FFD700';
+            expCtx.font = 'bold 20px Arial';
+            expCtx.textAlign = 'center';
+            expCtx.fillText('托马斯·杨观察到的干涉条纹', width/2, 50);
+            
+            // 绘制实验装置简图
+            expCtx.fillStyle = '#2C3E50';
+            
+            // 光源
+            expCtx.fillStyle = '#FFD700';
+            expCtx.beginPath();
+            expCtx.arc(width * 0.15, height/2, 15, 0, Math.PI * 2);
+            expCtx.fill();
+            
+            // 单缝板
+            expCtx.fillStyle = '#2C3E50';
+            expCtx.fillRect(width * 0.3, height * 0.35, 8, height * 0.3);
+            
+            // 双缝板
+            expCtx.fillRect(width * 0.5, height * 0.3, 8, height * 0.4);
+            
+            // 两个缝
+            expCtx.fillStyle = '#ECF0F1';
+            const slitSpacing = 40;
+            const slit1Y = height/2 - slitSpacing/2;
+            const slit2Y = height/2 + slitSpacing/2;
+            expCtx.fillRect(width * 0.5, slit1Y - 5, 8, 10);
+            expCtx.fillRect(width * 0.5, slit2Y - 5, 8, 10);
+            
+            // 屏幕
+            const screenX = width * 0.8;
+            const screenTop = height * 0.1;
+            const screenBottom = height * 0.9;
+            
+            expCtx.fillStyle = '#34495E';
+            expCtx.fillRect(screenX - 12, screenTop, 24, screenBottom - screenTop);
+            
+            // 在屏幕上绘制清晰的干涉条纹
+            const patternWidth = width * 0.25;
+            const patternHeight = screenBottom - screenTop;
+            const patternX = screenX - patternWidth/2;
+            
+            // 绘制13条明暗条纹
+            const stripeCount = 13;
+            const stripeHeight = patternHeight / stripeCount;
+            
+            for (let i = 0; i < stripeCount; i++) {
+                const y = screenTop + i * stripeHeight;
+                
+                if (i % 2 === 0) {
+                    expCtx.fillStyle = '#0a1931';
+                } else {
+                    const distanceFromCenter = Math.abs(i - Math.floor(stripeCount/2));
+                    const brightness = 220 - distanceFromCenter * 25;
+                    expCtx.fillStyle = `rgb(${brightness * 0.8}, ${brightness * 0.6}, ${brightness})`;
+                }
+                
+                expCtx.fillRect(patternX, y, patternWidth, stripeHeight);
+            }
+            
+            // 标记条纹级次
+            expCtx.fillStyle = 'white';
+            expCtx.font = '12px Arial';
+            expCtx.textAlign = 'center';
+            
+            const centerIndex = Math.floor(stripeCount/2);
+            expCtx.fillText('m=0（零级亮纹）', patternX + patternWidth/2, screenTop + centerIndex * stripeHeight + 10);
+            
+            // 标记正负级亮纹
+            for (let m = 1; m <= 3; m++) {
+                const brightIndex1 = centerIndex - m * 2;
+                const brightIndex2 = centerIndex + m * 2;
+                
+                if (brightIndex1 >= 0) {
+                    expCtx.fillText(`m=${m}`, patternX + patternWidth/2, screenTop + brightIndex1 * stripeHeight + 10);
+                    expCtx.fillText(`m=-${m}`, patternX + patternWidth/2, screenTop + brightIndex2 * stripeHeight + 10);
+                }
+            }
+            
+            // 结论文字
+            expCtx.fillStyle = '#2ecc71';
+            expCtx.font = 'bold 18px Arial';
+            expCtx.fillText('结论：光必须是波！', width/2, height - 30);
+            
+            expCtx.fillStyle = 'white';
+            expCtx.font = '14px Arial';
+            expCtx.fillText('粒子说预测：两条亮线 ×', width * 0.3, height - 60);
+            expCtx.fillText('实际观察：多条明暗条纹 √', width * 0.7, height - 60);
+        }
+        
+        function drawPrincipleDiagram(width, height) {
+            // 清空画布
+            expCtx.clearRect(0, 0, width, height);
+            expCtx.fillStyle = '#0a1931';
+            expCtx.fillRect(0, 0, width, height);
+            
+            // 标题
+            expCtx.fillStyle = '#FFD700';
+            expCtx.font = 'bold 20px Arial';
+            expCtx.textAlign = 'center';
+            expCtx.fillText('双缝干涉原理图（光程差分析）', width/2, 40);
+            
+            // 双缝位置
+            const slitX = width * 0.2;
+            const slitSpacing = 60;
+            const slit1Y = height/2 - slitSpacing/2;
+            const slit2Y = height/2 + slitSpacing/2;
+            
+            // 绘制双缝
+            expCtx.fillStyle = '#ECF0F1';
+            expCtx.fillRect(slitX - 4, slit1Y - 6, 8, 12);
+            expCtx.fillRect(slitX - 4, slit2Y - 6, 8, 12);
+            
+            // 标记双缝
+            expCtx.fillStyle = '#4FC3F7';
+            expCtx.font = '14px Arial';
+            expCtx.fillText('缝 S₁', slitX - 30, slit1Y);
+            
+            expCtx.fillStyle = '#FF4444';
+            expCtx.fillText('缝 S₂', slitX - 30, slit2Y);
+            
+            // 标记双缝间距
+            expCtx.strokeStyle = 'white';
+            expCtx.lineWidth = 1;
+            expCtx.beginPath();
+            expCtx.moveTo(slitX + 15, slit1Y);
+            expCtx.lineTo(slitX + 15, slit2Y);
+            expCtx.stroke();
+            
+            expCtx.fillStyle = 'white';
+            expCtx.font = '12px Arial';
+            expCtx.textAlign = 'center';
+            expCtx.fillText('d', slitX + 25, height/2);
+            
+            // 屏幕位置
+            const screenX = width * 0.85;
+            const screenTop = height * 0.1;
+            const screenBottom = height * 0.9;
+            
+            // 绘制屏幕
+            expCtx.fillStyle = '#34495E';
+            expCtx.fillRect(screenX - 10, screenTop, 20, screenBottom - screenTop);
+            
+            // 屏幕上的几个关键点
+            const points = [
+                {y: height/2, label: 'P₀ (中点)', type: 'bright', order: 0},
+                {y: height/2 - 80, label: 'P₁', type: 'dark', order: 1},
+                {y: height/2 + 80, label: "P₁'", type: 'dark', order: 1},
+                {y: height/2 - 160, label: 'P₂', type: 'bright', order: 2},
+                {y: height/2 + 160, label: "P₂'", type: 'bright', order: 2}
+            ];
+            
+            // 绘制从双缝到各点的光线并计算光程差
+            points.forEach(point => {
+                // 从缝1到该点的光线（蓝色）
+                const r1 = Math.sqrt(Math.pow(screenX - slitX, 2) + Math.pow(point.y - slit1Y, 2));
+                
+                expCtx.strokeStyle = '#4FC3F7';
+                expCtx.lineWidth = 2;
+                expCtx.beginPath();
+                expCtx.moveTo(slitX, slit1Y);
+                expCtx.lineTo(screenX, point.y);
+                expCtx.stroke();
+                
+                // 从缝2到该点的光线（红色）
+                const r2 = Math.sqrt(Math.pow(screenX - slitX, 2) + Math.pow(point.y - slit2Y, 2));
+                
+                expCtx.strokeStyle = '#FF4444';
+                expCtx.lineWidth = 2;
+                expCtx.beginPath();
+                expCtx.moveTo(slitX, slit2Y);
+                expCtx.lineTo(screenX, point.y);
+                expCtx.stroke();
+                
+                // 标记该点
+                const markerSize = point.type === 'bright' ? 8 : 6;
+                expCtx.fillStyle = point.type === 'bright' ? '#2ecc71' : '#e74c3c';
+                expCtx.beginPath();
+                expCtx.arc(screenX, point.y, markerSize, 0, Math.PI * 2);
+                expCtx.fill();
+                
+                // 标记点名称
+                expCtx.fillStyle = 'white';
+                expCtx.font = '12px Arial';
+                expCtx.textAlign = 'center';
+                expCtx.fillText(point.label, screenX + 25, point.y);
+                
+                // 计算并显示光程差
+                const delta = r2 - r1; // 简化计算，实际应为|r2 - r1|
+                const absDelta = Math.abs(delta);
+                
+                // 在屏幕左侧显示光程差信息
+                expCtx.fillStyle = '#FFD700';
+                expCtx.font = '11px Arial';
+                expCtx.textAlign = 'left';
+                
+                if (point.type === 'bright') {
+                    expCtx.fillText(`Δ = ${point.order}λ`, screenX - 120, point.y);
+                } else {
+                    expCtx.fillText(`Δ = ${point.order}λ/2`, screenX - 120, point.y);
+                }
+            });
+            
+            // 绘制光程差示意图（重点！）
+            // 选择P₁点作为示例，绘制光程差Δ
+            const examplePointY = height/2 - 80; // P₁点
+            
+            // 从S₁到P₁的延长线
+            expCtx.strokeStyle = '#4FC3F7';
+            expCtx.lineWidth = 1;
+            expCtx.setLineDash([5, 3]);
+            expCtx.beginPath();
+            expCtx.moveTo(slitX, slit1Y);
+            
+            // 计算延长线方向
+            const dx = screenX - slitX;
+            const dy = examplePointY - slit1Y;
+            const length = Math.sqrt(dx*dx + dy*dy);
+            const extendX = slitX + dx/length * (length + 50);
+            const extendY = slit1Y + dy/length * (length + 50);
+            
+            expCtx.lineTo(extendX, extendY);
+            expCtx.stroke();
+            expCtx.setLineDash([]);
+            
+            // 从S₂到延长线的垂直线（表示光程差Δ）
+            const lambdaSymbol = 'λ'; // 波长符号
+            
+            // 计算垂足位置
+            const t = ((extendX - slitX)*(screenX - slitX) + (extendY - slit1Y)*(examplePointY - slit1Y)) / 
+                     ((screenX - slitX)*(screenX - slitX) + (examplePointY - slit1Y)*(examplePointY - slit1Y));
+            
+            const footX = slitX + t * (screenX - slitX);
+            const footY = slit1Y + t * (examplePointY - slit1Y);
+            
+            // 绘制绿色虚线表示光程差Δ
+            expCtx.strokeStyle = '#2ecc71';
+            expCtx.lineWidth = 2;
+            expCtx.setLineDash([3, 3]);
+            expCtx.beginPath();
+            expCtx.moveTo(footX, footY);
+            expCtx.lineTo(slitX, slit2Y);
+            expCtx.stroke();
+            expCtx.setLineDash([]);
+            
+            // 标记光程差Δ
+            const deltaX = (footX + slitX) / 2;
+            const deltaY = (footY + slit2Y) / 2;
+            
+            expCtx.fillStyle = '#2ecc71';
+            expCtx.font = 'bold 14px Arial';
+            expCtx.textAlign = 'center';
+            expCtx.fillText('Δ', deltaX - 10, deltaY);
+            
+            // 在Δ旁边标注"=λ/2"
+            expCtx.fillStyle = '#FFD700';
+            expCtx.font = '12px Arial';
+            expCtx.fillText('=λ/2', deltaX + 10, deltaY);
+            
+            // 说明文字
+            expCtx.fillStyle = '#4FC3F7';
+            expCtx.font = 'bold 16px Arial';
+            expCtx.textAlign = 'center';
+            expCtx.fillText('光程差Δ决定明暗条纹', width/2, height - 80);
+            
+            // 公式说明
+            expCtx.fillStyle = 'white';
+            expCtx.font = '14px Arial';
+            
+            const formulas = [
+                '光程差 Δ = S₂P - S₁P',
+                'Δ = 0, λ, 2λ... → 亮纹',
+                'Δ = λ/2, 3λ/2... → 暗纹',
+                'Δ ≈ d·sinθ ≈ d·x/L'
+            ];
+            
+            formulas.forEach((formula, i) => {
+                expCtx.fillText(formula, width/2, height - 50 + i*20);
+            });
+            
+            // 图例
+            const legendY = height - 10;
+            expCtx.fillStyle = '#4FC3F7';
+            expCtx.fillText('S₁P (蓝色线)', width * 0.1, legendY - 20);
+            
+            expCtx.fillStyle = '#FF4444';
+            expCtx.fillText('S₂P (红色线)', width * 0.3, legendY - 20);
+            
+            expCtx.fillStyle = '#2ecc71';
+            expCtx.fillText('Δ (绿色线)', width * 0.5, legendY - 20);
+            
+            expCtx.fillStyle = '#2ecc71';
+            expCtx.fillText('亮纹', width * 0.7, legendY - 20);
+            expCtx.fillStyle = '#e74c3c';
+            expCtx.fillText('暗纹', width * 0.85, legendY - 20);
+        }
+        
+        // 绘制底部干涉条纹图
+        function drawPattern() {
+            const width = patternCanvas.width;
+            const height = patternCanvas.height;
+            
+            // 清空画布
+            patCtx.clearRect(0, 0, width, height);
+            
+            // 背景
+            patCtx.fillStyle = '#0a1931';
+            patCtx.fillRect(0, 0, width, height);
+            
+            // 绘制清晰的明暗条纹
+            const stripeCount = 13;
+            const stripeHeight = height / stripeCount;
+            
+            for (let i = 0; i < stripeCount; i++) {
+                const y = i * stripeHeight;
+                
+                if (i % 2 === 0) {
+                    patCtx.fillStyle = '#0a1931';
+                } else {
+                    const distanceFromCenter = Math.abs(i - Math.floor(stripeCount/2));
+                    const brightness = 220 - distanceFromCenter * 25;
+                    patCtx.fillStyle = `rgb(${brightness * 0.8}, ${brightness * 0.6}, ${brightness})`;
+                }
+                
+                patCtx.fillRect(0, y, width, stripeHeight);
+            }
+            
+            // 标题
+            patCtx.fillStyle = '#4FC3F7';
+            patCtx.font = 'bold 16px Arial';
+            patCtx.textAlign = 'left';
+            patCtx.fillText('双缝干涉条纹 (13条明暗相间)', 10, 25);
+            
+            // 条纹说明
+            patCtx.fillStyle = 'white';
+            patCtx.font = '12px Arial';
+            patCtx.textAlign = 'center';
+            
+            const centerIndex = Math.floor(stripeCount/2);
+            patCtx.fillText('中间最亮', width/2, centerIndex * stripeHeight + 15);
+        }
+        
+        // 简化动画循环
+        function animate() {
+            if (isPlaying) {
+                time += 0.05;
+                drawAll();
+            }
+            animationId = requestAnimationFrame(animate);
+        }
+        
+        // 初始化
+        function init() {
+            resizeCanvases();
+            animate();
+            
+            // 事件监听
+            window.addEventListener('resize', resizeCanvases);
+            
+            experimentStage.addEventListener('input', function() {
+                currentStage = parseInt(this.value);
+                drawAll();
+            });
+            
+            waveIntensity.addEventListener('input', function() {
+                drawAll();
+            });
+            
+            playBtn.addEventListener('click', function() {
+                isPlaying = !isPlaying;
+                this.textContent = isPlaying ? '暂停动画' : '播放动画';
+            });
+            
+            resetBtn.addEventListener('click', function() {
+                time = 0;
+                currentStage = 1;
+                experimentStage.value = 1;
+                waveIntensity.value = 8;
+                isPlaying = false;
+                playBtn.textContent = '播放动画';
+                drawAll();
+            });
+            
+            showWavesBtn.addEventListener('click', function() {
+                currentStage = 2;
+                experimentStage.value = 2;
+                drawAll();
+            });
+            
+            showInterferenceBtn.addEventListener('click', function() {
+                currentStage = 4;
+                experimentStage.value = 4;
+                drawAll();
+            });
+            
+            showPrincipleBtn.addEventListener('click', function() {
+                currentStage = 5;
+                experimentStage.value = 5;
+                drawAll();
+            });
+        }
+        
+        // 页面加载完成后初始化
+        window.onload = init;
+    </script>
+</body>
+</html>

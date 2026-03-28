@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>盖-吕萨克定律交互式演示</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft Yahei', Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 20px;
+        }
+
+        .theory-section {
+            flex: 1;
+            min-width: 300px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-right: 20px;
+            margin-bottom: 20px;
+        }
+
+        .theory-section h2 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e74c3c;
+            padding-bottom: 8px;
+        }
+
+        .theory-content {
+            margin-top: 15px;
+            font-size: 16px;
+        }
+
+        .simulation-panel {
+            flex: 2;
+            min-width: 400px;
+            padding: 20px;
+            background: #fff;
+            border: 1px solid #e1e4e8;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .panel-header h2 {
+            color: #2c3e50;
+        }
+
+        .tv-display {
+            background: #e74c3c;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .simulation-container {
+            position: relative;
+            height: 400px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .gas-container {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 200px;
+            width: 400px;
+            background: rgba(231, 76, 60, 0.1);
+            border: 3px solid #e74c3c;
+            border-radius: 8px;
+            transition: width 0.5s ease, background 0.3s ease;
+            overflow: hidden;
+        }
+
+        .piston {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 20px;
+            background: #2c3e50;
+            cursor: ew-resize;
+        }
+
+        .molecule {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #e74c3c;
+            border-radius: 50%;
+            opacity: 0.8;
+        }
+
+        .control-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 10px;
+        }
+
+        .control-btn {
+            padding: 10px 20px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+
+        .control-btn:hover {
+            background: #219653;
+        }
+
+        .knowledge-test {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .test-btn {
+            padding: 12px 30px;
+            background: #e67e22;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        .test-btn:hover {
+            background: #d35400;
+        }
+
+        /* 弹窗样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 30px;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #7f8c8d;
+            transition: color 0.3s;
+        }
+
+        .close-modal:hover {
+            color: #2c3e50;
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e1e4e8;
+        }
+
+        .modal-header h2 {
+            color: #2c3e50;
+        }
+
+        /* 题目样式 */
+        .question {
+            margin-bottom: 25px;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            border: 1px solid #e1e4e8;
+        }
+
+        .question.unanswered {
+            border: 2px solid #e74c3c;
+            background: rgba(231, 76, 60, 0.05);
+        }
+
+        .question h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .option:hover {
+            background: #e3f2fd;
+        }
+
+        .option.selected {
+            background: #e74c3c;
+            color: white;
+            border-color: #c0392b;
+        }
+
+        .submit-btn {
+            padding: 12px 30px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .submit-btn:hover {
+            background: #219653;
+        }
+
+        /* 结果弹窗样式 */
+        .result-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+
+        .result-item h4 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .correct {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .incorrect {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .score-display {
+            text-align: center;
+            font-size: 36px;
+            font-weight: bold;
+            margin: 20px 0;
+            color: #2c3e50;
+        }
+
+        .analysis {
+            background: #f1f8e9;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .analysis h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        /* 新增：数据采集相关样式 */
+        .data-collect-panel {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e1e4e8;
+        }
+
+        .data-collect-panel h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e74c3c;
+            padding-bottom: 8px;
+        }
+
+        .collect-btn {
+            padding: 10px 20px;
+            background: #9b59b6;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .collect-btn:hover {
+            background: #8e44ad;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .data-table th, .data-table td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+
+        .data-table th {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .data-table tr:nth-child(even) {
+            background: #f2f2f2;
+        }
+
+        .delete-btn {
+            padding: 6px 12px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .delete-btn:hover {
+            background: #c0392b;
+        }
+
+        .clear-all-btn {
+            padding: 10px 20px;
+            background: #e67e22;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .clear-all-btn:hover {
+            background: #d35400;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 300px;
+            margin-top: 20px;
+            border: 1px solid #e1e4e8;
+            border-radius: 8px;
+            padding: 10px;
+            background: white;
+        }
+    </style>
+    <!-- 引入Chart.js用于绘制示意图 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <header>
+            <h1>盖-吕萨克定律 (Gay-Lussac's Law) 交互式演示</h1>
+        </header>
+        
+        <div class="content">
+            <!-- 原理说明部分 -->
+            <div class="theory-section">
+                <h2>盖-吕萨克定律原理</h2>
+                <div class="theory-content">
+                    <p>盖-吕萨克定律（Gay-Lussac's Law）是由法国化学家约瑟夫·路易·盖-吕萨克于1802年提出的气体定律。</p>
+                    <br>
+                    <p><strong>核心内容：</strong>在定量定压下，理想气体的体积与热力学温度成正比关系。</p>
+                    <br>
+                    <p><strong>数学表达式：</strong></p>
+                    <p style="font-size: 18px; text-align: center; font-weight: bold;">V₁/T₁ = V₂/T₂ = C (常数)</p>
+                    <br>
+                    <p>其中：</p>
+                    <ul>
+                        <li>V：气体的体积</li>
+                        <li>T：气体的热力学温度（单位：K，开尔文）</li>
+                        <li>C：常数（压强和物质的量不变时）</li>
+                    </ul>
+                    <br>
+                    <p><strong>物理意义：</strong>当压强不变时，气体的体积随温度的升高而增大，随温度的降低而减小。</p>
+                    <p><strong>补充：</strong>热力学温度 T(K) = 摄氏温度 t(℃) + 273.15</p>
+                </div>
+            </div>
+            
+            <!-- 模拟操作面板 -->
+            <div class="simulation-panel">
+                <div class="panel-header">
+                    <h2>交互式模拟面板</h2>
+                    <div class="tv-display" id="tvDisplay">温度: 298.15 K | 体积: 2.0 L</div>
+                </div>
+                
+                <div class="simulation-container">
+                    <div class="gas-container" id="gasContainer">
+                        <div class="piston" id="piston"></div>
+                    </div>
+                    
+                    <div class="control-panel">
+                        <button class="control-btn" id="heatBtn">升高温度</button>
+                        <button class="control-btn" id="coolBtn">降低温度</button>
+                        <button class="control-btn" id="resetBtn">重置</button>
+                        <!-- 新增：采集数据按钮 -->
+                        <button class="control-btn collect-btn" id="collectDataBtn">采集当前数据</button>
+                    </div>
+                </div>
+                
+                <!-- 新增：数据采集面板 -->
+                <div class="data-collect-panel">
+                    <h3>实验数据记录</h3>
+                    <button class="clear-all-btn" id="clearAllBtn">清空所有数据</button>
+                    <table class="data-table" id="dataTable">
+                        <thead>
+                            <tr>
+                                <th>序号</th>
+                                <th>温度 (K)</th>
+                                <th>体积 (L)</th>
+                                <th>V/T 值</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataTableBody">
+                            <!-- 数据行将动态生成 -->
+                        </tbody>
+                    </table>
+                    
+                    <!-- 示意图容器 -->
+                    <div class="chart-container">
+                        <canvas id="tvChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="knowledge-test">
+                    <button class="test-btn" id="testBtn">知识检测</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 答题弹窗 -->
+    <div class="modal" id="quizModal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeQuizModal">&times;</span>
+            <div class="modal-header">
+                <h2>盖-吕萨克定律知识检测</h2>
+            </div>
+            <div id="quizContent">
+                <!-- 题目1 -->
+                <div class="question" id="q1">
+                    <h3>1. 盖-吕萨克定律的适用条件是？</h3>
+                    <div class="options">
+                        <div class="option" data-question="1" data-answer="A">A. 压强和物质的量保持不变</div>
+                        <div class="option" data-question="1" data-answer="B">B. 只有温度保持不变</div>
+                        <div class="option" data-question="1" data-answer="C">C. 只有体积保持不变</div>
+                        <div class="option" data-question="1" data-answer="D">D. 体积和温度保持不变</div>
+                    </div>
+                </div>
+                
+                <!-- 题目2 -->
+                <div class="question" id="q2">
+                    <h3>2. 当气体温度从300K升高到600K（压强不变），体积会如何变化？</h3>
+                    <div class="options">
+                        <div class="option" data-question="2" data-answer="A">A. 变为原来的1/2</div>
+                        <div class="option" data-question="2" data-answer="B">B. 变为原来的2倍</div>
+                        <div class="option" data-question="2" data-answer="C">C. 保持不变</div>
+                        <div class="option" data-question="2" data-answer="D">D. 变为原来的4倍</div>
+                    </div>
+                </div>
+                
+                <!-- 题目3 -->
+                <div class="question" id="q3">
+                    <h3>3. 盖-吕萨克定律的数学表达式是？</h3>
+                    <div class="options">
+                        <div class="option" data-question="3" data-answer="A">A. V = CT</div>
+                        <div class="option" data-question="3" data-answer="B">B. V/T = C</div>
+                        <div class="option" data-question="3" data-answer="C">C. VT = C</div>
+                        <div class="option" data-question="3" data-answer="D">D. V + T = C</div>
+                    </div>
+                </div>
+                
+                <!-- 题目4 -->
+                <div class="question" id="q4">
+                    <h3>4. 一定质量的气体，在压强不变时，温度为27℃（300K），体积为3L。当温度变为127℃（400K）时，体积变为？</h3>
+                    <div class="options">
+                        <div class="option" data-question="4" data-answer="A">A. 2.25L</div>
+                        <div class="option" data-question="4" data-answer="B">B. 3.5L</div>
+                        <div class="option" data-question="4" data-answer="C">C. 4L</div>
+                        <div class="option" data-question="4" data-answer="D">D. 6L</div>
+                    </div>
+                </div>
+                
+                <!-- 题目5 -->
+                <div class="question" id="q5">
+                    <h3>5. 关于盖-吕萨克定律，下列说法正确的是？</h3>
+                    <div class="options">
+                        <div class="option" data-question="5" data-answer="A">A. 适用于所有气体</div>
+                        <div class="option" data-question="5" data-answer="B">B. 只适用于理想气体，且压强不变</div>
+                        <div class="option" data-question="5" data-answer="C">C. 体积和温度成反比</div>
+                        <div class="option" data-question="5" data-answer="D">D. 压强变化时也适用</div>
+                    </div>
+                </div>
+                
+                <button class="submit-btn" id="submitAnswers">提交答案</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 结果弹窗 -->
+    <div class="modal" id="resultModal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeResultModal">&times;</span>
+            <div class="modal-header">
+                <h2>检测结果</h2>
+            </div>
+            <div class="score-display" id="scoreDisplay">得分：0/100</div>
+            <div class="analysis" id="analysisDisplay">
+                <h4>学情分析</h4>
+                <p id="analysisText">请完成答题后查看详细分析</p>
+            </div>
+            <div id="answersComparison">
+                <!-- 答案对比会动态生成 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 初始化变量（盖-吕萨克定律：压强不变，体积与温度成正比）
+        let currentTemperature = 298.15; // 初始温度(K)，25℃=298.15K
+        let currentVolume = 2.0; // 初始体积(L)
+        const C = currentVolume / currentTemperature; // 常数 V/T=C
+        const gasContainer = document.getElementById('gasContainer');
+        const tvDisplay = document.getElementById('tvDisplay');
+        let userAnswers = {}; 
+        const correctAnswers = {
+            1: "A",
+            2: "B",
+            3: "B",
+            4: "C",
+            5: "B"
+        }; // 正确答案
+        
+        // 气体分子相关配置
+        const MOLECULE_COUNT = 50; // 气体分子数量
+        let molecules = []; // 存储分子元素
+
+        // 新增：数据采集相关变量
+        let dataList = []; // 存储采集的实验数据
+        let dataTableBody = document.getElementById('dataTableBody');
+        let tvChart = null; // 存储图表实例
+
+        // 新增：初始化图表
+        function initChart() {
+            const ctx = document.getElementById('tvChart').getContext('2d');
+            tvChart = new Chart(ctx, {
+                type: 'scatter', // 散点图展示V-T关系
+                data: {
+                    datasets: [{
+                        label: '体积-温度数据点',
+                        data: [],
+                        backgroundColor: '#e74c3c',
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }, {
+                        label: 'V/T=C 理论直线',
+                        data: [],
+                        type: 'line',
+                        fill: false,
+                        borderColor: '#27ae60',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '温度 (K)',
+                                font: { size: 14 }
+                            },
+                            min: 200,
+                            max: 500
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '体积 (L)',
+                                font: { size: 14 }
+                            },
+                            min: 0,
+                            max: 4
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '盖-吕萨克定律 V-T 关系图',
+                            font: { size: 16, weight: 'bold' }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `温度: ${context.parsed.x.toFixed(2)} K, 体积: ${context.parsed.y.toFixed(2)} L`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            // 生成理论曲线数据
+            updateTheoryCurve();
+        }
+
+        // 新增：更新理论曲线（V/T=C）
+        function updateTheoryCurve() {
+            const theoryData = [];
+            for (let t = 200; t <= 500; t += 10) {
+                theoryData.push({ x: t, y: C * t });
+            }
+            tvChart.data.datasets[1].data = theoryData;
+            tvChart.update();
+        }
+
+        // 新增：采集当前数据
+        function collectCurrentData() {
+            const vtValue = (currentVolume / currentTemperature).toFixed(6); // 计算V/T值
+            const data = {
+                id: Date.now(), // 唯一标识
+                temperature: currentTemperature.toFixed(2),
+                volume: currentVolume.toFixed(2),
+                vt: vtValue
+            };
+            dataList.push(data);
+            renderDataTable();
+            updateChart();
+        }
+
+        // 新增：渲染数据表格
+        function renderDataTable() {
+            // 清空表格
+            dataTableBody.innerHTML = '';
+            // 渲染数据行
+            dataList.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${item.temperature}</td>
+                    <td>${item.volume}</td>
+                    <td>${item.vt}</td>
+                    <td><button class="delete-btn" data-id="${item.id}">删除</button></td>
+                `;
+                dataTableBody.appendChild(tr);
+            });
+            // 绑定删除按钮事件
+            bindDeleteBtnEvent();
+        }
+
+        // 新增：绑定删除按钮事件
+        function bindDeleteBtnEvent() {
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = parseInt(this.dataset.id);
+                    // 过滤掉要删除的数据
+                    dataList = dataList.filter(item => item.id !== id);
+                    // 重新渲染表格和图表
+                    renderDataTable();
+                    updateChart();
+                });
+            });
+        }
+
+        // 新增：清空所有数据
+        function clearAllData() {
+            if (confirm('确定要清空所有采集的数据吗？')) {
+                dataList = [];
+                renderDataTable();
+                updateChart();
+            }
+        }
+
+        // 新增：更新图表数据
+        function updateChart() {
+            // 转换数据格式
+            const chartData = dataList.map(item => ({
+                x: parseFloat(item.temperature),
+                y: parseFloat(item.volume)
+            }));
+            tvChart.data.datasets[0].data = chartData;
+            tvChart.update();
+        }
+        
+        // 创建气体分子
+        function createMolecules() {
+            // 清除现有分子
+            molecules.forEach(mol => mol.remove());
+            molecules = [];
+            
+            // 创建新分子
+            for (let i = 0; i < MOLECULE_COUNT; i++) {
+                const molecule = document.createElement('div');
+                molecule.className = 'molecule';
+                
+                // 随机初始位置
+                const containerRect = gasContainer.getBoundingClientRect();
+                const x = Math.random() * (containerRect.width - 20) + 10;
+                const y = Math.random() * (containerRect.height - 20) + 10;
+                
+                molecule.style.left = `${x}px`;
+                molecule.style.top = `${y}px`;
+                
+                gasContainer.appendChild(molecule);
+                molecules.push(molecule);
+            }
+            
+            // 启动分子运动（温度越高，分子运动越快）
+            animateMolecules();
+        }
+        
+        // 分子动画（温度影响运动速度）
+        function animateMolecules() {
+            const containerRect = gasContainer.getBoundingClientRect();
+            const speedFactor = currentTemperature / 200; // 温度越高，分子运动越快
+            
+            molecules.forEach(mol => {
+                // 获取当前位置
+                let x = parseFloat(mol.style.left) || 0;
+                let y = parseFloat(mol.style.top) || 0;
+                
+                // 随机速度（基于温度）
+                const vx = (Math.random() - 0.5) * speedFactor * 2;
+                const vy = (Math.random() - 0.5) * speedFactor * 2;
+                
+                // 更新位置
+                x += vx;
+                y += vy;
+                
+                // 边界检测
+                if (x < 10) x = 10;
+                if (x > containerRect.width - 10) x = containerRect.width - 10;
+                if (y < 10) y = 10;
+                if (y > containerRect.height - 10) y = containerRect.height - 10;
+                
+                // 应用新位置
+                mol.style.left = `${x}px`;
+                mol.style.top = `${y}px`;
+            });
+            
+            // 循环动画
+            requestAnimationFrame(animateMolecules);
+        }
+        
+        // 更新显示和模拟界面
+        function updateSimulation() {
+            // 更新温度体积显示
+            tvDisplay.textContent = `温度: ${currentTemperature.toFixed(2)} K | 体积: ${currentVolume.toFixed(2)} L`;
+            
+            // 更新气体容器宽度（体积可视化）- 只改变宽度，高度固定
+            const baseWidth = 400; // 基础宽度对应2.0L
+            const width = baseWidth * (currentVolume / 2.0);
+            
+            // 限制宽度范围
+            const minWidth = 200; // 对应1.0L
+            const maxWidth = 800; // 对应4.0L
+            const finalWidth = Math.max(minWidth, Math.min(maxWidth, width));
+            
+            gasContainer.style.width = `${finalWidth}px`;
+            
+            // 温度可视化：温度越高，容器背景越红
+            const tempRatio = (currentTemperature - 200) / 300; // 200-500K映射到0-1
+            const red = Math.min(255, 200 + Math.floor(tempRatio * 55));
+            gasContainer.style.background = `rgba(${red}, 76, 60, 0.1)`;
+            
+            // 更新分子动画（温度变化影响分子速度）
+            createMolecules();
+        }
+        
+        // 升高温度
+        document.getElementById('heatBtn').addEventListener('click', () => {
+            if (currentTemperature < 500) { // 上限500K
+                currentTemperature += 10;
+                currentVolume = C * currentTemperature; // V=CT
+                updateSimulation();
+            }
+        });
+        
+        // 降低温度
+        document.getElementById('coolBtn').addEventListener('click', () => {
+            if (currentTemperature > 200) { // 下限200K
+                currentTemperature -= 10;
+                currentVolume = C * currentTemperature; // V=CT
+                updateSimulation();
+            }
+        });
+        
+        // 重置
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            currentTemperature = 298.15;
+            currentVolume = 2.0;
+            updateSimulation();
+        });
+        
+        // 拖动活塞交互（横向拖动，改变体积，同步温度）
+        let isDragging = false;
+        const piston = document.getElementById('piston');
+        
+        piston.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            e.preventDefault();
+        });
+        
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const container = document.querySelector('.simulation-container');
+                const rect = container.getBoundingClientRect();
+                const gasRect = gasContainer.getBoundingClientRect();
+                
+                // 计算相对于容器中心的位置
+                const x = e.clientX - rect.left;
+                const centerX = rect.width / 2;
+                
+                // 根据X位置计算体积
+                const widthRatio = (x - centerX + 200) / 200;
+                currentVolume = Math.max(1.0, Math.min(4.0, widthRatio * 2));
+                currentTemperature = currentVolume / C; // T=V/C
+                updateSimulation();
+            }
+        });
+        
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+        
+        // 知识检测弹窗
+        const quizModal = document.getElementById('quizModal');
+        const testBtn = document.getElementById('testBtn');
+        const closeQuizModal = document.getElementById('closeQuizModal');
+        
+        testBtn.addEventListener('click', () => {
+            quizModal.style.display = 'flex';
+            // 重置答题状态
+            document.querySelectorAll('.option.selected').forEach(el => {
+                el.classList.remove('selected');
+            });
+            document.querySelectorAll('.question.unanswered').forEach(el => {
+                el.classList.remove('unanswered');
+            });
+            userAnswers = {};
+        });
+        
+        closeQuizModal.addEventListener('click', () => {
+            quizModal.style.display = 'none';
+        });
+        
+        // 点击选项选择答案
+        document.querySelectorAll('.option').forEach(option => {
+            option.addEventListener('click', () => {
+                // 移除同题目的其他选中状态
+                const questionNum = option.dataset.question;
+                document.querySelectorAll(`.option[data-question="${questionNum}"]`).forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                
+                // 添加当前选中状态
+                option.classList.add('selected');
+                userAnswers[questionNum] = option.dataset.answer;
+                
+                // 移除未答题标记
+                document.getElementById(`q${questionNum}`).classList.remove('unanswered');
+            });
+        });
+        
+        // 提交答案
+        const submitBtn = document.getElementById('submitAnswers');
+        const resultModal = document.getElementById('resultModal');
+        const closeResultModal = document.getElementById('closeResultModal');
+        
+        submitBtn.addEventListener('click', () => {
+            // 检查是否所有题目都已作答
+            const unanswered = [];
+            for (let i = 1; i <= 5; i++) {
+                if (!userAnswers[i]) {
+                    unanswered.push(i);
+                    document.getElementById(`q${i}`).classList.add('unanswered');
+                }
+            }
+            
+            // 如果有未答题
+            if (unanswered.length > 0) {
+                // 定位到第一个未答题
+                document.getElementById(`q${unanswered[0]}`).scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+                alert(`请完成所有题目！还有 ${unanswered.length} 道题未作答。`);
+                return;
+            }
+            
+            // 计算分数
+            let correctCount = 0;
+            for (let i = 1; i <= 5; i++) {
+                if (userAnswers[i] === correctAnswers[i]) {
+                    correctCount++;
+                }
+            }
+            
+            const score = (correctCount / 5) * 100;
+            
+            // 生成答案对比
+            let comparisonHTML = '';
+            for (let i = 1; i <= 5; i++) {
+                const isCorrect = userAnswers[i] === correctAnswers[i];
+                comparisonHTML += `
+                <div class="result-item">
+                    <h4>第${i}题：</h4>
+                    <p>你的答案：<span class="${isCorrect ? 'correct' : 'incorrect'}">${userAnswers[i]}</span></p>
+                    <p>正确答案：<span class="correct">${correctAnswers[i]}</span></p>
+                </div>
+                `;
+            }
+            
+            // 生成学情分析
+            let analysisText = '';
+            if (score === 100) {
+                analysisText = '优秀！你完全掌握了盖-吕萨克定律的核心知识，包括适用条件、数学表达式和实际应用。';
+            } else if (score >= 80) {
+                analysisText = '良好！你基本掌握了盖-吕萨克定律的主要内容，但还有一些细节需要巩固。';
+            } else if (score >= 60) {
+                analysisText = '及格！你对盖-吕萨克定律有基本了解，但需要加强练习，特别是在公式应用方面。';
+            } else {
+                analysisText = '需要努力！建议重新学习盖-吕萨克定律的基本概念和数学表达式，多做相关练习题。';
+            }
+            
+            // 更新结果弹窗内容
+            document.getElementById('scoreDisplay').textContent = `得分：${score}/100`;
+            document.getElementById('analysisText').textContent = analysisText;
+            document.getElementById('answersComparison').innerHTML = comparisonHTML;
+            
+            // 显示结果弹窗
+            quizModal.style.display = 'none';
+            resultModal.style.display = 'flex';
+        });
+        
+        // 关闭结果弹窗
+        closeResultModal.addEventListener('click', () => {
+            resultModal.style.display = 'none';
+        });
+        
+        // 点击弹窗外区域关闭
+        window.addEventListener('click', (e) => {
+            if (e.target === quizModal) {
+                quizModal.style.display = 'none';
+            }
+            if (e.target === resultModal) {
+                resultModal.style.display = 'none';
+            }
+        });
+
+        // 新增：绑定数据采集相关事件
+        document.getElementById('collectDataBtn').addEventListener('click', collectCurrentData);
+        document.getElementById('clearAllBtn').addEventListener('click', clearAllData);
+        
+        // 初始化
+        createMolecules();
+        updateSimulation();
+        initChart(); // 初始化图表
+        
+        // 窗口大小变化时重新初始化分子
+        window.addEventListener('resize', () => {
+            createMolecules();
+        });
+    </script>
+</body>
+</html>
+

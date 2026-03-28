@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>动量定理：冲量与动量变化</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+        body {
+            background: linear-gradient(145deg, #eef5f9 0%, #d4e3f0 100%);
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .card {
+            max-width: 1300px;
+            width: 100%;
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(4px);
+            border-radius: 2.5rem;
+            box-shadow: 0 20px 40px rgba(0,20,40,0.4);
+            padding: 2rem 2rem 1.8rem;
+            border: 1px solid rgba(255,255,255,0.7);
+        }
+        h1 {
+            margin: 0 0 0.5rem 0;
+            font-weight: 500;
+            font-size: 2.2rem;
+            color: #0a2a44;
+            border-bottom: 3px solid #2a6f97;
+            padding-bottom: 10px;
+        }
+        .control-panel {
+            background: #ffffffcc;
+            border-radius: 28px;
+            padding: 1.5rem 1.8rem;
+            margin: 1.5rem 0 2rem;
+            box-shadow: inset 0 1px 4px #ffffff, 0 8px 18px rgba(0,40,70,0.1);
+            border: 1px solid #ffffff;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            align-items: flex-end;
+            justify-content: space-between;
+        }
+        .slider-group {
+            min-width: 150px;
+            flex: 1 1 160px;
+        }
+        .slider-group label {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            color: #0e3b5e;
+            margin-bottom: 6px;
+            font-size: 0.95rem;
+            letter-spacing: 0.3px;
+        }
+        .slider-group span {
+            background: #0a2a44;
+            color: white;
+            padding: 2px 12px;
+            border-radius: 40px;
+            font-size: 0.9rem;
+        }
+        input[type=range] {
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(90deg, #1e6f9f, #6bb3d9);
+            border-radius: 20px;
+            -webkit-appearance: none;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 4px 8px #0a2a4466;
+            border: 2px solid #0d4b6e;
+            cursor: pointer;
+        }
+        .mode-row {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            background: #e9f0f7;
+            padding: 10px 20px;
+            border-radius: 50px;
+        }
+        .mode-btn {
+            background: transparent;
+            border: 2px solid #2a6f97;
+            color: #2a6f97;
+            font-weight: 600;
+            font-size: 1rem;
+            padding: 8px 24px;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        .mode-btn.active {
+            background: #2a6f97;
+            color: white;
+            border-color: #144a6b;
+        }
+        .preset-btn {
+            background: #ffffff;
+            border: 2px solid #1f5e8e;
+            color: #1f5e8e;
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 6px 16px;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .preset-btn:hover {
+            background: #1f5e8e;
+            color: white;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #0e3b5e;
+            font-weight: 600;
+        }
+        .checkbox-group input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        .canvas-container {
+            background: #d9e9f5;
+            border-radius: 32px;
+            padding: 18px;
+            box-shadow: inset 0 -3px 8px #b0c4d9, 0 12px 22px rgba(0,20,30,0.25);
+            margin: 20px 0 20px;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: #b5d1e6;
+            border-radius: 20px;
+            border: 3px solid white;
+        }
+        .data-panel {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px 40px;
+            background: #102b3f;
+            padding: 1.2rem 2rem;
+            border-radius: 60px;
+            color: white;
+            margin: 25px 0 20px;
+            justify-content: space-evenly;
+            box-shadow: 0 10px 20px #00000030;
+        }
+        .data-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .data-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.7;
+        }
+        .data-value {
+            font-size: 1.8rem;
+            font-weight: 600;
+            line-height: 1.2;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .data-unit {
+            font-size: 0.9rem;
+            opacity: 0.6;
+            margin-left: 4px;
+        }
+        .small-note {
+            font-size: 0.8rem;
+            opacity: 0.9;
+            margin-top: 4px;
+        }
+        .validation {
+            color: #7ec8e0;
+        }
+        .conclusion {
+            background: #e4eefa;
+            border-left: 10px solid #1e5f86;
+            padding: 1rem 2rem;
+            border-radius: 50px 20px 20px 50px;
+            font-size: 1.05rem;
+            color: #021c2c;
+            box-shadow: 0 6px 14px #0000001a;
+            margin-top: 20px;
+        }
+        .conclusion p {
+            margin: 8px 0;
+        }
+        footer {
+            text-align: right;
+            opacity: 0.6;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+<div class="card">
+    <h1>动量定理 · 冲量与动量变化</h1>
+
+    <!-- 控制面板 -->
+    <div class="control-panel">
+        <div class="slider-group">
+            <label>作用力 F <span id="forceValue">10.0 N</span></label>
+            <input type="range" id="forceSlider" min="1" max="30" value="10" step="0.5">
+        </div>
+        <div class="slider-group">
+            <label>作用时间 t <span id="timeValue">0.50 s</span></label>
+            <input type="range" id="timeSlider" min="0.1" max="2.0" value="0.5" step="0.05">
+        </div>
+        <div class="mode-row">
+            <div class="checkbox-group">
+                <input type="checkbox" id="varForceCheckbox">
+                <label for="varForceCheckbox">📈 变力 (三角形)</label>
+            </div>
+            <button class="preset-btn" id="hardPreset">🔨 硬碰撞 (短时大力)</button>
+            <button class="preset-btn" id="softPreset">🛋️ 缓冲 (长时小力)</button>
+            <button class="preset-btn" id="resetBtn">↺ 重置实验</button>
+        </div>
+    </div>
+
+    <!-- 动画区 -->
+    <div class="canvas-container">
+        <canvas id="mainCanvas" width="900" height="400"></canvas>
+    </div>
+
+    <!-- 数据区 -->
+    <div class="data-panel">
+        <div class="data-item">
+            <span class="data-label">当前受力</span>
+            <span class="data-value" id="currentForce">0.00</span>
+            <span class="data-unit">N</span>
+        </div>
+        <div class="data-item">
+            <span class="data-label">冲量 (向左)</span>
+            <span class="data-value" id="impulse">0.00</span>
+            <span class="data-unit">N·s</span>
+        </div>
+        <div class="data-item">
+            <span class="data-label">动量变化</span>
+            <span class="data-value" id="momentumChange">0.00</span>
+            <span class="data-unit">kg·m/s</span>
+        </div>
+        <div class="data-item">
+            <span class="data-label">验证差值</span>
+            <span class="data-value" id="verifyDiff">0.00</span>
+            <span class="data-unit">(冲量-动量变化)</span>
+        </div>
+    </div>
+
+    <!-- 底部实验结论 -->
+    <div class="conclusion">
+        <p>🧪 <strong>实验结论</strong> ① 合外力的冲量等于物体动量的变化量（验证差值接近零）。</p>
+        <p>② 作用时间越长，相同动量变化下的作用力越小。</p>
+        <p>③ 缓冲的本质是延长作用时间，减小冲击力。</p>
+        <p class="small-note">⚙️ 质量 m = 1.0 kg，初速度 v₀ = 5.0 m/s 向右。墙壁在 x=400 处。</p>
+    </div>
+    <footer>拖动滑块或点击预设 | 变力模式采用三角形波形，峰值力为设定值</footer>
+</div>
+
+<script>
+(function() {
+    // ----- 固定参数 -----
+    const canvas = document.getElementById('mainCanvas');
+    const ctx = canvas.getContext('2d');
+    const m = 1.0;                     // 质量 kg
+    const v0 = 5.0;                    // 初速度 m/s 向右
+    const wallX = 400;                 // 墙壁位置 (画布坐标)
+    const ballRadius = 18;              // 小球半径
+    const startX = 100;                 // 初始位置
+
+    // DOM 元素
+    const forceSlider = document.getElementById('forceSlider');
+    const timeSlider = document.getElementById('timeSlider');
+    const forceValue = document.getElementById('forceValue');
+    const timeValue = document.getElementById('timeValue');
+    const varForceCheck = document.getElementById('varForceCheckbox');
+    const hardPreset = document.getElementById('hardPreset');
+    const softPreset = document.getElementById('softPreset');
+    const resetBtn = document.getElementById('resetBtn');
+    const currentForceSpan = document.getElementById('currentForce');
+    const impulseSpan = document.getElementById('impulse');
+    const momentumChangeSpan = document.getElementById('momentumChange');
+    const verifyDiffSpan = document.getElementById('verifyDiff');
+
+    // 状态变量
+    let x = startX;                     // 位置
+    let v = v0;                         // 速度 (向右为正)
+    let colliding = false;               // 是否正在碰撞
+    let collisionStartTime = null;       // 碰撞开始时间 (performance时间)
+    let impulseAccum = 0;                // 累积冲量 (向左为正)
+    let p0 = m * v0;                     // 初始动量 (向右为正)
+    let animationFrame = null;
+
+    // 当前设定值
+    let F_set = 10.0;                    // N
+    let T_set = 0.5;                     // s
+    let varForce = false;                 // 变力模式
+
+    // 更新滑块显示
+    function updateSliderReadouts() {
+        F_set = parseFloat(forceSlider.value);
+        T_set = parseFloat(timeSlider.value);
+        forceValue.innerText = F_set.toFixed(1) + ' N';
+        timeValue.innerText = T_set.toFixed(2) + ' s';
+    }
+
+    // 重置实验 (回到起点，速度初值，清除碰撞)
+    function resetSimulation() {
+        x = startX;
+        v = v0;
+        colliding = false;
+        collisionStartTime = null;
+        impulseAccum = 0;
+        p0 = m * v0;   // 重新记录初始动量 (虽然不变)
+        updateSliderReadouts();
+        drawCanvas();
+    }
+
+    // 硬碰撞预设
+    function setHardPreset() {
+        forceSlider.value = 20;
+        timeSlider.value = 0.25;
+        varForceCheck.checked = false;
+        resetSimulation();
+    }
+
+    // 缓冲预设
+    function setSoftPreset() {
+        forceSlider.value = 4;
+        timeSlider.value = 1.25;
+        varForceCheck.checked = false;
+        resetSimulation();
+    }
+
+    // 计算当前时刻的力 (向左为正) 和 是否在碰撞中
+    function getCurrentForce(currentTime) {
+        if (!colliding || collisionStartTime === null) return 0;
+        let elapsed = (currentTime - collisionStartTime) / 1000; // 秒
+        if (elapsed >= T_set) {
+            // 碰撞结束
+            colliding = false;
+            collisionStartTime = null;
+            return 0;
+        }
+        if (!varForce) {
+            // 恒力
+            return F_set;
+        } else {
+            // 三角形变力: 先线性上升至峰值再下降，峰值 F_set，总时间 T_set
+            let half = T_set / 2;
+            if (elapsed <= half) {
+                // 上升阶段
+                return (elapsed / half) * F_set;
+            } else {
+                // 下降阶段
+                return ((T_set - elapsed) / half) * F_set;
+            }
+        }
+    }
+
+    // 动画循环
+    function animationLoop(now) {
+        if (!colliding && x <= wallX - ballRadius) {
+            // 自由运动，只更新位置
+            x += v * 0.02; // 固定时间步长 ~20ms 简化，为了平滑也可以用 delta，但这里用固定步长保持稳定
+            if (x > wallX - ballRadius) {
+                x = wallX - ballRadius; // 接触墙壁，开始碰撞
+                colliding = true;
+                collisionStartTime = now;
+                impulseAccum = 0; // 冲量重新累积
+            }
+        } else if (colliding) {
+            // 碰撞中
+            let dt = 0.02; // 固定步长 20ms
+            let force = getCurrentForce(now);
+            if (force !== 0) {
+                // 向左的力使速度减小 (dv = -F/m * dt)
+                v -= (force / m) * dt;
+                impulseAccum += force * dt; // 累积冲量
+            }
+            // 更新位置 (保持紧贴墙壁，防止穿墙)
+            x = wallX - ballRadius;
+            // 检查碰撞是否结束 (时间到)
+            if (!colliding) {
+                // 刚刚结束，让物体自由，位置可稍微离开墙壁
+                x = wallX - ballRadius + 0.1; // 轻微分离
+            }
+        } else {
+            // 不在碰撞且位置超出？通常不会，但以防万一
+            if (x > wallX - ballRadius) x = wallX - ballRadius;
+        }
+
+        // 限制最低速度 (避免反向跑太多，但允许反向)
+        // 无限制
+
+        // 更新数据区
+        let currentF = colliding ? getCurrentForce(performance.now()) : 0;
+        currentForceSpan.innerText = currentF.toFixed(2);
+        impulseSpan.innerText = impulseAccum.toFixed(3);
+        let currentP = m * v;
+        let deltaP = p0 - currentP; // 向右为正，力向左使动量减少，所以deltaP应为正
+        // 但动量变化大小应为 |p0 - currentP|，这里我们取带符号的差值用于验证
+        momentumChangeSpan.innerText = Math.abs(deltaP).toFixed(3);
+        let diff = impulseAccum - deltaP; // 理论上相等
+        verifyDiffSpan.innerText = diff.toFixed(3);
+        // 如果diff很小，显示为0.000
+        if (Math.abs(diff) < 0.001) verifyDiffSpan.innerText = '0.000';
+
+        drawCanvas();
+
+        animationFrame = requestAnimationFrame(animationLoop);
+    }
+
+    // 绘制画布
+    function drawCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // 绘制墙壁
+        ctx.beginPath();
+        ctx.strokeStyle = '#5d3a1a';
+        ctx.lineWidth = 6;
+        ctx.moveTo(wallX, 50);
+        ctx.lineTo(wallX, 350);
+        ctx.stroke();
+        ctx.fillStyle = '#8B4513';
+        ctx.font = 'bold 14px "Segoe UI"';
+        ctx.fillText('墙壁', wallX-50, 70);
+
+        // 绘制地面
+        ctx.beginPath();
+        ctx.strokeStyle = '#4a7029';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([10, 10]);
+        ctx.moveTo(50, 320);
+        ctx.lineTo(750, 320);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 画小球
+        ctx.beginPath();
+        ctx.fillStyle = '#d44c2f';
+        ctx.shadowColor = '#1a1a1a80';
+        ctx.shadowBlur = 12;
+        ctx.arc(x, 290, ballRadius, 0, 2*Math.PI);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // 速度指示箭头
+        let arrowLen = Math.min(Math.abs(v) * 15, 80);
+        if (Math.abs(v) > 0.05) {
+            let dir = v > 0 ? 1 : -1;
+            ctx.beginPath();
+            ctx.strokeStyle = v > 0 ? '#2266aa' : '#aa4422';
+            ctx.lineWidth = 2;
+            ctx.moveTo(x, 260);
+            ctx.lineTo(x + dir * arrowLen, 260);
+            ctx.stroke();
+            // 箭头头
+            ctx.beginPath();
+            ctx.fillStyle = v > 0 ? '#2266aa' : '#aa4422';
+            ctx.moveTo(x + dir * arrowLen, 260);
+            ctx.lineTo(x + dir * (arrowLen - 10), 250);
+            ctx.lineTo(x + dir * (arrowLen - 10), 270);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        // 显示速度数值
+        ctx.font = 'bold 14px "JetBrains Mono"';
+        ctx.fillStyle = '#0a2a44';
+        ctx.fillText(`v = ${v.toFixed(2)} m/s`, x-40, 220);
+
+        // 如果正在碰撞，显示受力波形示意
+        if (colliding && collisionStartTime) {
+            let now = performance.now();
+            let elapsed = (now - collisionStartTime) / 1000;
+            if (elapsed < T_set) {
+                ctx.font = 'bold 14px "Segoe UI"';
+                ctx.fillStyle = '#b13e3e';
+                ctx.fillText('⚡ 碰撞中', wallX-120, 120);
+            }
+        }
+    }
+
+    // 事件绑定
+    forceSlider.addEventListener('input', () => {
+        updateSliderReadouts();
+        // 不重置，但如果在碰撞中，力会改变，但冲量累积仍然继续。为了实验清晰，建议重置，但也可以动态调整。这里选择重置，因为改变力通常意味着新实验。
+        resetSimulation();
+    });
+    timeSlider.addEventListener('input', () => {
+        updateSliderReadouts();
+        resetSimulation();
+    });
+    varForceCheck.addEventListener('change', () => {
+        varForce = varForceCheck.checked;
+        resetSimulation();
+    });
+
+    hardPreset.addEventListener('click', setHardPreset);
+    softPreset.addEventListener('click', setSoftPreset);
+    resetBtn.addEventListener('click', resetSimulation);
+
+    // 初始化
+    updateSliderReadouts();
+    resetSimulation();
+
+    // 启动动画
+    animationFrame = requestAnimationFrame(animationLoop);
+
+    window.addEventListener('beforeunload', () => {
+        if (animationFrame) cancelAnimationFrame(animationFrame);
+    });
+})();
+</script>
+</body>
+</html>

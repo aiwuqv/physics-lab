@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电荷和电场交互式可视化</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f0f8ff 0%, #e6f7ff 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px 20px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            padding: 0 20px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            letter-spacing: 0.5px;
+            background: linear-gradient(90deg, #3498db, #2c3e50);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .reset-btn {
+            padding: 12px 28px;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .reset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(52, 152, 219, 0.4);
+            background: linear-gradient(135deg, #2980b9 0%, #3498db 100%);
+        }
+
+        .reset-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+        }
+
+        .container {
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            width: 250px;
+        }
+
+        /* 新增：比例系数控制区域 */
+        .scale-control {
+            background: linear-gradient(180deg, #f8fafc 0%, #e8f4fd 100%);
+            border: 2px solid #3498db;
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .scale-control:hover {
+            box-shadow: 0 6px 16px rgba(52, 152, 219, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .scale-title {
+            font-size: 1.1rem;
+            color: #2c3e50;
+            text-align: center;
+            line-height: 1.4;
+            font-weight: 600;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+            width: 100%;
+        }
+
+        .scale-slider-container {
+            width: 100%;
+        }
+
+        .scale-label {
+            font-size: 0.9rem;
+            color: #34495e;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .scale-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #3498db;
+            background: white;
+            padding: 5px 10px;
+            border-radius: 8px;
+            border: 2px solid #3498db;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .scale-slider {
+            width: 100%;
+            height: 10px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: linear-gradient(90deg, #3498db, #2c3e50);
+            border-radius: 5px;
+            outline: none;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        .scale-slider:hover {
+            opacity: 1;
+        }
+
+        .scale-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #ff6b6b;
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+            border: 2px solid white;
+        }
+
+        .scale-slider::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #ff6b6b;
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+            border: 2px solid white;
+        }
+
+        .instrument-storage {
+            background: linear-gradient(180deg, #f8fafc 0%, #e8f4fd 100%);
+            border: 2px solid #3498db;
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .instrument-storage:hover {
+            box-shadow: 0 6px 16px rgba(52, 152, 219, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .storage-title {
+            font-size: 1.1rem;
+            color: #2c3e50;
+            text-align: center;
+            line-height: 1.4;
+            font-weight: 600;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+            width: 100%;
+        }
+
+        .instrument-item {
+            width: 100%;
+            padding: 15px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+            cursor: grab;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .instrument-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.12);
+        }
+
+        .charge-symbol {
+            font-size: 2.2rem;
+            font-weight: bold;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .positive .charge-symbol {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            color: white;
+        }
+
+        .negative .charge-symbol {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        .sensor-item .sensor-dot {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f1c40f, #f39c12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .sensor-dot::after {
+            content: "S";
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .charge-label, .preview-label {
+            font-size: 0.95rem;
+            color: #34495e;
+            font-weight: 500;
+        }
+
+        .right-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .control-panel {
+            display: flex;
+            gap: 20px;
+            background: linear-gradient(180deg, #f8fafc 0%, #e8f4fd 100%);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .meter-box {
+            flex: 1;
+            text-align: center;
+        }
+
+        .meter-label {
+            font-size: 0.95rem;
+            color: #7f8c8d;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .meter-value {
+            font-size: 1.3rem;
+            color: #2c3e50;
+            font-weight: 700;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 10px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+            border: 2px solid #3498db;
+        }
+
+        .field-display {
+            position: relative;
+            width: 800px;
+            height: 800px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 16px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+            border: 3px solid #3498db;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+        }
+
+        /* 修改：传感器缩小到12px直径（半径6px），与红色箭头端点相同 */
+        .sensor {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: linear-gradient(135deg, #f1c40f, #f39c12);
+            border-radius: 50%;
+            cursor: grab;
+            z-index: 10;
+            pointer-events: auto;
+            box-shadow: 0 0 10px #f1c40f, 0 0 20px rgba(241, 196, 15, 0.5);
+            transition: all 0.3s ease;
+            display: none;
+            border: 1px solid white;
+            transform-origin: center;
+        }
+
+        .sensor:hover {
+            transform: scale(1.5);
+            box-shadow: 0 0 15px #f1c40f, 0 0 30px rgba(241, 196, 15, 0.7);
+        }
+
+        .sensor::after {
+            content: "S";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 0.6rem;
+            font-weight: bold;
+        }
+
+        .decor-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, #3498db, #2c3e50, #3498db);
+            border-radius: 16px 16px 0 0;
+        }
+
+        .info-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(52, 152, 219, 0.5);
+            z-index: 5;
+        }
+
+        .info-title {
+            font-size: 1rem;
+            color: #3498db;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .info-content {
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 1200px) {
+            .container {
+                flex-direction: column;
+                padding: 20px;
+            }
+            
+            .left-panel {
+                width: 100%;
+                flex-direction: row;
+                justify-content: space-between;
+            }
+            
+            .instrument-storage, .scale-control {
+                width: 48%;
+            }
+            
+            .field-display {
+                width: 100%;
+                height: 500px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .left-panel {
+                flex-direction: column;
+            }
+            
+            .instrument-storage, .scale-control {
+                width: 100%;
+            }
+            
+            .control-panel {
+                flex-direction: column;
+            }
+            
+            .field-display {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="header">
+        <h1>电荷和电场交互式可视化</h1>
+        <button class="reset-btn" id="resetBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 10a8 8 0 0 1 8-8v8h8a8 8 0 0 1-8 8 8 8 0 0 1-8-8Z"></path>
+                <path d="M9 21v-8h8"></path>
+            </svg>
+            恢复初始状态
+        </button>
+    </div>
+
+    <div class="container">
+        <div class="left-panel">
+            <!-- 电荷选择区 -->
+            <div class="instrument-storage" id="instrumentStorage">
+                <div class="storage-title">电荷选择区<br><small>拖动到右侧电场区域</small></div>
+                <div class="instrument-item charge positive" data-type="charge" data-charge-type="positive" draggable="true">
+                    <div class="charge-symbol">+</div>
+                    <div class="charge-label">正电荷 (1µC)</div>
+                </div>
+                <div class="instrument-item charge negative" data-type="charge" data-charge-type="negative" draggable="true">
+                    <div class="charge-symbol">-</div>
+                    <div class="charge-label">负电荷 (-1µC)</div>
+                </div>
+                <div class="instrument-item sensor-item" data-type="sensor" draggable="true">
+                    <div class="sensor-dot"></div>
+                    <div class="preview-label">力传感器 (1µC)</div>
+                </div>
+            </div>
+            
+            <!-- 新增：比例系数控制区域 -->
+            <div class="scale-control" id="scaleControl">
+                <div class="scale-title">比例系数<br><small>1N对应1cm基准</small></div>
+                <div class="scale-slider-container">
+                    <div class="scale-label">
+                        <span>比例系数:</span>
+                        <span class="scale-value" id="scaleValue">100</span>
+                    </div>
+                    <input type="range" min="0" max="200" value="100" class="scale-slider" id="scaleSlider">
+                </div>
+                <div class="scale-info">
+                    <p style="font-size: 0.8rem; color: #7f8c8d; text-align: center; line-height: 1.4;">
+                        0: 无箭头<br>
+                        100: 1N对应1cm<br>
+                        200: 1N对应2cm
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="control-panel">
+                <div class="meter-box">
+                    <div class="meter-label">库仑力大小</div>
+                    <div class="meter-value" id="forceValue">0.00 N</div>
+                </div>
+                <div class="meter-box">
+                    <div class="meter-label">传感器位置</div>
+                    <div class="meter-value" id="sensorPos">未放置</div>
+                </div>
+                <div class="meter-box">
+                    <div class="meter-label">比例系数</div>
+                    <div class="meter-value" id="scaleDisplay">100%</div>
+                </div>
+            </div>
+
+            <div class="field-display" id="displayArea">
+                <div class="decor-line"></div>
+                <canvas id="fieldCanvas" width="800" height="800"></canvas>
+                <div class="sensor" id="sensor"></div>
+                <div class="info-panel">
+                    <div class="info-title">物理参数说明</div>
+                    <div class="info-content">
+                        <p>• 电荷大小: ±1 µC (微库仑)</p>
+                        <p>• 库仑常数: k = 9×10⁹ N·m²/C²</p>
+                        <p>• 屏幕尺寸: 1×1 米</p>
+                        <p>• 红色箭头: F = k·Q·q/r²</p>
+                        <p>• 蓝色箭头: 电场方向</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 核心变量
+        const canvas = document.getElementById('fieldCanvas');
+        const ctx = canvas.getContext('2d');
+        const displayArea = document.getElementById('displayArea');
+        const sensorElement = document.getElementById('sensor');
+        const resetBtn = document.getElementById('resetBtn');
+        const forceValueDisplay = document.getElementById('forceValue');
+        const sensorPosDisplay = document.getElementById('sensorPos');
+        const scaleSlider = document.getElementById('scaleSlider');
+        const scaleValueDisplay = document.getElementById('scaleValue');
+        const scaleDisplay = document.getElementById('scaleDisplay');
+
+        // 物理常数定义
+        const k = 9e9; // 库仑常数 (N·m²/C²)
+        
+        // 电荷设置
+        const microCoulomb = 1e-6;
+        const positiveChargeValue = microCoulomb;
+        const negativeChargeValue = -microCoulomb;
+        const testCharge = microCoulomb;
+        
+        // 屏幕尺寸设置
+        const screenWidthMeters = 1.0; // 屏幕宽度：1米
+        const screenHeightMeters = 1.0; // 屏幕高度：1米
+        const pixelsPerMeter = canvas.width / screenWidthMeters; // 800像素/米
+        
+        // 物理比例设置：1N对应1cm
+        const oneNewtonInCm = 1; // 1牛顿对应1厘米
+        const cmToPixels = pixelsPerMeter / 100; // 1厘米对应的像素数 = 800/100 = 8像素
+        
+        // 箭头设置 - 关键修改：基于物理比例
+        let scaleFactor = 100; // 当前比例系数 (0-200)，100表示1N对应1cm
+        let forceToPixelScale = cmToPixels * (scaleFactor / 100); // 基础比例因子
+        
+        // 电场箭头设置
+        const arrowGridStep = 40;
+        const fieldArrowLength = 15;
+        
+        // 传感器设置 - 修改：传感器半径6像素，与红色箭头端点相同
+        const sensorRadius = 6; // 传感器半径6像素
+
+        // 界面元素状态
+        let charges = [];
+        let sensorActive = false;
+        let sensorPos = { x: 400, y: 400 };
+
+        // 拖拽状态变量
+        let isDraggingSensor = false;
+        let dragStartX = 0, dragStartY = 0;
+        let sensorStartX = 0, sensorStartY = 0;
+
+        // 存储当前力信息
+        let currentForce = { magnitude: 0, directionX: 0, directionY: 0 };
+
+        // ==============================================
+        // 1. 初始化函数
+        // ==============================================
+        function init() {
+            setupEventListeners();
+            drawAll();
+        }
+
+        // ==============================================
+        // 2. 设置事件监听器
+        // ==============================================
+        function setupEventListeners() {
+            // 恢复初始状态按钮
+            resetBtn.addEventListener('click', () => {
+                charges = [];
+                sensorActive = false;
+                sensorElement.style.display = 'none';
+                currentForce = { magnitude: 0, directionX: 0, directionY: 0 };
+                updateForceDisplay(0);
+                updateSensorPosDisplay(false);
+                drawAll();
+            });
+
+            // 比例系数滑块
+            scaleSlider.addEventListener('input', (e) => {
+                scaleFactor = parseInt(e.target.value);
+                scaleValueDisplay.textContent = scaleFactor;
+                scaleDisplay.textContent = scaleFactor + '%';
+                
+                // 更新比例因子
+                // 当scaleFactor=100时，1N对应1cm（8像素）
+                // 当scaleFactor=200时，1N对应2cm（16像素）
+                // 当scaleFactor=50时，1N对应0.5cm（4像素）
+                // 当scaleFactor=0时，箭头长度为0
+                forceToPixelScale = cmToPixels * (scaleFactor / 100);
+                
+                // 重新绘制
+                drawAll();
+            });
+
+            // 仪器/电荷拖动逻辑
+            document.querySelectorAll('.instrument-item').forEach(item => {
+                item.addEventListener('dragstart', (e) => {
+                    const type = item.dataset.type;
+                    let data = type;
+                    if (type === 'charge') {
+                        data += ':' + item.dataset.chargeType;
+                    }
+                    e.dataTransfer.setData('text/plain', data);
+                    item.style.opacity = '0.7';
+                });
+
+                item.addEventListener('dragend', (e) => {
+                    item.style.opacity = '1';
+                });
+            });
+
+            // 放置区域
+            displayArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+            });
+
+            displayArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const data = e.dataTransfer.getData('text/plain');
+                const [type, subType] = data.split(':');
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                switch(type) {
+                    case 'charge':
+                        if (charges.length < 4) {
+                            charges.push({
+                                id: Date.now(),
+                                x: x,
+                                y: y,
+                                q: subType === 'positive' ? positiveChargeValue : negativeChargeValue,
+                                color: subType === 'positive' ? '#ff6b6b' : '#3498db',
+                                symbol: subType === 'positive' ? '+' : '-'
+                            });
+                        }
+                        break;
+                    case 'sensor':
+                        if (!sensorActive) {
+                            sensorActive = true;
+                            sensorPos = { x, y };
+                            sensorElement.style.display = 'block';
+                            updateSensorPosition();
+                            updateSensorPosDisplay(true);
+                        }
+                        break;
+                }
+                drawAll();
+                calculateCoulombForce();
+            });
+
+            // 传感器拖拽逻辑 - 修改：使用传感器半径6像素
+            sensorElement.addEventListener('mousedown', (e) => {
+                if (!sensorActive) return;
+                
+                e.preventDefault();
+                e.stopPropagation();
+                isDraggingSensor = true;
+                
+                const rect = canvas.getBoundingClientRect();
+                dragStartX = e.clientX - rect.left;
+                dragStartY = e.clientY - rect.top;
+                sensorStartX = sensorPos.x;
+                sensorStartY = sensorPos.y;
+                
+                sensorElement.style.cursor = 'grabbing';
+                sensorElement.style.transform = 'scale(1.5)';
+            });
+
+            // 鼠标移动
+            canvas.addEventListener('mousemove', (e) => {
+                if (!isDraggingSensor) return;
+                
+                const rect = canvas.getBoundingClientRect();
+                const currentX = e.clientX - rect.left;
+                const currentY = e.clientY - rect.top;
+                
+                const deltaX = currentX - dragStartX;
+                const deltaY = currentY - dragStartY;
+                
+                let newX = sensorStartX + deltaX;
+                let newY = sensorStartY + deltaY;
+                
+                // 边界检查 - 修改：使用传感器半径6像素
+                newX = Math.max(sensorRadius, Math.min(canvas.width - sensorRadius, newX));
+                newY = Math.max(sensorRadius, Math.min(canvas.height - sensorRadius, newY));
+                
+                sensorPos = { x: newX, y: newY };
+                updateSensorPosition();
+                updateSensorPosDisplay(true);
+                calculateCoulombForce();
+                drawAll();
+            });
+
+            // 鼠标释放
+            document.addEventListener('mouseup', () => {
+                if (!isDraggingSensor) return;
+                
+                isDraggingSensor = false;
+                sensorElement.style.cursor = 'grab';
+                sensorElement.style.transform = 'scale(1)';
+            });
+
+            // 电荷拖拽
+            canvas.addEventListener('mousedown', handleChargeDrag);
+        }
+
+        // ==============================================
+        // 3. 电荷拖拽处理函数
+        // ==============================================
+        function handleChargeDrag(e) {
+            if (sensorActive) {
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                
+                // 检查是否点击了传感器 - 修改：使用传感器半径6像素
+                const distToSensor = Math.sqrt((mouseX - sensorPos.x)**2 + (mouseY - sensorPos.y)**2);
+                if (distToSensor < sensorRadius) {
+                    // 如果点击了传感器，不处理电荷拖拽
+                    return;
+                }
+            }
+            
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            
+            // 检查是否点击了电荷 - 修改：电荷半径仍为25像素
+            for (let i = charges.length - 1; i >= 0; i--) {
+                const charge = charges[i];
+                const dist = Math.sqrt((mouseX - charge.x)**2 + (mouseY - charge.y)**2);
+                if (dist < 25) {
+                    // 允许电荷拖拽
+                    let isDraggingCharge = true;
+                    let draggedChargeIndex = i;
+                    let chargeDragStartX = mouseX;
+                    let chargeDragStartY = mouseY;
+                    let chargeStartX = charge.x;
+                    let chargeStartY = charge.y;
+                    
+                    const handleChargeMove = (e) => {
+                        if (!isDraggingCharge) return;
+                        
+                        const rect = canvas.getBoundingClientRect();
+                        const currentX = e.clientX - rect.left;
+                        const currentY = e.clientY - rect.top;
+                        
+                        const deltaX = currentX - chargeDragStartX;
+                        const deltaY = currentY - chargeDragStartY;
+                        
+                        let newX = chargeStartX + deltaX;
+                        let newY = chargeStartY + deltaY;
+                        
+                        // 边界检查 - 电荷半径25像素
+                        newX = Math.max(25, Math.min(canvas.width - 25, newX));
+                        newY = Math.max(25, Math.min(canvas.height - 25, newY));
+                        
+                        charges[draggedChargeIndex].x = newX;
+                        charges[draggedChargeIndex].y = newY;
+                        
+                        calculateCoulombForce();
+                        drawAll();
+                    };
+                    
+                    const handleChargeUp = () => {
+                        isDraggingCharge = false;
+                        document.removeEventListener('mousemove', handleChargeMove);
+                        document.removeEventListener('mouseup', handleChargeUp);
+                    };
+                    
+                    document.addEventListener('mousemove', handleChargeMove);
+                    document.addEventListener('mouseup', handleChargeUp);
+                    
+                    break;
+                }
+            }
+        }
+
+        // ==============================================
+        // 4. 位置更新函数
+        // ==============================================
+        function updateSensorPosition() {
+            // 传感器圆心对齐 - 修改：传感器半径6像素
+            sensorElement.style.left = `${sensorPos.x - sensorRadius}px`;
+            sensorElement.style.top = `${sensorPos.y - sensorRadius}px`;
+        }
+        
+        function updateSensorPosDisplay(active) {
+            if (active) {
+                const xMeters = (sensorPos.x / pixelsPerMeter).toFixed(2);
+                const yMeters = (sensorPos.y / pixelsPerMeter).toFixed(2);
+                sensorPosDisplay.textContent = `(${xMeters}m, ${yMeters}m)`;
+            } else {
+                sensorPosDisplay.textContent = '未放置';
+            }
+        }
+
+        // ==============================================
+        // 5. 物理计算核心函数
+        // ==============================================
+        function calculateCoulombForce() {
+            if (!sensorActive || charges.length === 0) {
+                currentForce = { magnitude: 0, directionX: 0, directionY: 0 };
+                updateForceDisplay(0);
+                return currentForce;
+            }
+
+            let Fx_total = 0, Fy_total = 0;
+            
+            charges.forEach(charge => {
+                const dx_pixels = sensorPos.x - charge.x;
+                const dy_pixels = sensorPos.y - charge.y;
+                const r_pixels = Math.sqrt(dx_pixels*dx_pixels + dy_pixels*dy_pixels);
+                
+                if (r_pixels < 1) return;
+                
+                const r_meters = r_pixels / pixelsPerMeter;
+                const forceMagnitude = k * Math.abs(charge.q * testCharge) / (r_meters * r_meters);
+                const directionX = dx_pixels / r_pixels;
+                const directionY = dy_pixels / r_pixels;
+                const forceSign = (charge.q * testCharge) > 0 ? 1 : -1;
+                
+                Fx_total += forceSign * forceMagnitude * directionX;
+                Fy_total += forceSign * forceMagnitude * directionY;
+            });
+
+            const totalForce = Math.sqrt(Fx_total*Fx_total + Fy_total*Fy_total);
+            currentForce = {
+                magnitude: totalForce,
+                directionX: Fx_total,
+                directionY: Fy_total
+            };
+            
+            updateForceDisplay(totalForce);
+            return currentForce;
+        }
+
+        // ==============================================
+        // 6. 数据显示更新函数
+        // ==============================================
+        function updateForceDisplay(force) {
+            if (force < 0.001) {
+                forceValueDisplay.textContent = '0.00 N';
+            } else if (force < 1) {
+                forceValueDisplay.textContent = force.toFixed(3) + ' N';
+            } else if (force < 10) {
+                forceValueDisplay.textContent = force.toFixed(2) + ' N';
+            } else {
+                forceValueDisplay.textContent = force.toFixed(1) + ' N';
+            }
+        }
+
+        // ==============================================
+        // 7. 绘制核心函数
+        // ==============================================
+        function drawAll() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBackground();
+            drawFieldArrows();
+            drawCharges();
+            
+            if (sensorActive) {
+                drawSensorForceArrow();
+            }
+        }
+        
+        function drawBackground() {
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.strokeStyle = 'rgba(52, 152, 219, 0.1)';
+            ctx.lineWidth = 1;
+            
+            const gridStepMeters = 0.1;
+            const gridStepPixels = gridStepMeters * pixelsPerMeter;
+            
+            for (let x = 0; x < canvas.width; x += gridStepPixels) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            
+            for (let y = 0; y < canvas.height; y += gridStepPixels) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+            
+            // 绘制参考比例尺
+            drawScaleReference();
+        }
+        
+        function drawScaleReference() {
+            // 绘制1cm参考线（对应1N力）
+            const referenceLength = cmToPixels; // 1厘米对应的像素数
+            
+            ctx.strokeStyle = '#ff6b6b';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            
+            // 水平参考线
+            ctx.beginPath();
+            ctx.moveTo(20, 30);
+            ctx.lineTo(20 + referenceLength, 30);
+            ctx.stroke();
+            
+            // 垂直参考线
+            ctx.beginPath();
+            ctx.moveTo(20, 30);
+            ctx.lineTo(20, 30 + 10);
+            ctx.moveTo(20 + referenceLength, 30);
+            ctx.lineTo(20 + referenceLength, 30 + 10);
+            ctx.stroke();
+            
+            ctx.setLineDash([]);
+            
+            // 标注文字
+            ctx.font = 'bold 12px Arial';
+            ctx.fillStyle = '#ff6b6b';
+            ctx.textAlign = 'center';
+            ctx.fillText('1N → 1cm', 20 + referenceLength/2, 25);
+            ctx.fillText(`${referenceLength.toFixed(0)}px`, 20 + referenceLength/2, 50);
+        }
+
+        function drawFieldArrows() {
+            const step = arrowGridStep;
+            
+            for (let x = step/2; x < canvas.width; x += step) {
+                for (let y = step/2; y < canvas.height; y += step) {
+                    let tooClose = false;
+                    for (const charge of charges) {
+                        const dist = Math.sqrt((x - charge.x)**2 + (y - charge.y)**2);
+                        if (dist < 40) {
+                            tooClose = true;
+                            break;
+                        }
+                    }
+                    if (tooClose) continue;
+                    
+                    const { Ex, Ey } = calculateElectricField(x, y);
+                    const magnitude = Math.sqrt(Ex*Ex + Ey*Ey);
+                    
+                    if (magnitude < 1e-6) continue;
+                    
+                    const dirX = Ex / magnitude;
+                    const dirY = Ey / magnitude;
+                    const arrowLength = Math.min(fieldArrowLength * Math.log10(magnitude + 1) / 2, fieldArrowLength);
+                    
+                    drawArrow(x, y, dirX, dirY, arrowLength, 'rgba(100, 200, 255, 0.8)');
+                }
+            }
+        }
+
+        function calculateElectricField(x, y) {
+            let Ex = 0, Ey = 0;
+            
+            charges.forEach(charge => {
+                const dx_pixels = x - charge.x;
+                const dy_pixels = y - charge.y;
+                const r_pixels = Math.sqrt(dx_pixels*dx_pixels + dy_pixels*dy_pixels);
+                
+                if (r_pixels < 1) return;
+                
+                const r_meters = r_pixels / pixelsPerMeter;
+                const fieldMagnitude = k * Math.abs(charge.q) / (r_meters * r_meters);
+                const directionX = dx_pixels / r_pixels;
+                const directionY = dy_pixels / r_pixels;
+                const fieldSign = charge.q > 0 ? 1 : -1;
+                
+                Ex += fieldSign * fieldMagnitude * directionX;
+                Ey += fieldSign * fieldMagnitude * directionY;
+            });
+            
+            return { Ex, Ey };
+        }
+
+        function drawArrow(x, y, dirX, dirY, length, color) {
+            if (length < 2) return;
+            
+            const angle = Math.atan2(dirY, dirX);
+            const endX = x + dirX * length;
+            const endY = y + dirY * length;
+            
+            // 箭杆
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+            
+            // 箭头
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(endX, endY);
+            ctx.lineTo(
+                endX - 8 * Math.cos(angle - Math.PI/6),
+                endY - 8 * Math.sin(angle - Math.PI/6)
+            );
+            ctx.lineTo(
+                endX - 8 * Math.cos(angle + Math.PI/6),
+                endY - 8 * Math.sin(angle + Math.PI/6)
+            );
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function drawCharges() {
+            charges.forEach(charge => {
+                ctx.beginPath();
+                ctx.arc(charge.x, charge.y, 25, 0, Math.PI * 2);
+                const gradient = ctx.createRadialGradient(
+                    charge.x - 8, charge.y - 8, 5,
+                    charge.x, charge.y, 25
+                );
+                gradient.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
+                gradient.addColorStop(1, charge.color);
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                // 发光效果
+                ctx.beginPath();
+                ctx.arc(charge.x, charge.y, 30, 0, Math.PI * 2);
+                ctx.strokeStyle = charge.color;
+                ctx.lineWidth = 2;
+                ctx.globalAlpha = 0.3;
+                ctx.stroke();
+                ctx.globalAlpha = 1.0;
+
+                // 符号
+                ctx.font = 'bold 28px Arial';
+                ctx.fillStyle = 'white';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                ctx.shadowBlur = 3;
+                ctx.fillText(charge.symbol, charge.x, charge.y);
+                ctx.shadowBlur = 0;
+
+                // 标签
+                ctx.font = 'bold 14px Arial';
+                ctx.fillStyle = 'rgba(255,255,255,0.9)';
+                ctx.fillText(charge.q === positiveChargeValue ? '1 µC' : '-1 µC', charge.x, charge.y + 35);
+            });
+        }
+
+        // 绘制传感器红色力箭头 - 基于物理比例：1N对应1cm
+        function drawSensorForceArrow() {
+            const force = currentForce;
+            
+            if (force.magnitude < 0.001 || charges.length === 0) return;
+            
+            // 计算箭头长度（基于物理比例：1N对应1cm，再乘以比例系数）
+            const arrowLength = force.magnitude * forceToPixelScale;
+            
+            // 如果比例系数为0，不绘制箭头
+            if (scaleFactor === 0 || arrowLength < 2) return;
+            
+            // 归一化方向
+            const magnitude = Math.sqrt(force.directionX*force.directionX + force.directionY*force.directionY);
+            const dirX = force.directionX / magnitude;
+            const dirY = force.directionY / magnitude;
+            
+            // 绘制红色力箭头
+            drawArrow(sensorPos.x, sensorPos.y, dirX, dirY, arrowLength, '#ff4757');
+            
+            // 传感器中心点 - 不再绘制单独的圆点，因为传感器本身就是一个圆点
+            // 注意：传感器已经是6像素半径的圆点，与箭头端点大小相同
+            
+            // 力的大小标签
+            const arrowEndX = sensorPos.x + dirX * arrowLength;
+            const arrowEndY = sensorPos.y + dirY * arrowLength;
+            
+            ctx.font = 'bold 12px Arial';
+            ctx.fillStyle = '#ff4757';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(force.magnitude.toFixed(3) + ' N', arrowEndX, arrowEndY - 15);
+            
+            // 箭头信息显示
+            ctx.font = 'bold 14px Arial';
+            ctx.fillStyle = '#ff6b6b';
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'top';
+            ctx.fillText(`比例: ${scaleFactor}%`, canvas.width - 20, 70);
+            ctx.fillText(`箭头长度: ${arrowLength.toFixed(1)}px`, canvas.width - 20, 90);
+            ctx.fillText(`对应长度: ${(arrowLength / cmToPixels).toFixed(1)}cm`, canvas.width - 20, 110);
+            
+            // 显示物理比例关系
+            ctx.fillText(`1N = ${cmToPixels}px (1cm)`, canvas.width - 20, 130);
+            ctx.fillText(`当前: 1N = ${forceToPixelScale.toFixed(1)}px`, canvas.width - 20, 150);
+        }
+
+        // 启动应用
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RLC串联谐振电路 - 高中物理交互教学</title>
+  <style>
+    :root{
+      --bg1:#0f172a;
+      --bg2:#1e293b;
+      --card:#ffffff;
+      --accent:#3b82f6;
+      --accent2:#06b6d4;
+      --ok:#16a34a;
+      --warn:#f59e0b;
+      --danger:#ef4444;
+      --text:#0f172a;
+      --muted:#475569;
+      --soft:#e2e8f0;
+      --shadow: 0 10px 30px rgba(2,6,23,.15);
+      --radius:18px;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+      background: linear-gradient(135deg,var(--bg1),var(--bg2));
+      color:#fff;
+      min-height:100vh;
+    }
+    .container{
+      width:min(1200px,94vw);
+      margin:28px auto;
+      display:grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap:18px;
+    }
+    .card{
+      background:var(--card);
+      color:var(--text);
+      border-radius:var(--radius);
+      box-shadow: var(--shadow);
+      padding:18px;
+    }
+    .hero{
+      grid-column:1/-1;
+      background: linear-gradient(120deg,#2563eb,#06b6d4);
+      color:white;
+      padding:24px 22px;
+      border-radius:22px;
+      box-shadow: var(--shadow);
+      position:relative;
+      overflow:hidden;
+    }
+    .hero h1{
+      margin:0 0 8px;
+      font-size:clamp(24px,3vw,34px);
+      letter-spacing:.5px;
+    }
+    .hero p{
+      margin:0;
+      opacity:.95;
+      line-height:1.6;
+    }
+    .badge{
+      display:inline-block;
+      margin-top:12px;
+      background:rgba(255,255,255,.18);
+      border:1px solid rgba(255,255,255,.35);
+      padding:6px 12px;
+      border-radius:999px;
+      font-size:13px;
+    }
+    .title{
+      margin:0 0 14px;
+      font-size:20px;
+      color:#0b3a74;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .title::before{
+      content:"";
+      width:6px;height:22px;
+      border-radius:99px;
+      background: linear-gradient(180deg,var(--accent),var(--accent2));
+      display:inline-block;
+    }
+
+    .controls{
+      display:grid;
+      gap:12px;
+    }
+    .control{
+      background:#f8fafc;
+      border:1px solid #e2e8f0;
+      border-radius:14px;
+      padding:10px 12px;
+    }
+    .control label{
+      display:flex;
+      justify-content:space-between;
+      font-weight:600;
+      margin-bottom:6px;
+      color:#0f172a;
+    }
+    .control small{
+      color:var(--muted);
+      font-weight:500;
+    }
+    input[type="range"]{
+      width:100%;
+      accent-color: var(--accent);
+      cursor:pointer;
+    }
+    .value{
+      font-family: "Consolas","Menlo",monospace;
+      color:#0f172a;
+      background:#e0ecff;
+      border-radius:8px;
+      padding:1px 8px;
+      font-size:13px;
+    }
+
+    .btns{
+      display:flex;
+      gap:10px;
+      margin-top:6px;
+      flex-wrap:wrap;
+    }
+    button{
+      border:none;
+      border-radius:12px;
+      padding:10px 14px;
+      font-weight:700;
+      cursor:pointer;
+      transition:.2s transform,.2s opacity;
+    }
+    button:hover{ transform:translateY(-1px); }
+    .primary{ background:linear-gradient(120deg,#2563eb,#0891b2); color:white; }
+    .ghost{ background:#e2e8f0; color:#0f172a; }
+    .results{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(120px,1fr));
+      gap:10px;
+      margin-top:12px;
+    }
+    .result{
+      background:#f8fafc;
+      border:1px solid #e2e8f0;
+      border-radius:12px;
+      padding:10px;
+    }
+    .result .k{
+      color:#475569;
+      font-size:13px;
+    }
+    .result .v{
+      margin-top:4px;
+      font-size:18px;
+      font-weight:800;
+      color:#0f172a;
+      font-family:"Consolas","Menlo",monospace;
+    }
+    .hint{
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:12px;
+      font-weight:600;
+      font-size:14px;
+      background:#eef2ff;
+      color:#1e3a8a;
+    }
+    canvas{
+      width:100%;
+      height:320px;
+      border-radius:14px;
+      background:#f8fafc;
+      border:1px solid #e2e8f0;
+    }
+    .legend{
+      display:flex; gap:10px; flex-wrap:wrap; margin-top:8px; color:#334155; font-size:13px;
+    }
+    .dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:middle}
+    .q-item{
+      background:#f8fafc;
+      border:1px solid #e2e8f0;
+      border-radius:12px;
+      padding:12px;
+      margin-bottom:10px;
+    }
+    .q-item p{margin:0 0 8px;font-weight:700}
+    .q-item label{display:block;margin:6px 0;cursor:pointer}
+    .quiz-actions{
+      display:flex;gap:10px;flex-wrap:wrap;margin-top:8px
+    }
+    .score{
+      margin-top:12px;
+      padding:12px;
+      border-radius:12px;
+      font-weight:700;
+      background:#ecfeff;
+      color:#155e75;
+      border:1px solid #a5f3fc;
+    }
+    .analysis{
+      margin-top:8px;
+      font-size:14px;
+      color:#334155;
+      line-height:1.6;
+    }
+
+    @media (max-width:980px){
+      .container{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+  <div class="container">
+    <section class="hero">
+      <h1>RLC 串联谐振电路 · 高中物理交互教学系统</h1>
+      <p>
+        通过调节电阻 R、电感 L、电容 C 与电源频率 f，实时观察阻抗、电流、相位变化与谐振现象。
+        理解“谐振时阻抗最小、电流最大、感抗与容抗相等”的核心规律。
+      </p>
+      <span class="badge">模块：参数仿真 + 频率响应曲线 + 知识检测</span>
+    </section>
+
+    <section class="card">
+      <h2 class="title">参数调节与实时计算</h2>
+      <div class="controls">
+        <div class="control">
+          <label>电阻 R（Ω） <span class="value" id="Rv">20</span></label>
+          <input id="R" type="range" min="1" max="200" value="20" />
+          <small>阻尼作用：R 越大，谐振峰越“平”。</small>
+        </div>
+        <div class="control">
+          <label>电感 L（mH） <span class="value" id="Lv">100</span></label>
+          <input id="L" type="range" min="10" max="500" value="100" />
+          <small>感抗公式：X<sub>L</sub>=2πfL</small>
+        </div>
+        <div class="control">
+          <label>电容 C（μF） <span class="value" id="Cv">10</span></label>
+          <input id="C" type="range" min="0.1" max="100" step="0.1" value="10" />
+          <small>容抗公式：X<sub>C</sub>=1/(2πfC)</small>
+        </div>
+        <div class="control">
+          <label>交流电源频率 f（Hz） <span class="value" id="fv">50</span></label>
+          <input id="f" type="range" min="1" max="2000" value="50" />
+          <small>谐振条件：f ≈ f<sub>0</sub>=1/(2π√LC)</small>
+        </div>
+      </div>
+
+      <div class="btns">
+        <button class="primary" id="toResonance">一键调到谐振频率</button>
+        <button class="ghost" id="resetBtn">重置默认参数</button>
+      </div>
+
+      <div class="results">
+        <div class="result"><div class="k">谐振频率 f₀ (Hz)</div><div class="v" id="f0Out">-</div></div>
+        <div class="result"><div class="k">总阻抗 |Z| (Ω)</div><div class="v" id="zOut">-</div></div>
+        <div class="result"><div class="k">电流有效值 I (A)，U=10V</div><div class="v" id="iOut">-</div></div>
+        <div class="result"><div class="k">相位角 φ (°)</div><div class="v" id="phiOut">-</div></div>
+        <div class="result"><div class="k">品质因数 Q</div><div class="v" id="qOut">-</div></div>
+        <div class="result"><div class="k">功率因数 cosφ</div><div class="v" id="pfOut">-</div></div>
+      </div>
+      <div class="hint" id="stateHint">状态判断：-</div>
+    </section>
+
+    <section class="card">
+      <h2 class="title">频率响应曲线（电流-频率）</h2>
+      <canvas id="chart" width="560" height="320"></canvas>
+      <div class="legend">
+        <span><i class="dot" style="background:#2563eb"></i>电流幅值 I(f)</span>
+        <span><i class="dot" style="background:#ef4444"></i>当前频率位置</span>
+        <span><i class="dot" style="background:#16a34a"></i>谐振频率 f₀</span>
+      </div>
+    </section>
+
+    <section class="card" style="grid-column:1/-1;">
+      <h2 class="title">知识检测模块</h2>
+
+      <div id="quiz">
+        <div class="q-item" data-answer="B">
+          <p>1）RLC 串联电路发生谐振时，以下说法正确的是：</p>
+          <label><input type="radio" name="q1" value="A"> A. 电路总阻抗最大</label>
+          <label><input type="radio" name="q1" value="B"> B. 感抗等于容抗</label>
+          <label><input type="radio" name="q1" value="C"> C. 电流最小</label>
+          <label><input type="radio" name="q1" value="D"> D. 相位角为90°</label>
+        </div>
+
+        <div class="q-item" data-answer="C">
+          <p>2）若其他条件不变，增大电阻 R，对谐振曲线的影响是：</p>
+          <label><input type="radio" name="q2" value="A"> A. 峰值更尖、Q值增大</label>
+          <label><input type="radio" name="q2" value="B"> B. 谐振频率大幅升高</label>
+          <label><input type="radio" name="q2" value="C"> C. 峰值降低、带宽变宽</label>
+          <label><input type="radio" name="q2" value="D"> D. 电流恒定不变</label>
+        </div>
+
+        <div class="q-item" data-answer="A">
+          <p>3）RLC 串联电路的谐振频率公式是：</p>
+          <label><input type="radio" name="q3" value="A"> A. f₀ = 1/(2π√LC)</label>
+          <label><input type="radio" name="q3" value="B"> B. f₀ = 2π√LC</label>
+          <label><input type="radio" name="q3" value="C"> C. f₀ = R/(2πL)</label>
+          <label><input type="radio" name="q3" value="D"> D. f₀ = 1/(RC)</label>
+        </div>
+      </div>
+
+      <div class="quiz-actions">
+        <button class="primary" id="submitQuiz">提交测验</button>
+        <button class="ghost" id="resetQuiz">清空作答</button>
+      </div>
+      <div id="scoreBox" class="score" style="display:none"></div>
+      <div id="analysis" class="analysis"></div>
+    </section>
+  </div>
+
+  <script>
+    const U = 10; // 电压有效值，固定10V用于演示
+
+    const REl = document.getElementById('R');
+    const LEl = document.getElementById('L');
+    const CEl = document.getElementById('C');
+    const fEl = document.getElementById('f');
+
+    const Rv = document.getElementById('Rv');
+    const Lv = document.getElementById('Lv');
+    const Cv = document.getElementById('Cv');
+    const fv = document.getElementById('fv');
+
+    const f0Out = document.getElementById('f0Out');
+    const zOut = document.getElementById('zOut');
+    const iOut = document.getElementById('iOut');
+    const phiOut = document.getElementById('phiOut');
+    const qOut = document.getElementById('qOut');
+    const pfOut = document.getElementById('pfOut');
+    const stateHint = document.getElementById('stateHint');
+
+    const chart = document.getElementById('chart');
+    const ctx = chart.getContext('2d');
+
+    function format(n, d=2){
+      return Number(n).toFixed(d);
+    }
+
+    function calc(R, L_mH, C_uF, f){
+      const L = L_mH / 1000;      // H
+      const C = C_uF / 1e6;       // F
+      const w = 2*Math.PI*f;
+      const XL = w*L;
+      const XC = 1/(w*C);
+      const X = XL - XC;
+      const Z = Math.sqrt(R*R + X*X);
+      const I = U / Z;
+      const phi = Math.atan2(X, R) * 180/Math.PI;
+      const f0 = 1/(2*Math.PI*Math.sqrt(L*C));
+      const Q = (2*Math.PI*f0*L)/R;
+      const pf = R/Z;
+      return {XL, XC, X, Z, I, phi, f0, Q, pf};
+    }
+
+    function update(){
+      const R = +REl.value;
+      const L = +LEl.value;
+      const C = +CEl.value;
+      const f = +fEl.value;
+
+      Rv.textContent = R;
+      Lv.textContent = L;
+      Cv.textContent = C;
+      fv.textContent = f;
+
+      const d = calc(R,L,C,f);
+
+      f0Out.textContent = format(d.f0,2);
+      zOut.textContent = format(d.Z,2);
+      iOut.textContent = format(d.I,3);
+      phiOut.textContent = format(d.phi,2);
+      qOut.textContent = format(d.Q,2);
+      pfOut.textContent = format(d.pf,3);
+
+      const eps = Math.abs(d.XL-d.XC)/Math.max(d.XL,d.XC);
+      if(eps < 0.02){
+        stateHint.textContent = "状态判断：接近谐振（X_L ≈ X_C），电流接近最大，相位角接近 0°。";
+        stateHint.style.background = "#ecfdf5";
+        stateHint.style.color = "#166534";
+      }else if(d.XL > d.XC){
+        stateHint.textContent = "状态判断：感性电路（X_L > X_C），电流滞后电压。";
+        stateHint.style.background = "#eff6ff";
+        stateHint.style.color = "#1d4ed8";
+      }else{
+        stateHint.textContent = "状态判断：容性电路（X_L < X_C），电流超前电压。";
+        stateHint.style.background = "#fff7ed";
+        stateHint.style.color = "#c2410c";
+      }
+
+      drawChart(R,L,C,f,d.f0);
+    }
+
+    function drawChart(R,L_mH,C_uF,fCurrent,f0){
+      const w = chart.width, h = chart.height;
+      ctx.clearRect(0,0,w,h);
+
+      // 背景网格
+      ctx.fillStyle = "#f8fafc";
+      ctx.fillRect(0,0,w,h);
+      ctx.strokeStyle = "#e2e8f0";
+      ctx.lineWidth = 1;
+      for(let i=0;i<=10;i++){
+        const x = 40 + i*(w-60)/10;
+        const y = 20 + i*(h-50)/10;
+        ctx.beginPath(); ctx.moveTo(x,20); ctx.lineTo(x,h-30); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(40,y); ctx.lineTo(w-20,y); ctx.stroke();
+      }
+
+      const fMin = 1;
+      const fMax = Math.max(2000, f0*2.2);
+
+      const N = 500;
+      let Imax = 0;
+      const arr = [];
+      for(let i=0;i<=N;i++){
+        const f = fMin + (fMax-fMin)*i/N;
+        const d = calc(R,L_mH,C_uF,f);
+        arr.push({f,I:d.I});
+        if(d.I>Imax) Imax = d.I;
+      }
+      Imax *= 1.1;
+
+      // 坐标轴
+      ctx.strokeStyle = "#334155";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(40,20); ctx.lineTo(40,h-30); ctx.lineTo(w-20,h-30); ctx.stroke();
+
+      // 轴标签
+      ctx.fillStyle = "#334155";
+      ctx.font = "12px sans-serif";
+      ctx.fillText("I(A)", 8, 18);
+      ctx.fillText("f(Hz)", w-45, h-8);
+
+      // 曲线
+      ctx.strokeStyle = "#2563eb";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      arr.forEach((p,idx)=>{
+        const x = 40 + (p.f-fMin)/(fMax-fMin)*(w-60);
+        const y = (h-30) - (p.I/Imax)*(h-50);
+        if(idx===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      });
+      ctx.stroke();
+
+      function vLine(freq,color,label){
+        const x = 40 + (freq-fMin)/(fMax-fMin)*(w-60);
+        if(x<40||x>w-20) return;
+        ctx.strokeStyle=color; ctx.lineWidth=2;
+        ctx.beginPath(); ctx.moveTo(x,20); ctx.lineTo(x,h-30); ctx.stroke();
+        ctx.fillStyle=color; ctx.font="12px sans-serif";
+        ctx.fillText(label, Math.min(x+4,w-90), 34);
+      }
+      vLine(fCurrent,"#ef4444","当前f");
+      vLine(f0,"#16a34a","f₀");
+
+      // 刻度文字
+      ctx.fillStyle = "#475569";
+      ctx.font="11px sans-serif";
+      ctx.fillText("0", 28, h-30);
+      ctx.fillText(format(Imax,2), 6, 26);
+      ctx.fillText(format(fMin,0), 36, h-12);
+      ctx.fillText(format(fMax,0), w-42, h-12);
+    }
+
+    [REl,LEl,CEl,fEl].forEach(el=>el.addEventListener('input',update));
+
+    document.getElementById('toResonance').addEventListener('click',()=>{
+      const R=+REl.value,L=+LEl.value,C=+CEl.value;
+      const d=calc(R,L,C,50);
+      const target=Math.min(2000,Math.max(1,Math.round(d.f0)));
+      fEl.value=target;
+      update();
+    });
+
+    document.getElementById('resetBtn').addEventListener('click',()=>{
+      REl.value=20; LEl.value=100; CEl.value=10; fEl.value=50;
+      update();
+    });
+
+    document.getElementById('submitQuiz').addEventListener('click',()=>{
+      const items = [...document.querySelectorAll('.q-item')];
+      let score = 0;
+      let detail = [];
+      items.forEach((item,idx)=>{
+        const ans = item.dataset.answer;
+        const name = "q"+(idx+1);
+        const checked = document.querySelector(`input[name="${name}"]:checked`);
+        if(checked && checked.value===ans){
+          score++;
+          detail.push(`第${idx+1}题：✅ 正确`);
+        }else{
+          detail.push(`第${idx+1}题：❌ 错误（正确答案：${ans}）`);
+        }
+      });
+      const scoreBox = document.getElementById('scoreBox');
+      const analysis = document.getElementById('analysis');
+      scoreBox.style.display="block";
+      scoreBox.textContent = `得分：${score} / ${items.length}（${Math.round(score/items.length*100)}分）`;
+      analysis.innerHTML = detail.join("<br>") + "<br><br><b>解析要点：</b>谐振时 X<sub>L</sub>=X<sub>C</sub>，电路呈纯电阻性，φ≈0°，电流最大。R 增大通常使 Q 值下降、谐振峰变矮变宽。";
+    });
+
+    document.getElementById('resetQuiz').addEventListener('click',()=>{
+      document.querySelectorAll('#quiz input[type="radio"]').forEach(i=>i.checked=false);
+      document.getElementById('scoreBox').style.display="none";
+      document.getElementById('analysis').textContent="";
+    });
+
+    update();
+  </script>
+</body>
+</html>

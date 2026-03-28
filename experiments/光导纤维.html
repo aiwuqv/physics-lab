@@ -1,0 +1,1477 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>光导纤维原理交互演示</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #3a7bd5;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.2rem;
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .main-content {
+            flex: 3;
+            min-width: 300px;
+        }
+        
+        .sidebar {
+            flex: 1;
+            min-width: 280px;
+            background-color: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+        
+        .demo-container {
+            background-color: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+        
+        .demo-title {
+            display: flex;
+            align-items: center;
+            color: #3a7bd5;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+        
+        .demo-title i {
+            margin-right: 10px;
+            font-size: 1.5rem;
+        }
+        
+        .fiber-canvas-container {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            background-color: #0d1525;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 15px;
+            border: 1px solid #2a3a5a;
+        }
+        
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .control-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .control-group h3 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+            font-size: 1rem;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .slider-container span {
+            min-width: 50px;
+            font-weight: bold;
+            color: #3a7bd5;
+        }
+        
+        input[type="range"] {
+            flex-grow: 1;
+            height: 8px;
+            -webkit-appearance: none;
+            background: #ddd;
+            border-radius: 4px;
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #3a7bd5;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background-color: #3a7bd5;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        button:hover {
+            background-color: #2a5ba0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #545b62;
+        }
+        
+        .btn-success {
+            background-color: #28a745;
+        }
+        
+        .btn-success:hover {
+            background-color: #218838;
+        }
+        
+        .observation-section {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        
+        .observation-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .observation-item {
+            margin-bottom: 15px;
+        }
+        
+        .observation-item label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .observation-item input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        .observation-item input.correct {
+            border-color: #28a745;
+            background-color: #f0fff4;
+        }
+        
+        .observation-item input.incorrect {
+            border-color: #dc3545;
+            background-color: #fff5f5;
+        }
+        
+        .quiz-container {
+            background-color: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+        
+        .quiz-question {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .quiz-question h3 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .quiz-option {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .quiz-option:hover {
+            background-color: #e9ecef;
+        }
+        
+        .quiz-option.selected {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+        
+        .quiz-option.correct {
+            background-color: #d4edda;
+        }
+        
+        .quiz-option.incorrect {
+            background-color: #f8d7da;
+        }
+        
+        .quiz-option input {
+            margin-right: 10px;
+        }
+        
+        .analysis-panel {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e3f2fd;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .analysis-panel.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .analysis-panel h3 {
+            color: #1565c0;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .analysis-content {
+            line-height: 1.7;
+        }
+        
+        .parameter-display {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f0f7ff;
+            border-radius: 8px;
+        }
+        
+        .parameter-item {
+            flex: 1;
+            min-width: 120px;
+            text-align: center;
+            padding: 10px;
+            background-color: white;
+            border-radius: 6px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        
+        .parameter-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #3a7bd5;
+        }
+        
+        .parameter-label {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        
+        .principle-explanation {
+            background-color: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            margin-top: 25px;
+        }
+        
+        .principle-explanation h3 {
+            color: #3a7bd5;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .principle-content {
+            line-height: 1.7;
+        }
+        
+        .principle-content ul {
+            padding-left: 20px;
+            margin: 10px 0;
+        }
+        
+        .principle-content li {
+            margin-bottom: 8px;
+        }
+        
+        .formula {
+            text-align: center;
+            font-size: 1.4rem;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            font-family: 'Cambria', 'Times New Roman', serif;
+        }
+        
+        .light-path-info {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            max-width: 300px;
+            z-index: 10;
+        }
+        
+        .reflection-counter {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            z-index: 10;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+            
+            .parameter-display {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <header>
+        <h1><i class="fas fa-lightbulb"></i> 光导纤维原理交互演示</h1>
+        <p class="subtitle">本演示通过模拟光线在光纤中的传播，展示全反射原理及其在光通信中的应用。您可以调整参数观察现象，完成知识检测。</p>
+    </header>
+    
+    <div class="container">
+        <div class="main-content">
+            <div class="demo-container">
+                <h2 class="demo-title"><i class="fas fa-sliders-h"></i> 光纤演示</h2>
+                <div class="fiber-canvas-container">
+                    <canvas id="fiberCanvas"></canvas>
+                    <div class="light-path-info" id="lightPathInfo">
+                        <strong>光路状态：</strong><br>
+                        <span id="lightStatus">等待演示开始</span>
+                    </div>
+                    <div class="reflection-counter" id="reflectionCounter">
+                        反射次数：<span id="reflectionCount">0</span>
+                    </div>
+                </div>
+                
+                <div class="parameter-display">
+                    <div class="parameter-item">
+                        <div class="parameter-value" id="incidenceAngleValue">75°</div>
+                        <div class="parameter-label">入射角 (θ)</div>
+                    </div>
+                    <div class="parameter-item">
+                        <div class="parameter-value" id="criticalAngleValue">71.8°</div>
+                        <div class="parameter-label">临界角 (θc)</div>
+                    </div>
+                    <div class="parameter-item">
+                        <div class="parameter-value" id="refractiveIndexValue">1.62</div>
+                        <div class="parameter-label">纤芯折射率 (n₁)</div>
+                    </div>
+                    <div class="parameter-item">
+                        <div class="parameter-value" id="claddingIndexValue">1.52</div>
+                        <div class="parameter-label">包层折射率 (n₂)</div>
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <div class="control-group">
+                        <h3>入射角调节 (θ) - 光线与法线夹角</h3>
+                        <div class="slider-container">
+                            <span id="angleValue">75°</span>
+                            <input type="range" id="angleSlider" min="0" max="89" value="75" step="1">
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h3>纤芯折射率 (n₁)</h3>
+                        <div class="slider-container">
+                            <span id="coreIndexValue">1.62</span>
+                            <input type="range" id="coreIndexSlider" min="1.50" max="1.70" value="1.62" step="0.01">
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h3>包层折射率 (n₂)</h3>
+                        <div class="slider-container">
+                            <span id="claddingIndexSliderValue">1.52</span>
+                            <input type="range" id="claddingIndexSlider" min="1.40" max="1.65" value="1.52" step="0.01">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="button-group">
+                    <button id="startBtn"><i class="fas fa-play"></i> 开始动画</button>
+                    <button id="resetBtn" class="btn-secondary"><i class="fas fa-redo"></i> 重置</button>
+                    <button id="stepBtn"><i class="fas fa-forward"></i> 逐步演示</button>
+                </div>
+            </div>
+            
+            <div class="observation-section">
+                <h3><i class="fas fa-clipboard-check"></i> 观察现象与填空</h3>
+                <div class="observation-item">
+                    <label for="q1">1. 当入射角______临界角时，发生全反射；当入射角______临界角时，发生折射。</label>
+                    <input type="text" id="q1" placeholder="请输入答案（格式：大于/小于）">
+                </div>
+                <div class="observation-item">
+                    <label for="q2">2. 在纤芯-包层界面，入射角是光线与______的夹角。</label>
+                    <input type="text" id="q2" placeholder="请输入答案">
+                </div>
+                <div class="observation-item">
+                    <label for="q3">3. 全反射时，光线被______在纤芯内传播；折射时，部分光线______包层。</label>
+                    <input type="text" id="q3" placeholder="请输入答案">
+                </div>
+                <div class="button-group">
+                    <button id="checkObservationBtn" class="btn-success"><i class="fas fa-check-circle"></i> 检查答案</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="sidebar">
+            <div class="quiz-container">
+                <h2 class="demo-title"><i class="fas fa-question-circle"></i> 知识检测</h2>
+                
+                <div class="quiz-question">
+                    <h3>1. 光纤中光线传播的正确描述是：</h3>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-option="a">
+                            <input type="radio" name="q1" id="q1a">
+                            <label for="q1a">A. 光线在纤芯内直线传播</label>
+                        </div>
+                        <div class="quiz-option" data-option="b">
+                            <input type="radio" name="q1" id="q1b">
+                            <label for="q1b">B. 光线在纤芯-包层界面反复全反射</label>
+                        </div>
+                        <div class="quiz-option" data-option="c">
+                            <input type="radio" name="q1" id="q1c">
+                            <label for="q1c">C. 光线在包层中传播</label>
+                        </div>
+                        <div class="quiz-option" data-option="d">
+                            <input type="radio" name="q1" id="q1d">
+                            <label for="q1d">D. 光线不断折射进入包层</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question">
+                    <h3>2. 当光线在纤芯-包层界面发生折射时：</h3>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-option="a">
+                            <input type="radio" name="q2" id="q2a">
+                            <label for="q2a">A. 只有反射光线</label>
+                        </div>
+                        <div class="quiz-option" data-option="b">
+                            <input type="radio" name="q2" id="q2b">
+                            <label for="q2b">B. 只有折射光线</label>
+                        </div>
+                        <div class="quiz-option" data-option="c">
+                            <input type="radio" name="q2" id="q2c">
+                            <label for="q2c">C. 既有反射光线也有折射光线</label>
+                        </div>
+                        <div class="quiz-option" data-option="d">
+                            <input type="radio" name="q2" id="q2d">
+                            <label for="q2d">D. 光线被完全吸收</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question">
+                    <h3>3. 关于光纤中光线的传播，正确的是：</h3>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-option="a">
+                            <input type="radio" name="q3" id="q3a">
+                            <label for="q3a">A. 光线可能跑到光纤外面</label>
+                        </div>
+                        <div class="quiz-option" data-option="b">
+                            <input type="radio" name="q3" id="q3b">
+                            <label for="q3b">B. 光线始终在纤芯内传播</label>
+                        </div>
+                        <div class="quiz-option" data-option="c">
+                            <input type="radio" name="q3" id="q3c">
+                            <label for="q3c">C. 全反射时没有反射光线</label>
+                        </div>
+                        <div class="quiz-option" data-option="d">
+                            <input type="radio" name="q3" id="q3d">
+                            <label for="q3d">D. 折射时只有折射光线</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="button-group">
+                    <button id="submitQuizBtn" class="btn-success"><i class="fas fa-paper-plane"></i> 提交答案</button>
+                </div>
+                
+                <div class="analysis-panel" id="analysisPanel">
+                    <h3><i class="fas fa-chart-line"></i> 学情分析</h3>
+                    <div class="analysis-content" id="analysisContent">
+                        <!-- 分析内容将通过JavaScript动态生成 -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="principle-explanation">
+                <h3><i class="fas fa-info-circle"></i> 原理说明</h3>
+                <div class="principle-content">
+                    <p><strong>光导纤维工作原理：</strong></p>
+                    <ol>
+                        <li>光纤由纤芯（n₁较高）和包层（n₂较低）组成</li>
+                        <li>当光线从纤芯射向包层时，在界面处可能发生两种现象：</li>
+                        <ul>
+                            <li><strong>全反射</strong>：当入射角θ > 临界角θc时</li>
+                            <li><strong>折射</strong>：当入射角θ < 临界角θc时</li>
+                        </ul>
+                        <li><strong>临界角计算公式</strong>：</li>
+                    </ol>
+                    <div class="formula">sin θc = n₂ / n₁</div>
+                    
+                    <p><strong>关键区别：</strong></p>
+                    <ul>
+                        <li><strong>全反射时</strong>：光线完全反射回纤芯，没有光线进入包层</li>
+                        <li><strong>折射时</strong>：既有反射光线（在纤芯内）也有折射光线（进入包层）</li>
+                        <li>光线<strong>始终在纤芯内传播</strong>，不会跑到光纤外面</li>
+                        <li>折射时的折射光线进入包层，造成能量损失</li>
+                    </ul>
+                    
+                    <p><strong>教学要点：</strong></p>
+                    <ul>
+                        <li>理解入射角与临界角的关系决定光路性质</li>
+                        <li>区分全反射和折射的光路特点</li>
+                        <li>掌握光线在光纤中的传播规律</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>© 2023 高中物理教学演示 | 光导纤维原理交互模拟 | 设计：物理教学组</p>
+        <p>本演示适用于高中物理光学章节教学，帮助学生理解全反射原理及其应用</p>
+    </footer>
+
+    <script>
+        // 获取Canvas元素和上下文
+        const canvas = document.getElementById('fiberCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 设置Canvas尺寸
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+        }
+        
+        // 初始化变量
+        let animationId = null;
+        let isAnimating = false;
+        let lightRays = [];
+        let rayId = 0;
+        let stepMode = false;
+        
+        // 光纤参数
+        let fiberParams = {
+            incidenceAngle: 75, // 入射角（度）- 光线与法线的夹角
+            coreRefractiveIndex: 1.62, // 纤芯折射率 n₁
+            claddingRefractiveIndex: 1.52, // 包层折射率 n₂
+            criticalAngle: 0, // 临界角（度）
+        };
+        
+        // 计算临界角 - sin θc = n₂ / n₁
+        function calculateCriticalAngle() {
+            const n1 = fiberParams.coreRefractiveIndex;
+            const n2 = fiberParams.claddingRefractiveIndex;
+            
+            if (n1 <= n2) {
+                return 90; // 不会发生全反射
+            }
+            
+            const sinC = n2 / n1;
+            const C = Math.asin(sinC) * (180 / Math.PI);
+            return C;
+        }
+        
+        // 计算光线在纤芯内的传播角度（与水平方向的夹角）
+        function calculatePropagationAngle() {
+            // 简化：光线在纤芯内与轴线的夹角
+            // 实际应该考虑从空气到光纤的折射，这里简化处理
+            return 15; // 固定一个小角度
+        }
+        
+        // 更新参数显示
+        function updateParameterDisplay() {
+            const C = calculateCriticalAngle();
+            fiberParams.criticalAngle = C;
+            
+            document.getElementById('incidenceAngleValue').textContent = `${fiberParams.incidenceAngle}°`;
+            document.getElementById('criticalAngleValue').textContent = `${C.toFixed(1)}°`;
+            document.getElementById('refractiveIndexValue').textContent = fiberParams.coreRefractiveIndex.toFixed(2);
+            document.getElementById('claddingIndexValue').textContent = fiberParams.claddingRefractiveIndex.toFixed(2);
+            
+            // 更新滑块显示值
+            document.getElementById('angleValue').textContent = `${fiberParams.incidenceAngle}°`;
+            document.getElementById('coreIndexValue').textContent = fiberParams.coreRefractiveIndex.toFixed(2);
+            document.getElementById('claddingIndexSliderValue').textContent = fiberParams.claddingRefractiveIndex.toFixed(2);
+        }
+        
+        // 初始化Canvas
+        function initCanvas() {
+            resizeCanvas();
+            updateParameterDisplay();
+            updateLightPathInfo();
+            drawFiber();
+        }
+        
+        // 更新光路信息
+        function updateLightPathInfo() {
+            const C = fiberParams.criticalAngle;
+            const i = fiberParams.incidenceAngle;
+            const n1 = fiberParams.coreRefractiveIndex;
+            const n2 = fiberParams.claddingRefractiveIndex;
+            
+            let statusText = '';
+            
+            if (n1 <= n2) {
+                statusText = `n₁ ≤ n₂，无法发生全反射`;
+            } else if (i > C) {
+                statusText = `全反射发生 (θ=${i}° > θc=${C.toFixed(1)}°)`;
+            } else if (i < C) {
+                statusText = `折射发生 (θ=${i}° < θc=${C.toFixed(1)}°)`;
+            } else {
+                statusText = `临界状态 (θ = θc = ${C.toFixed(1)}°)`;
+            }
+            
+            document.getElementById('lightStatus').textContent = statusText;
+        }
+        
+        // 绘制光纤结构
+        function drawFiber() {
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            // 清空画布
+            ctx.clearRect(0, 0, width, height);
+            
+            // 绘制背景
+            ctx.fillStyle = '#0d1525';
+            ctx.fillRect(0, 0, width, height);
+            
+            // 绘制光纤包层（外层）
+            const fiberY = height / 2;
+            const fiberLength = width * 0.85;
+            const fiberStartX = width * 0.1;
+            const claddingHeight = height * 0.4;
+            
+            // 绘制包层（浅蓝色，半透明）
+            ctx.fillStyle = 'rgba(70, 130, 180, 0.15)';
+            ctx.fillRect(fiberStartX, fiberY - claddingHeight/2, fiberLength, claddingHeight);
+            
+            // 绘制包层边界
+            ctx.strokeStyle = 'rgba(100, 150, 200, 0.6)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(fiberStartX, fiberY - claddingHeight/2);
+            ctx.lineTo(fiberStartX + fiberLength, fiberY - claddingHeight/2);
+            ctx.moveTo(fiberStartX, fiberY + claddingHeight/2);
+            ctx.lineTo(fiberStartX + fiberLength, fiberY + claddingHeight/2);
+            ctx.stroke();
+            
+            // 绘制纤芯（内层）
+            const coreHeight = claddingHeight * 0.7;
+            ctx.fillStyle = 'rgba(100, 200, 255, 0.1)';
+            ctx.fillRect(fiberStartX, fiberY - coreHeight/2, fiberLength, coreHeight);
+            
+            // 绘制纤芯边界（亮蓝色）
+            ctx.strokeStyle = 'rgba(100, 200, 255, 0.8)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(fiberStartX, fiberY - coreHeight/2);
+            ctx.lineTo(fiberStartX + fiberLength, fiberY - coreHeight/2);
+            ctx.moveTo(fiberStartX, fiberY + coreHeight/2);
+            ctx.lineTo(fiberStartX + fiberLength, fiberY + coreHeight/2);
+            ctx.stroke();
+            
+            // 绘制光纤标签
+            ctx.fillStyle = '#cccccc';
+            ctx.font = '14px Arial';
+            ctx.fillText('包层 n₂=' + fiberParams.claddingRefractiveIndex.toFixed(2), fiberStartX + 10, fiberY - claddingHeight/2 - 10);
+            ctx.fillText('纤芯 n₁=' + fiberParams.coreRefractiveIndex.toFixed(2), fiberStartX + 10, fiberY - coreHeight/2 - 10);
+            
+            // 绘制光路
+            drawRayPath(fiberStartX, fiberY, fiberLength, coreHeight);
+            
+            // 绘制动态光线
+            drawDynamicLightRays(fiberStartX, fiberY, fiberLength, coreHeight);
+            
+            // 绘制角度标记（只显示状态，不显示入射角标记）
+            drawAngleMarkers(fiberStartX, fiberY, coreHeight);
+        }
+        
+        // 绘制光线路径
+        function drawRayPath(startX, centerY, length, coreHeight) {
+            const i = fiberParams.incidenceAngle;
+            const C = fiberParams.criticalAngle;
+            const n1 = fiberParams.coreRefractiveIndex;
+            const n2 = fiberParams.claddingRefractiveIndex;
+            
+            // 绘制光源
+            const lightX = startX - 40;
+            const lightY = centerY;
+            
+            // 绘制光线进入纤芯
+            const entryX = startX;
+            const entryY = centerY;
+            
+            // 绘制入射光线
+            ctx.strokeStyle = '#ffff00';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(lightX, lightY);
+            ctx.lineTo(entryX, entryY);
+            ctx.stroke();
+            
+            // 检查全反射条件
+            if (n1 <= n2) {
+                // 纤芯折射率不大于包层折射率，无法全反射
+                drawRefractionOnly(startX, entryY, length, coreHeight);
+                return;
+            }
+            
+            if (i < C) {
+                // 入射角小于临界角，发生折射
+                drawRefractionCase(startX, entryY, length, coreHeight);
+            } else {
+                // 入射角大于临界角，发生全反射
+                drawTotalReflectionCase(startX, entryY, length, coreHeight);
+            }
+        }
+        
+        // 绘制只有折射的情况（n₁ ≤ n₂）
+        function drawRefractionOnly(startX, entryY, length, coreHeight) {
+            const centerY = canvas.height / 2;
+            const topBoundary = centerY - coreHeight/2;
+            
+            // 绘制光线在纤芯内传播
+            ctx.strokeStyle = 'rgba(255, 100, 100, 0.8)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(startX, entryY);
+            ctx.lineTo(startX + length * 0.4, topBoundary);
+            ctx.stroke();
+            
+            // 绘制折射光线（进入包层）
+            ctx.strokeStyle = 'rgba(255, 100, 100, 0.5)';
+            ctx.setLineDash([5, 3]);
+            ctx.beginPath();
+            ctx.moveTo(startX + length * 0.4, topBoundary);
+            ctx.lineTo(startX + length * 0.7, topBoundary - 30);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // 绘制反射光线（少量，在纤芯内）
+            ctx.strokeStyle = 'rgba(255, 100, 100, 0.3)';
+            ctx.beginPath();
+            ctx.moveTo(startX + length * 0.4, topBoundary);
+            ctx.lineTo(startX + length * 0.6, centerY);
+            ctx.stroke();
+            
+            document.getElementById('reflectionCount').textContent = "无全反射";
+        }
+        
+        // 绘制折射情况（入射角小于临界角）
+        function drawRefractionCase(startX, entryY, length, coreHeight) {
+            const centerY = canvas.height / 2;
+            const topBoundary = centerY - coreHeight/2;
+            const bottomBoundary = centerY + coreHeight/2;
+            
+            // 清空动态光线
+            if (!isAnimating) {
+                lightRays = [];
+            }
+            
+            // 绘制完整光路（静态）
+            ctx.strokeStyle = 'rgba(255, 200, 100, 0.8)';
+            ctx.lineWidth = 1.5;
+            
+            // 光线在纤芯内传播，在界面处部分反射部分折射
+            let currentX = startX;
+            let currentY = entryY;
+            let direction = 1; // 向上
+            let segmentCount = 0;
+            
+            while (currentX < startX + length && segmentCount < 10) {
+                // 计算到达边界的位置
+                let boundaryY;
+                if (direction > 0) {
+                    boundaryY = topBoundary;
+                } else {
+                    boundaryY = bottomBoundary;
+                }
+                
+                // 计算水平距离（简化）
+                const deltaX = length * 0.1;
+                const nextX = currentX + deltaX;
+                const nextY = boundaryY;
+                
+                // 绘制纤芯内的光线
+                ctx.beginPath();
+                ctx.moveTo(currentX, currentY);
+                ctx.lineTo(nextX, nextY);
+                ctx.stroke();
+                
+                // 在界面处绘制折射光线（进入包层）
+                ctx.strokeStyle = 'rgba(255, 100, 100, 0.5)';
+                ctx.setLineDash([5, 3]);
+                ctx.beginPath();
+                ctx.moveTo(nextX, nextY);
+                
+                // 折射光线方向
+                let refX, refY;
+                if (direction > 0) {
+                    refX = nextX + 20;
+                    refY = nextY - 15;
+                } else {
+                    refX = nextX + 20;
+                    refY = nextY + 15;
+                }
+                
+                ctx.lineTo(refX, refY);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                // 绘制反射光线（继续在纤芯内传播）
+                ctx.strokeStyle = `rgba(255, 200, 100, ${0.8 - segmentCount * 0.1})`;
+                
+                // 更新位置和方向
+                currentX = nextX + 5;
+                currentY = nextY;
+                direction *= -1;
+                segmentCount++;
+            }
+            
+            document.getElementById('reflectionCount').textContent = `${segmentCount}次（有折射损失）`;
+        }
+        
+        // 绘制全反射情况（入射角大于临界角）
+        function drawTotalReflectionCase(startX, entryY, length, coreHeight) {
+            const centerY = canvas.height / 2;
+            const topBoundary = centerY - coreHeight/2;
+            const bottomBoundary = centerY + coreHeight/2;
+            
+            // 清空动态光线
+            if (!isAnimating) {
+                lightRays = [];
+            }
+            
+            // 绘制完整光路（静态）
+            ctx.strokeStyle = 'rgba(255, 255, 100, 0.8)';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([]);
+            
+            let currentX = startX;
+            let currentY = entryY;
+            let direction = 1; // 向上
+            let reflectionCount = 0;
+            
+            // 光线在纤芯内反复全反射
+            while (currentX < startX + length && reflectionCount < 20) {
+                // 计算下一个边界交点
+                let nextY;
+                if (direction > 0) {
+                    nextY = topBoundary;
+                } else {
+                    nextY = bottomBoundary;
+                }
+                
+                // 计算水平距离（简化）
+                const deltaX = length * 0.15;
+                let nextX = currentX + deltaX;
+                
+                // 如果超出光纤末端
+                if (nextX > startX + length) {
+                    const remainingX = startX + length - currentX;
+                    const finalY = currentY;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(currentX, currentY);
+                    ctx.lineTo(startX + length, finalY);
+                    ctx.stroke();
+                    
+                    // 绘制出射光线
+                    ctx.strokeStyle = 'rgba(100, 255, 100, 0.9)';
+                    ctx.beginPath();
+                    ctx.moveTo(startX + length, finalY);
+                    ctx.lineTo(startX + length + 40, finalY);
+                    ctx.stroke();
+                    
+                    break;
+                }
+                
+                // 绘制光线段
+                ctx.beginPath();
+                ctx.moveTo(currentX, currentY);
+                ctx.lineTo(nextX, nextY);
+                ctx.stroke();
+                
+                // 绘制反射点
+                if (reflectionCount > 0) {
+                    ctx.fillStyle = 'rgba(255, 100, 100, 0.8)';
+                    ctx.beginPath();
+                    ctx.arc(nextX, nextY, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // 在反射点绘制法线
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash([2, 2]);
+                    ctx.beginPath();
+                    if (direction > 0) {
+                        ctx.moveTo(nextX, nextY);
+                        ctx.lineTo(nextX, nextY + 15);
+                    } else {
+                        ctx.moveTo(nextX, nextY);
+                        ctx.lineTo(nextX, nextY - 15);
+                    }
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    
+                    ctx.strokeStyle = 'rgba(255, 255, 100, 0.8)';
+                }
+                
+                // 更新位置和方向
+                currentX = nextX;
+                currentY = nextY;
+                direction *= -1;
+                reflectionCount++;
+            }
+            
+            document.getElementById('reflectionCount').textContent = `${reflectionCount}次（全反射）`;
+        }
+        
+        // 绘制动态光线
+        function drawDynamicLightRays(startX, centerY, length, coreHeight) {
+            for (let ray of lightRays) {
+                if (ray.completed) continue;
+                
+                // 绘制光线轨迹
+                if (ray.path.length > 1) {
+                    ctx.strokeStyle = ray.color + 'AA';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(ray.path[0][0], ray.path[0][1]);
+                    for (let i = 1; i < ray.path.length; i++) {
+                        ctx.lineTo(ray.path[i][0], ray.path[i][1]);
+                    }
+                    ctx.stroke();
+                }
+                
+                // 绘制光线头部
+                ctx.fillStyle = ray.color;
+                ctx.beginPath();
+                ctx.arc(ray.x, ray.y, 4, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 光晕效果
+                ctx.fillStyle = ray.color + '33';
+                ctx.beginPath();
+                ctx.arc(ray.x, ray.y, 8, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        // 绘制角度标记
+        function drawAngleMarkers(startX, centerY, coreHeight) {
+            const i = fiberParams.incidenceAngle;
+            const C = fiberParams.criticalAngle;
+            const n1 = fiberParams.coreRefractiveIndex;
+            const n2 = fiberParams.claddingRefractiveIndex;
+            
+            // 显示状态
+            ctx.font = 'bold 16px Arial';
+            if (n1 <= n2) {
+                ctx.fillStyle = '#ff5555';
+                ctx.fillText(`n₁ ≤ n₂，无法发生全反射`, canvas.width / 2 - 120, 30);
+            } else if (i > C) {
+                ctx.fillStyle = '#00ff00';
+                ctx.fillText(`全反射发生 (θ=${i}° > θc=${C.toFixed(1)}°)`, canvas.width / 2 - 140, 30);
+            } else if (i < C) {
+                ctx.fillStyle = '#ffaa00';
+                ctx.fillText(`折射发生 (θ=${i}° < θc=${C.toFixed(1)}°)`, canvas.width / 2 - 140, 30);
+            } else {
+                ctx.fillStyle = '#ffff00';
+                ctx.fillText(`临界状态 (θ = θc = ${C.toFixed(1)}°)`, canvas.width / 2 - 140, 30);
+            }
+            
+            // 显示关键点
+            ctx.fillStyle = '#cccccc';
+            ctx.font = '14px Arial';
+            ctx.fillText(`关键：光线始终在纤芯内传播，不会跑到光纤外面`, canvas.width / 2 - 180, 60);
+        }
+        
+        // 开始动画
+        function startAnimation() {
+            if (isAnimating) return;
+            
+            isAnimating = true;
+            stepMode = false;
+            
+            // 添加初始光线
+            const width = canvas.width;
+            const height = canvas.height;
+            const startX = width * 0.1;
+            const centerY = height / 2;
+            
+            if (lightRays.length === 0) {
+                const i = fiberParams.incidenceAngle;
+                const C = fiberParams.criticalAngle;
+                const n1 = fiberParams.coreRefractiveIndex;
+                const n2 = fiberParams.claddingRefractiveIndex;
+                
+                if (n1 > n2) {
+                    const color = i > C ? '#ffff00' : '#ff9900';
+                    const direction = 1;
+                    
+                    const ray = {
+                        id: rayId++,
+                        x: startX,
+                        y: centerY,
+                        angle: 0,
+                        direction: direction,
+                        speed: i > C ? 4 : 3,
+                        completed: false,
+                        color: color,
+                        path: [[startX, centerY]],
+                        reflectionCount: 0
+                    };
+                    lightRays.push(ray);
+                }
+            }
+            
+            animate();
+        }
+        
+        // 逐步演示
+        function stepAnimation() {
+            if (isAnimating && stepMode) return;
+            
+            stepMode = true;
+            isAnimating = true;
+            
+            // 添加初始光线（如果还没有）
+            const width = canvas.width;
+            const height = canvas.height;
+            const startX = width * 0.1;
+            const centerY = height / 2;
+            
+            if (lightRays.length === 0) {
+                const i = fiberParams.incidenceAngle;
+                const C = fiberParams.criticalAngle;
+                const n1 = fiberParams.coreRefractiveIndex;
+                const n2 = fiberParams.claddingRefractiveIndex;
+                
+                if (n1 > n2) {
+                    const color = i > C ? '#ffff00' : '#ff9900';
+                    const direction = 1;
+                    
+                    const ray = {
+                        id: rayId++,
+                        x: startX,
+                        y: centerY,
+                        angle: 0,
+                        direction: direction,
+                        speed: 2, // 逐步演示速度较慢
+                        completed: false,
+                        color: color,
+                        path: [[startX, centerY]],
+                        reflectionCount: 0
+                    };
+                    lightRays.push(ray);
+                }
+            }
+            
+            // 执行一步
+            updateLightRays();
+            drawFiber();
+            
+            // 暂停动画
+            isAnimating = false;
+        }
+        
+        // 停止动画
+        function stopAnimation() {
+            isAnimating = false;
+            stepMode = false;
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+        }
+        
+        // 动画循环
+        function animate() {
+            if (!isAnimating) return;
+            
+            updateLightRays();
+            drawFiber();
+            animationId = requestAnimationFrame(animate);
+        }
+        
+        // 重置演示
+        function resetDemo() {
+            stopAnimation();
+            lightRays = [];
+            rayId = 0;
+            stepMode = false;
+            
+            // 重置参数
+            fiberParams.incidenceAngle = 75;
+            fiberParams.coreRefractiveIndex = 1.62;
+            fiberParams.claddingRefractiveIndex = 1.52;
+            
+            // 重置滑块
+            document.getElementById('angleSlider').value = fiberParams.incidenceAngle;
+            document.getElementById('coreIndexSlider').value = fiberParams.coreRefractiveIndex;
+            document.getElementById('claddingIndexSlider').value = fiberParams.claddingRefractiveIndex;
+            
+            // 重置观察填空
+            document.getElementById('q1').value = '';
+            document.getElementById('q2').value = '';
+            document.getElementById('q3').value = '';
+            document.getElementById('q1').classList.remove('correct', 'incorrect');
+            document.getElementById('q2').classList.remove('correct', 'incorrect');
+            document.getElementById('q3').classList.remove('correct', 'incorrect');
+            
+            // 重置测验
+            document.querySelectorAll('.quiz-option').forEach(option => {
+                option.classList.remove('selected', 'correct', 'incorrect');
+                const radio = option.querySelector('input[type="radio"]');
+                if (radio) radio.checked = false;
+            });
+            
+            document.getElementById('analysisPanel').classList.remove('show');
+            
+            updateParameterDisplay();
+            updateLightPathInfo();
+            drawFiber();
+        }
+        
+        // 检查观察填空答案
+        function checkObservationAnswers() {
+            const q1Answer = document.getElementById('q1').value.trim().toLowerCase();
+            const q2Answer = document.getElementById('q2').value.trim().toLowerCase();
+            const q3Answer = document.getElementById('q3').value.trim().toLowerCase();
+            
+            // 第一题：格式为"大于/小于"
+            const q1Parts = q1Answer.split('/');
+            const q1Correct = q1Parts.length === 2 && 
+                             (q1Parts[0].includes('大于') || q1Parts[0].includes('>')) && 
+                             (q1Parts[1].includes('小于') || q1Parts[1].includes('<'));
+            
+            const q2Correct = q2Answer.includes('法线');
+            
+            // 第三题：答案应为"限制/进入"或类似
+            const q3Correct = (q3Answer.includes('限制') || q3Answer.includes('约束')) && 
+                             q3Answer.includes('进入');
+            
+            // 更新输入框样式
+            document.getElementById('q1').classList.remove('correct', 'incorrect');
+            document.getElementById('q1').classList.add(q1Correct ? 'correct' : 'incorrect');
+            
+            document.getElementById('q2').classList.remove('correct', 'incorrect');
+            document.getElementById('q2').classList.add(q2Correct ? 'correct' : 'incorrect');
+            
+            document.getElementById('q3').classList.remove('correct', 'incorrect');
+            document.getElementById('q3').classList.add(q3Correct ? 'correct' : 'incorrect');
+            
+            // 显示简单反馈
+            let correctCount = (q1Correct ? 1 : 0) + (q2Correct ? 1 : 0) + (q3Correct ? 1 : 0);
+            alert(`您答对了 ${correctCount}/3 题。${correctCount === 3 ? '优秀！' : '请继续努力！'}`);
+        }
+        
+        // 提交测验答案
+        function submitQuizAnswers() {
+            const answers = {
+                q1: document.querySelector('input[name="q1"]:checked')?.value,
+                q2: document.querySelector('input[name="q2"]:checked')?.value,
+                q3: document.querySelector('input[name="q3"]:checked')?.value
+            };
+            
+            // 检查是否所有题目都已作答
+            if (!answers.q1 || !answers.q2 || !answers.q3) {
+                alert('请完成所有题目后再提交！');
+                return;
+            }
+            
+            // 正确答案
+            const correctAnswers = {
+                q1: 'b', // 光线在纤芯-包层界面反复全反射
+                q2: 'c', // 既有反射光线也有折射光线
+                q3: 'b'  // 光线始终在纤芯内传播
+            };
+            
+            // 计算得分
+            let score = 0;
+            if (answers.q1 === correctAnswers.q1) score++;
+            if (answers.q2 === correctAnswers.q2) score++;
+            if (answers.q3 === correctAnswers.q3) score++;
+            
+            // 更新选项样式
+            document.querySelectorAll('.quiz-option').forEach(option => {
+                const optionValue = option.dataset.option;
+                const questionName = option.querySelector('input').name;
+                
+                option.classList.remove('correct', 'incorrect', 'selected');
+                
+                if (optionValue === correctAnswers[questionName]) {
+                    option.classList.add('correct');
+                } else if (option.querySelector('input').checked && optionValue !== correctAnswers[questionName]) {
+                    option.classList.add('incorrect');
+                }
+                
+                if (option.querySelector('input').checked) {
+                    option.classList.add('selected');
+                }
+            });
+            
+            // 显示学情分析
+            const analysisPanel = document.getElementById('analysisPanel');
+            const analysisContent = document.getElementById('analysisContent');
+            
+            let analysisText = `<p>得分: <strong>${score}/3</strong> (${Math.round(score/3*100)}%)</p>`;
+            
+            if (score === 3) {
+                analysisText += `<p>优秀！您完全理解了光导纤维的基本原理。</p>`;
+            } else if (score === 2) {
+                analysisText += `<p>良好！您对光导纤维原理有较好的理解，但还有一些细节需要加强。</p>`;
+            } else if (score === 1) {
+                analysisText += `<p>需要加强！建议您回顾全反射原理和光纤结构。</p>`;
+            } else {
+                analysisText += `<p>需要认真学习！建议您仔细阅读原理说明，并通过演示观察现象。</p>`;
+            }
+            
+            analysisText += `<p><strong>题目解析：</strong></p>`;
+            analysisText += `<ul>`;
+            analysisText += `<li>第1题：光纤中光线通过<strong>在纤芯-包层界面反复全反射</strong>传播。</li>`;
+            analysisText += `<li>第2题：折射时<strong>既有反射光线也有折射光线</strong>，部分光线反射回纤芯，部分折射进入包层。</li>`;
+            analysisText += `<li>第3题：光纤中光线<strong>始终在纤芯内传播</strong>，不会跑到光纤外面。</li>`;
+            analysisText += `</ul>`;
+            
+            analysisContent.innerHTML = analysisText;
+            analysisPanel.classList.add('show');
+        }
+        
+        // 事件监听器
+        document.getElementById('angleSlider').addEventListener('input', function() {
+            fiberParams.incidenceAngle = parseInt(this.value);
+            updateParameterDisplay();
+            updateLightPathInfo();
+            drawFiber();
+        });
+        
+        document.getElementById('coreIndexSlider').addEventListener('input', function() {
+            fiberParams.coreRefractiveIndex = parseFloat(this.value);
+            updateParameterDisplay();
+            updateLightPathInfo();
+            drawFiber();
+        });
+        
+        document.getElementById('claddingIndexSlider').addEventListener('input', function() {
+            fiberParams.claddingRefractiveIndex = parseFloat(this.value);
+            updateParameterDisplay();
+            updateLightPathInfo();
+            drawFiber();
+        });
+        
+        document.getElementById('startBtn').addEventListener('click', function() {
+            startAnimation();
+        });
+        
+        document.getElementById('resetBtn').addEventListener('click', resetDemo);
+        
+        document.getElementById('stepBtn').addEventListener('click', function() {
+            stepAnimation();
+        });
+        
+        document.getElementById('checkObservationBtn').addEventListener('click', checkObservationAnswers);
+        
+        document.getElementById('submitQuizBtn').addEventListener('click', submitQuizAnswers);
+        
+        // 为测验选项添加点击事件
+        document.querySelectorAll('.quiz-option').forEach(option => {
+            option.addEventListener('click', function() {
+                const radio = this.querySelector('input[type="radio"]');
+                radio.checked = true;
+                
+                // 移除其他选项的选中状态
+                const questionName = radio.name;
+                document.querySelectorAll(`.quiz-option input[name="${questionName}"]`).forEach(otherRadio => {
+                    otherRadio.closest('.quiz-option').classList.remove('selected');
+                });
+                
+                // 添加当前选项的选中状态
+                this.classList.add('selected');
+            });
+        });
+        
+        // 窗口大小变化时调整Canvas
+        window.addEventListener('resize', function() {
+            resizeCanvas();
+            drawFiber();
+        });
+        
+        // 初始化
+        initCanvas();
+    </script>
+</body>
+</html>

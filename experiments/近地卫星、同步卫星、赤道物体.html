@@ -1,0 +1,1669 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>近地卫星、同步卫星与赤道物体虚拟实验</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #f0f7ff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 150, 0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #1a6dcc 0%, #0d47a1 100%);
+            color: white;
+            padding: 25px 30px;
+            border-bottom: 5px solid #ff9800;
+        }
+        
+        header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        header h1 i {
+            color: #ffcc00;
+        }
+        
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 800px;
+        }
+        
+        .scenario-nav {
+            background-color: #e3f2fd;
+            padding: 15px 30px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            border-bottom: 2px solid #bbdefb;
+        }
+        
+        .scenario-btn {
+            padding: 10px 20px;
+            background-color: #2196f3;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .scenario-btn:hover {
+            background-color: #0d8bf2;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 10px rgba(13, 139, 242, 0.3);
+        }
+        
+        .scenario-btn.active {
+            background-color: #ff9800;
+            box-shadow: 0 5px 15px rgba(255, 152, 0, 0.4);
+        }
+        
+        .content-area {
+            display: flex;
+            min-height: 700px;
+        }
+        
+        .main-content {
+            flex: 3;
+            padding: 30px;
+            background-color: #f9fdff;
+        }
+        
+        .sidebar {
+            flex: 1.5;
+            padding: 30px;
+            background-color: #f0f8ff;
+            border-left: 2px solid #e1f5fe;
+        }
+        
+        .scenario-section {
+            display: none;
+        }
+        
+        .scenario-section.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .section-title {
+            color: #1565c0;
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #bbdefb;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .section-title i {
+            color: #ff9800;
+        }
+        
+        .animation-area {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+            height: 400px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+            padding: 20px;
+            background-color: #e8f4fd;
+            border-radius: 10px;
+        }
+        
+        .control-btn {
+            padding: 12px 24px;
+            background-color: #2196f3;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .control-btn:hover {
+            background-color: #0d8bf2;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 10px rgba(13, 139, 242, 0.3);
+        }
+        
+        .control-btn.orange {
+            background-color: #ff9800;
+        }
+        
+        .control-btn.orange:hover {
+            background-color: #f57c00;
+        }
+        
+        .control-btn.green {
+            background-color: #4caf50;
+        }
+        
+        .control-btn.green:hover {
+            background-color: #388e3c;
+        }
+        
+        .control-btn.purple {
+            background-color: #9c27b0;
+        }
+        
+        .control-btn.purple:hover {
+            background-color: #7b1fa2;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 10px 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+        }
+        
+        .slider-container label {
+            font-weight: 600;
+            color: #1565c0;
+            min-width: 70px;
+        }
+        
+        input[type="range"] {
+            width: 200px;
+            height: 8px;
+            -webkit-appearance: none;
+            background: #bbdefb;
+            border-radius: 4px;
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #2196f3;
+            cursor: pointer;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+        }
+        
+        .formula-box {
+            background-color: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid #2196f3;
+        }
+        
+        .formula-box h3 {
+            color: #1565c0;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .formula {
+            font-size: 1.5rem;
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f5f9ff;
+            border-radius: 8px;
+            font-family: 'Cambria Math', 'Times New Roman', serif;
+            color: #d32f2f;
+        }
+        
+        .explanation {
+            background-color: #f1f8e9;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 5px solid #7cb342;
+        }
+        
+        .explanation h4 {
+            color: #33691e;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .demo-canvas {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .earth {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform: translate(-50%, 50%);
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #1e88e5, #0d47a1);
+            box-shadow: inset 5px 5px 10px rgba(0, 0, 0, 0.5), 0 0 20px rgba(30, 144, 255, 0.5);
+            border: 2px solid #81d4fa;
+        }
+        
+        .equator-object {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform: translate(-50%, 50%);
+            width: 15px;
+            height: 15px;
+            background-color: #ff5722;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #ff5722;
+        }
+        
+        .satellite {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            box-shadow: 0 0 8px currentColor;
+        }
+        
+        .near-satellite {
+            background-color: #4caf50;
+            color: #4caf50;
+        }
+        
+        .sync-satellite {
+            background-color: #ff9800;
+            color: #ff9800;
+        }
+        
+        .orbital-path {
+            position: absolute;
+            border: 1px dashed rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+        }
+        
+        .legend {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            font-size: 14px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .info-display {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            font-size: 14px;
+            max-width: 300px;
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            overflow: auto;
+        }
+        
+        .modal-content {
+            background-color: white;
+            width: 90%;
+            max-width: 600px;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+            position: relative;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.3s;
+        }
+        
+        .close-modal:hover {
+            color: #333;
+        }
+        
+        .modal-content h2 {
+            color: #1565c0;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #bbdefb;
+        }
+        
+        .question {
+            margin-bottom: 25px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .question p {
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .option {
+            padding: 12px;
+            background-color: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none; /* 防止文字被选中 */
+        }
+        
+        .option:hover {
+            background-color: #e3f2fd;
+            border-color: #2196f3;
+        }
+        
+        .option.selected {
+            background-color: #bbdefb;
+            border-color: #2196f3;
+            color: #0d47a1;
+            font-weight: bold;
+        }
+        
+        .option.correct {
+            background-color: #e8f5e9;
+            border-color: #4caf50;
+            color: #2e7d32;
+        }
+        
+        .option.incorrect {
+            background-color: #ffebee;
+            border-color: #f44336;
+            color: #c62828;
+        }
+        
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 600;
+            display: none;
+        }
+        
+        .result.correct {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            display: block;
+        }
+        
+        .result.incorrect {
+            background-color: #ffebee;
+            color: #c62828;
+            display: block;
+        }
+        
+        .result-content p {
+            margin: 10px 0;
+        }
+        
+        .review-section {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 5px;
+        }
+        
+        .review-section h4 {
+            margin-top: 0;
+            color: #1565c0;
+        }
+        
+        .review-section ul {
+            padding-left: 20px;
+        }
+        
+        .review-section li {
+            margin: 5px 0;
+            line-height: 1.4;
+        }
+        
+        .scenario-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .info-box {
+            background-color: #fff8e1;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #ffb300;
+            font-size: 0.95rem;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 25px;
+            background-color: #e3f2fd;
+            color: #666;
+            border-top: 2px solid #bbdefb;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 1100px) {
+            .content-area {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                border-left: none;
+                border-top: 2px solid #e1f5fe;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+            }
+            
+            .slider-container {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            input[type="range"] {
+                width: 100%;
+            }
+            
+            .scenario-nav {
+                justify-content: center;
+            }
+            
+            .animation-area {
+                height: 350px;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-satellite"></i> 近地卫星、同步卫星与赤道物体虚拟实验</h1>
+            <p>通过交互式演示，深入理解近地卫星、同步卫星和地球上赤道上物体的运动特点与区别</p>
+        </header>
+        
+        <div class="scenario-nav">
+            <button class="scenario-btn active" data-scenario="1">
+                <i class="fas fa-globe-americas"></i> 情形1：地球与赤道物体
+            </button>
+            <button class="scenario-btn" data-scenario="2">
+                <i class="fas fa-satellite"></i> 情形2：近地卫星
+            </button>
+            <button class="scenario-btn" data-scenario="3">
+                <i class="fas fa-satellite-dish"></i> 情形3：同步卫星
+            </button>
+            <button class="scenario-btn" data-scenario="4">
+                <i class="fas fa-layer-group"></i> 情形4：综合对比
+            </button>
+        </div>
+        
+        <div class="content-area">
+            <div class="main-content">
+                <!-- 情形1：地球与赤道物体 -->
+                <section id="scenario-1" class="scenario-section active">
+                    <h2 class="section-title"><i class="fas fa-globe-americas"></i> 情形1：地球与赤道物体</h2>
+                    
+                    <div class="animation-area" id="earth-animation">
+                        <canvas id="earthCanvas" class="demo-canvas"></canvas>
+                        <div class="legend">
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #1e88e5;"></div>
+                                <span>地球</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #ff5722;"></div>
+                                <span>赤道物体</span>
+                            </div>
+                        </div>
+                        <div class="info-display" id="earth-info">
+                            <strong>地球自转信息</strong><br>
+                            自转周期: 24小时<br>
+                            赤道线速度: ~465 m/s<br>
+                            角速度: 7.27×10⁻⁵ rad/s
+                        </div>
+                    </div>
+                    
+                    <div class="controls">
+                        <button class="control-btn" id="earth-start-btn">
+                            <i class="fas fa-play"></i> 开始自转
+                        </button>
+                        <button class="control-btn" id="earth-stop-btn">
+                            <i class="fas fa-pause"></i> 暂停自转
+                        </button>
+                        <button class="control-btn orange" id="earth-speed-up">
+                            <i class="fas fa-forward"></i> 加速
+                        </button>
+                        <button class="control-btn green" id="quiz-btn">
+                            <i class="fas fa-question-circle"></i> 习题检测
+                        </button>
+                        
+                        <div class="slider-container">
+                            <label for="earth-speed-slider">自转速度:</label>
+                            <input type="range" id="earth-speed-slider" min="0.5" max="2" step="0.1" value="1">
+                            <span id="earth-speed-value">1.0</span>x
+                        </div>
+                    </div>
+                    
+                    <div class="formula-box">
+                        <h3><i class="fas fa-calculator"></i> 地球自转相关公式</h3>
+                        <div class="formula">T = 24小时 = 86400秒</div>
+                        <div class="formula">ω = 2π/T = 7.27×10⁻⁵ rad/s</div>
+                        <div class="formula">v = ωR = 465 m/s (赤道)</div>
+                        <p>其中：</p>
+                        <ul>
+                            <li><strong>T</strong> - 地球自转周期</li>
+                            <li><strong>ω</strong> - 地球自转角速度</li>
+                            <li><strong>v</strong> - 赤道线速度</li>
+                            <li><strong>R</strong> - 地球半径 (≈6400 km)</li>
+                        </ul>
+                        <p>赤道上的物体随着地球一起自转，具有与地球相同的角速度。</p>
+                    </div>
+                    
+                    <div class="explanation">
+                        <h4><i class="fas fa-lightbulb"></i> 理解要点</h4>
+                        <p>地球自转是地球绕自身轴线旋转的运动，自转一周所需时间为一个恒星日（约23小时56分4秒），通常取24小时为太阳日。赤道上的物体随地球自转，但并未脱离地球表面，而是受到地面的支持力平衡了重力和所需的向心力。</p>
+                    </div>
+                </section>
+                
+                <!-- 情形2：近地卫星 -->
+                <section id="scenario-2" class="scenario-section">
+                    <h2 class="section-title"><i class="fas fa-satellite"></i> 情形2：近地卫星</h2>
+                    
+                    <div class="animation-area" id="near-satellite-animation">
+                        <canvas id="nearSatelliteCanvas" class="demo-canvas"></canvas>
+                        <div class="legend">
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #1e88e5;"></div>
+                                <span>地球</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #4caf50;"></div>
+                                <span>近地卫星</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #ccc;"></div>
+                                <span>轨道</span>
+                            </div>
+                        </div>
+                        <div class="info-display" id="near-sat-info">
+                            <strong>近地卫星信息</strong><br>
+                            轨道高度: ~200-2000 km<br>
+                            运行周期: ~1.5-2小时<br>
+                            环绕速度: ~7.8-7.1 km/s
+                        </div>
+                    </div>
+                    
+                    <div class="controls">
+                        <button class="control-btn" id="near-sat-start-btn">
+                            <i class="fas fa-play"></i> 开始运行
+                        </button>
+                        <button class="control-btn" id="near-sat-stop-btn">
+                            <i class="fas fa-pause"></i> 暂停运行
+                        </button>
+                        <button class="control-btn orange" id="near-sat-speed-up">
+                            <i class="fas fa-forward"></i> 加速
+                        </button>
+                        <button class="control-btn purple" id="near-sat-height-btn">
+                            <i class="fas fa-arrows-alt-v"></i> 调整高度
+                        </button>
+                        
+                        <div class="slider-container">
+                            <label for="near-sat-height-slider">轨道高度:</label>
+                            <input type="range" id="near-sat-height-slider" min="200" max="2000" step="100" value="400">
+                            <span id="near-sat-height-value">400</span> km
+                        </div>
+                    </div>
+                    
+                    <div class="formula-box">
+                        <h3><i class="fas fa-calculator"></i> 近地卫星运动公式</h3>
+                        <div class="formula">GMm/r² = mv²/r = mω²r</div>
+                        <div class="formula">v = √(GM/r) ≈ √(gR<sub>地球</sub>²/r)</div>
+                        <div class="formula">T = 2π√(r³/GM) ≈ 2π√(r³/gR<sub>地球</sub>²)</div>
+                        <p>其中：</p>
+                        <ul>
+                            <li><strong>G</strong> - 万有引力常数</li>
+                            <li><strong>M</strong> - 地球质量</li>
+                            <li><strong>m</strong> - 卫星质量</li>
+                            <li><strong>r</strong> - 轨道半径 (R+h)</li>
+                            <li><strong>v</strong> - 环绕速度</li>
+                            <li><strong>T</strong> - 运行周期</li>
+                            <li><strong>R<sub>地球</sub></strong> - 地球半径</li>
+                            <li><strong>h</strong> - 轨道高度</li>
+                        </ul>
+                        <p>近地卫星依靠万有引力提供向心力做匀速圆周运动，轨道高度较低(200-2000km)，运行速度快，周期短。</p>
+                    </div>
+                    
+                    <div class="explanation">
+                        <h4><i class="fas fa-lightbulb"></i> 理解要点</h4>
+                        <p>近地卫星是在地球引力作用下绕地球做匀速圆周运动的人造天体。万有引力恰好提供所需的向心力，使卫星能够稳定运行而不坠落。近地卫星的轨道高度较低，因此环绕速度较大(约7.1-7.8km/s)，运行周期较短(约1.5-2小时)。</p>
+                    </div>
+                </section>
+                
+                <!-- 情形3：同步卫星 -->
+                <section id="scenario-3" class="scenario-section">
+                    <h2 class="section-title"><i class="fas fa-satellite-dish"></i> 情形3：同步卫星</h2>
+                    
+                    <div class="animation-area" id="sync-sat-animation">
+                        <canvas id="syncSatelliteCanvas" class="demo-canvas"></canvas>
+                        <div class="legend">
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #1e88e5;"></div>
+                                <span>地球</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #ff9800;"></div>
+                                <span>同步卫星</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #ccc;"></div>
+                                <span>轨道</span>
+                            </div>
+                        </div>
+                        <div class="info-display" id="sync-sat-info">
+                            <strong>同步卫星信息</strong><br>
+                            轨道高度: ~35,786 km<br>
+                            运行周期: 24小时<br>
+                            环绕速度: ~3.07 km/s<br>
+                            轨道半径: ~42,164 km
+                        </div>
+                    </div>
+                    
+                    <div class="controls">
+                        <button class="control-btn" id="sync-sat-start-btn">
+                            <i class="fas fa-play"></i> 开始运行
+                        </button>
+                        <button class="control-btn" id="sync-sat-stop-btn">
+                            <i class="fas fa-pause"></i> 暂停运行
+                        </button>
+                        <button class="control-btn orange" id="sync-sat-speed-up">
+                            <i class="fas fa-forward"></i> 加速
+                        </button>
+                        <button class="control-btn purple" id="sync-sat-orbit-btn">
+                            <i class="fas fa-sync-alt"></i> 调整轨道
+                        </button>
+                        
+                        <div class="slider-container">
+                            <label for="sync-sat-angle-slider">视角:</label>
+                            <input type="range" id="sync-sat-angle-slider" min="0" max="360" step="10" value="0">
+                            <span id="sync-sat-angle-value">0</span>°
+                        </div>
+                    </div>
+                    
+                    <div class="formula-box">
+                        <h3><i class="fas fa-calculator"></i> 同步卫星运动公式</h3>
+                        <div class="formula">T = 24小时 = 86164秒 (恒星日)</div>
+                        <div class="formula">GMm/r² = mω²r → r³ = GM/ω²</div>
+                        <div class="formula">r = ∛(GM/ω²) ≈ 42,164 km</div>
+                        <div class="formula">h = r - R<sub>地球</sub> ≈ 35,786 km</div>
+                        <p>其中：</p>
+                        <ul>
+                            <li><strong>T</strong> - 同步卫星运行周期</li>
+                            <li><strong>ω</strong> - 同步卫星角速度</li>
+                            <li><strong>r</strong> - 轨道半径</li>
+                            <li><strong>h</strong> - 轨道高度</li>
+                            <li><strong>R<sub>地球</sub></strong> - 地球半径</li>
+                            <li><strong>G</strong> - 万有引力常数</li>
+                            <li><strong>M</strong> - 地球质量</li>
+                        </ul>
+                        <p>同步卫星的运行周期与地球自转周期相同，相对地面静止，轨道必须位于赤道平面内。</p>
+                    </div>
+                    
+                    <div class="explanation">
+                        <h4><i class="fas fa-lightbulb"></i> 理解要点</h4>
+                        <p>同步卫星（或称静止轨道卫星）的运行周期恰好等于地球自转周期，因此相对于地面静止不动。这种卫星必须位于赤道平面内，且轨道高度固定为约35,786公里。同步卫星广泛应用于通信、气象观测等领域。</p>
+                    </div>
+                </section>
+                
+                <!-- 情形4：综合对比 -->
+                <section id="scenario-4" class="scenario-section">
+                    <h2 class="section-title"><i class="fas fa-layer-group"></i> 情形4：综合对比</h2>
+                    
+                    <div class="animation-area" id="comparison-animation">
+                        <canvas id="comparisonCanvas" class="demo-canvas"></canvas>
+                        <div class="legend">
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #1e88e5;"></div>
+                                <span>地球</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #ff5722;"></div>
+                                <span>赤道物体</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #4caf50;"></div>
+                                <span>近地卫星</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #ff9800;"></div>
+                                <span>同步卫星</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #ccc;"></div>
+                                <span>轨道</span>
+                            </div>
+                        </div>
+                        <div class="info-display" id="comparison-info">
+                            <strong>三种运动对比</strong><br>
+                            赤道物体: 静止相对地球<br>
+                            近地卫星: 快速环绕地球<br>
+                            同步卫星: 相对地面静止
+                        </div>
+                    </div>
+                    
+                    <div class="controls">
+                        <button class="control-btn" id="compare-all-start-btn">
+                            <i class="fas fa-play"></i> 开始动画
+                        </button>
+                        <button class="control-btn" id="compare-all-stop-btn">
+                            <i class="fas fa-pause"></i> 暂停动画
+                        </button>
+                        <button class="control-btn orange" id="compare-speed-up">
+                            <i class="fas fa-forward"></i> 加速
+                        </button>
+                        <button class="control-btn green" id="compare-analysis-btn">
+                            <i class="fas fa-chart-bar"></i> 数据分析
+                        </button>
+                    </div>
+                    
+                    <div class="formula-box">
+                        <h3><i class="fas fa-calculator"></i> 三种运动对比表</h3>
+                        <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
+                            <tr style="background-color: #e3f2fd;">
+                                <th style="border: 1px solid #ddd; padding: 10px;">项目</th>
+                                <th style="border: 1px solid #ddd; padding: 10px;">赤道物体</th>
+                                <th style="border: 1px solid #ddd; padding: 10px;">近地卫星</th>
+                                <th style="border: 1px solid #ddd; padding: 10px;">同步卫星</th>
+                            </tr>
+                            <tr>
+                                <td style="border: 1px solid #ddd; padding: 10px;">运动状态</td>
+                                <td style="border: 1px solid #ddd; padding: 10px;">随地球自转</td>
+                                <td style="border: 1px solid #ddd; padding: 10px;">环绕地球</td>
+                                <td style="border: 1px solid #ddd; padding: 10px;">同步环绕</td>
+                            </tr>
+                            <tr style="background-color: #f5f9ff;">
+                                <td style="border: 1px solid #ddd; padding: 10px;">周期</td>
+                                <td style="border: 1px solid #ddd; padding: 10px;">24小时</td>
+                                <td style="border: 1px solid #ddd; padding: 10px;">~1.5小时</td>
+                                <td style="border: 1px solid #ddd; padding: 10px;">24小时</td>
+                            </tr>
+                            <tr>
+                                <td style="border: 1px solid #ddd; padding: 10px;">角速度</td>
+                                <td style="border: 1px solid #ddd; padding: 10px;">最小</td>
+                                <td style="border: 1px solid #ddd; padding: 10px;">最大</td>
+                                <td style="border: 1px solid #ddd; padding: 10px;">与地球相同</td>
+                            </tr>
+                            <tr style="background-color: #f5f9ff;">
+                                <td style="border: 1px solid #ddd; padding: 10px;">线速度</td>
+                                <td style="border: 1px solid #ddd; padding: 10px;">~465m/s</td>
+                                <td style="border: 1px solid #ddd; padding: 10px;">~7.8km/s</td>
+                                <td style="border: 1px solid #ddd; padding: 10px;">~3.07km/s</td>
+                            </tr>
+                            <tr>
+                                <td style="border: 1px solid #ddd; padding: 10px;">向心力来源</td>
+                                <td style="border: 1px solid #ddd; padding: 10px;">重力分力</td>
+                                <td style="border: 1px solid #ddd; padding: 10px;">万有引力</td>
+                                <td style="border: 1px solid #ddd; padding: 10px;">万有引力</td>
+                            </tr>
+                            <tr style="background-color: #f5f9ff;">
+                                <td style="border: 1px solid #ddd; padding: 10px;">轨道高度</td>
+                                <td style="border: 1px solid #ddd; padding: 10px;">0</td>
+                                <td style="border: 1px solid #ddd; padding: 10px;">~200-2000km</td>
+                                <td style="border: 1px solid #ddd; padding: 10px;">~35,786km</td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <div class="explanation">
+                        <h4><i class="fas fa-lightbulb"></i> 对比总结</h4>
+                        <p>1. <strong>赤道物体</strong>：随地球自转，角速度与地球相同，但线速度较小，无需额外的向心力维持圆周运动，因为它是地球的一部分。</p>
+                        <p>2. <strong>近地卫星</strong>：依靠万有引力提供全部向心力，运行周期短，速度大，轨道高度低。</p>
+                        <p>3. <strong>同步卫星</strong>：运行周期与地球自转周期相同，相对于地面静止，轨道高度固定且较高，只能位于赤道平面上。</p>
+                        <p>4. 三者共同点：都做匀速圆周运动，都需要向心力；不同点：向心力来源、大小及运动参数不同。</p>
+                    </div>
+                </section>
+            </div>
+            
+            <div class="sidebar">
+                <div class="formula-box">
+                    <h3><i class="fas fa-info-circle"></i> 物理概念解析</h3>
+                    <div id="current-scenario-info">
+                        <p><strong>三种运动形式的特点</strong></p>
+                        <p>1. <strong>赤道物体</strong>：与地球一体旋转，受重力和支持力平衡</p>
+                        <p>2. <strong>近地卫星</strong>：万有引力提供向心力，绕地球高速运行</p>
+                        <p>3. <strong>同步卫星</strong>：周期与地球自转相同，相对地面静止</p>
+                    </div>
+                </div>
+                
+                <div class="formula-box">
+                    <h3><i class="fas fa-book"></i> 核心公式</h3>
+                    <ul>
+                        <li><strong>万有引力定律</strong>: F = GMm/r²</li>
+                        <li><strong>向心力公式</strong>: F = mv²/r = mω²r</li>
+                        <li><strong>环绕速度</strong>: v = √(GM/r)</li>
+                        <li><strong>运行周期</strong>: T = 2π√(r³/GM)</li>
+                        <li><strong>角速度</strong>: ω = 2π/T</li>
+                    </ul>
+                </div>
+                
+                <div class="formula-box">
+                    <h3><i class="fas fa-star"></i> 关键区别</h3>
+                    <p><strong>轨道高度</strong>：近地卫星 < 同步卫星 < 无限远</p>
+                    <p><strong>运行周期</strong>：近地卫星 < 赤道物体=同步卫星</p>
+                    <p><strong>运行速度</strong>：近地卫星 > 同步卫星 > 赤道物体</p>
+                    <p><strong>角速度</strong>：近地卫星 > 同步卫星=赤道物体</p>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>近地卫星、同步卫星与赤道物体虚拟实验 | 根据物理教材内容制作 | 公众号：一区小牛顿</p>
+            <p>本演示仅用于教学目的，帮助理解三种运动形式的异同</p>
+        </footer>
+    </div>
+    
+    <!-- 习题弹窗 -->
+    <div id="quiz-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="close-modal" id="close-modal">&times;</span>
+            <h2><i class="fas fa-question-circle"></i> 卫星运动知识检测</h2>
+            
+            <div class="question">
+                <p>1. 同步卫星的运行周期是多少？</p>
+                <div class="options">
+                    <div class="option" data-correct="false">A. 12小时</div>
+                    <div class="option" data-correct="true">B. 24小时</div>
+                    <div class="option" data-correct="false">C. 1小时</div>
+                    <div class="option" data-correct="false">D. 8小时</div>
+                </div>
+            </div>
+            
+            <div class="question">
+                <p>2. 近地卫星的环绕速度大约是多少？</p>
+                <div class="options">
+                    <div class="option" data-correct="false">A. 1.0 km/s</div>
+                    <div class="option" data-correct="false">B. 3.1 km/s</div>
+                    <div class="option" data-correct="true">C. 7.8 km/s</div>
+                    <div class="option" data-correct="false">D. 11.2 km/s</div>
+                </div>
+            </div>
+            
+            <div class="question">
+                <p>3. 赤道上的物体与同步卫星相比，它们有什么相同之处？</p>
+                <div class="options">
+                    <div class="option" data-correct="false">A. 线速度相同</div>
+                    <div class="option" data-correct="false">B. 轨道半径相同</div>
+                    <div class="option" data-correct="true">C. 角速度相同</div>
+                    <div class="option" data-correct="false">D. 向心力大小相同</div>
+                </div>
+            </div>
+            
+            <div class="question">
+                <p>4. 同步卫星必须位于哪个平面内？</p>
+                <div class="options">
+                    <div class="option" data-correct="false">A. 北极上空</div>
+                    <div class="option" data-correct="false">B. 任意平面</div>
+                    <div class="option" data-correct="true">C. 赤道平面</div>
+                    <div class="option" data-correct="false">D. 南极上空</div>
+                </div>
+            </div>
+            
+            <div class="question">
+                <p>5. 下列关于近地卫星、同步卫星和赤道物体的比较，哪项是正确的？</p>
+                <div class="options">
+                    <div class="option" data-correct="false">A. 同步卫星的线速度大于近地卫星</div>
+                    <div class="option" data-correct="false">B. 赤道物体的角速度大于同步卫星</div>
+                    <div class="option" data-correct="true">C. 近地卫星的角速度大于同步卫星</div>
+                    <div class="option" data-correct="false">D. 三者的线速度相等</div>
+                </div>
+            </div>
+            
+            <div id="quiz-result" class="result"></div>
+            
+            <button class="control-btn green" id="submit-quiz" style="width:100%;margin-top:20px;">
+                <i class="fas fa-check"></i> 提交答案
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let animations = {
+            earth: { animating: false, angle: 0, speed: 1 },
+            nearSat: { animating: false, angle: 0, speed: 1, height: 400 },
+            syncSat: { animating: false, angle: 0, speed: 1 },
+            comparison: { animating: false, earthAngle: 0, nearSatAngle: 0, syncSatAngle: 0, speed: 1 }
+        };
+        
+        let animationFrames = {};
+        
+        // 获取DOM元素
+        const earthCanvas = document.getElementById('earthCanvas');
+        const nearSatelliteCanvas = document.getElementById('nearSatelliteCanvas');
+        const syncSatelliteCanvas = document.getElementById('syncSatelliteCanvas');
+        const comparisonCanvas = document.getElementById('comparisonCanvas');
+        
+        // 设置canvas尺寸
+        function setupCanvases() {
+            const containers = document.querySelectorAll('.animation-area');
+            containers.forEach(container => {
+                const canvas = container.querySelector('canvas');
+                if (canvas) {
+                    canvas.width = container.clientWidth;
+                    canvas.height = container.clientHeight;
+                }
+            });
+        }
+        
+        // 初始化所有场景
+        function initScenarios() {
+            setupCanvases();
+            
+            // 场景切换事件
+            document.querySelectorAll('.scenario-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // 更新活动按钮
+                    document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // 更新活动场景
+                    const scenarioId = this.getAttribute('data-scenario');
+                    document.querySelectorAll('.scenario-section').forEach(section => {
+                        section.classList.remove('active');
+                    });
+                    document.getElementById(`scenario-${scenarioId}`).classList.add('active');
+                    
+                    // 重新设置canvas尺寸
+                    setTimeout(setupCanvases, 100);
+                });
+            });
+            
+            // 习题相关事件
+            document.getElementById('quiz-btn').addEventListener('click', () => {
+                document.getElementById('quiz-modal').style.display = 'flex';
+            });
+            
+            document.getElementById('close-modal').addEventListener('click', () => {
+                document.getElementById('quiz-modal').style.display = 'none';
+            });
+            
+            // 点击模态框外部也可以关闭
+            document.getElementById('quiz-modal').addEventListener('click', (e) => {
+                if (e.target.id === 'quiz-modal') {
+                    document.getElementById('quiz-modal').style.display = 'none';
+                }
+            });
+            
+            document.getElementById('submit-quiz').addEventListener('click', checkQuizAnswers);
+            
+            // 选项点击事件 - 修复版本
+            function setupQuizEvents() {
+                // 使用事件委托的方式处理选项点击
+                const quizModal = document.getElementById('quiz-modal');
+                
+                // 为所有选项添加事件监听器
+                quizModal.addEventListener('click', function(e) {
+                    if (e.target.classList.contains('option')) {
+                        const option = e.target;
+                        // 取消之前的选择
+                        option.parentElement.querySelectorAll('.option').forEach(opt => {
+                            opt.classList.remove('selected');
+                        });
+                        // 添加当前选择
+                        option.classList.add('selected');
+                    }
+                });
+            }
+            
+            // 初始化时设置事件
+            setupQuizEvents();
+            
+            // 点击习题检测按钮时显示模态框
+            document.getElementById('quiz-btn').addEventListener('click', () => {
+                document.getElementById('quiz-modal').style.display = 'flex';
+            });
+            
+            // 窗口大小调整事件
+            window.addEventListener('resize', setupCanvases);
+            
+            // 情形1 控制事件
+            document.getElementById('earth-start-btn').addEventListener('click', () => {
+                animations.earth.animating = true;
+                startEarthAnimation();
+            });
+            
+            document.getElementById('earth-stop-btn').addEventListener('click', () => {
+                animations.earth.animating = false;
+                cancelAnimationFrame(animationFrames.earth);
+            });
+            
+            document.getElementById('earth-speed-up').addEventListener('click', () => {
+                animations.earth.speed = Math.min(2, animations.earth.speed + 0.2);
+                document.getElementById('earth-speed-slider').value = animations.earth.speed;
+                document.getElementById('earth-speed-value').textContent = animations.earth.speed.toFixed(1);
+            });
+            
+            document.getElementById('earth-speed-slider').addEventListener('input', (e) => {
+                animations.earth.speed = parseFloat(e.target.value);
+                document.getElementById('earth-speed-value').textContent = animations.earth.speed.toFixed(1);
+            });
+            
+            // 情形2 控制事件
+            document.getElementById('near-sat-start-btn').addEventListener('click', () => {
+                animations.nearSat.animating = true;
+                startNearSatAnimation();
+            });
+            
+            document.getElementById('near-sat-stop-btn').addEventListener('click', () => {
+                animations.nearSat.animating = false;
+                cancelAnimationFrame(animationFrames.nearSat);
+            });
+            
+            document.getElementById('near-sat-speed-up').addEventListener('click', () => {
+                animations.nearSat.speed = Math.min(2, animations.nearSat.speed + 0.2);
+            });
+            
+            document.getElementById('near-sat-height-slider').addEventListener('input', (e) => {
+                animations.nearSat.height = parseInt(e.target.value);
+                document.getElementById('near-sat-height-value').textContent = animations.nearSat.height;
+            });
+            
+            // 情形3 控制事件
+            document.getElementById('sync-sat-start-btn').addEventListener('click', () => {
+                animations.syncSat.animating = true;
+                startSyncSatAnimation();
+            });
+            
+            document.getElementById('sync-sat-stop-btn').addEventListener('click', () => {
+                animations.syncSat.animating = false;
+                cancelAnimationFrame(animationFrames.syncSat);
+            });
+            
+            document.getElementById('sync-sat-speed-up').addEventListener('click', () => {
+                animations.syncSat.speed = Math.min(2, animations.syncSat.speed + 0.2);
+            });
+            
+
+            
+            // 情形4 控制事件
+            document.getElementById('compare-all-start-btn').addEventListener('click', () => {
+                animations.comparison.animating = true;
+                startComparisonAnimation();
+            });
+            
+            document.getElementById('compare-all-stop-btn').addEventListener('click', () => {
+                animations.comparison.animating = false;
+                cancelAnimationFrame(animationFrames.comparison);
+            });
+            
+            document.getElementById('compare-speed-up').addEventListener('click', () => {
+                animations.comparison.speed = Math.min(2, animations.comparison.speed + 0.2);
+            });
+        }
+        
+        // 绘制地球和赤道物体
+        function drawEarthScene() {
+            const ctx = earthCanvas.getContext('2d');
+            const centerX = earthCanvas.width / 2;
+            const centerY = earthCanvas.height / 2;
+            
+            // 清空画布
+            ctx.clearRect(0, 0, earthCanvas.width, earthCanvas.height);
+            
+            // 绘制星空背景
+            drawStarBackground(ctx, earthCanvas.width, earthCanvas.height);
+            
+            // 绘制地球
+            const earthRadius = Math.min(earthCanvas.width, earthCanvas.height) * 0.25;
+            drawEarth(ctx, centerX, centerY, earthRadius);
+            
+            // 绘制赤道物体
+            const objectRadius = 8;
+            const objectX = centerX + (earthRadius + objectRadius/2) * Math.cos(animations.earth.angle);
+            const objectY = centerY + (earthRadius + objectRadius/2) * Math.sin(animations.earth.angle);
+            
+            ctx.beginPath();
+            ctx.arc(objectX, objectY, objectRadius, 0, Math.PI * 2);
+            ctx.fillStyle = '#ff5722';
+            ctx.fill();
+            ctx.shadowColor = '#ff5722';
+            ctx.shadowBlur = 10;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            
+            // 绘制轨迹线
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, earthRadius + objectRadius/2, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255, 87, 34, 0.3)';
+            ctx.stroke();
+        }
+        
+        // 绘制近地卫星
+        function drawNearSatScene() {
+            const ctx = nearSatelliteCanvas.getContext('2d');
+            const centerX = nearSatelliteCanvas.width / 2;
+            const centerY = nearSatelliteCanvas.height / 2;
+            
+            // 清空画布
+            ctx.clearRect(0, 0, nearSatelliteCanvas.width, nearSatelliteCanvas.height);
+            
+            // 绘制星空背景
+            drawStarBackground(ctx, nearSatelliteCanvas.width, nearSatelliteCanvas.height);
+            
+            // 绘制地球
+            const earthRadius = Math.min(nearSatelliteCanvas.width, nearSatelliteCanvas.height) * 0.25;
+            drawEarth(ctx, centerX, centerY, earthRadius);
+            
+            // 计算轨道半径 (考虑高度)
+            const orbitHeightFactor = 1 + (animations.nearSat.height / 6400); // 地球半径约6400km，轨道半径 = 地球半径 + 高度
+            const orbitRadius = Math.min(earthRadius * 2.0, earthRadius * orbitHeightFactor); // 限制轨道半径，确保小于同步轨道
+            
+            // 绘制轨道
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, orbitRadius, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.setLineDash([5, 5]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // 绘制近地卫星
+            const satRadius = 6;
+            const satX = centerX + orbitRadius * Math.cos(animations.nearSat.angle);
+            const satY = centerY + orbitRadius * Math.sin(animations.nearSat.angle);
+            
+            ctx.beginPath();
+            ctx.arc(satX, satY, satRadius, 0, Math.PI * 2);
+            ctx.fillStyle = '#4caf50';
+            ctx.fill();
+            ctx.shadowColor = '#4caf50';
+            ctx.shadowBlur = 10;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+        
+        // 绘制同步卫星
+        function drawSyncSatScene() {
+            const ctx = syncSatelliteCanvas.getContext('2d');
+            const centerX = syncSatelliteCanvas.width / 2;
+            const centerY = syncSatelliteCanvas.height / 2;
+            
+            // 清空画布
+            ctx.clearRect(0, 0, syncSatelliteCanvas.width, syncSatelliteCanvas.height);
+            
+            // 绘制星空背景
+            drawStarBackground(ctx, syncSatelliteCanvas.width, syncSatelliteCanvas.height);
+            
+            // 绘制地球
+            const earthRadius = Math.min(syncSatelliteCanvas.width, syncSatelliteCanvas.height) * 0.25;
+            drawEarth(ctx, centerX, centerY, earthRadius);
+            
+            // 同步卫星轨道半径（约为地球半径的6.6倍，实际约为35786km/6371km ≈ 5.6倍地球半径，但为了可视化效果适当调整）
+            const orbitRadius = Math.min(earthRadius * 4.5, (Math.min(syncSatelliteCanvas.width, syncSatelliteCanvas.height) - 100) / 2); // 确保轨道不会超出画布，同时保证轨道能完整显示，且大于近地卫星轨道
+            
+            // 绘制轨道
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, orbitRadius, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.setLineDash([5, 5]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // 绘制同步卫星
+            const satRadius = 8; // 增大卫星尺寸以提高可见性
+            const satX = centerX + orbitRadius * Math.cos(animations.syncSat.angle);
+            const satY = centerY + orbitRadius * Math.sin(animations.syncSat.angle);
+            
+            ctx.beginPath();
+            ctx.arc(satX, satY, satRadius, 0, Math.PI * 2);
+            ctx.fillStyle = '#ff9800';
+            ctx.fill();
+            ctx.shadowColor = '#ff9800';
+            ctx.shadowBlur = 10;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+        
+        // 绘制综合对比场景
+        function drawComparisonScene() {
+            const ctx = comparisonCanvas.getContext('2d');
+            const centerX = comparisonCanvas.width / 2;
+            const centerY = comparisonCanvas.height / 2;
+            
+            // 清空画布
+            ctx.clearRect(0, 0, comparisonCanvas.width, comparisonCanvas.height);
+            
+            // 绘制星空背景
+            drawStarBackground(ctx, comparisonCanvas.width, comparisonCanvas.height);
+            
+            // 绘制地球
+            const earthRadius = Math.min(comparisonCanvas.width, comparisonCanvas.height) * 0.25;
+            drawEarth(ctx, centerX, centerY, earthRadius);
+            
+            // 绘制赤道物体
+            const objectRadius = 6;
+            const objectX = centerX + (earthRadius + objectRadius/2) * Math.cos(animations.comparison.earthAngle);
+            const objectY = centerY + (earthRadius + objectRadius/2) * Math.sin(animations.comparison.earthAngle);
+            
+            ctx.beginPath();
+            ctx.arc(objectX, objectY, objectRadius, 0, Math.PI * 2);
+            ctx.fillStyle = '#ff5722';
+            ctx.fill();
+            
+            // 绘制近地卫星轨道
+            const nearSatOrbitRadius = earthRadius * 2.0; // 低轨道，确保小于同步轨道
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, nearSatOrbitRadius, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.setLineDash([3, 3]);
+            ctx.stroke();
+            
+            // 绘制近地卫星
+            const nearSatX = centerX + nearSatOrbitRadius * Math.cos(animations.comparison.nearSatAngle);
+            const nearSatY = centerY + nearSatOrbitRadius * Math.sin(animations.comparison.nearSatAngle);
+            
+            ctx.beginPath();
+            ctx.arc(nearSatX, nearSatY, objectRadius-1, 0, Math.PI * 2);
+            ctx.fillStyle = '#4caf50';
+            ctx.fill();
+            
+            // 绘制同步卫星轨道
+            const syncSatOrbitRadius = Math.max(nearSatOrbitRadius * 1.8, Math.min(earthRadius * 4.5, (Math.min(comparisonCanvas.width, comparisonCanvas.height) - 100) / 2)); // 确保轨道不会超出画布，同步轨道，调整为更合适的比例，确保轨道能完整显示且明确大于近地卫星轨道
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, syncSatOrbitRadius, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.stroke();
+            
+            // 绘制同步卫星
+            const syncSatX = centerX + syncSatOrbitRadius * Math.cos(animations.comparison.syncSatAngle);
+            const syncSatY = centerY + syncSatOrbitRadius * Math.sin(animations.comparison.syncSatAngle);
+            
+            ctx.beginPath();
+            ctx.arc(syncSatX, syncSatY, objectRadius + 2, 0, Math.PI * 2); // 增大同步卫星尺寸以提高可见性
+            ctx.fillStyle = '#ff9800';
+            ctx.fill();
+            
+            // 重置虚线设置
+            ctx.setLineDash([]);
+        }
+        
+        // 绘制地球
+        function drawEarth(ctx, x, y, radius) {
+            // 创建渐变
+            const gradient = ctx.createRadialGradient(
+                x - radius/3, y - radius/3, radius * 0.1,
+                x, y, radius
+            );
+            gradient.addColorStop(0, '#81d4fa');
+            gradient.addColorStop(0.5, '#1e88e5');
+            gradient.addColorStop(1, '#0d47a1');
+            
+            // 绘制地球
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fillStyle = gradient;
+            ctx.fill();
+            
+            // 添加一些纹理效果
+            ctx.beginPath();
+            ctx.arc(x - radius/3, y - radius/4, radius * 0.15, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.arc(x + radius/2, y + radius/3, radius * 0.1, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+            ctx.fill();
+        }
+        
+        // 绘制星空背景
+        function drawStarBackground(ctx, width, height) {
+            // 绘制黑色背景
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, width, height);
+            
+            // 绘制星星
+            if (!window.stars || window.stars.length === 0) {
+                window.stars = [];
+                for (let i = 0; i < 100; i++) {
+                    window.stars.push({
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        size: Math.random() * 1.5,
+                        opacity: 0.3 + Math.random() * 0.7
+                    });
+                }
+            }
+            
+            window.stars.forEach(star => {
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
+                ctx.fill();
+            });
+        }
+        
+        // 地球动画循环
+        function earthAnimationLoop() {
+            if (animations.earth.animating) {
+                // 更新角度
+                animations.earth.angle += 0.01 * animations.earth.speed;
+                
+                // 绘制场景
+                drawEarthScene();
+                
+                // 继续动画循环
+                animationFrames.earth = requestAnimationFrame(earthAnimationLoop);
+            }
+        }
+        
+        // 近地卫星动画循环
+        function nearSatAnimationLoop() {
+            if (animations.nearSat.animating) {
+                // 更新角度 (近地卫星运行快)
+                animations.nearSat.angle += 0.05 * animations.nearSat.speed;
+                
+                // 绘制场景
+                drawNearSatScene();
+                
+                // 继续动画循环
+                animationFrames.nearSat = requestAnimationFrame(nearSatAnimationLoop);
+            }
+        }
+        
+        // 同步卫星动画循环
+        function syncSatAnimationLoop() {
+            if (animations.syncSat.animating) {
+                // 更新角度 (同步卫星运行周期与地球相同，但为了可视化效果稍微加快)
+                animations.syncSat.angle += 0.01 * animations.syncSat.speed; // 稍微加快以提高可视化效果
+                
+                // 绘制场景
+                drawSyncSatScene();
+                
+                // 继续动画循环
+                animationFrames.syncSat = requestAnimationFrame(syncSatAnimationLoop);
+            }
+        }
+        
+        // 综合对比动画循环
+        function comparisonAnimationLoop() {
+            if (animations.comparison.animating) {
+                // 更新各个角度
+                animations.comparison.earthAngle += 0.01 * animations.comparison.speed;
+                animations.comparison.nearSatAngle += 0.05 * animations.comparison.speed;  // 近地卫星最快
+                animations.comparison.syncSatAngle += 0.01 * animations.comparison.speed; // 同步卫星与地球相同
+                
+                // 绘制场景
+                drawComparisonScene();
+                
+                // 继续动画循环
+                animationFrames.comparison = requestAnimationFrame(comparisonAnimationLoop);
+            }
+        }
+        
+        // 启动动画函数
+        function startEarthAnimation() {
+            if (!animationFrames.earth) {
+                earthAnimationLoop();
+            }
+        }
+        
+        function startNearSatAnimation() {
+            if (!animationFrames.nearSat) {
+                nearSatAnimationLoop();
+            }
+        }
+        
+        function startSyncSatAnimation() {
+            if (!animationFrames.syncSat) {
+                syncSatAnimationLoop();
+            }
+        }
+        
+        function startComparisonAnimation() {
+            if (!animationFrames.comparison) {
+                comparisonAnimationLoop();
+            }
+        }
+        
+        // 习题检查函数
+        function checkQuizAnswers() {
+            let score = 0;
+            const totalQuestions = 5;
+            
+            // 检查每个问题
+            const questions = document.querySelectorAll('.question');
+            questions.forEach(question => {
+                const selectedOption = question.querySelector('.option.selected');
+                if (selectedOption && selectedOption.dataset.correct === "true") {
+                    score++;
+                    selectedOption.classList.add('correct');
+                } else if (selectedOption) {
+                    selectedOption.classList.add('incorrect');
+                    // 找到正确答案并标记
+                    const correctOption = question.querySelector('.option[data-correct="true"]');
+                    if (correctOption) {
+                        correctOption.classList.add('correct');
+                    }
+                } else {
+                    // 如果没选，直接标记正确答案
+                    const correctOption = question.querySelector('.option[data-correct="true"]');
+                    if (correctOption) {
+                        correctOption.classList.add('correct');
+                    }
+                }
+            });
+            
+            // 显示结果
+            const resultDiv = document.getElementById('quiz-result');
+            const percentage = (score / totalQuestions) * 100;
+            
+            // 根据得分生成学情分析
+            let resultText = '';
+            let analysisText = '';
+            let suggestionText = '';
+            let resultClass = '';
+            
+            if (percentage === 100) {
+                resultText = `完美！您的得分: ${score}/${totalQuestions} (${percentage}%)。您已完全掌握卫星运动知识！`;
+                analysisText = '<p><strong>学情分析：</strong>您对近地卫星、同步卫星和赤道物体的运动特点有非常深刻的理解，掌握了它们的运动规律、轨道特点和物理原理。</p>';
+                suggestionText = '<p><strong>学习建议：</strong>继续保持，您可以尝试更复杂的轨道力学问题，或者探索更多关于航天器发射和轨道转移的知识。</p>';
+                resultClass = 'correct';
+            } else if (percentage >= 80) {
+                resultText = `很好！您的得分: ${score}/${totalQuestions} (${percentage}%)。您对卫星运动有很好的理解。`;
+                analysisText = '<p><strong>学情分析：</strong>您较好地掌握了卫星运动的基本概念，但可能在某些细节方面还有待加强。</p>';
+                suggestionText = '<p><strong>学习建议：</strong>建议重点复习错误题目涉及的知识点，特别是同步卫星与地球自转的关系、近地卫星的运行速度等概念。</p>';
+                resultClass = 'correct';
+            } else if (percentage >= 60) {
+                resultText = `不错！您的得分: ${score}/${totalQuestions} (${percentage}%)。还需加强对某些概念的理解。`;
+                analysisText = '<p><strong>学情分析：</strong>您对卫星运动有基本的认识，但对一些重要概念的理解还不够深入，特别是在轨道半径、运行周期和速度的关系方面。</p>';
+                suggestionText = '<p><strong>学习建议：</strong>建议重点复习万有引力定律、向心力公式以及不同类型卫星的运动特点。多思考同步卫星为什么能相对地面静止，近地卫星为什么运行速度快等问题。</p>';
+                resultClass = 'incorrect';
+            } else {
+                resultText = `需要加强学习，您的得分: ${score}/${totalQuestions} (${percentage}%)。请复习卫星运动的相关知识。`;
+                analysisText = '<p><strong>学情分析：</strong>您对卫星运动的概念掌握不够扎实，需要重新梳理近地卫星、同步卫星和赤道物体的基本特点及其区别。</p>';
+                suggestionText = '<p><strong>学习建议：</strong>建议从基础概念开始复习：万有引力提供向心力、同步卫星的轨道高度、周期与角速度的关系等。利用本仿真程序加深理解，观察不同卫星的运动轨迹和速度差异。</p>';
+                resultClass = 'incorrect';
+            }
+            
+            // 生成详细结果
+            resultDiv.innerHTML = `
+                <div class="result-content">
+                    <p>${resultText}</p>
+                    ${analysisText}
+                    ${suggestionText}
+                    <div class="review-section">
+                        <h4>错题回顾：</h4>
+                        <ul>
+                            ${generateReviewList(questions)}
+                        </ul>
+                    </div>
+                </div>
+            `;
+            resultDiv.className = `result ${resultClass}`;
+            resultDiv.style.display = 'block';
+        }
+        
+        // 生成错题回顾列表
+        function generateReviewList(questions) {
+            let reviewList = '';
+            questions.forEach((question, index) => {
+                const questionNumber = index + 1;
+                const selectedOption = question.querySelector('.option.selected');
+                const correctOption = question.querySelector('.option[data-correct="true"]');
+                const correctAnswer = correctOption ? correctOption.textContent.trim().substring(0, 1) : '';
+                
+                if (!selectedOption || (selectedOption && selectedOption.dataset.correct !== "true")) {
+                    const userChoice = selectedOption ? selectedOption.textContent.trim().substring(0, 1) : '未选择';
+                    reviewList += `<li>第${questionNumber}题：您的选择是【${userChoice}】，正确答案是【${correctAnswer}】</li>`;
+                }
+            });
+            
+            if (!reviewList) {
+                reviewList = '<li>恭喜！您全部答对了，没有错题。</li>';
+            }
+            
+            return reviewList;
+        }
+        
+        // 页面加载完成后初始化
+        window.onload = initScenarios;
+    </script>
+</body>
+</html>

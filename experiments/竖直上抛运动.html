@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>竖直上抛运动 · 对称性模拟</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background: #1f3342;
+            font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            background: #132433;
+            border-radius: 40px;
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.7);
+            border: 1px solid #2f5980;
+        }
+        .title {
+            font-size: 2.2rem;
+            font-weight: 500;
+            color: #eaf3ff;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .title span {
+            background: #2b5075;
+            font-size: 1rem;
+            padding: 6px 18px;
+            border-radius: 40px;
+            color: #c4dcff;
+        }
+        /* 控制面板 */
+        .control-panel {
+            background: #194058;
+            border-radius: 36px;
+            padding: 22px 28px;
+            margin-bottom: 24px;
+            border: 1px solid #2f6b9c;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            align-items: flex-end;
+        }
+        .slider-group {
+            flex: 1 1 160px;
+        }
+        .slider-group label {
+            display: flex;
+            justify-content: space-between;
+            color: #cfe5ff;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        .slider-group label span {
+            background: #1d5277;
+            padding: 3px 14px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+        }
+        input[type=range] {
+            width: 100%;
+            height: 8px;
+            background: #26638f;
+            border-radius: 20px;
+            -webkit-appearance: none;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            background: #6bb0ff;
+            border-radius: 50%;
+            border: 2px solid #d2e6ff;
+            cursor: pointer;
+            box-shadow: 0 2px 8px black;
+            margin-top: -7px;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-left: auto;
+        }
+        .action-buttons button {
+            background: #2f618a;
+            border: none;
+            color: white;
+            padding: 12px 28px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1rem;
+            border: 1px solid #5688c2;
+            box-shadow: 0 5px 0 #0c263c;
+            transition: 0.1s;
+        }
+        .action-buttons button:hover {
+            background: #3f78aa;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 0 #0c263c;
+        }
+        /* 动画区 */
+        .animation-area {
+            background: #153149;
+            border-radius: 40px;
+            padding: 20px;
+            border: 1px solid #2f6b9e;
+            margin-bottom: 24px;
+        }
+        #canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: #0c1f32;
+            border-radius: 32px;
+            border: 1px solid #3070a5;
+        }
+        .caption {
+            color: #b1cef0;
+            margin-top: 8px;
+            padding-left: 16px;
+            font-size: 0.9rem;
+        }
+        /* 数据区 */
+        .data-panel {
+            background: #16344d;
+            border-radius: 36px;
+            padding: 22px 28px;
+            border: 1px solid #2e6ea3;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: space-between;
+        }
+        .data-item {
+            background: #0e2940;
+            border-radius: 30px;
+            padding: 14px 20px;
+            min-width: 140px;
+            flex: 1 1 150px;
+            border: 1px solid #3273ad;
+        }
+        .data-item .label {
+            color: #b8d6ff;
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+        }
+        .data-item .value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #ffda9e;
+        }
+        .data-item .unit {
+            font-size: 1rem;
+            color: #8fb4dc;
+            margin-left: 4px;
+        }
+        .conclusion {
+            background: #144461;
+            border-radius: 60px;
+            padding: 18px 28px;
+            margin-top: 24px;
+            color: #e6f0ff;
+            border: 1px solid #3f84bf;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+        .conclusion div {
+            background: #1f5c88;
+            padding: 6px 22px;
+            border-radius: 40px;
+            font-size: 0.98rem;
+        }
+        hr {
+            border: 0.5px solid #2f6797;
+            margin: 12px 0;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+<div class="container">
+    <div class="title">
+        ⬆️ 竖直上抛运动 · 对称性模拟
+        <span>上升与下落时间相等</span>
+    </div>
+
+    <!-- 控制面板 -->
+    <div class="control-panel">
+        <div class="slider-group">
+            <label>🚀 初速度 v₀ <span id="v0val">20.0 m/s</span></label>
+            <input type="range" id="v0slider" min="0" max="40" value="20" step="0.5">
+        </div>
+        <div class="slider-group">
+            <label>🌍 重力加速度 g <span id="gval">9.8 m/s²</span></label>
+            <input type="range" id="gslider" min="1" max="20" value="9.8" step="0.1">
+        </div>
+        <div class="action-buttons">
+            <button id="playPauseBtn">⏸️ 暂停</button>
+            <button id="resetBtn">↺ 重置</button>
+        </div>
+    </div>
+
+    <!-- 动画区 -->
+    <div class="animation-area">
+        <canvas id="canvas" width="700" height="350"></canvas>
+        <div class="caption">小球竖直上抛 · 虚线表示最高点位置</div>
+    </div>
+
+    <!-- 数据区 -->
+    <div class="data-panel">
+        <div class="data-item">
+            <div class="label">当前时间 t</div>
+            <div><span class="value" id="tNow">0.00</span><span class="unit">s</span></div>
+        </div>
+        <div class="data-item">
+            <div class="label">高度 h</div>
+            <div><span class="value" id="hNow">0.00</span><span class="unit">m</span></div>
+        </div>
+        <div class="data-item">
+            <div class="label">速度 v</div>
+            <div><span class="value" id="vNow">20.00</span><span class="unit">m/s</span></div>
+        </div>
+        <div class="data-item">
+            <div class="label">最大高度 Hmax</div>
+            <div><span class="value" id="hMax">20.41</span><span class="unit">m</span></div>
+        </div>
+        <div class="data-item">
+            <div class="label">上升时间 t↑</div>
+            <div><span class="value" id="tUp">2.04</span><span class="unit">s</span></div>
+        </div>
+    </div>
+
+    <!-- 底部结论 -->
+    <div class="conclusion">
+        <div>1️⃣ 竖直上抛上升与下落过程对称，时间相等</div>
+        <div>2️⃣ 速度随时间均匀变化 (v = v₀ - g t)</div>
+        <div>3️⃣ 最高点速度为零，高度最大</div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // 获取canvas
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const width = canvas.width;
+        const height = canvas.height;
+
+        // 滑块
+        const v0slider = document.getElementById('v0slider');
+        const gslider = document.getElementById('gslider');
+        const v0val = document.getElementById('v0val');
+        const gval = document.getElementById('gval');
+
+        // 数据展示
+        const tNow = document.getElementById('tNow');
+        const hNow = document.getElementById('hNow');
+        const vNow = document.getElementById('vNow');
+        const hMax = document.getElementById('hMax');
+        const tUp = document.getElementById('tUp');
+
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+
+        // 物理参数
+        let v0 = 20.0;
+        let g = 9.8;
+
+        // 运动状态
+        let t = 0.0;                // 当前时间 (s)
+        let y = 0.0;                // 当前高度 (m) 从地面起
+        let v = v0;                 // 当前速度
+        let maxY = 0.0;             // 当前周期内达到的最大高度
+        let isMoving = true;        // 是否在空中 (t<=总时间)
+        let totalTime = 2 * v0 / g; // 总运动时间 (落地时t = 2v0/g)
+
+        // 动画控制
+        let isPlaying = true;
+        let animationId = null;
+
+        // 物理常量：地面 y=0，向上为正
+        const groundY = height - 40;    // 地面在画布底部向上40像素
+        const pixPerMeter = 8;          // 每米对应像素数 (使得最大高度约 40*8=320 在画布内)
+        const maxHeightPix = groundY - 40; // 画布顶部预留空间
+
+        // 更新滑块显示
+        function updateReadouts() {
+            v0val.innerText = v0.toFixed(1) + ' m/s';
+            gval.innerText = g.toFixed(1) + ' m/s²';
+        }
+
+        // 重新计算理论值并更新显示
+        function updateTheory() {
+            const maxH = v0 * v0 / (2 * g);
+            const upTime = v0 / g;
+            hMax.innerText = maxH.toFixed(2);
+            tUp.innerText = upTime.toFixed(2);
+        }
+
+        // 更新实时数据显示
+        function updateData() {
+            tNow.innerText = t.toFixed(2);
+            hNow.innerText = y.toFixed(2);
+            vNow.innerText = v.toFixed(2);
+        }
+
+        // 重置运动到起点
+        function resetState() {
+            t = 0.0;
+            y = 0.0;
+            v = v0;
+            totalTime = 2 * v0 / g;
+            isMoving = true;
+            updateData();
+        }
+
+        // 物理更新 (每帧)
+        function updatePhysics() {
+            if (!isPlaying || !isMoving) return;
+
+            const dt = 0.02; // 时间步长 (s)
+            t += dt;
+
+            if (t >= totalTime) {
+                // 落地，停留在y=0，速度置零
+                t = totalTime;
+                y = 0.0;
+                v = -v0; // 实际上落地瞬间速度大小为v0，方向向下，但我们不显示速度方向？可显示为负
+                isMoving = false;
+            } else {
+                // 运动方程
+                y = v0 * t - 0.5 * g * t * t;
+                v = v0 - g * t;
+            }
+
+            // 防止微小负值
+            if (y < 0) y = 0;
+
+            updateData();
+        }
+
+        // 绘制动画
+        function draw() {
+            ctx.clearRect(0, 0, width, height);
+
+            // 画背景天空
+            ctx.fillStyle = '#17334d';
+            ctx.fillRect(0, 0, width, groundY + 10);
+
+            // 画地面
+            ctx.fillStyle = '#3b6e47';
+            ctx.fillRect(0, groundY, width, height - groundY);
+            ctx.fillStyle = '#2b5a35';
+            ctx.fillRect(0, groundY+2, width, 6);
+
+            // 画高度刻度 (每隔5米)
+            ctx.strokeStyle = '#608fbf';
+            ctx.lineWidth = 1;
+            ctx.font = '12px "JetBrains Mono", monospace';
+            ctx.fillStyle = '#b0d0f0';
+            for (let meter = 0; meter <= Math.ceil(v0*v0/(2*g)) + 5; meter += 5) {
+                let yPos = groundY - meter * pixPerMeter;
+                if (yPos < 20) continue;
+                ctx.beginPath();
+                ctx.moveTo(40, yPos);
+                ctx.lineTo(70, yPos);
+                ctx.strokeStyle = '#77aadd';
+                ctx.stroke();
+                ctx.fillText(meter + 'm', 15, yPos - 5);
+            }
+
+            // 画最高点虚线
+            const maxY_theory = v0 * v0 / (2 * g);
+            const maxYPix = groundY - maxY_theory * pixPerMeter;
+            ctx.strokeStyle = '#ffaa33';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([8, 6]);
+            ctx.beginPath();
+            ctx.moveTo(80, maxYPix);
+            ctx.lineTo(width-80, maxYPix);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // 画小球当前位置
+            const ballY = groundY - y * pixPerMeter;
+            // 限制不超出画布顶部
+            const ballY_clamped = Math.max(15, Math.min(groundY - 5, ballY));
+            ctx.shadowColor = '#ffaa33';
+            ctx.shadowBlur = 15;
+            ctx.beginPath();
+            ctx.arc(width/2, ballY_clamped, 16, 0, 2 * Math.PI);
+            ctx.fillStyle = '#ffaa33';
+            ctx.fill();
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            // 显示速度矢量箭头
+            if (Math.abs(v) > 0.1) {
+                ctx.fillStyle = v > 0 ? '#8affb2' : '#ff8a8a';
+                ctx.beginPath();
+                const arrowX = width/2 + 30;
+                const arrowY = ballY_clamped;
+                if (v > 0) {
+                    ctx.moveTo(arrowX, arrowY);
+                    ctx.lineTo(arrowX - 15, arrowY - 8);
+                    ctx.lineTo(arrowX - 15, arrowY + 8);
+                } else {
+                    ctx.moveTo(arrowX, arrowY);
+                    ctx.lineTo(arrowX + 15, arrowY - 8);
+                    ctx.lineTo(arrowX + 15, arrowY + 8);
+                }
+                ctx.closePath();
+                ctx.fill();
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 14px sans-serif';
+                ctx.fillText('v', arrowX + (v>0? -40: 20), arrowY-10);
+            }
+        }
+
+        // 动画循环
+        function animate() {
+            updatePhysics();
+            draw();
+            animationId = requestAnimationFrame(animate);
+        }
+
+        // 事件处理
+
+        function handleSliderChange() {
+            v0 = parseFloat(v0slider.value);
+            g = parseFloat(gslider.value);
+            updateReadouts();
+            updateTheory();
+            resetState(); // 重置运动
+        }
+
+        v0slider.addEventListener('input', handleSliderChange);
+        gslider.addEventListener('input', handleSliderChange);
+
+        playPauseBtn.addEventListener('click', () => {
+            isPlaying = !isPlaying;
+            playPauseBtn.innerHTML = isPlaying ? '⏸️ 暂停' : '▶ 开始';
+        });
+
+        resetBtn.addEventListener('click', () => {
+            resetState();
+            // 如果暂停状态，重置后仍暂停，但数据更新
+            draw(); // 立即重绘
+        });
+
+        // 初始化
+        function init() {
+            // 设置滑块初始值
+            v0slider.value = 20;
+            gslider.value = 9.8;
+            v0 = 20;
+            g = 9.8;
+            updateReadouts();
+            updateTheory();
+            resetState();
+            animate();
+        }
+
+        init();
+
+        window.addEventListener('beforeunload', () => {
+            if (animationId) cancelAnimationFrame(animationId);
+        });
+    })();
+</script>
+</body>
+</html>

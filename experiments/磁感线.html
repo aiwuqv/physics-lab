@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>磁场方向可视化系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 25px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        
+        h1 {
+            color: white;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #bbdefb;
+            font-size: 1.1rem;
+        }
+        
+        .main-content {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .sidebar {
+            width: 250px;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .draggable-item {
+            background-color: #f0f4ff;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            cursor: grab;
+            border: 2px dashed #5c6bc0;
+            text-align: center;
+            transition: transform 0.2s;
+            user-select: none;
+        }
+        
+        .draggable-item:hover {
+            transform: translateY(-3px);
+            background-color: #e3e9ff;
+        }
+        
+        .demo-area {
+            flex: 1;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        #field-grid {
+            width: 100%;
+            height: 500px;
+            border: 2px solid #b0bec5;
+            border-radius: 8px;
+            position: relative;
+            background-color: #fafafa;
+            overflow: hidden;
+            touch-action: none;
+        }
+        
+        .reset-btn {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 15px;
+            transition: background-color 0.3s;
+        }
+        
+        .reset-btn:hover {
+            background-color: #d32f2f;
+        }
+        
+        .quiz-btn {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            display: block;
+            margin: 30px auto;
+            transition: background-color 0.3s;
+        }
+        
+        .quiz-btn:hover {
+            background-color: #388e3c;
+        }
+        
+        /* 箭头样式 */
+        .arrow-cell {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            transition: transform 0.3s ease, color 0.3s ease;
+            user-select: none;
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        /* 磁铁样式 */
+        .magnet {
+            position: absolute;
+            cursor: move;
+            z-index: 10;
+            user-select: none;
+            touch-action: none;
+            transform-origin: center;
+            transition: filter 0.3s;
+        }
+        
+        .magnet.dragging {
+            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3));
+            z-index: 100;
+        }
+        
+        .bar-magnet {
+            width: 180px;
+            height: 60px;
+            background: linear-gradient(to right, #ff4444 0%, #ff4444 48%, #fff 48%, #fff 52%, #4488ff 52%, #4488ff 100%);
+            border-radius: 5px;
+            border: 3px solid #333;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+        
+        .earth {
+            width: 140px;
+            height: 140px;
+            background: radial-gradient(circle at 30% 30%, #4fc3f7 0%, #29b6f6 30%, #0288d1 70%);
+            border-radius: 50%;
+            border: 3px solid #0d47a1;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+        
+        /* 标签样式 */
+        .label {
+            position: absolute;
+            font-weight: bold;
+            font-size: 14px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            text-align: center;
+            min-width: 50px;
+            pointer-events: none;
+        }
+        
+        .north-label {
+            background-color: #ff4444;
+        }
+        
+        .south-label {
+            background-color: #4488ff;
+        }
+        
+        .geo-label {
+            background-color: #333;
+        }
+        
+        /* 弹窗样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            width: 90%;
+            max-width: 600px;
+            border-radius: 10px;
+            padding: 25px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .question {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .option {
+            padding: 10px;
+            margin: 5px 0;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .option:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .option.selected {
+            background-color: #e3f2fd;
+            border: 2px solid #2196f3;
+        }
+        
+        .explanation {
+            display: none;
+            padding: 10px;
+            background-color: #e3f2fd;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        
+        .close-btn {
+            float: right;
+            font-size: 24px;
+            cursor: pointer;
+            color: #777;
+        }
+        
+        footer {
+            text-align: center;
+            color: #bbdefb;
+            padding: 20px;
+        }
+        
+        .grid-info {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <header>
+            <h1>磁场方向可视化系统</h1>
+            <p class="subtitle">拖拽磁体到网格中，观察箭头方向变化表示磁场方向</p>
+            <p class="subtitle" style="margin-top: 10px; color: #ffcc80;">磁感线方向：从N极指向S极</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="sidebar">
+                <h3>磁体库 (拖拽到网格)</h3>
+                
+                <div class="draggable-item" id="bar-magnet-item" draggable="false">
+                    <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 10px;">
+                        <div style="width: 100px; height: 30px; background: linear-gradient(to right, #ff4444 0%, #ff4444 50%, #4488ff 50%, #4488ff 100%); border-radius: 3px;"></div>
+                    </div>
+                    <h4>条形磁铁</h4>
+                    <div style="display: flex; justify-content: space-around; margin-top: 5px;">
+                        <span style="color: #ff4444; font-weight: bold;">N</span>
+                        <span style="color: #4488ff; font-weight: bold;">S</span>
+                    </div>
+                    <p style="font-size: 0.8rem; color: #666; margin-top: 8px;">外部磁感线从N到S</p>
+                </div>
+                
+                <div class="draggable-item" id="earth-item" draggable="false">
+                    <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 10px;">
+                        <div style="width: 60px; height: 60px; background: radial-gradient(circle, #4fc3f7 0%, #0288d1 100%); border-radius: 50%;"></div>
+                    </div>
+                    <h4>地球磁场</h4>
+                    <div style="font-size: 12px; margin-top: 5px; color: #666;">
+                        <div>地理北极(黑)</div>
+                        <div>磁南极(红)</div>
+                    </div>
+                    <p style="font-size: 0.8rem; color: #666; margin-top: 8px;">地磁南极在地理北极附近</p>
+                </div>
+                
+                <div style="margin-top: 20px; padding: 10px; background-color: #f5f7ff; border-radius: 5px;">
+                    <h4>使用说明：</h4>
+                    <ul style="font-size: 12px; padding-left: 20px; margin-top: 5px;">
+                        <li>拖拽磁体到网格中</li>
+                        <li>箭头方向表示磁场方向</li>
+                        <li>箭头颜色表示磁场强度</li>
+                        <li>拖拽磁体可移动位置</li>
+                        <li>磁感线从N极指向S极</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="demo-area">
+                <button class="reset-btn" id="reset-btn">重置网格</button>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3>磁场可视化网格</h3>
+                    <div class="grid-info">20×15网格，磁感线从N(红)→S(蓝)</div>
+                </div>
+                <div id="field-grid">
+                    <!-- 箭头网格将在这里生成 -->
+                </div>
+                <div style="display: flex; justify-content: center; margin-top: 15px; gap: 20px;">
+                    <div style="display: flex; align-items: center;">
+                        <div style="width: 20px; height: 20px; background-color: #ff9800; margin-right: 5px;"></div>
+                        <span>弱磁场</span>
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <div style="width: 20px; height: 20px; background-color: #4caf50; margin-right: 5px;"></div>
+                        <span>中磁场</span>
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <div style="width: 20px; height: 20px; background-color: #2196f3; margin-right: 5px;"></div>
+                        <span>强磁场</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <button class="quiz-btn" id="quiz-btn">开始知识检测 (5道题)</button>
+        
+        <!-- 测验弹窗 -->
+        <div class="modal" id="quiz-modal">
+            <div class="modal-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2>磁场知识检测</h2>
+                    <span class="close-btn" id="close-quiz">×</span>
+                </div>
+                
+                <div id="quiz-container">
+                    <!-- 测验问题将在这里动态生成 -->
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>磁场方向可视化系统 - 物理教学演示工具 | 磁感线方向：从N极指向S极</p>
+        </footer>
+    </div>
+
+    <script>
+        // 全局变量
+        let magnets = [];
+        let arrows = [];
+        let isDragging = false;
+        let draggedMagnet = null;
+        let offsetX = 0, offsetY = 0;
+        let animationFrameId = null;
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 创建箭头网格
+            createArrowGrid();
+            
+            // 设置拖拽功能
+            setupDraggableItems();
+            
+            // 设置按钮事件
+            document.getElementById('reset-btn').addEventListener('click', resetGrid);
+            document.getElementById('quiz-btn').addEventListener('click', openQuizModal);
+            document.getElementById('close-quiz').addEventListener('click', closeQuizModal);
+            
+            // 初始化测验
+            initializeQuiz();
+            
+            // 初始更新磁场
+            updateMagneticField();
+        });
+        
+        // 创建箭头网格
+        function createArrowGrid() {
+            const grid = document.getElementById('field-grid');
+            const width = grid.clientWidth;
+            const height = grid.clientHeight;
+            
+            // 清空现有内容
+            grid.innerHTML = '';
+            arrows = [];
+            
+            // 创建网格 (20列 x 15行)
+            const cols = 20;
+            const rows = 15;
+            const cellWidth = width / cols;
+            const cellHeight = height / rows;
+            
+            // 创建箭头
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    const x = col * cellWidth + cellWidth / 2;
+                    const y = row * cellHeight + cellHeight / 2;
+                    
+                    const arrowCell = document.createElement('div');
+                    arrowCell.className = 'arrow-cell';
+                    arrowCell.style.left = `${x - 15}px`;
+                    arrowCell.style.top = `${y - 15}px`;
+                    arrowCell.innerHTML = '→'; // 使用真正的箭头符号
+                    arrowCell.dataset.x = x;
+                    arrowCell.dataset.y = y;
+                    
+                    grid.appendChild(arrowCell);
+                    
+                    arrows.push({
+                        element: arrowCell,
+                        x: x,
+                        y: y,
+                        originalRotation: 0
+                    });
+                }
+            }
+        }
+        
+        // 设置可拖拽的磁体
+        function setupDraggableItems() {
+            const draggableItems = document.querySelectorAll('.draggable-item');
+            const grid = document.getElementById('field-grid');
+            
+            draggableItems.forEach(item => {
+                item.addEventListener('mousedown', function(e) {
+                    const type = this.id;
+                    createMagnetFromSidebar(type, e.clientX, e.clientY);
+                });
+                
+                // 触摸屏支持
+                item.addEventListener('touchstart', function(e) {
+                    e.preventDefault();
+                    const type = this.id;
+                    const touch = e.touches[0];
+                    createMagnetFromSidebar(type, touch.clientX, touch.clientY);
+                });
+            });
+            
+            // 网格拖拽事件
+            grid.addEventListener('mousemove', handleDragMove);
+            grid.addEventListener('touchmove', handleDragMove);
+            
+            grid.addEventListener('mouseup', handleDragEnd);
+            grid.addEventListener('touchend', handleDragEnd);
+            
+            // 防止拖拽时选中文本
+            document.addEventListener('selectstart', function(e) {
+                if (isDragging) e.preventDefault();
+            });
+        }
+        
+        // 处理拖拽移动
+        function handleDragMove(e) {
+            if (!isDragging || !draggedMagnet) return;
+            
+            e.preventDefault();
+            
+            let clientX, clientY;
+            if (e.type === 'touchmove') {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            
+            const grid = document.getElementById('field-grid');
+            const rect = grid.getBoundingClientRect();
+            
+            let x = clientX - rect.left - offsetX;
+            let y = clientY - rect.top - offsetY;
+            
+            // 限制在网格内
+            x = Math.max(0, Math.min(x, rect.width - draggedMagnet.offsetWidth));
+            y = Math.max(0, Math.min(y, rect.height - draggedMagnet.offsetHeight));
+            
+            // 使用transform实现丝滑移动
+            draggedMagnet.style.transform = `translate(${x}px, ${y}px)`;
+            
+            // 更新磁体数据位置
+            updateMagnetPosition(draggedMagnet, x, y);
+            
+            // 使用requestAnimationFrame优化性能
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+            animationFrameId = requestAnimationFrame(updateMagneticField);
+        }
+        
+        // 处理拖拽结束
+        function handleDragEnd() {
+            if (!isDragging || !draggedMagnet) return;
+            
+            isDragging = false;
+            draggedMagnet.classList.remove('dragging');
+            draggedMagnet = null;
+            
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+            
+            // 最终更新一次磁场
+            updateMagneticField();
+        }
+        
+        // 更新磁体位置数据
+        function updateMagnetPosition(magnetElement, x, y) {
+            const magnetData = magnets.find(m => m.element === magnetElement);
+            if (!magnetData) return;
+            
+            const width = magnetElement.offsetWidth;
+            const height = magnetElement.offsetHeight;
+            
+            magnetData.x = x + width / 2;
+            magnetData.y = y + height / 2;
+            
+            // 更新磁极位置
+            if (magnetData.type === 'bar') {
+                magnetData.nX = x + 15;
+                magnetData.nY = y + height / 2;
+                magnetData.sX = x + width - 15;
+                magnetData.sY = y + height / 2;
+            } else if (magnetData.type === 'earth') {
+                // 修正：地磁场从地球南极（地磁北极）指向地球北极（地磁南极）
+                // 地球南极（地磁北极）在底部，地球北极（地磁南极）在顶部
+                magnetData.nX = x + width / 2;  // 地磁北极位置（地球南极）- 底部
+                magnetData.nY = y + height - 20;
+                magnetData.sX = x + width / 2;  // 地磁南极位置（地球北极）- 顶部
+                magnetData.sY = y + 20;
+            }
+        }
+        
+        // 从侧边栏创建磁体
+        function createMagnetFromSidebar(type, clientX, clientY) {
+            const grid = document.getElementById('field-grid');
+            const rect = grid.getBoundingClientRect();
+            
+            // 计算在网格中的位置（居中显示）
+            let x = clientX - rect.left;
+            let y = clientY - rect.top;
+            
+            // 确保磁体完全显示在网格内
+            x = Math.max(0, Math.min(x, rect.width - 180));
+            y = Math.max(0, Math.min(y, rect.height - 140));
+            
+            createMagnet(type.replace('-item', ''), x, y);
+        }
+        
+        // 创建磁体
+        function createMagnet(type, x, y) {
+            const grid = document.getElementById('field-grid');
+            
+            let magnet;
+            let magnetData = {};
+            
+            if (type === 'bar-magnet' || type === 'bar') {
+                magnet = document.createElement('div');
+                magnet.className = 'magnet bar-magnet';
+                
+                // N极标签
+                const northLabel = document.createElement('div');
+                northLabel.className = 'label north-label';
+                northLabel.textContent = 'N';
+                northLabel.style.left = '15px';
+                northLabel.style.top = '50%';
+                northLabel.style.transform = 'translateY(-50%)';
+                magnet.appendChild(northLabel);
+                
+                // S极标签
+                const southLabel = document.createElement('div');
+                southLabel.className = 'label south-label';
+                southLabel.textContent = 'S';
+                southLabel.style.right = '15px';
+                southLabel.style.top = '50%';
+                southLabel.style.transform = 'translateY(-50%)';
+                magnet.appendChild(southLabel);
+                
+                magnetData = {
+                    element: magnet,
+                    type: 'bar',
+                    x: x + 90, // 中心位置
+                    y: y + 30,
+                    strength: 100,
+                    nX: x + 15,  // N极位置
+                    nY: y + 30,
+                    sX: x + 165, // S极位置
+                    sY: y + 30
+                };
+                
+            } else if (type === 'earth' || type === 'earth') {
+                magnet = document.createElement('div');
+                magnet.className = 'magnet earth';
+                
+                // 地球北极标签 - 顶部（地磁南极）
+                const geoNorthLabel = document.createElement('div');
+                geoNorthLabel.className = 'label geo-label';
+                geoNorthLabel.textContent = '地球北极';
+                geoNorthLabel.style.left = '50%';
+                geoNorthLabel.style.top = '10px';
+                geoNorthLabel.style.transform = 'translateX(-50%)';
+                magnet.appendChild(geoNorthLabel);
+                
+                // 地磁南极标签 - 顶部（与地球北极相同位置）
+                const magSouthLabel = document.createElement('div');
+                magSouthLabel.className = 'label south-label';
+                magSouthLabel.textContent = '地磁南极';
+                magSouthLabel.style.left = '50%';
+                magSouthLabel.style.top = '30px';
+                magSouthLabel.style.transform = 'translateX(-50%)';
+                magnet.appendChild(magSouthLabel);
+                
+                // 地球南极标签 - 底部（地磁北极）
+                const geoSouthLabel = document.createElement('div');
+                geoSouthLabel.className = 'label geo-label';
+                geoSouthLabel.textContent = '地球南极';
+                geoSouthLabel.style.left = '50%';
+                geoSouthLabel.style.bottom = '10px';
+                geoSouthLabel.style.transform = 'translateX(-50%)';
+                magnet.appendChild(geoSouthLabel);
+                
+                // 地磁北极标签 - 底部（与地球南极相同位置）
+                const magNorthLabel = document.createElement('div');
+                magNorthLabel.className = 'label north-label';
+                magNorthLabel.textContent = '地磁北极';
+                magNorthLabel.style.left = '50%';
+                magNorthLabel.style.bottom = '30px';
+                magNorthLabel.style.transform = 'translateX(-50%)';
+                magnet.appendChild(magNorthLabel);
+                
+                // 地磁场：磁感线从地球南极（地磁北极）指向地球北极（地磁南极）
+                magnetData = {
+                    element: magnet,
+                    type: 'earth',
+                    x: x + 70, // 中心位置
+                    y: y + 70,
+                    strength: 80,
+                    // 地磁北极（地球南极）- 底部
+                    nX: x + 70,
+                    nY: y + 120,
+                    // 地磁南极（地球北极）- 顶部
+                    sX: x + 70,
+                    sY: y + 20
+                };
+            }
+            
+            // 设置初始位置（使用transform实现平滑移动）
+            magnet.style.transform = `translate(${x}px, ${y}px)`;
+            magnet.style.left = '0';
+            magnet.style.top = '0';
+            
+            // 添加拖拽事件
+            magnet.addEventListener('mousedown', startDrag);
+            magnet.addEventListener('touchstart', startDrag);
+            
+            function startDrag(e) {
+                e.preventDefault();
+                isDragging = true;
+                draggedMagnet = this;
+                this.classList.add('dragging');
+                
+                const rect = this.getBoundingClientRect();
+                const gridRect = grid.getBoundingClientRect();
+                
+                if (e.type === 'touchstart') {
+                    const touch = e.touches[0];
+                    offsetX = touch.clientX - rect.left;
+                    offsetY = touch.clientY - rect.top;
+                } else {
+                    offsetX = e.clientX - rect.left;
+                    offsetY = e.clientY - rect.top;
+                }
+                
+                // 更新磁体位置数据
+                const computedStyle = window.getComputedStyle(this);
+                const matrix = computedStyle.transform;
+                let currentX = 0, currentY = 0;
+                
+                if (matrix !== 'none') {
+                    const matrixValues = matrix.match(/matrix.*\((.+)\)/)[1].split(', ');
+                    if (matrixValues.length === 6) {
+                        currentX = parseFloat(matrixValues[4]);
+                        currentY = parseFloat(matrixValues[5]);
+                    }
+                }
+                
+                updateMagnetPosition(this, currentX, currentY);
+            }
+            
+            grid.appendChild(magnet);
+            magnets.push(magnetData);
+            
+            // 更新磁场
+            updateMagneticField();
+        }
+        
+        // 更新磁场 - 确保磁感线从N到S，地磁场从地球南极指向地球北极
+        function updateMagneticField() {
+            // 重置所有箭头为默认状态
+            arrows.forEach(arrow => {
+                arrow.element.innerHTML = '→';
+                arrow.element.style.color = '#999';
+                arrow.element.style.transform = 'rotate(0deg)';
+            });
+            
+            if (magnets.length === 0) return;
+            
+            // 计算每个箭头处的磁场
+            arrows.forEach(arrow => {
+                let totalFieldX = 0;
+                let totalFieldY = 0;
+                
+                magnets.forEach(magnet => {
+                    // 计算该点到N极和S极的距离
+                    const dxN = arrow.x - magnet.nX;
+                    const dyN = arrow.y - magnet.nY;
+                    const dxS = arrow.x - magnet.sX;
+                    const dyS = arrow.y - magnet.sY;
+                    
+                    const distN = Math.sqrt(dxN * dxN + dyN * dyN);
+                    const distS = Math.sqrt(dxS * dxS + dyS * dyS);
+                    
+                    // 避免除以零
+                    const safeDistN = Math.max(distN, 5);
+                    const safeDistS = Math.max(distS, 5);
+                    
+                    // 磁场强度与距离平方成反比
+                    const strengthN = magnet.strength / (safeDistN * safeDistN);
+                    const strengthS = magnet.strength / (safeDistS * safeDistS);
+                    
+                    let fieldFromN, fieldFromS;
+                    
+                    if (magnet.type === 'earth') {
+                        // 地磁场：磁感线从地磁北极（地球南极）指向地磁南极（地球北极）
+                        // 使用与条形磁铁相同的物理模型
+                        fieldFromN = {
+                            x: (dxN / safeDistN) * strengthN,  // 从地磁北极向外
+                            y: (dyN / safeDistN) * strengthN
+                        };
+                        
+                        fieldFromS = {
+                            x: (-dxS / safeDistS) * strengthS, // 指向地磁南极
+                            y: (-dyS / safeDistS) * strengthS
+                        };
+                    } else {
+                        // 普通磁铁：磁感线从N极指向S极
+                        fieldFromN = {
+                            x: (dxN / safeDistN) * strengthN,  // 从N极向外
+                            y: (dyN / safeDistN) * strengthN
+                        };
+                        
+                        fieldFromS = {
+                            x: (-dxS / safeDistS) * strengthS, // 指向S极
+                            y: (-dyS / safeDistS) * strengthS
+                        };
+                    }
+                    
+                    totalFieldX += fieldFromN.x + fieldFromS.x;
+                    totalFieldY += fieldFromN.y + fieldFromS.y;
+                });
+                
+                // 计算磁场方向和强度
+                const angle = Math.atan2(totalFieldY, totalFieldX) * (180 / Math.PI);
+                const strength = Math.sqrt(totalFieldX * totalFieldX + totalFieldY * totalFieldY);
+                
+                // 更新箭头方向和颜色
+                arrow.element.style.transform = `rotate(${angle}deg)`;
+                
+                // 根据强度设置颜色
+                if (strength > 50) {
+                    arrow.element.style.color = '#2196f3'; // 强磁场 - 蓝色
+                } else if (strength > 20) {
+                    arrow.element.style.color = '#4caf50'; // 中等磁场 - 绿色
+                } else if (strength > 5) {
+                    arrow.element.style.color = '#ff9800'; // 弱磁场 - 橙色
+                } else {
+                    arrow.element.style.color = '#999'; // 极弱或无磁场
+                }
+            });
+        }
+        
+        // 重置网格
+        function resetGrid() {
+            const grid = document.getElementById('field-grid');
+            
+            // 移除所有磁体
+            magnets.forEach(magnet => {
+                if (magnet.element.parentNode === grid) {
+                    grid.removeChild(magnet.element);
+                }
+            });
+            
+            magnets = [];
+            isDragging = false;
+            draggedMagnet = null;
+            
+            // 重置所有箭头
+            arrows.forEach(arrow => {
+                arrow.element.innerHTML = '→';
+                arrow.element.style.color = '#999';
+                arrow.element.style.transform = 'rotate(0deg)';
+            });
+        }
+        
+        // 初始化测验
+        function initializeQuiz() {
+            window.quizQuestions = [
+                {
+                    question: "条形磁铁的磁感线方向是什么？",
+                    options: [
+                        "从N极指向S极",
+                        "从S极指向N极",
+                        "没有固定方向",
+                        "从中间向两端"
+                    ],
+                    correct: 0,
+                    explanation: "磁感线在磁体外部从N极指向S极，在磁体内部从S极指向N极。"
+                },
+                {
+                    question: "地球磁场的磁感线方向是什么？",
+                    options: [
+                        "从地球北极指向地球南极",
+                        "从地球南极指向地球北极",
+                        "从赤道向两极",
+                        "没有固定方向"
+                    ],
+                    correct: 1,
+                    explanation: "地磁场的磁感线从地球南极（地磁北极）指向地球北极（地磁南极）。"
+                },
+                {
+                    question: "地球北极附近是什么磁极？",
+                    options: [
+                        "地磁北极",
+                        "地磁南极",
+                        "没有磁极",
+                        "磁极会移动"
+                    ],
+                    correct: 1,
+                    explanation: "地球北极附近是地磁南极，地球南极附近是地磁北极。"
+                },
+                {
+                    question: "箭头方向表示什么？",
+                    options: [
+                        "电流方向",
+                        "磁场方向",
+                        "磁极方向",
+                        "重力方向"
+                    ],
+                    correct: 1,
+                    explanation: "箭头方向表示该点的磁场方向。"
+                },
+                {
+                    question: "如何增强磁场强度？",
+                    options: [
+                        "增加磁体数量",
+                        "靠近磁极",
+                        "使用更强磁体",
+                        "以上都是"
+                    ],
+                    correct: 3,
+                    explanation: "增加磁体数量、靠近磁极、使用更强磁体都能增强磁场。"
+                }
+            ];
+        }
+        
+        // 打开测验弹窗
+        function openQuizModal() {
+            const modal = document.getElementById('quiz-modal');
+            const container = document.getElementById('quiz-container');
+            
+            container.innerHTML = '';
+            
+            window.quizQuestions.forEach((q, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question';
+                questionDiv.innerHTML = `
+                    <h3>${index + 1}. ${q.question}</h3>
+                    <div class="options">
+                        ${q.options.map((opt, i) => `
+                            <div class="option" data-q="${index}" data-a="${i}">${String.fromCharCode(65 + i)}. ${opt}</div>
+                        `).join('')}
+                    </div>
+                    <div class="explanation">${q.explanation}</div>
+                `;
+                container.appendChild(questionDiv);
+            });
+            
+            // 添加提交按钮
+            const submitBtn = document.createElement('button');
+            submitBtn.textContent = '提交答案';
+            submitBtn.style.cssText = 'background-color: #2196f3; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 20px; transition: background-color 0.3s;';
+            submitBtn.onclick = submitQuiz;
+            submitBtn.onmouseover = function() { this.style.backgroundColor = '#1976d2'; };
+            submitBtn.onmouseout = function() { this.style.backgroundColor = '#2196f3'; };
+            container.appendChild(submitBtn);
+            
+            modal.style.display = 'flex';
+        }
+        
+        // 关闭测验弹窗
+        function closeQuizModal() {
+            document.getElementById('quiz-modal').style.display = 'none';
+        }
+        
+        // 提交测验
+        function submitQuiz() {
+            let score = 0;
+            const questions = document.querySelectorAll('.question');
+            
+            questions.forEach((question, index) => {
+                const selected = question.querySelector('.option.selected');
+                const explanation = question.querySelector('.explanation');
+                const options = question.querySelectorAll('.option');
+                
+                if (selected) {
+                    const answer = parseInt(selected.dataset.a);
+                    const correct = window.quizQuestions[index].correct;
+                    
+                    // 标记正确答案
+                    options[correct].style.backgroundColor = '#c8e6c9';
+                    options[correct].style.border = '2px solid #4caf50';
+                    
+                    if (answer === correct) {
+                        score++;
+                        selected.style.backgroundColor = '#c8e6c9';
+                    } else {
+                        selected.style.backgroundColor = '#ffcdd2';
+                        selected.style.border = '2px solid #f44336';
+                    }
+                    
+                    // 显示解析
+                    explanation.style.display = 'block';
+                    
+                    // 禁用所有选项
+                    options.forEach(opt => {
+                        opt.style.pointerEvents = 'none';
+                    });
+                }
+            });
+            
+            // 显示分数
+            const scoreDiv = document.createElement('div');
+            scoreDiv.innerHTML = `
+                <div style="text-align: center; margin-top: 20px; padding: 15px; background-color: ${score >= 3 ? '#e8f5e9' : '#ffebee'}; border-radius: 8px;">
+                    <h3 style="color: ${score >= 3 ? '#2e7d32' : '#c62828'}">得分: ${score}/5</h3>
+                    <p>${score >= 3 ? '🎉 恭喜！你对磁场知识掌握得很好！' : '💡 继续努力，你可以做得更好！'}</p>
+                </div>
+            `;
+            document.getElementById('quiz-container').appendChild(scoreDiv);
+            
+            // 移除提交按钮
+            const submitBtn = document.querySelector('#quiz-container button');
+            if (submitBtn) submitBtn.style.display = 'none';
+        }
+        
+        // 选项点击事件
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('option')) {
+                const question = e.target.closest('.question');
+                const options = question.querySelectorAll('.option');
+                
+                // 移除其他选项的选中状态
+                options.forEach(opt => {
+                    opt.classList.remove('selected');
+                    opt.style.backgroundColor = '';
+                    opt.style.border = '';
+                });
+                
+                // 设置当前选项为选中
+                e.target.classList.add('selected');
+                e.target.style.backgroundColor = '#e3f2fd';
+                e.target.style.border = '2px solid #2196f3';
+            }
+        });
+        
+        // 点击弹窗外关闭
+        window.addEventListener('click', function(e) {
+            if (e.target.id === 'quiz-modal') {
+                closeQuizModal();
+            }
+        });
+        
+        // 窗口大小改变时重新创建网格
+        window.addEventListener('resize', function() {
+            createArrowGrid();
+            updateMagneticField();
+        });
+        
+        // 阻止触摸屏默认行为
+        document.addEventListener('touchmove', function(e) {
+            if (isDragging) e.preventDefault();
+        }, { passive: false });
+    </script>
+</body>
+</html>

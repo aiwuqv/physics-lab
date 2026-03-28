@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>磁通量公式交互模拟器 | Φ = B·S·|cosθ|</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            display: flex;
+            height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #f1f1f1;
+            overflow: hidden;
+        }
+        
+        .sidebar {
+            width: 320px;
+            background: rgba(25, 25, 40, 0.9);
+            padding: 25px 20px;
+            border-right: 1px solid #3a3a5d;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.3);
+            overflow-y: auto;
+        }
+        
+        .sidebar-header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #3a3a5d;
+        }
+        
+        .formula-box {
+            background: linear-gradient(to right, #0f3460, #1a1a2e);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border: 1px solid #3a3a5d;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .formula {
+            font-size: 1.8rem;
+            text-align: center;
+            color: #e94560;
+            font-family: 'Cambria Math', serif;
+            margin-bottom: 5px;
+        }
+        
+        .formula-note {
+            font-size: 0.9rem;
+            text-align: center;
+            color: #8a8aaa;
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+        
+        .current-value {
+            font-size: 1.2rem;
+            text-align: center;
+            color: #4cc9f0;
+        }
+        
+        .control-group {
+            margin-bottom: 25px;
+            background: rgba(30, 30, 50, 0.6);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #3a3a5d;
+        }
+        
+        .control-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            color: #4cc9f0;
+            font-size: 1.1rem;
+        }
+        
+        .control-title i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .slider-container {
+            margin-bottom: 15px;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.95rem;
+        }
+        
+        .slider-value {
+            color: #e94560;
+            font-weight: bold;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            background: #1a1a2e;
+            border-radius: 4px;
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #e94560;
+            cursor: pointer;
+            border: 2px solid #f1f1f1;
+        }
+        
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(to right, #e94560, #b42b46);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            text-align: center;
+        }
+        
+        .btn:hover {
+            background: linear-gradient(to right, #ff5a7d, #e94560);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(233, 69, 96, 0.3);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-quiz {
+            background: linear-gradient(to right, #4cc9f0, #2a8ca8);
+        }
+        
+        .btn-quiz:hover {
+            background: linear-gradient(to right, #6bd7f9, #4cc9f0);
+            box-shadow: 0 5px 15px rgba(76, 201, 240, 0.3);
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+        
+        .canvas-container {
+            flex: 1;
+            background: rgba(15, 15, 30, 0.9);
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            border: 1px solid #3a3a5d;
+        }
+        
+        #magneticCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        .info-panel {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            background: rgba(25, 25, 40, 0.9);
+            padding: 15px 25px;
+            border-radius: 10px;
+            border: 1px solid #3a3a5d;
+        }
+        
+        .info-item {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .info-label {
+            font-size: 0.9rem;
+            color: #8a8aaa;
+            margin-bottom: 5px;
+        }
+        
+        .info-value {
+            font-size: 1.5rem;
+            color: #4cc9f0;
+            font-weight: bold;
+        }
+        
+        .info-unit {
+            font-size: 0.9rem;
+            color: #e94560;
+            margin-left: 5px;
+        }
+        
+        .angle-diagram {
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(40, 40, 65, 0.5);
+            border-radius: 5px;
+            text-align: center;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: linear-gradient(to bottom, #1a1a2e, #0f3460);
+            width: 80%;
+            max-width: 800px;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+            border: 1px solid #3a3a5d;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #3a3a5d;
+            padding-bottom: 15px;
+        }
+        
+        .modal-title {
+            color: #4cc9f0;
+            font-size: 1.8rem;
+        }
+        
+        .quiz-question {
+            background: rgba(30, 30, 50, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #3a3a5d;
+        }
+        
+        .question-text {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #f1f1f1;
+        }
+        
+        .options-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .option {
+            padding: 12px;
+            background: rgba(40, 40, 65, 0.8);
+            border: 1px solid #3a3a5d;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .option:hover {
+            background: rgba(60, 60, 90, 0.8);
+            border-color: #4cc9f0;
+        }
+        
+        .option.selected {
+            background: rgba(76, 201, 240, 0.2);
+            border-color: #4cc9f0;
+        }
+        
+        .option.correct {
+            background: rgba(46, 204, 113, 0.2);
+            border-color: #2ecc71;
+        }
+        
+        .option.incorrect {
+            background: rgba(231, 76, 60, 0.2);
+            border-color: #e74c3c;
+        }
+        
+        .quiz-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+        }
+        
+        .quiz-progress {
+            color: #8a8aaa;
+            font-size: 1rem;
+        }
+        
+        .result-container {
+            text-align: center;
+            padding: 30px;
+        }
+        
+        .result-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #4cc9f0;
+        }
+        
+        .score {
+            font-size: 3rem;
+            color: #e94560;
+            margin: 20px 0;
+        }
+        
+        .explanation {
+            background: rgba(30, 30, 50, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: left;
+            border: 1px solid #3a3a5d;
+        }
+        
+        .explanation-title {
+            color: #2ecc71;
+            margin-bottom: 10px;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: #e94560;
+            font-size: 1.8rem;
+            cursor: pointer;
+        }
+        
+        @media (max-width: 1024px) {
+            body {
+                flex-direction: column;
+                height: auto;
+                overflow-y: auto;
+            }
+            
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #3a3a5d;
+            }
+            
+            .main-content {
+                padding: 15px;
+            }
+            
+            .options-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <!-- 侧边栏控制面板 -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1><i class="fas fa-magnet"></i> 磁通量模拟器</h1>
+            <p>交互式磁通量公式演示</p>
+        </div>
+        
+        <div class="formula-box">
+            <div class="formula">Φ = B × S × |cosθ|</div>
+            <div class="formula-note">θ: 平面法线与磁场的夹角</div>
+            <div class="current-value" id="phiValue">Φ = 1.0 Wb</div>
+        </div>
+        
+        <div class="control-group">
+            <div class="control-title">
+                <i class="fas fa-magnet"></i> 磁场设置
+            </div>
+            
+            <div class="slider-container">
+                <div class="slider-label">
+                    <span>磁场强度 B</span>
+                    <span class="slider-value" id="bValue">1.0 T</span>
+                </div>
+                <input type="range" id="bSlider" min="0.1" max="5" step="0.1" value="1">
+            </div>
+            
+            <div class="angle-diagram">
+                <div>磁场方向：垂直纸面向里</div>
+                <div>符号：×（向里）</div>
+            </div>
+        </div>
+        
+        <div class="control-group">
+            <div class="control-title">
+                <i class="fas fa-square"></i> 平面设置
+            </div>
+            
+            <div class="slider-container">
+                <div class="slider-label">
+                    <span>平面面积 S</span>
+                    <span class="slider-value" id="sValue">1.0 m²</span>
+                </div>
+                <input type="range" id="sSlider" min="0.1" max="3" step="0.1" value="1">
+            </div>
+            
+            <div class="slider-container">
+                <div class="slider-label">
+                    <span>夹角 θ</span>
+                    <span class="slider-value" id="sAngleValue">0°</span>
+                </div>
+                <input type="range" id="sAngleSlider" min="0" max="180" step="1" value="0">
+            </div>
+            
+            <div class="angle-diagram">
+                <div>夹角说明：</div>
+                <div>平面法线与磁场的夹角</div>
+            </div>
+        </div>
+        
+        <div class="control-group">
+            <div class="control-title">
+                <i class="fas fa-sliders-h"></i> 其他控制
+            </div>
+            
+            <button class="btn" id="resetBtn">
+                <i class="fas fa-redo"></i> 重置所有设置
+            </button>
+        </div>
+        
+        <button class="btn btn-quiz" id="quizBtn">
+            <i class="fas fa-question-circle"></i> 磁通量学习检测
+        </button>
+        
+        <div class="control-group" style="margin-top: 20px;">
+            <div class="control-title">
+                <i class="fas fa-info-circle"></i> 磁通量变化规律
+            </div>
+            <p style="font-size: 0.9rem; line-height: 1.5; color: #aaa;">
+                • θ=0°: 法线与磁场平行，磁通量最大<br>
+                • 0°<θ<90°: 磁通量逐渐减小<br>
+                • θ=90°: 法线与磁场垂直，磁通量为0<br>
+                • 90°<θ<180°: 磁通量逐渐增大<br>
+                • θ=180°: 磁通量最大（法线与磁场反平行）
+            </p>
+        </div>
+    </div>
+    
+    <!-- 主内容区域 -->
+    <div class="main-content">
+        <div class="canvas-container">
+            <canvas id="magneticCanvas"></canvas>
+        </div>
+        
+        <div class="info-panel">
+            <div class="info-item">
+                <div class="info-label">磁场强度 B</div>
+                <div class="info-value" id="displayB">1.0 <span class="info-unit">T</span></div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">平面面积 S</div>
+                <div class="info-value" id="displayS">1.0 <span class="info-unit">m²</span></div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">夹角 θ</div>
+                <div class="info-value" id="displayTheta">0°</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">磁通量 Φ</div>
+                <div class="info-value" id="displayPhi">1.0 <span class="info-unit">Wb</span></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 学习检测模态框 -->
+    <div class="modal" id="quizModal">
+        <div class="modal-content">
+            <button class="close-btn" id="closeQuizBtn">&times;</button>
+            <div class="modal-header">
+                <h2 class="modal-title">磁通量学习检测</h2>
+                <p>完成以下5道题目，测试你对磁通量公式的理解</p>
+            </div>
+            
+            <div id="quizContent">
+                <!-- 题目会通过JavaScript动态生成 -->
+            </div>
+            
+            <div class="quiz-footer" id="quizFooter">
+                <div class="quiz-progress" id="quizProgress">题目 1/5</div>
+                <button class="btn" id="prevQuestionBtn">上一题</button>
+                <button class="btn" id="nextQuestionBtn">下一题</button>
+                <button class="btn" id="submitQuizBtn" style="display:none;">提交答案</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 获取Canvas元素和上下文
+        const canvas = document.getElementById('magneticCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 调整Canvas大小以匹配容器
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            drawScene();
+        }
+        
+        // 初始化变量
+        let B = 1.0; // 磁场强度 (T)
+        let S = 1.0; // 平面面积 (m²)
+        let S_angle = 0; // 平面法线与磁场的夹角 (度) 0-180
+        const lineDensity = 12; // 固定的磁场线密度
+        
+        // 获取所有滑块元素
+        const bSlider = document.getElementById('bSlider');
+        const sSlider = document.getElementById('sSlider');
+        const sAngleSlider = document.getElementById('sAngleSlider');
+        
+        // 获取所有显示值的元素
+        const bValue = document.getElementById('bValue');
+        const sValue = document.getElementById('sValue');
+        const sAngleValue = document.getElementById('sAngleValue');
+        const phiValue = document.getElementById('phiValue');
+        const displayB = document.getElementById('displayB');
+        const displayS = document.getElementById('displayS');
+        const displayTheta = document.getElementById('displayTheta');
+        const displayPhi = document.getElementById('displayPhi');
+        
+        // 获取按钮元素
+        const resetBtn = document.getElementById('resetBtn');
+        const quizBtn = document.getElementById('quizBtn');
+        const closeQuizBtn = document.getElementById('closeQuizBtn');
+        const quizModal = document.getElementById('quizModal');
+        
+        // 计算磁通量（使用|cosθ|，始终为正）
+        function calculateFlux() {
+            // 计算角度（弧度）
+            const thetaRad = (S_angle * Math.PI / 180);
+            
+            // 使用|cosθ|计算磁通量，确保始终为正
+            const flux = B * S * Math.abs(Math.cos(thetaRad));
+            
+            // 更新显示
+            const fluxValue = flux.toFixed(3);
+            phiValue.textContent = `Φ = ${fluxValue} Wb`;
+            displayB.innerHTML = `${B.toFixed(1)} <span class="info-unit">T</span>`;
+            displayS.innerHTML = `${S.toFixed(1)} <span class="info-unit">m²</span>`;
+            displayTheta.textContent = `${S_angle}°`;
+            displayPhi.innerHTML = `${fluxValue} <span class="info-unit">Wb</span>`;
+            
+            return flux;
+        }
+        
+        // 绘制场景
+        function drawScene() {
+            const width = canvas.width;
+            const height = canvas.height;
+            const centerX = width / 2;
+            const centerY = height / 2;
+            
+            // 清空画布
+            ctx.clearRect(0, 0, width, height);
+            
+            // 绘制背景
+            ctx.fillStyle = '#0f0f1f';
+            ctx.fillRect(0, 0, width, height);
+            
+            // 计算平面尺寸
+            const planeSize = Math.sqrt(S) * 80;
+            const planeWidth = planeSize;
+            const planeHeight = planeSize * 0.6;
+            
+            // 绘制磁场符号（×表示垂直纸面向里）
+            drawMagneticFieldSymbols(centerX, centerY, width, height);
+            
+            // 保存当前画布状态
+            ctx.save();
+            
+            // 平移并旋转到平面位置
+            ctx.translate(centerX, centerY);
+            
+            // 绘制三维旋转的平面（根据夹角调整）
+            drawPlane3D(planeWidth, planeHeight, S_angle);
+            
+            // 恢复画布状态
+            ctx.restore();
+            
+            // 绘制平面法线
+            drawPlaneNormal(centerX, centerY, S_angle, planeSize);
+            
+            // 绘制图例和说明
+            drawLegend(width, height);
+        }
+        
+        // 绘制磁场符号（×）
+        function drawMagneticFieldSymbols(centerX, centerY, width, height) {
+            const spacing = 40;
+            const startX = centerX - spacing * 5;
+            const startY = centerY - spacing * 5;
+            
+            ctx.fillStyle = 'rgba(76, 201, 240, 0.9)';
+            ctx.font = 'bold 24px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // 绘制网格状的×符号
+            for (let i = 0; i < 11; i++) {
+                for (let j = 0; j < 11; j++) {
+                    const x = startX + i * spacing;
+                    const y = startY + j * spacing;
+                    
+                    // 只在画布中心区域绘制
+                    if (x > 50 && x < width - 50 && y > 50 && y < height - 50) {
+                        ctx.fillText('×', x, y);
+                    }
+                }
+            }
+            
+            // 绘制磁场方向说明
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.font = '16px Arial';
+            ctx.fillText('磁场方向：垂直纸面向里（×）', centerX, 40);
+        }
+        
+        // 绘制三维旋转的平面
+        function drawPlane3D(width, height, angle) {
+            // 根据角度计算平面的变形
+            const angleRad = angle * Math.PI / 180;
+            
+            // 计算平面的压缩和剪切（模拟三维旋转）
+            const scaleY = Math.cos(angleRad);
+            const shearY = Math.sin(angleRad) * 0.5;
+            
+            // 绘制平面填充
+            ctx.fillStyle = 'rgba(233, 69, 96, 0.4)';
+            ctx.beginPath();
+            ctx.moveTo(-width/2, -height/2 * scaleY);
+            ctx.lineTo(width/2, -height/2 * scaleY + shearY * width);
+            ctx.lineTo(width/2, height/2 * scaleY + shearY * width);
+            ctx.lineTo(-width/2, height/2 * scaleY);
+            ctx.closePath();
+            ctx.fill();
+            
+            // 绘制平面边框
+            ctx.strokeStyle = 'rgba(233, 69, 96, 0.9)';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            // 添加平面标签
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.font = 'bold 24px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            const textY = shearY * width * 0.3;
+            ctx.fillText('S', 0, textY);
+        }
+        
+        // 绘制平面法线
+        function drawPlaneNormal(centerX, centerY, angle, planeSize) {
+            const normalLength = planeSize * 0.8;
+            const angleRad = angle * Math.PI / 180;
+            
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            
+            // 绘制法线（绿色箭头）
+            ctx.strokeStyle = 'rgba(46, 204, 113, 0.9)';
+            ctx.lineWidth = 2;
+            
+            // 计算法线端点
+            const normalX = Math.sin(angleRad) * 30;
+            const normalY = -Math.cos(angleRad) * normalLength;
+            
+            // 绘制法线
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(normalX, normalY);
+            ctx.stroke();
+            
+            // 绘制法线箭头
+            ctx.fillStyle = 'rgba(46, 204, 113, 0.9)';
+            const arrowAngle = Math.atan2(normalY, normalX);
+            
+            ctx.save();
+            ctx.translate(normalX, normalY);
+            ctx.rotate(arrowAngle);
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(-10, 6);
+            ctx.lineTo(-10, -6);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+            
+            // 添加法线标签
+            ctx.fillStyle = 'rgba(46, 204, 113, 0.9)';
+            ctx.font = 'bold 18px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('法线', normalX/2, normalY/2);
+            
+            // 绘制夹角标注（简洁版）
+            if (angle > 10 && angle < 170) {
+                ctx.fillStyle = 'rgba(233, 69, 96, 0.9)';
+                ctx.font = 'bold 20px Arial';
+                
+                // 在法线箭头附近标注角度
+                const labelX = normalX * 1.2;
+                const labelY = normalY * 1.2;
+                ctx.fillText(`${angle}°`, labelX, labelY);
+            }
+            
+            ctx.restore();
+        }
+        
+        // 绘制图例
+        function drawLegend(width, height) {
+            const legendX = 20;
+            const legendY = height - 140;
+            
+            ctx.fillStyle = 'rgba(25, 25, 40, 0.8)';
+            ctx.fillRect(legendX, legendY, 180, 120);
+            
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(legendX, legendY, 180, 120);
+            
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText('图例', legendX + 10, legendY + 25);
+            
+            ctx.font = '14px Arial';
+            
+            // 磁场符号
+            ctx.fillStyle = 'rgba(76, 201, 240, 0.9)';
+            ctx.font = 'bold 20px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('×', legendX + 30, legendY + 50);
+            ctx.textAlign = 'left';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.font = '14px Arial';
+            ctx.fillText('磁场', legendX + 55, legendY + 53);
+            
+            // 平面
+            ctx.fillStyle = 'rgba(233, 69, 96, 0.4)';
+            ctx.fillRect(legendX + 15, legendY + 70, 20, 15);
+            ctx.strokeStyle = 'rgba(233, 69, 96, 0.9)';
+            ctx.strokeRect(legendX + 15, legendY + 70, 20, 15);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.fillText('平面', legendX + 55, legendY + 82);
+            
+            // 法线
+            ctx.strokeStyle = 'rgba(46, 204, 113, 0.9)';
+            ctx.beginPath();
+            ctx.moveTo(legendX + 15, legendY + 100);
+            ctx.lineTo(legendX + 35, legendY + 100);
+            ctx.stroke();
+            ctx.fillStyle = 'rgba(46, 204, 113, 0.9)';
+            ctx.beginPath();
+            ctx.moveTo(legendX + 35, legendY + 100);
+            ctx.lineTo(legendX + 30, legendY + 95);
+            ctx.lineTo(legendX + 30, legendY + 105);
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.fillText('法线', legendX + 55, legendY + 105);
+        }
+        
+        // 更新滑块显示值
+        function updateSliderValues() {
+            bValue.textContent = `${B.toFixed(1)} T`;
+            sValue.textContent = `${S.toFixed(1)} m²`;
+            sAngleValue.textContent = `${S_angle}°`;
+            
+            // 计算并显示磁通量
+            calculateFlux();
+            
+            // 重绘画布
+            drawScene();
+        }
+        
+        // 重置所有设置
+        function resetAll() {
+            B = 1.0;
+            S = 1.0;
+            S_angle = 0;
+            
+            bSlider.value = B;
+            sSlider.value = S;
+            sAngleSlider.value = S_angle;
+            
+            updateSliderValues();
+        }
+        
+        // 事件监听器
+        bSlider.addEventListener('input', function() {
+            B = parseFloat(this.value);
+            updateSliderValues();
+        });
+        
+        sSlider.addEventListener('input', function() {
+            S = parseFloat(this.value);
+            updateSliderValues();
+        });
+        
+        sAngleSlider.addEventListener('input', function() {
+            S_angle = parseInt(this.value);
+            updateSliderValues();
+        });
+        
+        resetBtn.addEventListener('click', resetAll);
+        
+        // 窗口大小变化时调整Canvas
+        window.addEventListener('resize', resizeCanvas);
+        
+        // 初始化
+        resizeCanvas();
+        updateSliderValues();
+        
+        // 学习检测相关代码
+        const quizQuestions = [
+            {
+                question: "1. 磁通量Φ的定义公式是？",
+                options: [
+                    "Φ = B × S",
+                    "Φ = B × S × sinθ",
+                    "Φ = B × S × cosθ",
+                    "Φ = B / S"
+                ],
+                correct: 2,
+                explanation: "正确答案是Φ = B × S × cosθ，其中θ是磁场B方向与平面法线方向的夹角。cosθ表示只有垂直于平面的磁场分量才对磁通量有贡献。"
+            },
+            {
+                question: "2. 当磁场方向与平面法线方向平行时（θ=0°），磁通量如何？",
+                options: [
+                    "磁通量为零",
+                    "磁通量最小",
+                    "磁通量最大",
+                    "磁通量为负值"
+                ],
+                correct: 2,
+                explanation: "当θ=0°时，cosθ=1，磁通量Φ = B×S达到最大值，表示磁场线垂直穿过平面，磁通量最大。"
+            },
+            {
+                question: "3. 当磁场方向与平面平行时（θ=90°），磁通量是多少？",
+                options: [
+                    "Φ = B × S",
+                    "Φ = 0",
+                    "Φ = B / S",
+                    "Φ = -B × S"
+                ],
+                correct: 1,
+                explanation: "当θ=90°时，cosθ=0，所以磁通量Φ = B×S×0 = 0。这意味着磁场线与平面平行，没有磁场线穿过平面。"
+            },
+            {
+                question: "4. 下列哪种情况会导致磁通量增加？",
+                options: [
+                    "减小磁场强度B",
+                    "减小平面面积S",
+                    "减小平面法线与磁场的夹角θ",
+                    "增大夹角θ（0°<θ<90°）"
+                ],
+                correct: 2,
+                explanation: "磁通量Φ = B×S×cosθ，减小夹角θ会使cosθ增大，从而增加磁通量。减小B或S会减小磁通量，增大θ会减小cosθ从而减小磁通量。"
+            },
+            {
+                question: "5. 磁通量的国际单位是什么？",
+                options: [
+                    "特斯拉(T)",
+                    "韦伯(Wb)",
+                    "牛顿(N)",
+                    "焦耳(J)"
+                ],
+                correct: 1,
+                explanation: "磁通量的国际单位是韦伯(Wb)，1 Wb = 1 T·m²。特斯拉(T)是磁感应强度B的单位。"
+            }
+        ];
+        
+        let currentQuestion = 0;
+        let userAnswers = new Array(quizQuestions.length).fill(-1);
+        let quizSubmitted = false;
+        
+        // 显示测验问题
+        function showQuizQuestion() {
+            const quizContent = document.getElementById('quizContent');
+            const quizProgress = document.getElementById('quizProgress');
+            const nextQuestionBtn = document.getElementById('nextQuestionBtn');
+            const prevQuestionBtn = document.getElementById('prevQuestionBtn');
+            const submitQuizBtn = document.getElementById('submitQuizBtn');
+            
+            if (quizSubmitted) {
+                showQuizResults();
+                return;
+            }
+            
+            quizProgress.textContent = `题目 ${currentQuestion + 1}/${quizQuestions.length}`;
+            
+            const question = quizQuestions[currentQuestion];
+            let html = `
+                <div class="quiz-question">
+                    <div class="question-text">${question.question}</div>
+                    <div class="options-container">
+            `;
+            
+            question.options.forEach((option, index) => {
+                let optionClass = "option";
+                if (userAnswers[currentQuestion] === index) {
+                    optionClass += " selected";
+                }
+                
+                html += `<div class="${optionClass}" data-index="${index}">${option}</div>`;
+            });
+            
+            html += `
+                    </div>
+                </div>
+            `;
+            
+            quizContent.innerHTML = html;
+            
+            // 更新按钮状态
+            prevQuestionBtn.style.display = currentQuestion === 0 ? "none" : "block";
+            nextQuestionBtn.style.display = currentQuestion === quizQuestions.length - 1 ? "none" : "block";
+            submitQuizBtn.style.display = currentQuestion === quizQuestions.length - 1 ? "block" : "none";
+            
+            // 为选项添加点击事件
+            document.querySelectorAll('.option').forEach(option => {
+                option.addEventListener('click', function() {
+                    if (quizSubmitted) return;
+                    
+                    const selectedIndex = parseInt(this.getAttribute('data-index'));
+                    userAnswers[currentQuestion] = selectedIndex;
+                    
+                    // 移除其他选项的选中状态
+                    document.querySelectorAll('.option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    
+                    // 添加当前选项的选中状态
+                    this.classList.add('selected');
+                });
+            });
+        }
+        
+        // 显示测验结果
+        function showQuizResults() {
+            const quizContent = document.getElementById('quizContent');
+            const quizFooter = document.getElementById('quizFooter');
+            
+            let score = 0;
+            quizQuestions.forEach((question, index) => {
+                if (userAnswers[index] === question.correct) {
+                    score++;
+                }
+            });
+            
+            let resultHtml = `
+                <div class="result-container">
+                    <h2 class="result-title">测验完成！</h2>
+                    <p>你完成了磁通量知识检测</p>
+                    <div class="score">${score}/${quizQuestions.length}</div>
+                    <p>${score >= 4 ? "很棒！你对磁通量公式理解得很好！" : 
+                        score >= 3 ? "不错，但还有一些概念需要加强。" : 
+                        "需要进一步学习磁通量概念。"}</p>
+            `;
+            
+            // 添加每道题的解释
+            quizQuestions.forEach((question, index) => {
+                const userAnswer = userAnswers[index];
+                const isCorrect = userAnswer === question.correct;
+                
+                resultHtml += `
+                    <div class="explanation">
+                        <div class="question-text">${question.question}</div>
+                        <p>你的答案: <span style="color: ${isCorrect ? '#2ecc71' : '#e74c3c'}">${userAnswer !== -1 ? question.options[userAnswer] : '未作答'}</span></p>
+                        <p>正确答案: <span style="color: #2ecc71">${question.options[question.correct]}</span></p>
+                        <p class="explanation-title">解析:</p>
+                        <p>${question.explanation}</p>
+                    </div>
+                `;
+            });
+            
+            resultHtml += `
+                    <button class="btn" id="restartQuizBtn" style="margin-top: 20px;">重新测验</button>
+                </div>
+            `;
+            
+            quizContent.innerHTML = resultHtml;
+            quizFooter.style.display = "none";
+            
+            // 添加重新测验按钮事件
+            document.getElementById('restartQuizBtn').addEventListener('click', restartQuiz);
+        }
+        
+        // 重新开始测验
+        function restartQuiz() {
+            currentQuestion = 0;
+            userAnswers = new Array(quizQuestions.length).fill(-1);
+            quizSubmitted = false;
+            
+            const quizFooter = document.getElementById('quizFooter');
+            quizFooter.style.display = "flex";
+            
+            showQuizQuestion();
+        }
+        
+        // 初始化测验
+        quizBtn.addEventListener('click', function() {
+            quizModal.style.display = "flex";
+            showQuizQuestion();
+        });
+        
+        closeQuizBtn.addEventListener('click', function() {
+            quizModal.style.display = "none";
+        });
+        
+        // 点击模态框外部关闭
+        window.addEventListener('click', function(event) {
+            if (event.target === quizModal) {
+                quizModal.style.display = "none";
+            }
+        });
+        
+        // 测验导航按钮
+        document.getElementById('nextQuestionBtn').addEventListener('click', function() {
+            if (currentQuestion < quizQuestions.length - 1) {
+                currentQuestion++;
+                showQuizQuestion();
+            }
+        });
+        
+        document.getElementById('prevQuestionBtn').addEventListener('click', function() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                showQuizQuestion();
+            }
+        });
+        
+        document.getElementById('submitQuizBtn').addEventListener('click', function() {
+            quizSubmitted = true;
+            showQuizQuestion();
+        });
+    </script>
+</body>
+</html>

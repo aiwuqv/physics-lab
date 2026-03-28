@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>波的叠加 - 三列波振动叠加图</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: #0a1931;
+            color: white;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            border: 2px solid rgba(0,168,255,0.3);
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #4cd137;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: #00a8ff;
+        }
+        
+        .view-container {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 1000px) {
+            .view-container {
+                flex-direction: column;
+            }
+        }
+        
+        .top-view {
+            flex: 1;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 3px solid #00a8ff;
+            height: 500px;
+            position: relative;
+        }
+        
+        .side-view {
+            flex: 1;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 3px solid #00a8ff;
+            height: 500px;
+            position: relative;
+        }
+        
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        .controls {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 2px solid rgba(0,168,255,0.3);
+        }
+        
+        .control-group {
+            margin-bottom: 25px;
+        }
+        
+        h3 {
+            color: #00a8ff;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            text-align: center;
+        }
+        
+        .slider-container {
+            margin-bottom: 20px;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            color: #00a8ff;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 10px;
+            border-radius: 5px;
+            background: linear-gradient(to right, #00b894, #0984e3);
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid #0984e3;
+            cursor: pointer;
+        }
+        
+        .value-display {
+            text-align: center;
+            font-weight: bold;
+            color: #fbc531;
+            margin-top: 8px;
+            padding: 8px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 5px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            background: linear-gradient(to right, #00a8ff, #0097e6);
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .status-display {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .status-card {
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            border: 2px solid;
+        }
+        
+        .status-title {
+            font-size: 0.9rem;
+            color: #aaa;
+            margin-bottom: 8px;
+        }
+        
+        .status-value {
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+        
+        .wave1-card {
+            border-color: #00b894;
+            background: rgba(0, 184, 148, 0.1);
+        }
+        
+        .wave1-card .status-value {
+            color: #00b894;
+        }
+        
+        .wave2-card {
+            border-color: #0984e3;
+            background: rgba(9, 132, 227, 0.1);
+        }
+        
+        .wave2-card .status-value {
+            color: #0984e3;
+        }
+        
+        .result-card {
+            border-color: #fbc531;
+            background: rgba(251, 197, 49, 0.1);
+        }
+        
+        .result-card .status-value {
+            color: #fbc531;
+        }
+        
+        .path-info {
+            background: rgba(155, 89, 182, 0.15);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .path-formula {
+            font-size: 1.3rem;
+            color: #fbc531;
+            margin: 10px 0;
+        }
+        
+        .canvas-label {
+            position: absolute;
+            font-weight: bold;
+            font-size: 1.2rem;
+            z-index: 10;
+            background: rgba(0,0,0,0.7);
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+        
+        .top-view-label {
+            top: 10px;
+            left: 10px;
+            color: #00a8ff;
+        }
+        
+        .side-view-label {
+            top: 10px;
+            left: 10px;
+            color: #fbc531;
+        }
+        
+        .explanation {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 25px;
+            border: 2px solid rgba(0,168,255,0.3);
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <header>
+            <h1>波的叠加 - 三列波振动叠加图</h1>
+            <p class="subtitle">显示P点处S₁波、S₂波和合成波的振动波形</p>
+        </header>
+        
+        <div class="view-container">
+            <div class="top-view">
+                <canvas id="topCanvas"></canvas>
+                <div class="canvas-label top-view-label">俯视图：波源S₁和S₂发出的波</div>
+            </div>
+            
+            <div class="side-view">
+                <canvas id="sideCanvas"></canvas>
+                <div class="canvas-label side-view-label">P点处三列波的振动波形</div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <h3>控制面板</h3>
+                
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>波长 λ</span>
+                        <span>波峰间距</span>
+                    </div>
+                    <input type="range" id="wavelengthSlider" min="0.5" max="2.5" value="1.0" step="0.1">
+                    <div class="value-display" id="wavelengthValue">λ = 1.0</div>
+                </div>
+                
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>观察点位置</span>
+                        <span>改变波程差</span>
+                    </div>
+                    <input type="range" id="positionSlider" min="1" max="7" value="4">
+                    <div class="value-display" id="positionValue">中心（Δ=0）</div>
+                </div>
+                
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>波速</span>
+                        <span>动画速度</span>
+                    </div>
+                    <input type="range" id="speedSlider" min="0.1" max="2" value="1.0" step="0.1">
+                    <div class="value-display" id="speedValue">速度：正常</div>
+                </div>
+                
+                <div class="button-group">
+                    <button id="playBtn">播放动画</button>
+                    <button id="pauseBtn">暂停动画</button>
+                    <button id="resetBtn">重置</button>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <h3>干涉状态</h3>
+                
+                <div class="status-display">
+                    <div class="status-card wave1-card">
+                        <div class="status-title">S₁波振动</div>
+                        <div class="status-value">y₁(t)</div>
+                    </div>
+                    
+                    <div class="status-card wave2-card">
+                        <div class="status-title">S₂波振动</div>
+                        <div class="status-value">y₂(t)</div>
+                    </div>
+                    
+                    <div class="status-card result-card">
+                        <div class="status-title">合成振动</div>
+                        <div class="status-value">y(t)=y₁+y₂</div>
+                    </div>
+                </div>
+                
+                <div class="path-info">
+                    <h4 style="color: #9b59b6; margin-bottom: 10px;">波程差分析</h4>
+                    <div class="path-formula">
+                        Δ = |S₁P - S₂P| = <span id="pathDiffValue">0.0</span>λ
+                    </div>
+                    <div style="color: #aaa; font-size: 1rem; margin-top: 10px;">
+                        相位差 φ = 2π·Δ/λ = <span id="phaseDiffValue">0.0</span>π
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 初始化Canvas
+        const topCanvas = document.getElementById('topCanvas');
+        const topCtx = topCanvas.getContext('2d');
+        
+        const sideCanvas = document.getElementById('sideCanvas');
+        const sideCtx = sideCanvas.getContext('2d');
+        
+        // 设置Canvas尺寸
+        function initCanvas() {
+            const topContainer = topCanvas.parentElement;
+            const sideContainer = sideCanvas.parentElement;
+            
+            topCanvas.width = topContainer.clientWidth;
+            topCanvas.height = topContainer.clientHeight;
+            
+            sideCanvas.width = sideContainer.clientWidth;
+            sideCanvas.height = sideContainer.clientHeight;
+        }
+        
+        initCanvas();
+        window.addEventListener('resize', initCanvas);
+        
+        // 动画参数
+        const params = {
+            time: 0,
+            isPlaying: true,
+            pos: 4,
+            wavelength: 1.0,
+            waveSpeed: 0.03,
+            speedMultiplier: 1.0
+        };
+        
+        // 位置
+        const source1 = { x: 0, y: 0 };
+        const source2 = { x: 0, y: 0 };
+        const observation = { x: 0, y: 0 };
+        
+        // 获取DOM元素
+        const wavelengthSlider = document.getElementById('wavelengthSlider');
+        const wavelengthValue = document.getElementById('wavelengthValue');
+        const positionSlider = document.getElementById('positionSlider');
+        const positionValue = document.getElementById('positionValue');
+        const speedSlider = document.getElementById('speedSlider');
+        const speedValue = document.getElementById('speedValue');
+        const pathDiffValue = document.getElementById('pathDiffValue');
+        const phaseDiffValue = document.getElementById('phaseDiffValue');
+        
+        const playBtn = document.getElementById('playBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        
+        // 事件监听
+        wavelengthSlider.addEventListener('input', function() {
+            params.wavelength = parseFloat(this.value);
+            wavelengthValue.textContent = `λ = ${params.wavelength.toFixed(1)}`;
+        });
+        
+        positionSlider.addEventListener('input', function() {
+            params.pos = parseInt(this.value);
+            const positions = ['最左', '左偏', '左', '中心', '右', '右偏', '最右'];
+            const deltas = ['Δ≈1.5λ', 'Δ≈λ', 'Δ≈0.5λ', 'Δ=0', 'Δ≈0.5λ', 'Δ≈λ', 'Δ≈1.5λ'];
+            positionValue.textContent = `${positions[params.pos - 1]}（${deltas[params.pos - 1]}）`;
+        });
+        
+        speedSlider.addEventListener('input', function() {
+            params.speedMultiplier = parseFloat(this.value);
+            const speeds = ['慢速', '较慢', '正常', '较快', '快速'];
+            const index = Math.min(4, Math.floor(params.speedMultiplier * 2));
+            speedValue.textContent = `速度：${speeds[index]}`;
+        });
+        
+        playBtn.addEventListener('click', () => {
+            params.isPlaying = true;
+        });
+        
+        pauseBtn.addEventListener('click', () => {
+            params.isPlaying = false;
+        });
+        
+        resetBtn.addEventListener('click', () => {
+            params.time = 0;
+            params.pos = 4;
+            params.wavelength = 1.0;
+            params.speedMultiplier = 1.0;
+            
+            wavelengthSlider.value = 1.0;
+            wavelengthValue.textContent = 'λ = 1.0';
+            
+            positionSlider.value = 4;
+            positionValue.textContent = '中心（Δ=0）';
+            
+            speedSlider.value = 1.0;
+            speedValue.textContent = '速度：正常';
+            
+            params.isPlaying = true;
+        });
+        
+        // 绘制俯视图
+        function drawTopView() {
+            const width = topCanvas.width;
+            const height = topCanvas.height;
+            
+            // 清空画布
+            topCtx.fillStyle = '#000';
+            topCtx.fillRect(0, 0, width, height);
+            
+            // 更新位置
+            source1.x = width * 0.3;
+            source1.y = height * 0.65;
+            source2.x = width * 0.7;
+            source2.y = height * 0.65;
+            
+            const xPos = [
+                width * 0.2,
+                width * 0.32,
+                width * 0.43,
+                width * 0.5,
+                width * 0.57,
+                width * 0.68,
+                width * 0.8
+            ];
+            observation.x = xPos[params.pos - 1];
+            observation.y = height * 0.25;
+            
+            // 绘制波源
+            drawSources();
+            
+            // 绘制观察点
+            drawObservationPoint();
+            
+            // 绘制路径
+            drawPaths();
+            
+            // 绘制动态波
+            drawDynamicWaves();
+        }
+        
+        // 绘制波源
+        function drawSources() {
+            // 波源1 - 绿色
+            topCtx.fillStyle = '#00b894';
+            topCtx.beginPath();
+            topCtx.arc(source1.x, source1.y, 12, 0, Math.PI * 2);
+            topCtx.fill();
+            
+            topCtx.fillStyle = 'white';
+            topCtx.font = 'bold 16px Arial';
+            topCtx.textAlign = 'center';
+            topCtx.fillText('S₁', source1.x, source1.y + 4);
+            
+            // 波源2 - 蓝色
+            topCtx.fillStyle = '#0984e3';
+            topCtx.beginPath();
+            topCtx.arc(source2.x, source2.y, 12, 0, Math.PI * 2);
+            topCtx.fill();
+            
+            topCtx.fillStyle = 'white';
+            topCtx.fillText('S₂', source2.x, source2.y + 4);
+        }
+        
+        // 绘制观察点
+        function drawObservationPoint() {
+            topCtx.fillStyle = '#fbc531';
+            topCtx.beginPath();
+            topCtx.arc(observation.x, observation.y, 10, 0, Math.PI * 2);
+            topCtx.fill();
+            
+            topCtx.fillStyle = 'white';
+            topCtx.beginPath();
+            topCtx.arc(observation.x, observation.y, 4, 0, Math.PI * 2);
+            topCtx.fill();
+            
+            topCtx.fillStyle = '#fbc531';
+            topCtx.font = 'bold 16px Arial';
+            topCtx.fillText('P', observation.x, observation.y + 25);
+        }
+        
+        // 绘制路径
+        function drawPaths() {
+            // 路径1 - S₁到P
+            topCtx.strokeStyle = 'rgba(0, 184, 148, 0.6)';
+            topCtx.lineWidth = 2;
+            topCtx.setLineDash([5, 3]);
+            topCtx.beginPath();
+            topCtx.moveTo(source1.x, source1.y);
+            topCtx.lineTo(observation.x, observation.y);
+            topCtx.stroke();
+            
+            // 路径2 - S₂到P
+            topCtx.strokeStyle = 'rgba(9, 132, 227, 0.6)';
+            topCtx.beginPath();
+            topCtx.moveTo(source2.x, source2.y);
+            topCtx.lineTo(observation.x, observation.y);
+            topCtx.stroke();
+            topCtx.setLineDash([]);
+        }
+        
+        // 绘制动态波
+        function drawDynamicWaves() {
+            const waveCount = 8;
+            const baseSpacing = 40;
+            const spacing = baseSpacing * params.wavelength;
+            const waveOffset = params.time * 15 * params.wavelength * params.speedMultiplier;
+            
+            // S₁发出的波
+            for (let i = 0; i < waveCount; i++) {
+                const radius = 10 + i * spacing + waveOffset;
+                if (radius > Math.max(topCanvas.width, topCanvas.height) * 0.8) continue;
+                
+                if (i % 2 === 0) {
+                    // 实线波峰
+                    topCtx.strokeStyle = '#00b894';
+                    topCtx.lineWidth = 2;
+                    topCtx.setLineDash([]);
+                } else {
+                    // 虚线波谷
+                    topCtx.strokeStyle = '#00b894';
+                    topCtx.lineWidth = 1.5;
+                    topCtx.setLineDash([8, 6]);
+                }
+                
+                topCtx.beginPath();
+                topCtx.arc(source1.x, source1.y, radius, 0, Math.PI * 2);
+                topCtx.stroke();
+            }
+            
+            // S₂发出的波
+            for (let i = 0; i < waveCount; i++) {
+                const radius = 10 + i * spacing + waveOffset;
+                if (radius > Math.max(topCanvas.width, topCanvas.height) * 0.8) continue;
+                
+                if (i % 2 === 0) {
+                    topCtx.strokeStyle = '#0984e3';
+                    topCtx.lineWidth = 2;
+                    topCtx.setLineDash([]);
+                } else {
+                    topCtx.strokeStyle = '#0984e3';
+                    topCtx.lineWidth = 1.5;
+                    topCtx.setLineDash([8, 6]);
+                }
+                
+                topCtx.beginPath();
+                topCtx.arc(source2.x, source2.y, radius, 0, Math.PI * 2);
+                topCtx.stroke();
+            }
+            
+            topCtx.setLineDash([]);
+        }
+        
+        // 绘制侧视图 - 三列波振动波形
+        function drawSideView() {
+            const width = sideCanvas.width;
+            const height = sideCanvas.height;
+            
+            // 清空画布
+            sideCtx.fillStyle = '#000';
+            sideCtx.fillRect(0, 0, width, height);
+            
+            // 绘制坐标轴
+            drawAxes();
+            
+            // 计算波程差和相位差
+            const d1 = Math.sqrt((observation.x - source1.x)**2 + (observation.y - source1.y)**2);
+            const d2 = Math.sqrt((observation.x - source2.x)**2 + (observation.y - source2.y)**2);
+            
+            // 以波长为单位
+            const d1Lambda = d1 / (40 * params.wavelength);
+            const d2Lambda = d2 / (40 * params.wavelength);
+            const phaseDiff = (d1Lambda - d2Lambda) * 2 * Math.PI;
+            
+            // 绘制三列波
+            drawThreeWaves(phaseDiff);
+            
+            // 绘制图例
+            drawLegend();
+        }
+        
+        // 绘制坐标轴
+        function drawAxes() {
+            const width = sideCanvas.width;
+            const height = sideCanvas.height;
+            
+            // 绘制x轴
+            sideCtx.strokeStyle = 'rgba(255,255,255,0.6)';
+            sideCtx.lineWidth = 2;
+            sideCtx.beginPath();
+            sideCtx.moveTo(80, height/2);
+            sideCtx.lineTo(width - 30, height/2);
+            sideCtx.stroke();
+            
+            // 绘制y轴
+            sideCtx.beginPath();
+            sideCtx.moveTo(80, 80);
+            sideCtx.lineTo(80, height - 50);
+            sideCtx.stroke();
+            
+            // 标签
+            sideCtx.fillStyle = '#aaa';
+            sideCtx.font = 'bold 14px Arial';
+            sideCtx.textAlign = 'center';
+            sideCtx.fillText('时间 t', width/2, height - 20);
+            
+            sideCtx.save();
+            sideCtx.translate(40, height/2);
+            sideCtx.rotate(-Math.PI/2);
+            sideCtx.fillText('振幅 y', 0, 0);
+            sideCtx.restore();
+        }
+        
+        // 绘制三列波
+        function drawThreeWaves(phaseDiff) {
+            const width = sideCanvas.width;
+            const height = sideCanvas.height;
+            const centerY = height / 2;
+            const startX = 80;
+            const endX = width - 30;
+            const length = endX - startX;
+            
+            const amplitude = 35;
+            const angularFreq = 2 * Math.PI * 0.3;
+            const t = params.time * params.speedMultiplier;
+            
+            // 绘制网格背景
+            sideCtx.strokeStyle = 'rgba(255,255,255,0.1)';
+            sideCtx.lineWidth = 0.5;
+            
+            // 垂直线
+            for (let x = startX; x <= endX; x += 40) {
+                sideCtx.beginPath();
+                sideCtx.moveTo(x, 80);
+                sideCtx.lineTo(x, height - 50);
+                sideCtx.stroke();
+            }
+            
+            // 水平线
+            for (let y = 80; y <= height - 50; y += 30) {
+                sideCtx.beginPath();
+                sideCtx.moveTo(startX, y);
+                sideCtx.lineTo(endX, y);
+                sideCtx.stroke();
+            }
+            
+            // 绘制振幅刻度线
+            sideCtx.strokeStyle = 'rgba(255,255,255,0.3)';
+            sideCtx.lineWidth = 1;
+            sideCtx.setLineDash([2, 4]);
+            
+            // +A线
+            sideCtx.beginPath();
+            sideCtx.moveTo(startX, centerY - amplitude);
+            sideCtx.lineTo(endX, centerY - amplitude);
+            sideCtx.stroke();
+            
+            // -A线
+            sideCtx.beginPath();
+            sideCtx.moveTo(startX, centerY + amplitude);
+            sideCtx.lineTo(endX, centerY + amplitude);
+            sideCtx.stroke();
+            
+            // +2A线（只在加强干涉时显示）
+            if (Math.abs(Math.cos(phaseDiff/2)) > 0.95) {
+                sideCtx.beginPath();
+                sideCtx.moveTo(startX, centerY - 2*amplitude);
+                sideCtx.lineTo(endX, centerY - 2*amplitude);
+                sideCtx.stroke();
+                
+                sideCtx.beginPath();
+                sideCtx.moveTo(startX, centerY + 2*amplitude);
+                sideCtx.lineTo(endX, centerY + 2*amplitude);
+                sideCtx.stroke();
+            }
+            
+            sideCtx.setLineDash([]);
+            
+            // 绘制S₁波（绿色）
+            sideCtx.strokeStyle = '#00b894';
+            sideCtx.lineWidth = 3;
+            sideCtx.beginPath();
+            
+            for (let x = 0; x <= length; x++) {
+                const localT = (x / length) * 10 + t;
+                const y = centerY - amplitude * Math.sin(angularFreq * localT);
+                
+                if (x === 0) {
+                    sideCtx.moveTo(startX + x, y);
+                } else {
+                    sideCtx.lineTo(startX + x, y);
+                }
+            }
+            sideCtx.stroke();
+            
+            // 绘制S₂波（蓝色）- 有相位差
+            sideCtx.strokeStyle = '#0984e3';
+            sideCtx.lineWidth = 3;
+            sideCtx.beginPath();
+            
+            for (let x = 0; x <= length; x++) {
+                const localT = (x / length) * 10 + t;
+                const y = centerY - amplitude * Math.sin(angularFreq * localT + phaseDiff);
+                
+                if (x === 0) {
+                    sideCtx.moveTo(startX + x, y);
+                } else {
+                    sideCtx.lineTo(startX + x, y);
+                }
+            }
+            sideCtx.stroke();
+            
+            // 绘制合成波（黄色）- 两列波直接相加
+            sideCtx.strokeStyle = '#fbc531';
+            sideCtx.lineWidth = 4;
+            sideCtx.beginPath();
+            
+            for (let x = 0; x <= length; x++) {
+                const localT = (x / length) * 10 + t;
+                const wave1 = amplitude * Math.sin(angularFreq * localT);
+                const wave2 = amplitude * Math.sin(angularFreq * localT + phaseDiff);
+                const y = wave1 + wave2;
+                
+                if (x === 0) {
+                    sideCtx.moveTo(startX + x, centerY - y);
+                } else {
+                    sideCtx.lineTo(startX + x, centerY - y);
+                }
+            }
+            sideCtx.stroke();
+            
+            // 绘制振幅标签
+            sideCtx.fillStyle = '#00b894';
+            sideCtx.font = '12px Arial';
+            sideCtx.textAlign = 'right';
+            sideCtx.fillText('A', 75, centerY - amplitude + 4);
+            sideCtx.fillText('-A', 75, centerY + amplitude + 4);
+            
+            if (Math.abs(Math.cos(phaseDiff/2)) > 0.95) {
+                sideCtx.fillStyle = '#fbc531';
+                sideCtx.fillText('2A', 75, centerY - 2*amplitude + 4);
+                sideCtx.fillText('-2A', 75, centerY + 2*amplitude + 4);
+            }
+        }
+        
+        // 绘制图例
+        function drawLegend() {
+            const width = sideCanvas.width;
+            
+            sideCtx.fillStyle = '#00b894';
+            sideCtx.font = 'bold 14px Arial';
+            sideCtx.textAlign = 'left';
+            sideCtx.fillText('S₁波', 90, 50);
+            
+            sideCtx.fillStyle = '#0984e3';
+            sideCtx.fillText('S₂波', 150, 50);
+            
+            sideCtx.fillStyle = '#fbc531';
+            sideCtx.fillText('合成波', 210, 50);
+            
+            // 绘制波形示例
+            const legendY = 70;
+            
+            // S₁波示例
+            sideCtx.strokeStyle = '#00b894';
+            sideCtx.lineWidth = 2;
+            sideCtx.beginPath();
+            sideCtx.moveTo(90, legendY);
+            sideCtx.lineTo(130, legendY);
+            sideCtx.stroke();
+            
+            // S₂波示例
+            sideCtx.strokeStyle = '#0984e3';
+            sideCtx.beginPath();
+            sideCtx.moveTo(150, legendY);
+            sideCtx.lineTo(190, legendY);
+            sideCtx.stroke();
+            
+            // 合成波示例
+            sideCtx.strokeStyle = '#fbc531';
+            sideCtx.beginPath();
+            sideCtx.moveTo(210, legendY);
+            sideCtx.lineTo(250, legendY);
+            sideCtx.stroke();
+        }
+        
+        // 更新数据
+        function updateData() {
+            const d1 = Math.sqrt((observation.x - source1.x)**2 + (observation.y - source1.y)**2);
+            const d2 = Math.sqrt((observation.x - source2.x)**2 + (observation.y - source2.y)**2);
+            const delta = Math.abs(d1 - d2);
+            const deltaLambda = (delta / (40 * params.wavelength)).toFixed(2);
+            const phaseDiffPi = (deltaLambda * 2).toFixed(2);
+            
+            pathDiffValue.textContent = deltaLambda;
+            phaseDiffValue.textContent = phaseDiffPi;
+        }
+        
+        // 主绘制函数
+        function draw() {
+            drawTopView();
+            drawSideView();
+            updateData();
+            
+            // 更新时间
+            if (params.isPlaying) {
+                params.time += params.waveSpeed;
+            }
+            
+            requestAnimationFrame(draw);
+        }
+        
+        // 开始动画
+        draw();
+    </script>
+</body>
+</html>

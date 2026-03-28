@@ -1,0 +1,1579 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>物理抛体运动模拟器（突出匀加速与匀速）</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f7fa;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 28px;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 15px;
+        }
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            margin-top: 25px;
+        }
+        .control-panel {
+            flex: 1;
+            min-width: 320px;
+            padding: 25px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 12px;
+            border: 2px solid #dee2e6;
+        }
+        .animation-panel {
+            flex: 2;
+            min-width: 550px;
+        }
+        .analysis-panel {
+            flex: 1;
+            min-width: 320px;
+            padding: 25px;
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-radius: 12px;
+            border: 2px solid #90caf9;
+        }
+        .control-group {
+            margin-bottom: 25px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            border-left: 4px solid #3498db;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 16px;
+        }
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            background: linear-gradient(90deg, #2ecc71, #e74c3c);
+            border-radius: 4px;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #3498db;
+            cursor: pointer;
+            border: 3px solid white;
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+        }
+        .value-display {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        .buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+        }
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            flex: 1;
+            transition: all 0.3s;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        }
+        #start-btn {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+        }
+        #start-btn:hover {
+            background: linear-gradient(135deg, #27ae60, #219653);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(46, 204, 113, 0.3);
+        }
+        #reset-btn {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+        #reset-btn:hover {
+            background: linear-gradient(135deg, #c0392b, #a93226);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(231, 76, 60, 0.3);
+        }
+        #pause-btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+        #pause-btn:hover {
+            background: linear-gradient(135deg, #2980b9, #21618c);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(52, 152, 219, 0.3);
+        }
+        #slow-btn {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: white;
+        }
+        #slow-btn:hover {
+            background: linear-gradient(135deg, #8e44ad, #7d3c98);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(155, 89, 182, 0.3);
+        }
+        canvas {
+            border: 3px solid #2c3e50;
+            background: #ecf0f1;
+            display: block;
+            margin: 0 auto;
+            border-radius: 10px;
+        }
+        .highlight-box {
+            background: linear-gradient(135deg, #fffde7, #fff9c4);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 3px solid #fbc02d;
+            box-shadow: 0 3px 10px rgba(251, 192, 45, 0.2);
+        }
+        .highlight-box h3 {
+            color: #f57c00;
+            margin-top: 0;
+            border-bottom: 2px solid #ffb74d;
+            padding-bottom: 10px;
+        }
+        .motion-comparison {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px solid #3498db;
+        }
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        .comparison-item {
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .horizontal-motion {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            border: 2px solid #2196f3;
+        }
+        .vertical-motion {
+            background: linear-gradient(135deg, #fce4ec, #f8bbd9);
+            border: 2px solid #e91e63;
+        }
+        .motion-title {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        .horizontal-motion .motion-title {
+            color: #1565c0;
+        }
+        .vertical-motion .motion-title {
+            color: #c2185b;
+        }
+        .motion-property {
+            margin: 8px 0;
+            font-size: 14px;
+        }
+        .property-value {
+            font-weight: bold;
+            font-size: 16px;
+            color: #e74c3c;
+        }
+        .visual-indicator {
+            height: 20px;
+            margin: 10px 0;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        .horizontal-indicator {
+            background: linear-gradient(90deg, #64b5f6, #1976d2);
+        }
+        .vertical-indicator {
+            background: linear-gradient(90deg, #f06292, #d81b60);
+        }
+        .speed-dot {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            border: 2px solid #333;
+            top: 0;
+            transform: translateX(-50%);
+        }
+        .chart-container {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            border: 2px solid #ddd;
+        }
+        .chart-title {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        .analysis-chart {
+            border: 1px solid #ccc;
+            background: white;
+            margin: 10px auto;
+            display: block;
+        }
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 15px 0;
+            font-size: 13px;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 3px;
+        }
+        .section-title {
+            color: #2c3e50;
+            border-left: 5px solid #3498db;
+            padding-left: 15px;
+            margin: 25px 0 15px 0;
+            font-size: 20px;
+        }
+        .demo-hint {
+            background: #e8f5e9;
+            border: 2px solid #4caf50;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            font-style: italic;
+        }
+        .demo-hint h4 {
+            color: #2e7d32;
+            margin-top: 0;
+        }
+        .demo-step {
+            margin: 10px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+        .demo-step:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #4caf50;
+            font-weight: bold;
+        }
+        .highlight-text {
+            color: #e74c3c;
+            font-weight: bold;
+            background: #ffebee;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <h1>🚀 物理抛体运动模拟器：突出匀加速与匀速运动</h1>
+        
+        <div class="content">
+            <div class="control-panel">
+                <h2 class="section-title">参数控制</h2>
+                
+                <div class="control-group">
+                    <label>初始速度: <span id="velocity-value">30</span> m/s</label>
+                    <input type="range" id="velocity" min="5" max="100" value="30" step="1">
+                    <div class="value-display">
+                        <span>5 m/s</span>
+                        <span>100 m/s</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label>发射角度: <span id="angle-value">45</span>°</label>
+                    <input type="range" id="angle" min="0" max="90" value="45" step="1">
+                    <div class="value-display">
+                        <span>0° (纯水平)</span>
+                        <span>90° (纯竖直)</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label>重力加速度: <span id="gravity-value">9.8</span> m/s²</label>
+                    <input type="range" id="gravity" min="1" max="20" value="9.8" step="0.1">
+                    <div class="value-display">
+                        <span>1 m/s² (月球)</span>
+                        <span>20 m/s²</span>
+                    </div>
+                </div>
+                
+                <!-- 新添加的初始高度控制 -->
+                <div class="control-group">
+                    <label>初始高度: <span id="height-value">0</span> m</label>
+                    <input type="range" id="height" min="0" max="50" value="0" step="1">
+                    <div class="value-display">
+                        <span>0 m (地面)</span>
+                        <span>50 m (高台)</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label>动画速度: <span id="anim-speed-value">1.0</span>x</label>
+                    <input type="range" id="anim-speed" min="0.1" max="3" value="1.0" step="0.1">
+                    <div class="value-display">
+                        <span>0.1x (超慢)</span>
+                        <span>3x (快速)</span>
+                    </div>
+                </div>
+                
+                <div class="buttons">
+                    <button id="start-btn">开始模拟</button>
+                    <button id="reset-btn">重置</button>
+                    <button id="pause-btn">暂停</button>
+                    <button id="slow-btn">慢动作观察</button>
+                </div>
+                
+                <div class="highlight-box">
+                    <h3>📊 当前运动状态</h3>
+                    <div style="font-size: 15px; line-height: 1.6;">
+                        <div>水平速度: <span id="current-vx" class="highlight-text">21.21</span> m/s 
+                            <span style="color: #1565c0; font-weight: bold;">(恒定不变)</span></div>
+                        <div>竖直速度: <span id="current-vy" class="highlight-text">21.21</span> m/s 
+                            <span style="color: #c2185b; font-weight: bold;" id="vy-trend">(正在减小)</span></div>
+                        <div>合速度: <span id="current-v" class="highlight-text">30.00</span> m/s</div>
+                        <div style="margin-top: 10px; padding: 8px; background: #ffebee; border-radius: 5px;">
+                            竖直加速度: <span id="current-ay" class="highlight-text">-9.8</span> m/s² 
+                            <span style="color: #d32f2f; font-weight: bold;">(恒定向下，始终不变！)</span>
+                        </div>
+                        <div style="margin-top: 10px; padding: 8px; background: #e3f2fd; border-radius: 5px;">
+                            初始高度: <span id="current-height" class="highlight-text">0</span> m
+                        </div>
+                    </div>
+                    
+                    <div class="visual-indicator horizontal-indicator">
+                        <div class="speed-dot" id="horizontal-dot" style="left: 50%"></div>
+                    </div>
+                    <div style="text-align: center; font-size: 12px; color: #1565c0;">
+                        水平速度变化：<span id="horizontal-change">无变化</span>
+                    </div>
+                    
+                    <div class="visual-indicator vertical-indicator">
+                        <div class="speed-dot" id="vertical-dot" style="left: 50%"></div>
+                    </div>
+                    <div style="text-align: center; font-size: 12px; color: #c2185b;">
+                        竖直速度变化：<span id="vertical-change">正在减小</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="animation-panel">
+                <h2 class="section-title">运动动画演示</h2>
+                <canvas id="physics-canvas" width="750" height="500"></canvas>
+                
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #f44336"></div>
+                        <span>抛体</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #4CAF50"></div>
+                        <span>运动轨迹</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #2196F3"></div>
+                        <span>水平速度 (恒定)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #E91E63"></div>
+                        <span>竖直速度 (变化)</span>
+                    </div>
+                </div>
+                
+                <div class="demo-hint">
+                    <h4>🔍 观察要点：</h4>
+                    <div class="demo-step">点击"慢动作观察"，仔细看竖直速度向量的变化</div>
+                    <div class="demo-step">注意水平速度向量长度<b class="highlight-text">始终不变</b></div>
+                    <div class="demo-step">注意竖直速度向量<b class="highlight-text">越来越长</b>（下降阶段）</div>
+                    <div class="demo-step">观察相同水平距离的时间间隔是否相等（水平匀速）</div>
+                    <div class="demo-step">观察相同竖直距离的时间间隔是否缩短（竖直加速）</div>
+                    <div class="demo-step">调整"初始高度"滑块，观察从不同高度抛出的效果</div>
+                </div>
+                
+                <div class="motion-comparison">
+                    <h3 style="color: #2c3e50; text-align: center; margin-top: 0;">运动特性对比</h3>
+                    <div class="comparison-grid">
+                        <div class="comparison-item horizontal-motion">
+                            <div class="motion-title">水平方向运动</div>
+                            <div class="motion-property">运动类型: <span class="property-value">匀速直线运动</span></div>
+                            <div class="motion-property">加速度: <span class="property-value">0 m/s²</span></div>
+                            <div class="motion-property">速度特点: <span class="property-value">大小方向都不变</span></div>
+                            <div class="motion-property" id="horizontal-evidence">证据: <span class="property-value">等待数据...</span></div>
+                        </div>
+                        <div class="comparison-item vertical-motion">
+                            <div class="motion-title">竖直方向运动</div>
+                            <div class="motion-property">运动类型: <span class="property-value">匀变速直线运动</span></div>
+                            <div class="motion-property">加速度: <span class="property-value" id="vertical-accel">-9.8 m/s²</span></div>
+                            <div class="motion-property">速度特点: <span class="property-value">大小变化，方向向下</span></div>
+                            <div class="motion-property" id="vertical-evidence">证据: <span class="property-value">等待数据...</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="analysis-panel">
+                <h2 class="section-title">运动分析图表</h2>
+                
+                <div class="chart-container">
+                    <div class="chart-title">水平速度-时间图 (v_x-t)</div>
+                    <canvas id="vx-canvas" class="analysis-chart" width="320" height="150"></canvas>
+                    <div style="text-align: center; font-size: 12px; color: #1565c0; margin-top: 5px;">
+                        水平线表明：<b>速度恒定</b>，加速度为0
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">竖直速度-时间图 (v_y-t)</div>
+                    <canvas id="vy-canvas" class="analysis-chart" width="320" height="150"></canvas>
+                    <div style="text-align: center; font-size: 12px; color: #c2185b; margin-top: 5px;">
+                        斜线表明：<b>匀变速运动</b>，斜率 = -g = <span id="slope-value">-9.8</span>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">位移对比图</div>
+                    <canvas id="displacement-canvas" class="analysis-chart" width="320" height="150"></canvas>
+                    <div style="text-align: center; font-size: 12px; color: #4CAF50; margin-top: 5px;">
+                        x-t: 斜直线（匀速） | y-t: 抛物线（匀加速）
+                    </div>
+                </div>
+                
+                <div class="highlight-box" style="margin-top: 20px; background: #e8f5e9; border-color: #4CAF50;">
+                    <h3>🎯 教学重点</h3>
+                    <div style="font-size: 14px; line-height: 1.5;">
+                        <p><b>水平方向：</b>无水平力作用 → 加速度为0 → 速度恒定 → 匀速直线运动</p>
+                        <p><b>竖直方向：</b>重力作用 → 加速度恒为-g → 速度均匀变化 → 匀变速直线运动</p>
+                        <p><b>初始高度影响：</b>高度越高，飞行时间越长，水平射程越远</p>
+                        <p><b>合运动：</b>水平匀速 + 竖直匀变速 = 抛体运动（轨迹为抛物线）</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 获取主Canvas元素和上下文
+        const canvas = document.getElementById('physics-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 获取分析Canvas
+        const vxCanvas = document.getElementById('vx-canvas');
+        const vyCanvas = document.getElementById('vy-canvas');
+        const displacementCanvas = document.getElementById('displacement-canvas');
+        const vxCtx = vxCanvas.getContext('2d');
+        const vyCtx = vyCanvas.getContext('2d');
+        const dispCtx = displacementCanvas.getContext('2d');
+        
+        // 获取DOM元素
+        const velocitySlider = document.getElementById('velocity');
+        const angleSlider = document.getElementById('angle');
+        const gravitySlider = document.getElementById('gravity');
+        const heightSlider = document.getElementById('height'); // 新增的高度滑块
+        const animSpeedSlider = document.getElementById('anim-speed');
+        
+        const velocityValue = document.getElementById('velocity-value');
+        const angleValue = document.getElementById('angle-value');
+        const gravityValue = document.getElementById('gravity-value');
+        const heightValue = document.getElementById('height-value'); // 新增的高度显示
+        const animSpeedValue = document.getElementById('anim-speed-value');
+        const currentHeight = document.getElementById('current-height'); // 新增的当前高度显示
+        
+        const currentVx = document.getElementById('current-vx');
+        const currentVy = document.getElementById('current-vy');
+        const currentV = document.getElementById('current-v');
+        const currentAy = document.getElementById('current-ay');
+        const vyTrend = document.getElementById('vy-trend');
+        const slopeValue = document.getElementById('slope-value');
+        
+        const horizontalDot = document.getElementById('horizontal-dot');
+        const verticalDot = document.getElementById('vertical-dot');
+        const horizontalChange = document.getElementById('horizontal-change');
+        const verticalChange = document.getElementById('vertical-change');
+        const horizontalEvidence = document.getElementById('horizontal-evidence');
+        const verticalEvidence = document.getElementById('vertical-evidence');
+        const verticalAccel = document.getElementById('vertical-accel');
+        
+        const startBtn = document.getElementById('start-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const pauseBtn = document.getElementById('pause-btn');
+        const slowBtn = document.getElementById('slow-btn');
+        
+        // 物理参数 - 添加初始高度
+        let physics = {
+            velocity: 30,      // 初始速度 m/s
+            angle: 45,         // 发射角度 度
+            gravity: 9.8,      // 重力加速度 m/s²
+            height: 0,         // 初始高度 m（新增）
+            animSpeed: 1.0,    // 动画速度
+            time: 0,           // 当前时间 s
+            isRunning: false,
+            isPaused: false,
+            scale: 3,          // 缩放比例
+            
+            // 用于记录位置以证明运动特性
+            lastHorizontalPos: 0,
+            lastHorizontalTime: 0,
+            horizontalIntervals: [],
+            
+            lastVerticalPos: 0,
+            lastVerticalTime: 0,
+            verticalIntervals: []
+        };
+        
+        // 抛体状态
+        let projectile = {
+            x: 0,
+            y: 0,
+            vx: 0,
+            vy: 0,
+            trajectory: [],
+            history: [],  // 历史记录，用于绘制图表
+            motionPhase: 'rising'
+        };
+        
+        // 动画控制
+        let animationId = null;
+        let lastTimestamp = 0;
+        
+        // 初始化
+        function init() {
+            // 重置参数
+            physics.velocity = parseFloat(velocitySlider.value);
+            physics.angle = parseFloat(angleSlider.value);
+            physics.gravity = parseFloat(gravitySlider.value);
+            physics.height = parseFloat(heightSlider.value); // 获取高度值
+            physics.animSpeed = parseFloat(animSpeedSlider.value);
+            physics.time = 0;
+            
+            // 重置记录
+            physics.lastHorizontalPos = 0;
+            physics.lastHorizontalTime = 0;
+            physics.horizontalIntervals = [];
+            physics.lastVerticalPos = 0;
+            physics.lastVerticalTime = 0;
+            physics.verticalIntervals = [];
+            
+            // 计算初始速度分量
+            const angleRad = physics.angle * Math.PI / 180;
+            projectile.vx = physics.velocity * Math.cos(angleRad);
+            projectile.vy = physics.velocity * Math.sin(angleRad);
+            projectile.x = 0;
+            projectile.y = physics.height; // 设置初始高度
+            projectile.trajectory = [{x: 0, y: physics.height}];
+            projectile.history = [{
+                time: 0,
+                x: 0,
+                y: physics.height,
+                vx: projectile.vx,
+                vy: projectile.vy
+            }];
+            
+            updateDisplays();
+            drawAll();
+        }
+        
+        // 更新显示
+        function updateDisplays() {
+            velocityValue.textContent = physics.velocity;
+            angleValue.textContent = physics.angle;
+            gravityValue.textContent = physics.gravity.toFixed(1);
+            heightValue.textContent = physics.height; // 更新高度显示
+            animSpeedValue.textContent = physics.animSpeed.toFixed(1);
+            slopeValue.textContent = `-${physics.gravity.toFixed(1)}`;
+            currentAy.textContent = physics.gravity.toFixed(1);
+            verticalAccel.textContent = `-${physics.gravity.toFixed(1)} m/s²`;
+            currentHeight.textContent = physics.height; // 更新当前高度显示
+            
+            currentVx.textContent = Math.abs(projectile.vx).toFixed(2);
+            currentVy.textContent = projectile.vy.toFixed(2);
+            
+            const totalV = Math.sqrt(projectile.vx * projectile.vx + projectile.vy * projectile.vy);
+            currentV.textContent = totalV.toFixed(2);
+            
+            // 更新速度趋势
+            if (projectile.motionPhase === 'rising') {
+                vyTrend.textContent = '(正在减小)';
+                vyTrend.style.color = '#f57c00';
+                verticalChange.textContent = '正在减小';
+            } else if (projectile.motionPhase === 'peak') {
+                vyTrend.textContent = '(瞬时为0)';
+                vyTrend.style.color = '#fbc02d';
+                verticalChange.textContent = '瞬时为0';
+            } else {
+                vyTrend.textContent = '(正在增大)';
+                vyTrend.style.color = '#d32f2f';
+                verticalChange.textContent = '正在增大';
+            }
+            
+            // 更新速度指示点
+            const maxHorizontalV = Math.abs(projectile.vx);
+            const maxVerticalV = Math.abs(projectile.vy) + physics.gravity * 3;
+            
+            const horizontalPercent = (Math.abs(projectile.vx) / maxHorizontalV) * 100;
+            horizontalDot.style.left = `${Math.min(100, Math.max(0, horizontalPercent))}%`;
+            
+            const verticalPercent = (Math.abs(projectile.vy) / maxVerticalV) * 100;
+            verticalDot.style.left = `${Math.min(100, Math.max(0, verticalPercent))}%`;
+            
+            horizontalChange.textContent = '无变化';
+        }
+        
+        // 绘制所有内容
+        function drawAll() {
+            drawMainCanvas();
+            drawCharts();
+        }
+        
+        // 绘制主Canvas
+        function drawMainCanvas() {
+            // 清空Canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制网格
+            drawGrid();
+            
+            // 绘制坐标轴
+            drawAxes();
+            
+            // 绘制地面
+            drawGround();
+            
+            // 绘制初始高度平台（如果高度>0）
+            if (physics.height > 0) {
+                drawHeightPlatform();
+            }
+            
+            // 绘制参考线（用于观察时间间隔）
+            drawReferenceLines();
+            
+            // 绘制轨迹
+            drawTrajectory();
+            
+            // 绘制抛体
+            drawProjectile();
+            
+            // 绘制速度向量
+            drawVelocityVectors();
+            
+            // 绘制标注
+            drawAnnotations();
+        }
+        
+        // 绘制网格
+        function drawGrid() {
+            ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+            ctx.lineWidth = 0.5;
+            
+            // 主要网格
+            for (let x = 0; x <= canvas.width; x += 50) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y <= canvas.height; y += 50) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+            
+            // 次要网格
+            ctx.strokeStyle = 'rgba(0,0,0,0.05)';
+            for (let x = 0; x <= canvas.width; x += 10) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y <= canvas.height; y += 10) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+        }
+        
+        // 绘制坐标轴
+        function drawAxes() {
+            const originY = canvas.height - 50;
+            
+            // X轴
+            ctx.strokeStyle = '#1565c0';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(50, originY);
+            ctx.lineTo(canvas.width - 50, originY);
+            ctx.stroke();
+            
+            // Y轴
+            ctx.strokeStyle = '#c2185b';
+            ctx.beginPath();
+            ctx.moveTo(50, 50);
+            ctx.lineTo(50, canvas.height - 50);
+            ctx.stroke();
+            
+            // 坐标标签
+            ctx.fillStyle = '#1565c0';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText('水平位移 x (m)', canvas.width - 120, originY + 25);
+            
+            ctx.fillStyle = '#c2185b';
+            ctx.fillText('竖直位移 y (m)', 20, 30);
+            
+            // 绘制刻度
+            drawScaleMarks(originY);
+        }
+        
+        // 绘制刻度
+        function drawScaleMarks(originY) {
+            ctx.strokeStyle = '#666';
+            ctx.lineWidth = 1;
+            ctx.font = '12px Arial';
+            ctx.fillStyle = '#666';
+            
+            // Y轴刻度
+            for (let y = 0; y <= 100; y += 20) {
+                const screenY = originY - y * physics.scale;
+                if (screenY > 50 && screenY < canvas.height - 20) {
+                    ctx.beginPath();
+                    ctx.moveTo(45, screenY);
+                    ctx.lineTo(55, screenY);
+                    ctx.stroke();
+                    ctx.fillText(y + 'm', 25, screenY + 4);
+                }
+            }
+            
+            // X轴刻度
+            for (let x = 0; x <= 150; x += 20) {
+                const screenX = 50 + x * physics.scale;
+                if (screenX < canvas.width - 50) {
+                    ctx.beginPath();
+                    ctx.moveTo(screenX, originY - 5);
+                    ctx.lineTo(screenX, originY + 5);
+                    ctx.stroke();
+                    ctx.fillText(x + 'm', screenX - 10, originY + 20);
+                }
+            }
+        }
+        
+        // 绘制地面
+        function drawGround() {
+            const groundY = canvas.height - 50;
+            
+            ctx.fillStyle = 'rgba(139, 195, 74, 0.3)';
+            ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
+            
+            // 地面线
+            ctx.strokeStyle = '#388E3C';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, groundY);
+            ctx.lineTo(canvas.width, groundY);
+            ctx.stroke();
+        }
+        
+        // 绘制高度平台（新增）
+        function drawHeightPlatform() {
+            const groundY = canvas.height - 50;
+            const platformY = groundY - physics.height * physics.scale;
+            
+            // 平台主体
+            ctx.fillStyle = 'rgba(121, 85, 72, 0.7)';
+            ctx.fillRect(45, platformY, 10, physics.height * physics.scale);
+            
+            // 平台顶部
+            ctx.fillStyle = 'rgba(93, 64, 55, 0.9)';
+            ctx.fillRect(40, platformY - 5, 20, 10);
+            
+            // 高度标注
+            ctx.fillStyle = '#5D4037';
+            ctx.font = 'bold 14px Arial';
+            ctx.fillText(`高度: ${physics.height}m`, 70, platformY + 5);
+        }
+        
+        // 绘制参考线（用于观察时间间隔）
+        function drawReferenceLines() {
+            const originY = canvas.height - 50;
+            
+            // 如果有历史记录，绘制时间标记点
+            if (projectile.history.length > 0) {
+                ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([5, 3]);
+                
+                // 每隔0.5秒标记一次位置
+                const timeStep = 0.5;
+                let currentTime = 0;
+                const angleRad = physics.angle * Math.PI / 180;
+                const v0x = physics.velocity * Math.cos(angleRad);
+                const v0y = physics.velocity * Math.sin(angleRad);
+                
+                while (currentTime <= physics.time + 2) {
+                    const x = v0x * currentTime;
+                    const y = physics.height + v0y * currentTime - 0.5 * physics.gravity * currentTime * currentTime;
+                    
+                    if (y >= 0) {
+                        const screenX = 50 + x * physics.scale;
+                        const screenY = originY - y * physics.scale;
+                        
+                        // 绘制水平参考线
+                        ctx.beginPath();
+                        ctx.moveTo(screenX, screenY);
+                        ctx.lineTo(screenX, originY);
+                        ctx.stroke();
+                        
+                        // 绘制时间标记
+                        ctx.fillStyle = '#666';
+                        ctx.font = '10px Arial';
+                        ctx.fillText(`${currentTime.toFixed(1)}s`, screenX - 10, originY + 15);
+                        
+                        // 绘制点
+                        ctx.fillStyle = '#666';
+                        ctx.beginPath();
+                        ctx.arc(screenX, screenY, 3, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    
+                    currentTime += timeStep;
+                }
+                
+                ctx.setLineDash([]);
+            }
+        }
+        
+        // 绘制轨迹
+        function drawTrajectory() {
+            if (projectile.trajectory.length < 2) return;
+            
+            const originY = canvas.height - 50;
+            
+            ctx.strokeStyle = '#4CAF50';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            const firstPoint = projectile.trajectory[0];
+            ctx.moveTo(50 + firstPoint.x * physics.scale, originY - firstPoint.y * physics.scale);
+            
+            for (let i = 1; i < projectile.trajectory.length; i++) {
+                const point = projectile.trajectory[i];
+                ctx.lineTo(50 + point.x * physics.scale, originY - point.y * physics.scale);
+            }
+            
+            ctx.stroke();
+        }
+        
+        // 绘制抛体
+        function drawProjectile() {
+            const originY = canvas.height - 50;
+            const screenX = 50 + projectile.x * physics.scale;
+            const screenY = originY - projectile.y * physics.scale;
+            
+            // 抛体大小随速度变化（更明显）
+            const totalV = Math.sqrt(projectile.vx * projectile.vx + projectile.vy * projectile.vy);
+            const baseSize = 8;
+            const speedFactor = totalV / physics.velocity;
+            const size = baseSize + speedFactor * 10;
+            
+            // 抛体颜色
+            let color;
+            if (projectile.motionPhase === 'rising') {
+                color = '#4CAF50'; // 绿色
+            } else if (projectile.motionPhase === 'peak') {
+                color = '#FFC107'; // 黄色
+            } else {
+                color = '#f44336'; // 红色
+            }
+            
+            // 绘制抛体
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(screenX, screenY, size, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 外框
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // 标注抛体信息
+            ctx.fillStyle = '#333';
+            ctx.font = '12px Arial';
+            ctx.fillText(`t=${physics.time.toFixed(2)}s`, screenX + 15, screenY - 15);
+            ctx.fillText(`y=${projectile.y.toFixed(1)}m`, screenX + 15, screenY + 15);
+        }
+        
+        // 绘制速度向量
+        function drawVelocityVectors() {
+            const originY = canvas.height - 50;
+            const screenX = 50 + projectile.x * physics.scale;
+            const screenY = originY - projectile.y * physics.scale;
+            
+            // 放大倍数，让变化更明显
+            const scaleFactor = 2.0;
+            
+            // 绘制水平速度向量（蓝色）- 强调其不变性
+            ctx.strokeStyle = '#2196F3';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(screenX, screenY);
+            const vxEndX = screenX + projectile.vx * scaleFactor;
+            ctx.lineTo(vxEndX, screenY);
+            ctx.stroke();
+            
+            // 绘制箭头
+            drawArrow(screenX, screenY, vxEndX, screenY, '#2196F3');
+            
+            // 标注水平速度
+            ctx.fillStyle = '#2196F3';
+            ctx.font = 'bold 14px Arial';
+            const vxText = `v_x = ${Math.abs(projectile.vx).toFixed(2)}`;
+            ctx.fillText(vxText, vxEndX + 10, screenY - 5);
+            
+            // 绘制竖直速度向量（粉色）- 强调其变化
+            ctx.strokeStyle = '#E91E63';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(screenX, screenY);
+            const vyEndY = screenY - projectile.vy * scaleFactor;
+            ctx.lineTo(screenX, vyEndY);
+            ctx.stroke();
+            
+            // 绘制箭头
+            drawArrow(screenX, screenY, screenX, vyEndY, '#E91E63');
+            
+            // 标注竖直速度
+            ctx.fillStyle = '#E91E63';
+            const vyText = `v_y = ${projectile.vy.toFixed(2)}`;
+            const vyTextWidth = ctx.measureText(vyText).width;
+            ctx.fillText(vyText, screenX - vyTextWidth - 10, vyEndY + (projectile.vy > 0 ? -10 : 20));
+            
+            // 绘制合速度向量（紫色虚线）- 对比参考
+            ctx.strokeStyle = '#9C27B0';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 3]);
+            ctx.beginPath();
+            ctx.moveTo(screenX, screenY);
+            ctx.lineTo(vxEndX, vyEndY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // 标注合速度
+            const totalV = Math.sqrt(projectile.vx * projectile.vx + projectile.vy * projectile.vy);
+            ctx.fillStyle = '#9C27B0';
+            ctx.fillText(`v = ${totalV.toFixed(2)}`, (screenX + vxEndX) / 2, (screenY + vyEndY) / 2 - 10);
+        }
+        
+        // 绘制箭头
+        function drawArrow(fromX, fromY, toX, toY, color) {
+            const headLength = 12;
+            const dx = toX - fromX;
+            const dy = toY - fromY;
+            const angle = Math.atan2(dy, dx);
+            
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(toX, toY);
+            ctx.lineTo(toX - headLength * Math.cos(angle - Math.PI/6), toY - headLength * Math.sin(angle - Math.PI/6));
+            ctx.lineTo(toX - headLength * Math.cos(angle + Math.PI/6), toY - headLength * Math.sin(angle + Math.PI/6));
+            ctx.closePath();
+            ctx.fill();
+        }
+        
+        // 绘制标注
+        function drawAnnotations() {
+            const originY = canvas.height - 50;
+            
+            // 在关键位置添加教学提示
+            ctx.fillStyle = '#333';
+            ctx.font = '14px Arial';
+            
+            // 水平速度提示
+            ctx.fillStyle = '#1565c0';
+            ctx.fillText('← 水平速度向量长度恒定 →', canvas.width / 2 - 100, 40);
+            ctx.fillText('证明：水平匀速运动', canvas.width / 2 - 80, 60);
+            
+            // 竖直速度提示
+            ctx.fillStyle = '#c2185b';
+            ctx.fillText('↑ 竖直速度向量长度变化 ↓', canvas.width / 2 - 100, canvas.height - 30);
+            ctx.fillText('证明：竖直匀变速运动', canvas.width / 2 - 85, canvas.height - 10);
+            
+            // 加速度提示
+            ctx.fillStyle = '#d32f2f';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText('加速度恒为-g，方向始终向下！', 100, 100);
+            
+            // 初始高度提示（如果高度>0）
+            if (physics.height > 0) {
+                ctx.fillStyle = '#5D4037';
+                ctx.font = 'bold 14px Arial';
+                ctx.fillText(`初始高度: ${physics.height}m`, canvas.width - 150, 80);
+                ctx.fillText('高度越高，飞行时间越长', canvas.width - 170, 100);
+            }
+        }
+        
+        // 绘制图表
+        function drawCharts() {
+            drawHorizontalVelocityChart();
+            drawVerticalVelocityChart();
+            drawDisplacementChart();
+        }
+        
+        // 绘制水平速度图表
+        function drawHorizontalVelocityChart() {
+            vxCtx.clearRect(0, 0, vxCanvas.width, vxCanvas.height);
+            
+            // 绘制网格
+            drawChartGrid(vxCtx, vxCanvas);
+            
+            // 绘制坐标轴
+            vxCtx.strokeStyle = '#333';
+            vxCtx.lineWidth = 1;
+            vxCtx.beginPath();
+            vxCtx.moveTo(20, 20);
+            vxCtx.lineTo(20, vxCanvas.height - 20);
+            vxCtx.lineTo(vxCanvas.width - 20, vxCanvas.height - 20);
+            vxCtx.stroke();
+            
+            // 绘制水平线（表示恒定速度）
+            if (projectile.history.length > 0) {
+                const vxValue = Math.abs(projectile.vx);
+                const y = vxCanvas.height - 20 - (vxValue / physics.velocity) * (vxCanvas.height - 40);
+                
+                vxCtx.strokeStyle = '#2196F3';
+                vxCtx.lineWidth = 3;
+                vxCtx.beginPath();
+                vxCtx.moveTo(20, y);
+                vxCtx.lineTo(vxCanvas.width - 20, y);
+                vxCtx.stroke();
+                
+                // 标注
+                vxCtx.fillStyle = '#2196F3';
+                vxCtx.font = 'bold 12px Arial';
+                vxCtx.fillText(`v_x = ${vxValue.toFixed(2)} m/s`, vxCanvas.width - 100, y - 5);
+                vxCtx.fillText('恒定不变！', vxCanvas.width - 80, y + 15);
+            }
+            
+            // 标题
+            vxCtx.fillStyle = '#333';
+            vxCtx.font = '14px Arial';
+            vxCtx.fillText('水平速度 v_x (m/s)', 10, 15);
+            vxCtx.fillText('时间 t (s)', vxCanvas.width - 40, vxCanvas.height - 5);
+        }
+        
+        // 绘制竖直速度图表
+        function drawVerticalVelocityChart() {
+            vyCtx.clearRect(0, 0, vyCanvas.width, vyCanvas.height);
+            
+            // 绘制网格
+            drawChartGrid(vyCtx, vyCanvas);
+            
+            // 绘制坐标轴
+            vyCtx.strokeStyle = '#333';
+            vyCtx.lineWidth = 1;
+            vyCtx.beginPath();
+            vyCtx.moveTo(20, 20);
+            vyCtx.lineTo(20, vyCanvas.height - 20);
+            vyCtx.lineTo(vyCanvas.width - 20, vyCanvas.height - 20);
+            vyCtx.stroke();
+            
+            // 绘制零线
+            vyCtx.strokeStyle = '#999';
+            vyCtx.lineWidth = 1;
+            vyCtx.setLineDash([3, 3]);
+            const zeroY = vyCanvas.height / 2;
+            vyCtx.beginPath();
+            vyCtx.moveTo(20, zeroY);
+            vyCtx.lineTo(vyCanvas.width - 20, zeroY);
+            vyCtx.stroke();
+            vyCtx.setLineDash([]);
+            
+            // 绘制速度线
+            if (projectile.history.length > 1) {
+                vyCtx.strokeStyle = '#E91E63';
+                vyCtx.lineWidth = 3;
+                vyCtx.beginPath();
+                
+                const maxTime = Math.max(physics.time, 1);
+                const maxVy = physics.velocity + physics.gravity * 3;
+                
+                for (let i = 0; i < projectile.history.length; i++) {
+                    const point = projectile.history[i];
+                    const x = 20 + (point.time / maxTime) * (vyCanvas.width - 40);
+                    const y = zeroY - (point.vy / maxVy) * (zeroY - 20);
+                    
+                    if (i === 0) {
+                        vyCtx.moveTo(x, y);
+                    } else {
+                        vyCtx.lineTo(x, y);
+                    }
+                }
+                
+                vyCtx.stroke();
+                
+                // 标注斜率
+                vyCtx.fillStyle = '#d32f2f';
+                vyCtx.font = '12px Arial';
+                vyCtx.fillText(`斜率 = -g = -${physics.gravity.toFixed(1)}`, 
+                              vyCanvas.width - 120, 30);
+                
+                // 标注当前点
+                if (projectile.history.length > 0) {
+                    const lastPoint = projectile.history[projectile.history.length - 1];
+                    const x = 20 + (lastPoint.time / maxTime) * (vyCanvas.width - 40);
+                    const y = zeroY - (lastPoint.vy / maxVy) * (zeroY - 20);
+                    
+                    vyCtx.fillStyle = '#E91E63';
+                    vyCtx.beginPath();
+                    vyCtx.arc(x, y, 4, 0, Math.PI * 2);
+                    vyCtx.fill();
+                    
+                    vyCtx.fillText(`${lastPoint.vy.toFixed(2)}`, x + 5, y - 5);
+                }
+            }
+            
+            // 标题
+            vyCtx.fillStyle = '#333';
+            vyCtx.font = '14px Arial';
+            vyCtx.fillText('竖直速度 v_y (m/s)', 10, 15);
+            vyCtx.fillText('时间 t (s)', vyCanvas.width - 40, vyCanvas.height - 5);
+        }
+        
+        // 绘制位移图表
+        function drawDisplacementChart() {
+            dispCtx.clearRect(0, 0, displacementCanvas.width, displacementCanvas.height);
+            
+            // 绘制网格
+            drawChartGrid(dispCtx, displacementCanvas);
+            
+            // 绘制坐标轴
+            dispCtx.strokeStyle = '#333';
+            dispCtx.lineWidth = 1;
+            dispCtx.beginPath();
+            dispCtx.moveTo(20, 20);
+            dispCtx.lineTo(20, displacementCanvas.height - 20);
+            dispCtx.lineTo(displacementCanvas.width - 20, displacementCanvas.height - 20);
+            dispCtx.stroke();
+            
+            if (projectile.history.length > 1) {
+                const maxTime = Math.max(physics.time, 1);
+                const maxX = physics.velocity * maxTime;
+                const maxY = physics.height + physics.velocity * maxTime; // 考虑初始高度
+                
+                // 绘制水平位移（直线）
+                dispCtx.strokeStyle = '#2196F3';
+                dispCtx.lineWidth = 2;
+                dispCtx.beginPath();
+                
+                for (let i = 0; i < projectile.history.length; i++) {
+                    const point = projectile.history[i];
+                    const x = 20 + (point.time / maxTime) * (displacementCanvas.width - 40);
+                    const y = displacementCanvas.height - 20 - (point.x / maxX) * (displacementCanvas.height - 40);
+                    
+                    if (i === 0) {
+                        dispCtx.moveTo(x, y);
+                    } else {
+                        dispCtx.lineTo(x, y);
+                    }
+                }
+                
+                dispCtx.stroke();
+                
+                // 绘制竖直位移（曲线）
+                dispCtx.strokeStyle = '#E91E63';
+                dispCtx.beginPath();
+                
+                for (let i = 0; i < projectile.history.length; i++) {
+                    const point = projectile.history[i];
+                    const x = 20 + (point.time / maxTime) * (displacementCanvas.width - 40);
+                    const y = displacementCanvas.height - 20 - (point.y / maxY) * (displacementCanvas.height - 40);
+                    
+                    if (i === 0) {
+                        dispCtx.moveTo(x, y);
+                    } else {
+                        dispCtx.lineTo(x, y);
+                    }
+                }
+                
+                dispCtx.stroke();
+                
+                // 图例
+                dispCtx.fillStyle = '#2196F3';
+                dispCtx.fillText('x-t: 直线 (匀速)', 30, 30);
+                dispCtx.fillStyle = '#E91E63';
+                dispCtx.fillText('y-t: 曲线 (匀加速)', 30, 50);
+            }
+            
+            // 标题
+            dispCtx.fillStyle = '#333';
+            dispCtx.font = '14px Arial';
+            dispCtx.fillText('位移-时间图', displacementCanvas.width / 2 - 40, 15);
+        }
+        
+        // 绘制图表网格
+        function drawChartGrid(context, canvasElement) {
+            context.strokeStyle = '#eee';
+            context.lineWidth = 0.5;
+            
+            for (let x = 0; x <= canvasElement.width; x += 20) {
+                context.beginPath();
+                context.moveTo(x, 0);
+                context.lineTo(x, canvasElement.height);
+                context.stroke();
+            }
+            
+            for (let y = 0; y <= canvasElement.height; y += 20) {
+                context.beginPath();
+                context.moveTo(0, y);
+                context.lineTo(canvasElement.width, y);
+                context.stroke();
+            }
+        }
+        
+        // 更新物理状态 - 修改以考虑初始高度
+        function updatePhysics(deltaTime) {
+            if (!physics.isRunning || physics.isPaused) return;
+            
+            // 应用动画速度
+            const scaledDelta = deltaTime * physics.animSpeed;
+            
+            // 更新时间
+            physics.time += scaledDelta;
+            
+            // 计算角度
+            const angleRad = physics.angle * Math.PI / 180;
+            
+            // 计算速度分量
+            const v0x = physics.velocity * Math.cos(angleRad);
+            const v0y = physics.velocity * Math.sin(angleRad);
+            
+            // 更新速度（关键：水平恒定，竖直受重力影响）
+            projectile.vx = v0x;  // 水平速度恒定
+            projectile.vy = v0y - physics.gravity * physics.time;  // 竖直速度线性变化
+            
+            // 更新位置（考虑初始高度）
+            projectile.x = v0x * physics.time;
+            projectile.y = physics.height + v0y * physics.time - 0.5 * physics.gravity * physics.time * physics.time;
+            
+            // 记录轨迹
+            projectile.trajectory.push({x: projectile.x, y: projectile.y});
+            
+            // 记录历史
+            projectile.history.push({
+                time: physics.time,
+                x: projectile.x,
+                y: projectile.y,
+                vx: projectile.vx,
+                vy: projectile.vy
+            });
+            
+            // 更新运动阶段（考虑初始高度）
+            const tPeak = v0y / physics.gravity;
+            if (physics.time < tPeak) {
+                projectile.motionPhase = 'rising';
+            } else if (physics.time > tPeak) {
+                projectile.motionPhase = 'falling';
+            } else {
+                projectile.motionPhase = 'peak';
+            }
+            
+            // 记录位置间隔以证明运动特性
+            recordMotionEvidence();
+            
+            // 更新显示
+            updateDisplays();
+            
+            // 重绘
+            drawAll();
+            
+            // 检查落地（y < 0 表示落地）
+            if (projectile.y < 0) {
+                projectile.y = 0;
+                // 计算落地时的速度（考虑初始高度）
+                const vy_impact = -Math.sqrt(v0y * v0y + 2 * physics.gravity * physics.height);
+                projectile.vy = vy_impact;
+                stopAnimation();
+                
+                // 显示最终信息
+                const flightTime = (v0y + Math.sqrt(v0y * v0y + 2 * physics.gravity * physics.height)) / physics.gravity;
+                const range = v0x * flightTime;
+                
+                setTimeout(() => {
+                    alert(`抛体落地！\n初始高度: ${physics.height}m\n飞行时间: ${flightTime.toFixed(2)}s\n水平射程: ${range.toFixed(2)}m\n最终竖直速度: ${vy_impact.toFixed(2)} m/s`);
+                }, 100);
+            }
+        }
+        
+        // 记录运动证据
+        function recordMotionEvidence() {
+            // 记录水平位置间隔
+            if (physics.lastHorizontalTime > 0) {
+                const timeDiff = physics.time - physics.lastHorizontalTime;
+                const posDiff = Math.abs(projectile.x - physics.lastHorizontalPos);
+                
+                if (timeDiff > 0.5) { // 每0.5秒记录一次
+                    physics.horizontalIntervals.push({
+                        time: physics.time,
+                        interval: timeDiff,
+                        distance: posDiff,
+                        speed: posDiff / timeDiff
+                    });
+                    
+                    physics.lastHorizontalTime = physics.time;
+                    physics.lastHorizontalPos = projectile.x;
+                    
+                    // 更新证据显示
+                    if (physics.horizontalIntervals.length >= 2) {
+                        const last = physics.horizontalIntervals[physics.horizontalIntervals.length - 1];
+                        const prev = physics.horizontalIntervals[physics.horizontalIntervals.length - 2];
+                        
+                        if (Math.abs(last.speed - prev.speed) < 0.1) {
+                            horizontalEvidence.innerHTML = `证据: <span class="property-value">相同时间间隔移动相同距离</span>`;
+                        }
+                    }
+                }
+            } else {
+                physics.lastHorizontalTime = physics.time;
+                physics.lastHorizontalPos = projectile.x;
+            }
+            
+            // 记录竖直位置间隔
+            if (physics.lastVerticalTime > 0) {
+                const timeDiff = physics.time - physics.lastVerticalTime;
+                const posDiff = Math.abs(projectile.y - physics.lastVerticalPos);
+                
+                if (timeDiff > 0.5) {
+                    physics.verticalIntervals.push({
+                        time: physics.time,
+                        interval: timeDiff,
+                        distance: posDiff,
+                        speed: posDiff / timeDiff
+                    });
+                    
+                    physics.lastVerticalTime = physics.time;
+                    physics.lastVerticalPos = projectile.y;
+                    
+                    // 更新证据显示
+                    if (physics.verticalIntervals.length >= 2) {
+                        const last = physics.verticalIntervals[physics.verticalIntervals.length - 1];
+                        const prev = physics.verticalIntervals[physics.verticalIntervals.length - 2];
+                        
+                        if (last.speed > prev.speed) {
+                            verticalEvidence.innerHTML = `证据: <span class="property-value">相同时间间隔移动距离增加</span>`;
+                        }
+                    }
+                }
+            } else {
+                physics.lastVerticalTime = physics.time;
+                physics.lastVerticalPos = projectile.y;
+            }
+        }
+        
+        // 动画循环
+        function animate(timestamp) {
+            if (!lastTimestamp) lastTimestamp = timestamp;
+            
+            const deltaTime = (timestamp - lastTimestamp) / 1000;
+            lastTimestamp = timestamp;
+            
+            const maxDelta = 0.05;
+            const adjustedDelta = Math.min(deltaTime, maxDelta);
+            
+            updatePhysics(adjustedDelta);
+            
+            if (physics.isRunning && !physics.isPaused) {
+                animationId = requestAnimationFrame(animate);
+            }
+        }
+        
+        // 开始动画
+        function startAnimation() {
+            if (physics.isRunning && !physics.isPaused) {
+                resetAnimation();
+            }
+            
+            physics.isRunning = true;
+            physics.isPaused = false;
+            lastTimestamp = 0;
+            
+            startBtn.textContent = '重新开始';
+            pauseBtn.textContent = '暂停';
+            
+            cancelAnimationFrame(animationId);
+            animationId = requestAnimationFrame(animate);
+        }
+        
+        // 暂停/继续
+        function togglePause() {
+            if (!physics.isRunning) return;
+            
+            physics.isPaused = !physics.isPaused;
+            
+            if (physics.isPaused) {
+                pauseBtn.textContent = '继续';
+            } else {
+                pauseBtn.textContent = '暂停';
+                lastTimestamp = 0;
+                animationId = requestAnimationFrame(animate);
+            }
+        }
+        
+        // 慢动作
+        function setSlowMotion() {
+            physics.animSpeed = 0.3;
+            animSpeedSlider.value = 0.3;
+            animSpeedValue.textContent = '0.3';
+            if (!physics.isRunning) {
+                init();
+            }
+        }
+        
+        // 停止动画
+        function stopAnimation() {
+            physics.isRunning = false;
+            physics.isPaused = false;
+            
+            startBtn.textContent = '开始模拟';
+            pauseBtn.textContent = '暂停';
+            
+            cancelAnimationFrame(animationId);
+        }
+        
+        // 重置
+        function resetAnimation() {
+            stopAnimation();
+            init();
+        }
+        
+        // 事件监听
+        velocitySlider.addEventListener('input', function() {
+            physics.velocity = parseFloat(this.value);
+            resetAnimation();
+        });
+        
+        angleSlider.addEventListener('input', function() {
+            physics.angle = parseFloat(this.value);
+            resetAnimation();
+        });
+        
+        gravitySlider.addEventListener('input', function() {
+            physics.gravity = parseFloat(this.value);
+            resetAnimation();
+        });
+        
+        // 新增：高度滑块事件监听
+        heightSlider.addEventListener('input', function() {
+            physics.height = parseFloat(this.value);
+            resetAnimation();
+        });
+        
+        animSpeedSlider.addEventListener('input', function() {
+            physics.animSpeed = parseFloat(this.value);
+            animSpeedValue.textContent = physics.animSpeed.toFixed(1);
+        });
+        
+        startBtn.addEventListener('click', startAnimation);
+        resetBtn.addEventListener('click', resetAnimation);
+        pauseBtn.addEventListener('click', togglePause);
+        slowBtn.addEventListener('click', setSlowMotion);
+        
+        // 初始化
+        init();
+    </script>
+</body>
+</html>

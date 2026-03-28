@@ -1,0 +1,1784 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>双缝干涉条纹与公式推导实验</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #f0f2f5;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #0c2461, #1e3799);
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .experiment-panel {
+            flex: 3;
+            min-width: 500px;
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        
+        .explanation-panel {
+            flex: 2;
+            min-width: 400px;
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        
+        .panel-title {
+            color: #0c2461;
+            border-bottom: 2px solid #4a69bd;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        
+        .experiment-container {
+            width: 100%;
+            height: 450px;
+            background: #0a1931;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+            border: 3px solid #1a2980;
+        }
+        
+        canvas {
+            display: block;
+        }
+        
+        #experimentCanvas {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .wavelength-display {
+            width: 100%;
+            height: 80px;
+            background: #0a1931;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid #1a2980;
+        }
+        
+        #wavelengthCanvas {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .controls {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .control-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #0c2461;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 10px;
+            -webkit-appearance: none;
+            background: #ddd;
+            border-radius: 5px;
+            outline: none;
+            transition: all 0.3s;
+        }
+        
+        input[type="range"]:hover {
+            background: #ccc;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            background: #4a69bd;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid #0c2461;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: all 0.2s;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+            background: #1e3799;
+        }
+        
+        .value-display {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .color-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 15px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .wavelength-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #0c2461;
+        }
+        
+        .light-color {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+        }
+        
+        .light-color:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        
+        .color-name {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            background: #0c2461;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        button:hover {
+            background: #4a69bd;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        #resetBtn {
+            background: #e67e22;
+        }
+        
+        #compareBtn {
+            background: #9b59b6;
+        }
+        
+        #showFormulaBtn {
+            background: #27ae60;
+        }
+        
+        #showDerivationBtn {
+            background: #3498db;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 30px;
+            color: #666;
+            font-size: 0.9rem;
+            border-top: 1px solid #ddd;
+        }
+        
+        .highlight {
+            background: #fffacd;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        
+        .principle-box {
+            background: #e8f4fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #3498db;
+        }
+        
+        .formula {
+            background: #2c3e50;
+            color: white;
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+            text-align: center;
+            font-size: 1.1rem;
+            font-family: 'Courier New', monospace;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .formula:hover {
+            background: #1a252f;
+            transform: scale(1.02);
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            background: white;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .comparison-table th {
+            background: #0c2461;
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+        
+        .comparison-table td {
+            padding: 10px;
+            text-align: center;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .comparison-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .change-indicator {
+            display: inline-block;
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            margin: 0 5px;
+        }
+        
+        .increase {
+            border-bottom: 8px solid #27ae60;
+        }
+        
+        .decrease {
+            border-top: 8px solid #e74c3c;
+        }
+        
+        @media (max-width: 1100px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .experiment-panel, .explanation-panel {
+                min-width: 100%;
+            }
+        }
+        
+        /* 推导过程样式 */
+        .derivation-container {
+            margin: 20px 0;
+        }
+        
+        .derivation-step {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid #4FC3F7;
+        }
+        
+        .derivation-title {
+            color: #FFD700;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .step-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: #4FC3F7;
+            color: #0a1931;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        
+        .step-formula {
+            background: rgba(44, 62, 80, 0.8);
+            padding: 12px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            text-align: center;
+            border: 1px solid #4FC3F7;
+        }
+        
+        .step-explanation {
+            color: #ddd;
+            font-size: 0.95rem;
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+        
+        .derivation-diagram {
+            width: 100%;
+            max-width: 500px;
+            margin: 20px auto;
+            background: #0a1931;
+            border-radius: 8px;
+            padding: 15px;
+            border: 2px solid #4FC3F7;
+        }
+        
+        .derivation-canvas {
+            width: 100%;
+            height: 250px;
+            display: block;
+        }
+        
+        .diagram-label {
+            text-align: center;
+            color: #FFD700;
+            font-weight: bold;
+            margin-top: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .final-formula {
+            background: #2ecc71;
+            color: #0a1931;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border: 3px solid #FFD700;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .physics-meaning {
+            background: rgba(255, 215, 0, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #FFD700;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <header>
+        <h1>双缝干涉条纹与公式推导实验</h1>
+        <p class="subtitle">直观展示参数变化对条纹的影响及公式 Δy = λ·L/d 的推导过程</p>
+    </header>
+    
+    <div class="container">
+        <div class="experiment-panel">
+            <h2 class="panel-title">参数变化对干涉条纹的影响</h2>
+            
+            <div class="experiment-container">
+                <canvas id="experimentCanvas"></canvas>
+            </div>
+            
+            <div class="wavelength-display">
+                <canvas id="wavelengthCanvas"></canvas>
+            </div>
+            
+            <div class="color-indicator">
+                <div class="color-info">
+                    <div class="color-name" id="colorName">蓝紫色光</div>
+                    <div class="wavelength-value" id="wavelengthValue">400 nm</div>
+                </div>
+                <div class="light-color" id="lightColor" style="background-color: #7b1fa2;"></div>
+            </div>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <label>光的波长 λ (nm): <span id="lambdaValue">400</span></label>
+                    <input type="range" id="wavelengthSlider" min="380" max="780" value="400" step="10">
+                    <div class="value-display">
+                        <span>380nm (紫光)</span>
+                        <span>780nm (红光)</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label>双缝间距 d (mm): <span id="dValue">0.2</span></label>
+                    <input type="range" id="slitDistanceSlider" min="0.1" max="0.5" value="0.2" step="0.05">
+                    <div class="value-display">
+                        <span>0.1mm</span>
+                        <span>0.5mm</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label>屏幕距离 L (m): <span id="LValue">1.0</span></label>
+                    <input type="range" id="screenDistanceSlider" min="0.5" max="2.0" value="1.0" step="0.1">
+                    <div class="value-display">
+                        <span>0.5m</span>
+                        <span>2.0m</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="buttons">
+                <button id="resetBtn">重置参数</button>
+                <button id="compareBtn">波长对比</button>
+                <button id="showFormulaBtn">条纹间距公式</button>
+                <button id="showDerivationBtn">公式推导过程</button>
+            </div>
+        </div>
+        
+        <div class="explanation-panel">
+            <h2 class="panel-title">实验原理与观察</h2>
+            
+            <div class="principle-box">
+                <h3>🔬 核心公式：Δy = λ·L/d</h3>
+                <p>干涉条纹间距由三个参数决定：</p>
+                
+                <div class="formula" id="mainFormula">
+                    Δy = λ × L ÷ d
+                </div>
+                
+                <p style="text-align: center; margin-top: 10px; font-weight: bold; color: #0c2461;">
+                    条纹间距 = 波长 × 屏幕距离 ÷ 双缝间距
+                </p>
+            </div>
+            
+            <div style="background: #fff9e6; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #f39c12;">
+                <h3>💡 参数变化对条纹的影响</h3>
+                <p><strong>1. 波长 λ 的影响：</strong></p>
+                <p><span class="change-indicator increase"></span> λ增大 → Δy增大 → 条纹变稀疏</p>
+                <p><span class="change-indicator decrease"></span> λ减小 → Δy减小 → 条纹变密集</p>
+                
+                <p><strong>2. 屏幕距离 L 的影响：</strong></p>
+                <p><span class="change-indicator increase"></span> L增大 → Δy增大 → 条纹变稀疏</p>
+                <p><span class="change-indicator decrease"></span> L减小 → Δy减小 → 条纹变密集</p>
+                
+                <p><strong>3. 双缝间距 d 的影响：</strong></p>
+                <p><span class="change-indicator increase"></span> d增大 → Δy减小 → 条纹变密集</p>
+                <p><span class="change-indicator decrease"></span> d减小 → Δy增大 → 条纹变稀疏</p>
+            </div>
+            
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>光颜色</th>
+                        <th>波长 (nm)</th>
+                        <th>条纹特点</th>
+                        <th>条纹间距比较</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="color: #7b1fa2; font-weight: bold;">紫光</td>
+                        <td>380-450</td>
+                        <td>最密集</td>
+                        <td><span class="highlight">最小</span></td>
+                    </tr>
+                    <tr>
+                        <td style="color: #0288d1; font-weight: bold;">青光</td>
+                        <td>495-570</td>
+                        <td>较密集</td>
+                        <td>较小</td>
+                    </tr>
+                    <tr>
+                        <td style="color: #388e3c; font-weight: bold;">绿光</td>
+                        <td>570-590</td>
+                        <td>中等</td>
+                        <td>中等</td>
+                    </tr>
+                    <tr>
+                        <td style="color: #f57c00; font-weight: bold;">黄光</td>
+                        <td>590-620</td>
+                        <td>较稀疏</td>
+                        <td>较大</td>
+                    </tr>
+                    <tr>
+                        <td style="color: #d32f2f; font-weight: bold;">红光</td>
+                        <td>620-780</td>
+                        <td>最稀疏</td>
+                        <td><span class="highlight">最大</span></td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div style="background: #e8f6f3; padding: 15px; border-radius: 8px; margin-top: 20px;">
+                <h3>📐 实验观察指导</h3>
+                <p>尝试以下操作，观察条纹变化：</p>
+                <p>1. 将波长从400nm调到700nm → 观察条纹明显变稀疏</p>
+                <p>2. 将屏幕距离从0.5m调到2.0m → 观察条纹明显变稀疏</p>
+                <p>3. 将双缝间距从0.1mm调到0.5mm → 观察条纹明显变密集</p>
+                <p>4. 点击"公式推导过程"查看公式如何得出</p>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>双缝干涉实验教学演示 | 直观展示 Δy = λ·L/d 公式及其推导</p>
+        <p>© 物理教学演示 | 重点：参数变化直观影响条纹间距，理解公式物理意义</p>
+    </footer>
+
+    <script>
+        // 获取Canvas元素和上下文
+        const experimentCanvas = document.getElementById('experimentCanvas');
+        const wavelengthCanvas = document.getElementById('wavelengthCanvas');
+        const expCtx = experimentCanvas.getContext('2d');
+        const waveCtx = wavelengthCanvas.getContext('2d');
+        
+        // 获取控制元素
+        const wavelengthSlider = document.getElementById('wavelengthSlider');
+        const slitDistanceSlider = document.getElementById('slitDistanceSlider');
+        const screenDistanceSlider = document.getElementById('screenDistanceSlider');
+        const lambdaValue = document.getElementById('lambdaValue');
+        const dValue = document.getElementById('dValue');
+        const LValue = document.getElementById('LValue');
+        const wavelengthValue = document.getElementById('wavelengthValue');
+        const colorName = document.getElementById('colorName');
+        const lightColor = document.getElementById('lightColor');
+        const mainFormula = document.getElementById('mainFormula');
+        
+        const resetBtn = document.getElementById('resetBtn');
+        const compareBtn = document.getElementById('compareBtn');
+        const showFormulaBtn = document.getElementById('showFormulaBtn');
+        const showDerivationBtn = document.getElementById('showDerivationBtn');
+        
+        // 实验参数
+        let wavelength = 400; // 波长 (nm)
+        let slitDistance = 0.2; // 双缝间距 (mm)
+        let screenDistance = 1.0; // 屏幕距离 (m)
+        
+        // 波长与颜色对应关系
+        const colorMap = [
+            {min: 380, max: 420, name: "紫光", rgb: "#7b1fa2"},
+            {min: 420, max: 450, name: "蓝紫色光", rgb: "#512da8"},
+            {min: 450, max: 485, name: "蓝色光", rgb: "#303f9f"},
+            {min: 485, max: 500, name: "青色光", rgb: "#0288d1"},
+            {min: 500, max: 565, name: "绿青色光", rgb: "#0097a7"},
+            {min: 565, max: 590, name: "绿色光", rgb: "#388e3c"},
+            {min: 590, max: 625, name: "黄色光", rgb: "#f57c00"},
+            {min: 625, max: 700, name: "橙色光", rgb: "#e64a19"},
+            {min: 700, max: 780, name: "红色光", rgb: "#d32f2f"}
+        ];
+        
+        // 调整Canvas大小
+        function resizeCanvases() {
+            const expContainer = experimentCanvas.parentElement;
+            const waveContainer = wavelengthCanvas.parentElement;
+            
+            experimentCanvas.width = expContainer.clientWidth;
+            experimentCanvas.height = expContainer.clientHeight;
+            
+            wavelengthCanvas.width = waveContainer.clientWidth;
+            wavelengthCanvas.height = waveContainer.clientHeight;
+            
+            drawAll();
+        }
+        
+        // 绘制所有内容
+        function drawAll() {
+            drawWavelengthDisplay();
+            drawExperiment();
+        }
+        
+        // 绘制波长显示
+        function drawWavelengthDisplay() {
+            const width = wavelengthCanvas.width;
+            const height = wavelengthCanvas.height;
+            
+            // 清空画布
+            waveCtx.clearRect(0, 0, width, height);
+            
+            // 绘制可见光谱
+            const gradient = waveCtx.createLinearGradient(0, 0, width, 0);
+            gradient.addColorStop(0, '#7b1fa2'); // 紫色
+            gradient.addColorStop(0.15, '#303f9f'); // 蓝色
+            gradient.addColorStop(0.3, '#0288d1'); // 青色
+            gradient.addColorStop(0.45, '#0097a7'); // 蓝绿色
+            gradient.addColorStop(0.6, '#388e3c'); // 绿色
+            gradient.addColorStop(0.75, '#f57c00'); // 黄色
+            gradient.addColorStop(0.9, '#e64a19'); // 橙色
+            gradient.addColorStop(1, '#d32f2f'); // 红色
+            
+            waveCtx.fillStyle = gradient;
+            waveCtx.fillRect(0, 0, width, height);
+            
+            // 标记当前波长位置
+            const currentX = ((wavelength - 380) / (780 - 380)) * width;
+            
+            waveCtx.fillStyle = 'white';
+            waveCtx.beginPath();
+            waveCtx.arc(currentX, height/2, 10, 0, Math.PI * 2);
+            waveCtx.fill();
+            
+            waveCtx.fillStyle = '#0a1931';
+            waveCtx.beginPath();
+            waveCtx.arc(currentX, height/2, 5, 0, Math.PI * 2);
+            waveCtx.fill();
+            
+            // 标题
+            waveCtx.fillStyle = 'white';
+            waveCtx.font = 'bold 12px Arial';
+            waveCtx.textAlign = 'center';
+            waveCtx.fillText('可见光波长范围：380nm (紫光) - 780nm (红光)', width/2, 15);
+            
+            // 在当前位置显示波长值
+            waveCtx.fillStyle = '#FFD700';
+            waveCtx.font = 'bold 14px Arial';
+            waveCtx.fillText(`${wavelength} nm`, currentX, height/2 - 20);
+            
+            // 显示颜色名称
+            const colorInfo = getColorInfo(wavelength);
+            waveCtx.fillStyle = 'white';
+            waveCtx.font = '12px Arial';
+            waveCtx.fillText(colorInfo.name, currentX, height/2 + 25);
+        }
+        
+        // 根据波长获取颜色信息
+        function getColorInfo(wavelength) {
+            for (const color of colorMap) {
+                if (wavelength >= color.min && wavelength <= color.max) {
+                    return color;
+                }
+            }
+            return colorMap[0]; // 默认返回紫色
+        }
+        
+        // 绘制实验装置和干涉条纹
+        function drawExperiment() {
+            const width = experimentCanvas.width;
+            const height = experimentCanvas.height;
+            
+            // 清空画布
+            expCtx.clearRect(0, 0, width, height);
+            
+            // 绘制背景
+            expCtx.fillStyle = '#0a1931';
+            expCtx.fillRect(0, 0, width, height);
+            
+            // 绘制标题和当前参数
+            expCtx.fillStyle = 'white';
+            expCtx.font = 'bold 16px Arial';
+            expCtx.textAlign = 'center';
+            expCtx.fillText('双缝干涉实验：参数变化对条纹的影响', width/2, 30);
+            
+            // 绘制实验装置
+            drawApparatus(width, height);
+            
+            // 计算并绘制干涉条纹
+            const patternInfo = calculateInterferencePattern(width, height);
+            
+            // 绘制干涉条纹
+            drawInterferencePattern(width, height, patternInfo);
+            
+            // 绘制条纹间距指示器
+            drawSpacingIndicator(width, height, patternInfo);
+            
+            // 绘制参数和公式
+            drawParametersAndFormula(width, height, patternInfo);
+        }
+        
+        function drawApparatus(width, height) {
+            // 绘制光源
+            const colorInfo = getColorInfo(wavelength);
+            expCtx.fillStyle = colorInfo.rgb;
+            expCtx.beginPath();
+            expCtx.arc(width * 0.15, height/2, 15, 0, Math.PI * 2);
+            expCtx.fill();
+            
+            // 绘制单缝板
+            expCtx.fillStyle = '#2C3E50';
+            expCtx.fillRect(width * 0.25, height * 0.35, 8, height * 0.3);
+            
+            // 绘制单缝开口
+            expCtx.fillStyle = '#ECF0F1';
+            expCtx.fillRect(width * 0.25, height/2 - 8, 8, 16);
+            
+            // 绘制双缝板
+            expCtx.fillStyle = '#2C3E50';
+            expCtx.fillRect(width * 0.4, height * 0.3, 8, height * 0.4);
+            
+            // 绘制两个缝（双缝间距与d成正比）
+            const d = slitDistance; // 双缝间距 (mm)
+            const slitSpacing = 20 + d * 80; // 转换为像素，确保可见变化
+            
+            const slit1Y = height/2 - slitSpacing/2;
+            const slit2Y = height/2 + slitSpacing/2;
+            
+            expCtx.fillStyle = '#ECF0F1';
+            expCtx.fillRect(width * 0.4, slit1Y - 4, 8, 8);
+            expCtx.fillRect(width * 0.4, slit2Y - 4, 8, 8);
+            
+            // 屏幕位置（与屏幕距离L成正比）
+            const screenX = width * 0.6 + screenDistance * 60; // L越大，屏幕越靠右
+            
+            // 绘制屏幕
+            const screenTop = height * 0.15;
+            const screenBottom = height * 0.85;
+            
+            expCtx.fillStyle = '#34495E';
+            expCtx.fillRect(screenX - 10, screenTop, 20, screenBottom - screenTop);
+            
+            // 绘制从双缝到屏幕的光线（显示光路）
+            const slitX = width * 0.4 + 8;
+            expCtx.strokeStyle = colorInfo.rgb + '80'; // 半透明
+            expCtx.lineWidth = 1;
+            
+            // 绘制几条代表性的光线
+            for (let i = 0; i < 5; i++) {
+                const y = screenTop + (i * (screenBottom - screenTop) / 4);
+                
+                // 从缝1到屏幕
+                expCtx.beginPath();
+                expCtx.moveTo(slitX, slit1Y);
+                expCtx.lineTo(screenX, y);
+                expCtx.stroke();
+                
+                // 从缝2到屏幕
+                expCtx.beginPath();
+                expCtx.moveTo(slitX, slit2Y);
+                expCtx.lineTo(screenX, y);
+                expCtx.stroke();
+            }
+            
+            // 标记
+            expCtx.fillStyle = 'white';
+            expCtx.font = '12px Arial';
+            expCtx.textAlign = 'center';
+            expCtx.fillText('光源', width * 0.15, height/2 - 25);
+            expCtx.fillText('单缝', width * 0.25 + 4, height * 0.33);
+            expCtx.fillText('双缝', width * 0.4 + 4, height * 0.28);
+            expCtx.fillText('屏幕', screenX + 25, height/2);
+            
+            // 标记双缝间距d
+            expCtx.strokeStyle = '#FF4444';
+            expCtx.lineWidth = 2;
+            expCtx.beginPath();
+            expCtx.moveTo(width * 0.4 + 15, slit1Y);
+            expCtx.lineTo(width * 0.4 + 15, slit2Y);
+            expCtx.stroke();
+            
+            expCtx.fillStyle = '#FF4444';
+            expCtx.font = 'bold 12px Arial';
+            expCtx.fillText(`d = ${slitDistance}mm`, width * 0.4 + 25, height/2);
+            
+            // 标记屏幕距离L
+            expCtx.strokeStyle = '#4FC3F7';
+            expCtx.lineWidth = 2;
+            expCtx.setLineDash([5, 3]);
+            expCtx.beginPath();
+            expCtx.moveTo(slitX, height/2);
+            expCtx.lineTo(screenX, height/2);
+            expCtx.stroke();
+            expCtx.setLineDash([]);
+            
+            expCtx.fillStyle = '#4FC3F7';
+            expCtx.font = 'bold 12px Arial';
+            expCtx.fillText(`L = ${screenDistance}m`, (slitX + screenX) / 2, height/2 + 15);
+        }
+        
+        function calculateInterferencePattern(width, height) {
+            // 计算理论条纹间距 Δy = λ·L/d (米)
+            const lambda = wavelength * 1e-9; // 转换为米
+            const d = slitDistance * 1e-3; // 转换为米
+            const L = screenDistance; // 米
+            
+            const deltaY_m = lambda * L / d; // 理论条纹间距 (米)
+            
+            // 屏幕位置（与L成正比）
+            const screenX = width * 0.6 + screenDistance * 60;
+            const screenTop = height * 0.15;
+            const screenBottom = height * 0.85;
+            const patternHeight = screenBottom - screenTop;
+            
+            // 假设屏幕高度为0.2米，转换为像素
+            const screenHeightM = 0.2;
+            const pixelsPerMeter = patternHeight / screenHeightM;
+            const deltaY_pixels = deltaY_m * pixelsPerMeter;
+            
+            // 计算条纹数量（确保为奇数，使中间有条纹）
+            const maxStripes = 21;
+            const minStripes = 5;
+            
+            let stripeCount = Math.floor(patternHeight / deltaY_pixels);
+            
+            // 限制条纹数量在合理范围内
+            stripeCount = Math.min(Math.max(stripeCount, minStripes), maxStripes);
+            if (stripeCount % 2 === 0) stripeCount--;
+            
+            // 重新计算实际的像素间距
+            const actualDeltaY = patternHeight / stripeCount;
+            
+            return {
+                screenX: screenX,
+                screenTop: screenTop,
+                screenBottom: screenBottom,
+                patternHeight: patternHeight,
+                patternWidth: width * 0.25,
+                actualDeltaY: actualDeltaY,
+                stripeCount: stripeCount,
+                deltaY_m: deltaY_m,
+                deltaY_pixels: deltaY_pixels,
+                lambda: lambda,
+                d: d,
+                L: L
+            };
+        }
+        
+        function drawInterferencePattern(width, height, patternInfo) {
+            const patternX = patternInfo.screenX - patternInfo.patternWidth/2;
+            const colorInfo = getColorInfo(wavelength);
+            const r = parseInt(colorInfo.rgb.substr(1, 2), 16);
+            const g = parseInt(colorInfo.rgb.substr(3, 2), 16);
+            const b = parseInt(colorInfo.rgb.substr(5, 2), 16);
+            
+            // 绘制条纹背景
+            expCtx.fillStyle = '#1a2980';
+            expCtx.fillRect(patternX, patternInfo.screenTop, patternInfo.patternWidth, patternInfo.patternHeight);
+            
+            // 绘制明暗条纹
+            for (let i = 0; i < patternInfo.stripeCount; i++) {
+                const y = patternInfo.screenTop + i * patternInfo.actualDeltaY;
+                
+                if (i % 2 === 0) {
+                    // 暗条纹
+                    expCtx.fillStyle = '#0a1931';
+                } else {
+                    // 亮条纹
+                    const distanceFromCenter = Math.abs(i - Math.floor(patternInfo.stripeCount/2));
+                    const brightness = 1 - distanceFromCenter / (patternInfo.stripeCount/2) * 0.7;
+                    
+                    expCtx.fillStyle = `rgba(${r}, ${g}, ${b}, ${brightness})`;
+                }
+                
+                expCtx.fillRect(patternX, y, patternInfo.patternWidth, patternInfo.actualDeltaY);
+            }
+        }
+        
+        function drawSpacingIndicator(width, height, patternInfo) {
+            if (patternInfo.stripeCount < 3) return;
+            
+            // 计算中间两个亮纹的位置
+            const middleIndex = Math.floor(patternInfo.stripeCount / 2);
+            const y1 = patternInfo.screenTop + middleIndex * patternInfo.actualDeltaY;
+            const y2 = patternInfo.screenTop + (middleIndex + 2) * patternInfo.actualDeltaY;
+            const patternX = patternInfo.screenX - patternInfo.patternWidth/2;
+            
+            // 绘制Δy指示器和箭头
+            const indicatorX = patternX + patternInfo.patternWidth + 15;
+            
+            // 绘制箭头线
+            expCtx.strokeStyle = '#FFD700';
+            expCtx.lineWidth = 3;
+            expCtx.beginPath();
+            expCtx.moveTo(indicatorX, y1 + patternInfo.actualDeltaY/2);
+            expCtx.lineTo(indicatorX, y2 - patternInfo.actualDeltaY/2);
+            expCtx.stroke();
+            
+            // 绘制上箭头
+            expCtx.beginPath();
+            expCtx.moveTo(indicatorX - 6, y1 + patternInfo.actualDeltaY/2 + 6);
+            expCtx.lineTo(indicatorX, y1 + patternInfo.actualDeltaY/2);
+            expCtx.lineTo(indicatorX + 6, y1 + patternInfo.actualDeltaY/2 + 6);
+            expCtx.stroke();
+            
+            // 绘制下箭头
+            expCtx.beginPath();
+            expCtx.moveTo(indicatorX - 6, y2 - patternInfo.actualDeltaY/2 - 6);
+            expCtx.lineTo(indicatorX, y2 - patternInfo.actualDeltaY/2);
+            expCtx.lineTo(indicatorX + 6, y2 - patternInfo.actualDeltaY/2 - 6);
+            expCtx.stroke();
+            
+            // 标注Δy
+            expCtx.fillStyle = '#FFD700';
+            expCtx.font = 'bold 16px Arial';
+            expCtx.textAlign = 'left';
+            expCtx.fillText('Δy', indicatorX + 10, (y1 + y2) / 2);
+            
+            // 显示实际计算值
+            expCtx.fillStyle = 'white';
+            expCtx.font = '12px Arial';
+            expCtx.fillText(`= ${patternInfo.deltaY_m.toExponential(2)} m`, indicatorX + 35, (y1 + y2) / 2);
+            
+            // 显示条纹数量
+            expCtx.fillText(`${patternInfo.stripeCount} 条条纹`, indicatorX + 35, (y1 + y2) / 2 + 15);
+        }
+        
+        function drawParametersAndFormula(width, height, patternInfo) {
+            const colorInfo = getColorInfo(wavelength);
+            
+            // 在底部显示当前参数
+            expCtx.fillStyle = 'white';
+            expCtx.font = '14px Arial';
+            expCtx.textAlign = 'left';
+            
+            const params = [
+                `波长: λ = ${wavelength} nm (${colorInfo.name})`,
+                `双缝间距: d = ${slitDistance} mm = ${(slitDistance * 1e-3).toExponential(2)} m`,
+                `屏幕距离: L = ${screenDistance} m`,
+                `理论条纹间距: Δy = λ·L/d = ${patternInfo.deltaY_m.toExponential(2)} m`,
+                `实际显示: ${patternInfo.stripeCount} 条条纹，间距 ${patternInfo.actualDeltaY.toFixed(1)} 像素`
+            ];
+            
+            params.forEach((param, i) => {
+                expCtx.fillText(param, 20, height - 100 + i * 20);
+            });
+            
+            // 绘制公式框
+            expCtx.fillStyle = 'rgba(44, 62, 80, 0.9)';
+            expCtx.fillRect(width - 220, height - 130, 200, 110);
+            
+            expCtx.strokeStyle = '#2ecc71';
+            expCtx.lineWidth = 3;
+            expCtx.strokeRect(width - 220, height - 130, 200, 110);
+            
+            expCtx.fillStyle = '#2ecc71';
+            expCtx.font = 'bold 16px Arial';
+            expCtx.textAlign = 'center';
+            expCtx.fillText('干涉条纹间距公式', width - 120, height - 105);
+            
+            // 高亮显示公式
+            expCtx.fillStyle = '#FFD700';
+            expCtx.font = 'bold 20px Courier New';
+            expCtx.fillText('Δy = λ · L / d', width - 120, height - 75);
+            
+            // 显示各部分含义
+            expCtx.fillStyle = 'white';
+            expCtx.font = '12px Arial';
+            expCtx.fillText('条纹间距  波长  屏距  缝距', width - 120, height - 50);
+            
+            // 显示当前计算
+            expCtx.font = '13px Courier New';
+            expCtx.fillText(`= ${wavelength}nm × ${screenDistance}m ÷ ${slitDistance}mm`, width - 120, height - 30);
+        }
+        
+        // 更新显示
+        function updateDisplay() {
+            wavelength = parseInt(wavelengthSlider.value);
+            slitDistance = parseFloat(slitDistanceSlider.value);
+            screenDistance = parseFloat(screenDistanceSlider.value);
+            
+            // 更新显示值
+            lambdaValue.textContent = wavelength;
+            dValue.textContent = slitDistance.toFixed(2);
+            LValue.textContent = screenDistance.toFixed(1);
+            wavelengthValue.textContent = wavelength + ' nm';
+            
+            // 更新颜色显示
+            const colorInfo = getColorInfo(wavelength);
+            colorName.textContent = colorInfo.name;
+            lightColor.style.backgroundColor = colorInfo.rgb;
+            
+            // 更新公式显示（带颜色）
+            mainFormula.innerHTML = `Δy = <span style="color:${colorInfo.rgb}">λ</span> × <span style="color:#4FC3F7">L</span> ÷ <span style="color:#FF4444">d</span>`;
+            
+            // 重绘
+            drawAll();
+        }
+        
+        // 显示公式推导过程 - 简化版本，只展示推导步骤
+        function showFormulaDerivation() {
+            const modal = document.createElement('div');
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100%';
+            modal.style.height = '100%';
+            modal.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
+            modal.style.display = 'flex';
+            modal.style.justifyContent = 'center';
+            modal.style.alignItems = 'center';
+            modal.style.zIndex = '1000';
+            
+            const modalContent = document.createElement('div');
+            modalContent.style.backgroundColor = '#0a1931';
+            modalContent.style.padding = '30px';
+            modalContent.style.borderRadius = '10px';
+            modalContent.style.border = '3px solid #4a69bd';
+            modalContent.style.maxWidth = '900px';
+            modalContent.style.maxHeight = '90vh';
+            modalContent.style.overflow = 'auto';
+            modalContent.style.color = 'white';
+            modalContent.style.width = '90%';
+            
+            modalContent.innerHTML = `
+                <h2 style="color: #FFD700; text-align: center; margin-bottom: 20px;">双缝干涉条纹间距公式 Δy = λ·L/d 推导过程</h2>
+                
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <p style="color: #4FC3F7; font-size: 1.1rem;">按照标准教材推导过程：</p>
+                </div>
+                
+                <div class="derivation-diagram">
+                    <canvas id="derivationCanvas" class="derivation-canvas"></canvas>
+                    <div class="diagram-label">双缝干涉几何示意图</div>
+                </div>
+                
+                <div class="derivation-container">
+                    <div class="derivation-step">
+                        <div class="derivation-title">
+                            <span class="step-number">1</span>
+                            <span>建立几何模型</span>
+                        </div>
+                        <div class="step-formula">双缝S₁和S₂间距为 d，屏幕距离为 L</div>
+                        <div class="step-explanation">
+                            屏幕上P点到中心O的距离为 y，P点到两缝的距离分别为 r₁ 和 r₂。<br>
+                            当 L >> d 且 y << L 时，两条光线近似平行。
+                        </div>
+                    </div>
+                    
+                    <div class="derivation-step">
+                        <div class="derivation-title">
+                            <span class="step-number">2</span>
+                            <span>计算光程差</span>
+                        </div>
+                        <div class="step-formula">光程差 Δ = r₂ - r₁</div>
+                        <div class="step-explanation">
+                            从图中几何关系可知，当两光线近似平行时，光程差 Δ ≈ d·sinθ<br>
+                            其中 θ 是光线与中心线之间的夹角（如图中所示）。
+                        </div>
+                    </div>
+                    
+                    <div class="derivation-step">
+                        <div class="derivation-title">
+                            <span class="step-number">3</span>
+                            <span>角度关系</span>
+                        </div>
+                        <div class="step-formula">sinθ ≈ tanθ = y / L</div>
+                        <div class="step-explanation">
+                            由于 θ 很小（小角度近似），sinθ ≈ tanθ。<br>
+                            从直角三角形关系可知，tanθ = y/L。
+                        </div>
+                    </div>
+                    
+                    <div class="derivation-step">
+                        <div class="derivation-title">
+                            <span class="step-number">4</span>
+                            <span>光程差近似表达式</span>
+                        </div>
+                        <div class="step-formula">Δ ≈ d·(y / L)</div>
+                        <div class="step-explanation">
+                            将 sinθ ≈ y/L 代入 Δ ≈ d·sinθ，得到光程差的近似表达式。
+                        </div>
+                    </div>
+                    
+                    <div class="derivation-step">
+                        <div class="derivation-title">
+                            <span class="step-number">5</span>
+                            <span>亮纹干涉条件</span>
+                        </div>
+                        <div class="step-formula">Δ = mλ &nbsp;&nbsp;(m = 0, ±1, ±2...)</div>
+                        <div class="step-explanation">
+                            当光程差为波长整数倍时，两列光波相位相同，干涉加强形成亮纹。<br>
+                            m 称为干涉级次，m=0 对应中央亮纹。
+                        </div>
+                    </div>
+                    
+                    <div class="derivation-step">
+                        <div class="derivation-title">
+                            <span class="step-number">6</span>
+                            <span>代入得到亮纹位置</span>
+                        </div>
+                        <div class="step-formula">d·(y / L) = mλ ⇒ y_m = m·λ·L / d</div>
+                        <div class="step-explanation">
+                            将光程差表达式代入亮纹条件，解出第 m 级亮纹的位置 y_m。
+                        </div>
+                    </div>
+                    
+                    <div class="derivation-step">
+                        <div class="derivation-title">
+                            <span class="step-number">7</span>
+                            <span>计算条纹间距</span>
+                        </div>
+                        <div class="step-formula">Δy = y_{m+1} - y_m</div>
+                        <div class="step-explanation">
+                            相邻亮纹（第 m 级和第 m+1 级）之间的间距。
+                        </div>
+                    </div>
+                    
+                    <div class="derivation-step">
+                        <div class="derivation-title">
+                            <span class="step-number">8</span>
+                            <span>代入计算</span>
+                        </div>
+                        <div class="step-formula">Δy = [(m+1)·λ·L/d] - [m·λ·L/d] = λ·L / d</div>
+                        <div class="step-explanation">
+                            将亮纹位置公式代入，m 项相消，得到最终公式。
+                        </div>
+                    </div>
+                    
+                    <div class="final-formula">
+                        Δy = λ·L / d
+                    </div>
+                    
+                    <div class="physics-meaning">
+                        <h3 style="color: #FFD700; margin-bottom: 10px;">物理意义总结</h3>
+                        <p><strong style="color:#4FC3F7;">Δy ∝ λ</strong>：波长越长，条纹间距越大（红光条纹比紫光稀疏）</p>
+                        <p><strong style="color:#4FC3F7;">Δy ∝ L</strong>：屏幕越远，条纹间距越大</p>
+                        <p><strong style="color:#FF4444;">Δy ∝ 1/d</strong>：双缝间距越小，条纹间距越大</p>
+                        <p style="margin-top: 10px; color: #ddd;">公式成立条件：L >> d（屏幕距离远大于双缝间距），小角度近似（θ很小）</p>
+                    </div>
+                    
+                    <div style="background: rgba(46, 204, 113, 0.1); padding: 15px; border-radius: 8px; margin: 20px 0;">
+                        <h3 style="color: #2ecc71; margin-bottom: 10px;">当前参数计算示例</h3>
+                        <p>波长 λ = ${wavelength} nm = ${wavelength * 1e-9} m</p>
+                        <p>屏幕距离 L = ${screenDistance} m</p>
+                        <p>双缝间距 d = ${slitDistance} mm = ${slitDistance * 1e-3} m</p>
+                        <div class="step-formula" style="margin: 10px 0;">
+                            Δy = ${wavelength}×10⁻⁹ × ${screenDistance} ÷ ${slitDistance}×10⁻³
+                        </div>
+                        <div class="step-formula" style="background: #2ecc71; color: #0a1931;">
+                            Δy = ${(wavelength * 1e-9 * screenDistance / (slitDistance * 1e-3)).toExponential(2)} m
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const closeBtn = document.createElement('button');
+            closeBtn.textContent = '关闭推导过程';
+            closeBtn.style.marginTop = '20px';
+            closeBtn.style.padding = '10px 30px';
+            closeBtn.style.backgroundColor = '#e74c3c';
+            closeBtn.style.color = 'white';
+            closeBtn.style.border = 'none';
+            closeBtn.style.borderRadius = '5px';
+            closeBtn.style.cursor = 'pointer';
+            closeBtn.style.fontSize = '16px';
+            closeBtn.style.display = 'block';
+            closeBtn.style.margin = '0 auto';
+            
+            closeBtn.onclick = function() {
+                document.body.removeChild(modal);
+            };
+            
+            modalContent.appendChild(closeBtn);
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+            
+            // 绘制推导示意图（修正角度标注）
+            drawDerivationDiagram();
+        }
+        
+        // 绘制推导示意图 - 修正角度标注
+        function drawDerivationDiagram() {
+            const derivationCanvas = document.getElementById('derivationCanvas');
+            const derivCtx = derivationCanvas.getContext('2d');
+            
+            // 设置Canvas尺寸
+            derivationCanvas.width = derivationCanvas.offsetWidth;
+            derivationCanvas.height = 250;
+            
+            const width = derivationCanvas.width;
+            const height = derivationCanvas.height;
+            
+            // 清空画布
+            derivCtx.clearRect(0, 0, width, height);
+            
+            // 绘制背景
+            derivCtx.fillStyle = '#0a1931';
+            derivCtx.fillRect(0, 0, width, height);
+            
+            // 绘制双缝
+            const slitX = 80;
+            const centerY = height / 2;
+            const d = 50; // 双缝间距（像素）
+            
+            // 绘制双缝板
+            derivCtx.fillStyle = '#2C3E50';
+            derivCtx.fillRect(slitX - 5, centerY - 80, 10, 160);
+            
+            // 绘制两个缝
+            derivCtx.fillStyle = '#ECF0F1';
+            derivCtx.fillRect(slitX - 5, centerY - d/2 - 5, 10, 10);
+            derivCtx.fillRect(slitX - 5, centerY + d/2 - 5, 10, 10);
+            
+            // 标记双缝
+            derivCtx.fillStyle = '#FF4444';
+            derivCtx.font = 'bold 14px Arial';
+            derivCtx.fillText('S₁', slitX - 20, centerY - d/2);
+            derivCtx.fillText('S₂', slitX - 20, centerY + d/2);
+            
+            // 绘制双缝间距指示线
+            derivCtx.strokeStyle = '#FF4444';
+            derivCtx.lineWidth = 2;
+            derivCtx.beginPath();
+            derivCtx.moveTo(slitX + 10, centerY - d/2);
+            derivCtx.lineTo(slitX + 10, centerY + d/2);
+            derivCtx.stroke();
+            
+            derivCtx.fillStyle = '#FF4444';
+            derivCtx.font = 'bold 14px Arial';
+            derivCtx.fillText('d', slitX + 15, centerY);
+            
+            // 绘制屏幕
+            const screenX = width - 80;
+            const screenTop = centerY - 100;
+            const screenBottom = centerY + 100;
+            
+            derivCtx.fillStyle = '#34495E';
+            derivCtx.fillRect(screenX - 8, screenTop, 16, screenBottom - screenTop);
+            
+            // 标记屏幕距离
+            derivCtx.strokeStyle = '#4FC3F7';
+            derivCtx.lineWidth = 2;
+            derivCtx.setLineDash([5, 3]);
+            derivCtx.beginPath();
+            derivCtx.moveTo(slitX + 5, centerY);
+            derivCtx.lineTo(screenX, centerY);
+            derivCtx.stroke();
+            derivCtx.setLineDash([]);
+            
+            derivCtx.fillStyle = '#4FC3F7';
+            derivCtx.font = 'bold 14px Arial';
+            derivCtx.fillText('L', (slitX + 5 + screenX) / 2, centerY - 10);
+            
+            // 绘制屏幕中心点O
+            derivCtx.fillStyle = '#2ecc71';
+            derivCtx.beginPath();
+            derivCtx.arc(screenX, centerY, 5, 0, Math.PI * 2);
+            derivCtx.fill();
+            derivCtx.fillStyle = 'white';
+            derivCtx.font = '12px Arial';
+            derivCtx.fillText('O', screenX + 10, centerY + 4);
+            
+            // 绘制点P
+            const pointY = centerY + 60;
+            derivCtx.fillStyle = '#2ecc71';
+            derivCtx.beginPath();
+            derivCtx.arc(screenX, pointY, 5, 0, Math.PI * 2);
+            derivCtx.fill();
+            derivCtx.fillStyle = 'white';
+            derivCtx.font = '12px Arial';
+            derivCtx.fillText('P', screenX + 10, pointY + 4);
+            
+            // 标记距离y
+            derivCtx.strokeStyle = '#FFD700';
+            derivCtx.lineWidth = 1;
+            derivCtx.setLineDash([3, 3]);
+            derivCtx.beginPath();
+            derivCtx.moveTo(screenX, centerY);
+            derivCtx.lineTo(screenX, pointY);
+            derivCtx.stroke();
+            derivCtx.setLineDash([]);
+            
+            derivCtx.fillStyle = '#FFD700';
+            derivCtx.font = 'bold 12px Arial';
+            derivCtx.fillText('y', screenX + 8, (centerY + pointY) / 2);
+            
+            // 绘制光线
+            derivCtx.strokeStyle = '#4FC3F7';
+            derivCtx.lineWidth = 2;
+            
+            // S₁到P
+            derivCtx.beginPath();
+            derivCtx.moveTo(slitX + 5, centerY - d/2);
+            derivCtx.lineTo(screenX, pointY);
+            derivCtx.stroke();
+            
+            // S₂到P
+            derivCtx.beginPath();
+            derivCtx.moveTo(slitX + 5, centerY + d/2);
+            derivCtx.lineTo(screenX, pointY);
+            derivCtx.stroke();
+            
+            // 标记距离r₁和r₂
+            const midX1 = (slitX + 5 + screenX) / 2;
+            const midY1 = (centerY - d/2 + pointY) / 2;
+            derivCtx.fillStyle = '#4FC3F7';
+            derivCtx.font = 'bold 12px Arial';
+            derivCtx.fillText('r₁', midX1 - 15, midY1 - 8);
+            
+            const midX2 = (slitX + 5 + screenX) / 2;
+            const midY2 = (centerY + d/2 + pointY) / 2;
+            derivCtx.fillText('r₂', midX2 - 15, midY2 + 12);
+            
+            // 绘制光线近似平行线（从S₁出发的水平线）
+            derivCtx.strokeStyle = '#FFD700';
+            derivCtx.lineWidth = 1;
+            derivCtx.setLineDash([5, 3]);
+            
+            // 从S₁出发的水平线
+            derivCtx.beginPath();
+            derivCtx.moveTo(slitX + 5, centerY - d/2);
+            derivCtx.lineTo(screenX, centerY - d/2);
+            derivCtx.stroke();
+            
+            derivCtx.setLineDash([]);
+            
+            // 修正角度θ的绘制 - 正确的角度位置
+            // θ是S₁P与水平线（从S₁出发的水平线）的夹角
+            const angleRadius = 35;
+            derivCtx.strokeStyle = '#FFD700';
+            derivCtx.lineWidth = 2;
+            
+            // 绘制角度弧线
+            derivCtx.beginPath();
+            derivCtx.arc(slitX + 5, centerY - d/2, angleRadius, 
+                        0, Math.atan2(pointY - (centerY - d/2), screenX - (slitX + 5)));
+            derivCtx.stroke();
+            
+            // 绘制角度标记线
+            derivCtx.beginPath();
+            derivCtx.moveTo(slitX + 5, centerY - d/2);
+            derivCtx.lineTo(slitX + 5 + angleRadius, centerY - d/2);
+            derivCtx.stroke();
+            
+            derivCtx.beginPath();
+            derivCtx.moveTo(slitX + 5, centerY - d/2);
+            derivCtx.lineTo(slitX + 5 + angleRadius * Math.cos(Math.atan2(pointY - (centerY - d/2), screenX - (slitX + 5))), 
+                          centerY - d/2 + angleRadius * Math.sin(Math.atan2(pointY - (centerY - d/2), screenX - (slitX + 5))));
+            derivCtx.stroke();
+            
+            // 标注角度θ
+            derivCtx.fillStyle = '#FFD700';
+            derivCtx.font = 'bold 16px Arial';
+            derivCtx.fillText('θ', 
+                slitX + 5 + angleRadius * Math.cos(0.15) - 5, 
+                centerY - d/2 + angleRadius * Math.sin(0.15) - 5);
+            
+            // 在右侧显示关键公式
+            derivCtx.fillStyle = 'white';
+            derivCtx.font = '14px Arial';
+            derivCtx.textAlign = 'left';
+            
+            const formulas = [
+                '光程差：Δ = r₂ - r₁ ≈ d·sinθ',
+                '小角度近似：sinθ ≈ tanθ = y/L',
+                '∴ Δ ≈ d·y / L',
+                '亮纹条件：Δ = mλ',
+                '∴ d·y/L = mλ',
+                '第m级亮纹：y_m = m·λ·L/d',
+                '条纹间距：Δy = λ·L/d'
+            ];
+            
+            formulas.forEach((formula, i) => {
+                derivCtx.fillText(formula, width - 200, 30 + i * 20);
+            });
+            
+            // 添加角度说明
+            derivCtx.fillStyle = '#FFD700';
+            derivCtx.font = 'italic 12px Arial';
+            derivCtx.fillText('θ: 光线S₁P与中心线的夹角', width - 200, 180);
+        }
+        
+        // 显示条纹间距公式
+        function showStripeSpacingFormula() {
+            const modal = document.createElement('div');
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100%';
+            modal.style.height = '100%';
+            modal.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
+            modal.style.display = 'flex';
+            modal.style.justifyContent = 'center';
+            modal.style.alignItems = 'center';
+            modal.style.zIndex = '1000';
+            
+            const modalContent = document.createElement('div');
+            modalContent.style.backgroundColor = '#0a1931';
+            modalContent.style.padding = '30px';
+            modalContent.style.borderRadius = '1010px';
+            modalContent.style.border = '3px solid #2ecc71';
+            modalContent.style.maxWidth = '700px';
+            modalContent.style.maxHeight = '80vh';
+            modalContent.style.overflow = 'auto';
+            modalContent.style.color = 'white';
+            
+            modalContent.innerHTML = `
+                <h2 style="color: #FFD700; text-align: center; margin-bottom: 20px;">双缝干涉条纹间距公式</h2>
+                
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <div style="background: #2ecc71; color: #0a1931; padding: 25px; border-radius: 8px; margin: 20px 0; font-family: 'Courier New'; font-size: 2rem; font-weight: bold;">
+                        Δy = λ · L / d
+                    </div>
+                </div>
+                
+                <div style="margin: 20px 0;">
+                    <h3 style="color: #4FC3F7; border-bottom: 2px solid #4FC3F7; padding-bottom: 8px;">公式中各符号含义</h3>
+                    
+                    <div style="display: flex; align-items: center; margin: 15px 0; padding: 10px; background: rgba(79, 195, 247, 0.1); border-radius: 6px;">
+                        <div style="color: #FFD700; font-size: 2rem; margin-right: 15px; font-weight: bold;">Δy</div>
+                        <div>
+                            <h4 style="color: white; margin: 0;">条纹间距</h4>
+                            <p style="margin: 5px 0 0 0; color: #ddd;">相邻亮纹（或暗纹）之间的距离</p>
+                            <p style="margin: 5px 0 0 0; color: #2ecc71;">单位：米 (m)</p>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; margin: 15px 0; padding: 10px; background: rgba(155, 89, 182, 0.1); border-radius: 6px;">
+                        <div style="color: ${getColorInfo(wavelength).rgb}; font-size: 2rem; margin-right: 15px; font-weight: bold;">λ</div>
+                        <div>
+                            <h4 style="color: white; margin: 0;">光的波长</h4>
+                            <p style="margin: 5px 0 0 0; color: #ddd;">光波一个完整周期的长度</p>
+                            <p style="margin: 5px 0 0 0; color: #2ecc71;">单位：米 (m)，可见光范围：380-780nm</p>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; margin: 15px 0; padding: 10px; background: rgba(52, 152, 219, 0.1); border-radius: 6px;">
+                        <div style="color: #4FC3F7; font-size: 2rem; margin-right: 15px; font-weight: bold;">L</div>
+                        <div>
+                            <h4 style="color: white; margin: 0;">屏幕距离</h4>
+                            <p style="margin: 5px 0 0 0; color: #ddd;">双缝到观察屏幕的距离</p>
+                            <p style="margin: 5px 0 0 0; color: #2ecc71;">单位：米 (m)</p>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; margin: 15px 0; padding: 10px; background: rgba(231, 76, 60, 0.1); border-radius: 6px;">
+                        <div style="color: #FF4444; font-size: 2rem; margin-right: 15px; font-weight: bold;">d</div>
+                        <div>
+                            <h4 style="color: white; margin: 0;">双缝间距</h4>
+                            <p style="margin: 5px 0 0 0; color: #ddd;">两个狭缝中心之间的距离</p>
+                            <p style="margin: 5px 0 0 0; color: #2ecc71;">单位：米 (m)，实验中通常为0.1-0.5mm</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin: 25px 0; padding: 20px; background: rgba(255, 215, 0, 0.1); border-radius: 6px; border-left: 4px solid #FFD700;">
+                    <h3 style="color: #FFD700;">公式应用示例</h3>
+                    <p>当前实验参数计算：</p>
+                    <div style="background: #2c3e50; padding: 15px; border-radius: 6px; margin: 10px 0; font-family: 'Courier New';">
+                        Δy = ${wavelength}×10⁻⁹ m × ${screenDistance} m ÷ ${slitDistance}×10⁻³ m
+                    </div>
+                    <div style="background: #2c3e50; padding: 15px; border-radius: 6px; margin: 10px 0; font-family: 'Courier New';">
+                        Δy = ${(wavelength * 1e-9 * screenDistance / (slitDistance * 1e-3)).toExponential(2)} m
+                    </div>
+                </div>
+            `;
+            
+            const closeBtn = document.createElement('button');
+            closeBtn.textContent = '关闭';
+            closeBtn.style.marginTop = '20px';
+            closeBtn.style.padding = '10px 30px';
+            closeBtn.style.backgroundColor = '#e74c3c';
+            closeBtn.style.color = 'white';
+            closeBtn.style.border = 'none';
+            closeBtn.style.borderRadius = '5px';
+            closeBtn.style.cursor = 'pointer';
+            closeBtn.style.fontSize = '16px';
+            closeBtn.style.display = 'block';
+            closeBtn.style.margin = '0 auto';
+            
+            closeBtn.onclick = function() {
+                document.body.removeChild(modal);
+            };
+            
+            modalContent.appendChild(closeBtn);
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+        }
+        
+        // 波长对比模式
+        function showWavelengthComparison() {
+            // 保存当前参数
+            const originalWavelength = wavelength;
+            const originalSlitDistance = slitDistance;
+            const originalScreenDistance = screenDistance;
+            
+            // 创建对比图
+            const comparisonCanvas = document.createElement('canvas');
+            comparisonCanvas.width = 800;
+            comparisonCanvas.height = 500;
+            const compCtx = comparisonCanvas.getContext('2d');
+            
+            // 绘制对比背景
+            compCtx.fillStyle = '#0a1931';
+            compCtx.fillRect(0, 0, comparisonCanvas.width, comparisonCanvas.height);
+            
+            // 标题
+            compCtx.fillStyle = '#FFD700';
+            compCtx.font = 'bold 20px Arial';
+            compCtx.textAlign = 'center';
+            compCtx.fillText('不同波长光的干涉条纹对比', comparisonCanvas.width/2, 40);
+            
+            // 要对比的波长
+            const comparisonWavelengths = [400, 500, 600, 700]; // nm
+            const comparisonColors = ['#7b1fa2', '#0288d1', '#f57c00', '#d32f2f'];
+            const comparisonNames = ['紫光 (400nm)', '青光 (500nm)', '黄光 (600nm)', '红光 (700nm)'];
+            
+            // 固定其他参数用于对比
+            const fixedSlitDistance = 0.2; // mm
+            const fixedScreenDistance = 1.0; // m
+            
+            // 计算每个波长的条纹间距
+            const deltaYs = comparisonWavelengths.map(wl => {
+                const lambda = wl * 1e-9;
+                const d = fixedSlitDistance * 1e-3;
+                const L = fixedScreenDistance;
+                return lambda * L / d;
+            });
+            
+            // 绘制每个波长的干涉条纹
+            const patternWidth = 150;
+            const patternHeight = 300;
+            const startY = 80;
+            
+            comparisonWavelengths.forEach((wl, index) => {
+                const patternX = 50 + index * (patternWidth + 100);
+                
+                // 绘制标题
+                compCtx.fillStyle = comparisonColors[index];
+                compCtx.font = 'bold 16px Arial';
+                compCtx.fillText(comparisonNames[index], patternX + patternWidth/2, startY - 20);
+                
+                // 计算该波长的理论条纹间距
+                const lambda = wl * 1e-9;
+                const d = fixedSlitDistance * 1e-3;
+                const L = fixedScreenDistance;
+                const deltaY_m = lambda * L / d;
+                
+                // 转换为像素
+                const screenHeightM = 0.2;
+                const pixelsPerMeter = patternHeight / screenHeightM;
+                const deltaY_pixels = deltaY_m * pixelsPerMeter;
+                
+                // 计算条纹数量
+                let stripeCount = Math.floor(patternHeight / deltaY_pixels);
+                stripeCount = Math.min(Math.max(stripeCount, 5), 21);
+                if (stripeCount % 2 === 0) stripeCount--;
+                
+                const actualDeltaY = patternHeight / stripeCount;
+                
+                // 绘制条纹背景
+                compCtx.fillStyle = '#1a2980';
+                compCtx.fillRect(patternX, startY, patternWidth, patternHeight);
+                
+                // 绘制明暗条纹
+                const color = comparisonColors[index];
+                const r = parseInt(color.substr(1, 2), 16);
+                const g = parseInt(color.substr(3, 2), 16);
+                const b = parseInt(color.substr(5, 2), 16);
+                
+                for (let i = 0; i < stripeCount; i++) {
+                    const y = startY + i * actualDeltaY;
+                    
+                    if (i % 2 === 0) {
+                        compCtx.fillStyle = '#0a1931';
+                    } else {
+                        const distanceFromCenter = Math.abs(i - Math.floor(stripeCount/2));
+                        const brightness = 1 - distanceFromCenter / (stripeCount/2) * 0.7;
+                        compCtx.fillStyle = `rgba(${r}, ${g}, ${b}, ${brightness})`;
+                    }
+                    
+                    compCtx.fillRect(patternX, y, patternWidth, actualDeltaY);
+                }
+                
+                // 显示条纹间距值
+                compCtx.fillStyle = 'white';
+                compCtx.font = '12px Arial';
+                compCtx.textAlign = 'center';
+                compCtx.fillText(`Δy = ${deltaY_m.toExponential(2)} m`, 
+                    patternX + patternWidth/2, startY + patternHeight + 25);
+                
+                // 显示条纹数量
+                compCtx.fillText(`${stripeCount} 条条纹`, 
+                    patternX + patternWidth/2, startY + patternHeight + 40);
+            });
+            
+            // 绘制结论
+            compCtx.fillStyle = '#2ecc71';
+            compCtx.font = 'bold 16px Arial';
+            compCtx.fillText('结论：波长越长 → 条纹间距越大 → 条纹越稀疏', 
+                comparisonCanvas.width/2, startY + patternHeight + 70);
+            
+            compCtx.fillStyle = 'white';
+            compCtx.font = '14px Arial';
+            compCtx.fillText('红光波长最长 (700nm)，条纹间距最大，条纹最稀疏', 
+                comparisonCanvas.width/2, startY + patternHeight + 95);
+            compCtx.fillText('紫光波长最短 (400nm)，条纹间距最小，条纹最密集', 
+                comparisonCanvas.width/2, startY + patternHeight + 115);
+            
+            // 创建模态框显示对比图
+            const modal = document.createElement('div');
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100%';
+            modal.style.height = '100%';
+            modal.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+            modal.style.display = 'flex';
+            modal.style.justifyContent = 'center';
+            modal.style.alignItems = 'center';
+            modal.style.zIndex = '1000';
+            
+            const modalContent = document.createElement('div');
+            modalContent.style.backgroundColor = '#0a1931';
+            modalContent.style.padding = '20px';
+            modalContent.style.borderRadius = '10px';
+            modalContent.style.border = '3px solid #4a69bd';
+            modalContent.style.maxWidth = '900px';
+            modalContent.style.maxHeight = '90vh';
+            modalContent.style.overflow = 'auto';
+            
+            modalContent.appendChild(comparisonCanvas);
+            
+            const closeBtn = document.createElement('button');
+            closeBtn.textContent = '关闭';
+            closeBtn.style.marginTop = '20px';
+            closeBtn.style.padding = '10px 30px';
+            closeBtn.style.backgroundColor = '#e74c3c';
+            closeBtn.style.color = 'white';
+            closeBtn.style.border = 'none';
+            closeBtn.style.borderRadius = '5px';
+            closeBtn.style.cursor = 'pointer';
+            closeBtn.style.fontSize = '16px';
+            closeBtn.style.display = 'block';
+            closeBtn.style.margin = '0 auto';
+            
+            closeBtn.onclick = function() {
+                document.body.removeChild(modal);
+                // 恢复原始参数
+                wavelengthSlider.value = originalWavelength;
+                slitDistanceSlider.value = originalSlitDistance;
+                screenDistanceSlider.value = originalScreenDistance;
+                updateDisplay();
+            };
+            
+            modalContent.appendChild(closeBtn);
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+        }
+        
+        // 初始化
+        function init() {
+            resizeCanvases();
+            updateDisplay();
+            
+            // 事件监听
+            window.addEventListener('resize', resizeCanvases);
+            
+            wavelengthSlider.addEventListener('input', updateDisplay);
+            slitDistanceSlider.addEventListener('input', updateDisplay);
+            screenDistanceSlider.addEventListener('input', updateDisplay);
+            
+            resetBtn.addEventListener('click', function() {
+                wavelengthSlider.value = 400;
+                slitDistanceSlider.value = 0.2;
+                screenDistanceSlider.value = 1.0;
+                updateDisplay();
+            });
+            
+            compareBtn.addEventListener('click', showWavelengthComparison);
+            showFormulaBtn.addEventListener('click', showStripeSpacingFormula);
+            showDerivationBtn.addEventListener('click', showFormulaDerivation);
+        }
+        
+        // 页面加载完成后初始化
+        window.onload = init;
+    </script>
+</body>
+</html>

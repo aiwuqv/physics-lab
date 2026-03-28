@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>原子核衰变模拟实验</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .canvas-container {
+            position: relative;
+            margin: 20px auto;
+            width: 800px;
+            height: 500px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            background-color: #000;
+            overflow: hidden;
+        }
+        
+        canvas {
+            display: block;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 150px;
+        }
+        
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        select, button {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        .info-panel {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #eef7ff;
+            border-radius: 5px;
+            border-left: 4px solid #2196F3;
+        }
+        
+        .info-panel h3 {
+            margin-top: 0;
+            color: #2196F3;
+        }
+        
+        .particle-info {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .particle-item {
+            text-align: center;
+            margin: 10px;
+        }
+        
+        .proton { color: #ff5252; font-weight: bold; }
+        .neutron { color: #448aff; font-weight: bold; }
+        .alpha { color: #ff9800; font-weight: bold; }
+        .beta { color: #00c853; font-weight: bold; }
+        
+        .explanation {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f1f8e9;
+            border-radius: 5px;
+            border-left: 4px solid #8bc34a;
+        }
+        
+        .explanation h3 {
+            margin-top: 0;
+            color: #558b2f;
+        }
+        
+        .explanation p {
+            line-height: 1.6;
+        }
+        
+        .half-life-section {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #fff3e0;
+            border-radius: 5px;
+            border-left: 4px solid #ff9800;
+        }
+        
+        .half-life-section h3 {
+            color: #e65100;
+            margin-top: 0;
+        }
+        
+        .half-life-visual {
+            margin: 15px 0;
+            text-align: center;
+        }
+        
+        #halfLifeCanvas {
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            background-color: #1a237e;
+        }
+        
+        .half-life-info {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #ffecb3;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        
+        .instructions {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e3f2fd;
+            border-radius: 5px;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .instructions h3 {
+            margin-top: 0;
+            color: #0d47a1;
+        }
+        
+        .instructions ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin: 5px 0;
+        }
+        
+        .quiz-section {
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .quiz-btn {
+            background-color: #ff9800;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .quiz-btn:hover {
+            background-color: #f57c00;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 0;
+            border: 1px solid #888;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 700px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            padding: 15px 20px;
+            background-color: #2196F3;
+            color: white;
+            border-top-left-radius: 7px;
+            border-top-right-radius: 7px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+        }
+        
+        .close {
+            color: #fff;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: #bbb;
+        }
+        
+        .modal-body {
+            padding: 20px;
+        }
+        
+        .quiz-container {
+            margin: 0 auto;
+        }
+        
+        .question-slider {
+            position: relative;
+            overflow: hidden;
+            height: 300px;
+        }
+        
+        .question-item {
+            display: none;
+            padding: 20px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            transition: transform 0.3s ease;
+        }
+        
+        .question-item.active {
+            display: block;
+        }
+        
+        .options {
+            margin-top: 15px;
+        }
+        
+        .options label {
+            display: block;
+            margin: 8px 0;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .options input[type="radio"] {
+            margin-right: 8px;
+        }
+        
+        .options label:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .navigation {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-btn {
+            background-color: #e0e0e0;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .nav-btn:hover {
+            background-color: #bdbdbd;
+        }
+        
+        .nav-btn:disabled {
+            background-color: #e0e0e0;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        
+        .submit-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .submit-btn:hover {
+            background-color: #45a049;
+        }
+        
+        .submit-btn:disabled {
+            background-color: #a5d6a7;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        
+        #questionCounter {
+            font-weight: bold;
+            font-size: 18px;
+            color: #555;
+        }
+        
+        .analysis-container {
+            margin-bottom: 20px;
+        }
+        
+        .score-summary {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        
+        .score-summary p {
+            margin: 5px 0;
+        }
+        
+        .analysis-details {
+            margin-bottom: 15px;
+        }
+        
+        .learning-suggestions {
+            margin-bottom: 20px;
+        }
+        
+        .learning-suggestions ul {
+            padding-left: 20px;
+        }
+        
+        .learning-suggestions li {
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <h1>原子核衰变模拟实验</h1>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="decayType">衰变类型:</label>
+                <select id="decayType">
+                    <option value="alpha">α衰变</option>
+                    <option value="beta">β衰变</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="elementSelect">选择元素:</label>
+                <select id="elementSelect">
+                    <option value="uranium">铀-238 (U-238)</option>
+                    <option value="carbon">碳-14 (C-14)</option>
+                    <option value="radium">镭-226 (Ra-226)</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <button id="startBtn">开始衰变</button>
+                <button id="resetBtn">重置</button>
+            </div>
+            
+            <div class="control-group">
+                <label for="speedControl">动画速度:</label>
+                <input type="range" id="speedControl" min="1" max="10" value="5">
+            </div>
+        </div>
+        
+        <div class="canvas-container">
+            <canvas id="nuclearCanvas" width="800" height="500"></canvas>
+        </div>
+        
+        <div class="particle-info">
+            <div class="particle-item">
+                <div class="proton">● 质子 (p⁺)</div>
+                <div>带正电荷 (+1)</div>
+            </div>
+            <div class="particle-item">
+                <div class="neutron">● 中子 (n⁰)</div>
+                <div>不带电荷 (0)</div>
+            </div>
+            <div class="particle-item">
+                <div class="alpha">● α粒子 (He²⁺)</div>
+                <div>2个质子 + 2个中子</div>
+            </div>
+            <div class="particle-item">
+                <div class="beta">● β粒子 (e⁻)</div>
+                <div>高速电子</div>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h3>使用说明</h3>
+            <ul>
+                <li>选择衰变类型（α衰变或β衰变）和元素</li>
+                <li>点击“开始衰变”按钮观察原子核衰变过程</li>
+                <li>在半衰期模拟区域可以观察大量原子的统计衰变行为</li>
+                <li>调整动画速度以获得更好的观察效果</li>
+            </ul>
+            
+            <h3>教学要点</h3>
+            <ul>
+                <li><strong>α衰变：</strong>原子核释放α粒子（2个质子和2个中子），原子序数减2，质量数减4</li>
+                <li><strong>β衰变：</strong>原子核内一个中子转变为质子并释放电子，原子序数加1，质量数不变</li>
+                <li><strong>半衰期：</strong>放射性元素原子核有半数发生衰变所需的时间，是元素的固有属性</li>
+                <li><strong>统计性质：</strong>半衰期是统计概念，适用于大量原子核，单个原子核的衰变是随机的</li>
+            </ul>
+        </div>
+        
+        <div class="info-panel">
+            <h3>当前原子核信息</h3>
+            <p id="nucleusInfo">请选择一个元素并开始衰变过程</p>
+        </div>
+        
+        <div class="explanation">
+            <h3>原子核衰变原理</h3>
+            <p><strong>α衰变：</strong>原子核释放α粒子（由2个质子和2个中子组成的氦核），质量数减少4，原子序数减少2。</p>
+            <p><strong>β衰变：</strong>原子核内的一个中子转化为质子并释放一个电子（β粒子），质量数不变，原子序数增加1。</p>
+            <p><strong>半衰期：</strong>放射性元素的原子核有半数发生衰变所需的时间，是该元素固有的性质，不受外界条件影响。</p>
+        </div>
+        
+        <div class="quiz-section">
+            <button id="knowledgeTestBtn" class="quiz-btn">知识检测</button>
+        </div>
+        
+        <!-- 答题界面弹窗 -->
+        <div id="quizModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>原子核衰变知识检测</h3>
+                    <span id="closeQuiz" class="close">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="quiz-container">
+                        <div class="question-slider">
+                            <div class="question-item active" data-question="1">
+                                <h4>问题 1: α衰变过程中，原子核的质量数如何变化？</h4>
+                                <div class="options">
+                                    <label><input type="radio" name="q1" value="A">A. 减少2</label><br>
+                                    <label><input type="radio" name="q1" value="B">B. 减少4</label><br>
+                                    <label><input type="radio" name="q1" value="C">C. 增加2</label><br>
+                                    <label><input type="radio" name="q1" value="D">D. 不变</label><br>
+                                </div>
+                            </div>
+                            <div class="question-item" data-question="2">
+                                <h4>问题 2: β衰变中，原子核内发生了什么转变？</h4>
+                                <div class="options">
+                                    <label><input type="radio" name="q2" value="A">A. 质子转变为中子</label><br>
+                                    <label><input type="radio" name="q2" value="B">B. 中子转变为质子</label><br>
+                                    <label><input type="radio" name="q2" value="C">C. 质子和中子互换</label><br>
+                                    <label><input type="radio" name="q2" value="D">D. 释放α粒子</label><br>
+                                </div>
+                            </div>
+                            <div class="question-item" data-question="3">
+                                <h4>问题 3: 半衰期的定义是什么？</h4>
+                                <div class="options">
+                                    <label><input type="radio" name="q3" value="A">A. 所有原子核衰变所需时间</label><br>
+                                    <label><input type="radio" name="q3" value="B">B. 一半原子核衰变所需时间</label><br>
+                                    <label><input type="radio" name="q3" value="C">C. 10%原子核衰变所需时间</label><br>
+                                    <label><input type="radio" name="q3" value="D">D. 90%原子核衰变所需时间</label><br>
+                                </div>
+                            </div>
+                            <div class="question-item" data-question="4">
+                                <h4>问题 4: α粒子由什么组成？</h4>
+                                <div class="options">
+                                    <label><input type="radio" name="q4" value="A">A. 1个质子和1个中子</label><br>
+                                    <label><input type="radio" name="q4" value="B">B. 2个质子和2个中子</label><br>
+                                    <label><input type="radio" name="q4" value="C">C. 1个电子</label><br>
+                                    <label><input type="radio" name="q4" value="D">D. 2个电子</label><br>
+                                </div>
+                            </div>
+                            <div class="question-item" data-question="5">
+                                <h4>问题 5: 在β衰变中，原子序数如何变化？</h4>
+                                <div class="options">
+                                    <label><input type="radio" name="q5" value="A">A. 减少1</label><br>
+                                    <label><input type="radio" name="q5" value="B">B. 不变</label><br>
+                                    <label><input type="radio" name="q5" value="C">C. 增加1</label><br>
+                                    <label><input type="radio" name="q5" value="D">D. 增加2</label><br>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="navigation">
+                            <button id="prevQuestion" class="nav-btn">上一题</button>
+                            <span id="questionCounter">1 / 5</span>
+                            <button id="nextQuestion" class="nav-btn">下一题</button>
+                            <button id="submitQuiz" class="submit-btn">提交答案</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 学情分析报告弹窗 -->
+        <div id="analysisModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>学情分析报告</h3>
+                    <span id="closeAnalysis" class="close">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="analysis-container">
+                        <div class="score-summary">
+                            <h4>答题结果</h4>
+                            <p>总题数: <span id="totalQuestions">5</span></p>
+                            <p>答对题数: <span id="correctAnswers">0</span></p>
+                            <p>正确率: <span id="accuracyRate">0%</span></p>
+                        </div>
+                        <div class="analysis-details">
+                            <h4>学情分析</h4>
+                            <p id="analysisText">正在分析您的答题情况...</p>
+                        </div>
+                        <div class="learning-suggestions">
+                            <h4>个性化学习建议</h4>
+                            <ul id="suggestionList">
+                                <li>建议加强对原子核衰变基本概念的理解</li>
+                                <li>复习α衰变和β衰变的区别</li>
+                                <li>加强对半衰期概念的掌握</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <button id="retakeQuiz" class="quiz-btn">重新测试</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="half-life-section">
+            <h3>半衰期可视化模拟</h3>
+            <div class="controls">
+                <div class="control-group">
+                    <label for="halfLifeElement">选择元素:</label>
+                    <select id="halfLifeElement">
+                        <option value="carbon">碳-14 (5730年)</option>
+                        <option value="iodine">碘-131 (8天)</option>
+                        <option value="radon">氡-222 (3.8天)</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="initialAtoms">初始原子数:</label>
+                    <input type="number" id="initialAtoms" min="10" max="500" value="100">
+                </div>
+                <div class="control-group">
+                    <button id="startHalfLifeBtn">开始模拟</button>
+                    <button id="pauseHalfLifeBtn">暂停</button>
+                    <button id="resetHalfLifeBtn">重置</button>
+                </div>
+            </div>
+            
+            <div class="half-life-visual">
+                <canvas id="halfLifeCanvas" width="800" height="200"></canvas>
+            </div>
+            
+            <div class="half-life-info">
+                <p>剩余原子数: <span id="remainingAtoms">100</span> | 已衰变原子数: <span id="decayedAtoms">0</span> | 经过时间: <span id="elapsedTime">0</span> | 衰变百分比: <span id="decayPercentage">0%</span></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 获取画布和上下文
+        const canvas = document.getElementById('nuclearCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 获取控制元素
+        const decayTypeSelect = document.getElementById('decayType');
+        const elementSelect = document.getElementById('elementSelect');
+        const startBtn = document.getElementById('startBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const speedControl = document.getElementById('speedControl');
+        const nucleusInfo = document.getElementById('nucleusInfo');
+        
+        // 初始化变量
+        let animationId = null;
+        let isAnimating = false;
+        let currentElement = null;
+        let particles = [];
+        let decayEvent = null;
+        
+        // 元素数据
+        const elements = {
+            uranium: { name: "铀-238", protons: 92, neutrons: 146, symbol: "U", decayType: "alpha", halfLife: "44.7亿年" },
+            carbon: { name: "碳-14", protons: 6, neutrons: 8, symbol: "C", decayType: "beta", halfLife: "5730年" },
+            radium: { name: "镭-226", protons: 88, neutrons: 138, symbol: "Ra", decayType: "alpha", halfLife: "1600年" }
+        };
+        
+        // 初始化画布
+        function initCanvas() {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        
+        // 绘制原子核
+        function drawNucleus(nucleus, x, y, radius) {
+            // 绘制原子核边界
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            // 使用径向渐变使原子核看起来更立体
+            const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+            gradient.addColorStop(0, '#333');
+            gradient.addColorStop(1, '#111');
+            ctx.fillStyle = gradient;
+            ctx.fill();
+            ctx.strokeStyle = '#555';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // 计算质子和中子的位置
+            const totalParticles = nucleus.protons + nucleus.neutrons;
+            const particleRadius = Math.min(8, radius / Math.sqrt(totalParticles));
+            
+            // 绘制裁子（先绘制一半以避免重叠）
+            const protonPositions = [];
+            for (let i = 0; i < nucleus.protons; i++) {
+                let angle, distance, px, py;
+                let attempts = 0;
+                do {
+                    angle = Math.random() * Math.PI * 2;
+                    distance = Math.random() * radius * 0.8;
+                    px = x + Math.cos(angle) * distance;
+                    py = y + Math.sin(angle) * distance;
+                    
+                    // 检查是否与其他粒子太近
+                    let tooClose = false;
+                    for (const pos of protonPositions) {
+                        const dx = px - pos.x;
+                        const dy = py - pos.y;
+                        const dist = Math.sqrt(dx*dx + dy*dy);
+                        if (dist < particleRadius * 2.5) {
+                            tooClose = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!tooClose) {
+                        protonPositions.push({x: px, y: py});
+                        break;
+                    }
+                    attempts++;
+                } while (attempts < 50); // 避免无限循环
+                
+                if (attempts < 50) {
+                    ctx.beginPath();
+                    ctx.arc(px, py, particleRadius, 0, Math.PI * 2);
+                    // 使用径向渐变让质子看起来更立体
+                    const protonGradient = ctx.createRadialGradient(px - 2, py - 2, 0, px, py, particleRadius);
+                    protonGradient.addColorStop(0, '#ff8a80'); // 较亮的红色
+                    protonGradient.addColorStop(1, '#b71c1c'); // 较深的红色
+                    ctx.fillStyle = protonGradient;
+                    ctx.fill();
+                    
+                    // 添加标签
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '8px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('p⁺', px, py);
+                }
+            }
+            
+            // 绘制中子（同样避免重叠）
+            const neutronPositions = [];
+            for (let i = 0; i < nucleus.neutrons; i++) {
+                let angle, distance, px, py;
+                let attempts = 0;
+                do {
+                    angle = Math.random() * Math.PI * 2;
+                    distance = Math.random() * radius * 0.8;
+                    px = x + Math.cos(angle) * distance;
+                    py = y + Math.sin(angle) * distance;
+                    
+                    // 检查是否与其他粒子太近
+                    let tooClose = false;
+                    for (const pos of [...protonPositions, ...neutronPositions]) {
+                        const dx = px - pos.x;
+                        const dy = py - pos.y;
+                        const dist = Math.sqrt(dx*dx + dy*dy);
+                        if (dist < particleRadius * 2.5) {
+                            tooClose = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!tooClose) {
+                        neutronPositions.push({x: px, y: py});
+                        break;
+                    }
+                    attempts++;
+                } while (attempts < 50); // 避免无限循环
+                
+                if (attempts < 50) {
+                    ctx.beginPath();
+                    ctx.arc(px, py, particleRadius, 0, Math.PI * 2);
+                    // 使用径向渐变让中子看起来更立体
+                    const neutronGradient = ctx.createRadialGradient(px - 2, py - 2, 0, px, py, particleRadius);
+                    neutronGradient.addColorStop(0, '#90caf9'); // 较亮的蓝色
+                    neutronGradient.addColorStop(1, '#0d47a1'); // 较深的蓝色
+                    ctx.fillStyle = neutronGradient;
+                    ctx.fill();
+                    
+                    // 添加标签
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '8px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('n⁰', px, py);
+                }
+            }
+            
+            // 绘制元素符号
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 20px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(`${nucleus.symbol}-${nucleus.protons + nucleus.neutrons}`, x, y - radius - 15);
+        }
+        
+        // 绘制α粒子
+        function drawAlphaParticle(alpha) {
+            // 绘制轨迹线
+            if (alpha.trail && alpha.trail.length > 1) {
+                ctx.beginPath();
+                ctx.moveTo(alpha.trail[0].x, alpha.trail[0].y);
+                
+                for (let i = 1; i < alpha.trail.length; i++) {
+                    // 设置轨迹线的透明度逐渐变化
+                    const alphaValue = i / alpha.trail.length;
+                    ctx.globalAlpha = alphaValue * 0.6;
+                    ctx.lineTo(alpha.trail[i].x, alpha.trail[i].y);
+                }
+                
+                ctx.strokeStyle = '#ff9800';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.globalAlpha = 1.0; // 重置透明度
+            }
+            
+            // 绘制α粒子
+            ctx.beginPath();
+            ctx.arc(alpha.x, alpha.y, alpha.radius, 0, Math.PI * 2);
+            // 使用径向渐变让α粒子更立体
+            const alphaGradient = ctx.createRadialGradient(alpha.x - 2, alpha.y - 2, 0, alpha.x, alpha.y, alpha.radius);
+            alphaGradient.addColorStop(0, '#ffe0b2'); // 淡橙色
+            alphaGradient.addColorStop(1, '#f57c00'); // 深橙色
+            ctx.fillStyle = alphaGradient;
+            ctx.fill();
+            
+            // 绘制α粒子标签
+            ctx.fillStyle = '#000';
+            ctx.font = 'bold 12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('α', alpha.x, alpha.y + 4);
+        }
+        
+        // 绘制β粒子
+        function drawBetaParticle(beta) {
+            // 绘制轨迹线
+            if (beta.trail && beta.trail.length > 1) {
+                ctx.beginPath();
+                ctx.moveTo(beta.trail[0].x, beta.trail[0].y);
+                
+                for (let i = 1; i < beta.trail.length; i++) {
+                    // 设置轨迹线的透明度逐渐变化
+                    const alphaValue = i / beta.trail.length;
+                    ctx.globalAlpha = alphaValue * 0.6;
+                    ctx.lineTo(beta.trail[i].x, beta.trail[i].y);
+                }
+                
+                ctx.strokeStyle = '#00c853';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+                ctx.globalAlpha = 1.0; // 重置透明度
+            }
+            
+            // 绘制β粒子
+            ctx.beginPath();
+            ctx.arc(beta.x, beta.y, beta.radius, 0, Math.PI * 2);
+            // 使用径向渐变让β粒子更立体
+            const betaGradient = ctx.createRadialGradient(beta.x - 1.5, beta.y - 1.5, 0, beta.x, beta.y, beta.radius);
+            betaGradient.addColorStop(0, '#a5d6a7'); // 淡绿色
+            betaGradient.addColorStop(1, '#1b5e20'); // 深绿色
+            ctx.fillStyle = betaGradient;
+            ctx.fill();
+            
+            // 绘制β粒子标签
+            ctx.fillStyle = '#000';
+            ctx.font = 'bold 12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('β', beta.x, beta.y + 4);
+        }
+        
+        // 绘制衰变过程
+        function drawDecay() {
+            // 清除画布
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            if (currentElement) {
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                
+                if (!decayEvent) {
+                    // 绘制原始原子核
+                    drawNucleus(currentElement, centerX, centerY, 100);
+                    
+                    // 更新信息面板
+                    const totalNucleons = currentElement.protons + currentElement.neutrons;
+                    nucleusInfo.innerHTML = `
+                        元素: ${currentElement.name}<br>
+                        质子数: ${currentElement.protons}, 中子数: ${currentElement.neutrons}<br>
+                        质量数: ${totalNucleons}<br>
+                        半衰期: ${currentElement.halfLife}
+                    `;
+                } else {
+                    // 绘制衰变过程
+                    if (decayEvent.type === 'alpha') {
+                        // 绘制衰变后的原子核
+                        const newProtons = currentElement.protons - 2;
+                        const newNeutrons = currentElement.neutrons - 2;
+                        const newElement = {
+                            ...currentElement,
+                            protons: newProtons,
+                            neutrons: newNeutrons,
+                            name: `${getElementName(newProtons)}-${newProtons + newNeutrons}`,
+                            symbol: getElementSymbol(newProtons)
+                        };
+                        
+                        drawNucleus(newElement, centerX - 100, centerY, 80);
+                        
+                        // 绘制α粒子
+                        drawAlphaParticle(decayEvent.particle);
+                        
+                        // 更新信息面板
+                        const totalNucleons = newElement.protons + newElement.neutrons;
+                        nucleusInfo.innerHTML = `
+                            衰变产物: ${newElement.name}<br>
+                            质子数: ${newElement.protons}, 中子数: ${newElement.neutrons}<br>
+                            质量数: ${totalNucleons}<br>
+                            α衰变: 原子核释放了α粒子 (2个质子 + 2个中子)
+                        `;
+                    } else if (decayEvent.type === 'beta') {
+                        // 计算动画进度
+                        const elapsed = Date.now() - decayEvent.startTime;
+                        const progress = Math.min(elapsed / decayEvent.duration, 1);
+                        
+                        // 绘制原始原子核（随时间逐渐变化）
+                        let displayProtons = currentElement.protons;
+                        let displayNeutrons = currentElement.neutrons;
+                        
+                        // 在动画过程中显示中子向质子的转换
+                        if (progress > 0.3) { // 转换在动画进行到30%时开始
+                            // 计算转换进度
+                            const conversionProgress = Math.min(1, (progress - 0.3) / 0.4); // 在接下来的40%时间内完成转换
+                            displayNeutrons = Math.ceil(currentElement.neutrons * (1 - conversionProgress));
+                            displayProtons = currentElement.protons + (currentElement.neutrons - displayNeutrons);
+                        }
+                        
+                        // 创建临时原子核对象用于显示
+                        const tempNucleus = {
+                            ...currentElement,
+                            protons: displayProtons,
+                            neutrons: displayNeutrons
+                        };
+                        
+                        // 绘制变化中的原子核
+                        drawNucleus(tempNucleus, centerX, centerY, 100);
+                        
+                        // 当转换完成后，绘制新的原子核
+                        if (progress > 0.7) { // 在动画进行到70%后显示新原子核
+                            const newProtons = currentElement.protons + 1;
+                            const newNeutrons = currentElement.neutrons - 1;
+                            const newElement = {
+                                ...currentElement,
+                                protons: newProtons,
+                                neutrons: newNeutrons,
+                                name: `${getElementName(newProtons)}-${newProtons + newNeutrons}`,
+                                symbol: getElementSymbol(newProtons)
+                            };
+                            
+                            // 绘制新原子核（逐渐出现）
+                            const newNucleusAlpha = Math.max(0, (progress - 0.7) / 0.3); // 从0到1的透明度变化
+                            ctx.globalAlpha = newNucleusAlpha;
+                            drawNucleus(newElement, centerX - 100, centerY, 80);
+                            ctx.globalAlpha = 1.0; // 重置透明度
+                        }
+                        
+                        // 绘制β粒子
+                        drawBetaParticle(decayEvent.particle);
+                        
+                        // 更新信息面板
+                        const totalNucleons = currentElement.protons + currentElement.neutrons;
+                        nucleusInfo.innerHTML = `
+                            原始原子核: ${currentElement.name}<br>
+                            衰变产物: ${getElementName(currentElement.protons + 1)}-${totalNucleons}<br>
+                            β衰变: 中子转化为质子并释放电子<br>
+                            质子数: ${currentElement.protons} → ${currentElement.protons + 1}, 中子数: ${currentElement.neutrons} → ${currentElement.neutrons - 1}
+                        `;
+                    }
+                }
+            }
+        }
+        
+        // 获取元素符号
+        function getElementSymbol(protons) {
+            const symbols = {
+                1: 'H', 2: 'He', 3: 'Li', 4: 'Be', 5: 'B', 6: 'C', 7: 'N', 8: 'O',
+                9: 'F', 10: 'Ne', 11: 'Na', 12: 'Mg', 13: 'Al', 14: 'Si', 15: 'P', 16: 'S',
+                17: 'Cl', 18: 'Ar', 19: 'K', 20: 'Ca', 21: 'Sc', 22: 'Ti', 23: 'V', 24: 'Cr',
+                25: 'Mn', 26: 'Fe', 27: 'Co', 28: 'Ni', 29: 'Cu', 30: 'Zn', 31: 'Ga', 32: 'Ge',
+                33: 'As', 34: 'Se', 35: 'Br', 36: 'Kr', 37: 'Rb', 38: 'Sr', 39: 'Y', 40: 'Zr',
+                41: 'Nb', 42: 'Mo', 43: 'Tc', 44: 'Ru', 45: 'Rh', 46: 'Pd', 47: 'Ag', 48: 'Cd',
+                49: 'In', 50: 'Sn', 51: 'Sb', 52: 'Te', 53: 'I', 54: 'Xe', 55: 'Cs', 56: 'Ba',
+                57: 'La', 58: 'Ce', 59: 'Pr', 60: 'Nd', 61: 'Pm', 62: 'Sm', 63: 'Eu', 64: 'Gd',
+                65: 'Tb', 66: 'Dy', 67: 'Ho', 68: 'Er', 69: 'Tm', 70: 'Yb', 71: 'Lu', 72: 'Hf',
+                73: 'Ta', 74: 'W', 75: 'Re', 76: 'Os', 77: 'Ir', 78: 'Pt', 79: 'Au', 80: 'Hg',
+                81: 'Tl', 82: 'Pb', 83: 'Bi', 84: 'Po', 85: 'At', 86: 'Rn', 87: 'Fr', 88: 'Ra',
+                89: 'Ac', 90: 'Th', 91: 'Pa', 92: 'U'
+            };
+            return symbols[protons] || 'X';
+        }
+        
+        // 获取元素名称
+        function getElementName(protons) {
+            const names = {
+                1: '氢', 2: '氦', 3: '锂', 4: '铍', 5: '硼', 6: '碳', 7: '氮', 8: '氧',
+                9: '氟', 10: '氖', 11: '钠', 12: '镁', 13: '铝', 14: '硅', 15: '磷', 16: '硫',
+                17: '氯', 18: '氩', 19: '钾', 20: '钙', 21: '钪', 22: '钛', 23: '钒', 24: '铬',
+                25: '锰', 26: '铁', 27: '钴', 28: '镍', 29: '铜', 30: '锌', 31: '镓', 32: '锗',
+                33: '砷', 34: '硒', 35: '溴', 36: '氪', 37: '铷', 38: '锶', 39: '钇', 40: '锆',
+                41: '铌', 42: '钼', 43: '锝', 44: '钌', 45: '铑', 46: '钯', 47: '银', 48: '镉',
+                49: '铟', 50: '锡', 51: '锑', 52: '碲', 53: '碘', 54: '氙', 55: '铯', 56: '钡',
+                57: '镧', 58: '铈', 59: '镨', 60: '钕', 61: '钷', 62: '钐', 63: '铕', 64: '钆',
+                65: '铽', 66: '镝', 67: '钬', 68: '铒', 69: '铥', 70: '镱', 71: '镥', 72: '铪',
+                73: '钽', 74: '钨', 75: '铼', 76: '锇', 77: '铱', 78: '铂', 79: '金', 80: '汞',
+                81: '铊', 82: '铅', 83: '铋', 84: '钋', 85: '砹', 86: '氡', 87: '钫', 88: '镭',
+                89: '锕', 90: '钍', 91: '镤', 92: '铀'
+            };
+            return names[protons] || '未知元素';
+        }
+        
+        // 开始衰变动画
+        function startDecayAnimation() {
+            if (isAnimating) return;
+            
+            isAnimating = true;
+            const decayType = decayTypeSelect.value;
+            const elementKey = elementSelect.value;
+            currentElement = {...elements[elementKey]};
+            
+            // 创建衰变事件
+            decayEvent = {
+                type: decayType,
+                startTime: Date.now(),
+                duration: 3000, // 3秒动画
+            };
+            
+            if (decayType === 'alpha') {
+                // α粒子从原子核中心向外飞出
+                decayEvent.particle = {
+                    x: canvas.width / 2,
+                    y: canvas.height / 2,
+                    radius: 6,
+                    initialX: canvas.width / 2,
+                    initialY: canvas.height / 2,
+                    targetX: canvas.width,
+                    targetY: canvas.height / 2,
+                    speed: 0,
+                    maxSpeed: 8,
+                    trail: []
+                };
+            } else if (decayType === 'beta') {
+                // β粒子从原子核中心向外飞出
+                decayEvent.particle = {
+                    x: canvas.width / 2,
+                    y: canvas.height / 2,
+                    radius: 4,
+                    initialX: canvas.width / 2,
+                    initialY: canvas.height / 2,
+                    targetX: canvas.width,
+                    targetY: canvas.height / 2 + 50,
+                    speed: 0,
+                    maxSpeed: 10,
+                    trail: []
+                };
+            }
+            
+            animate();
+        }
+        
+        // 动画循环
+        function animate() {
+            if (!isAnimating) return;
+            
+            drawDecay();
+            
+            if (decayEvent) {
+                const elapsed = Date.now() - decayEvent.startTime;
+                const progress = Math.min(elapsed / decayEvent.duration, 1);
+                
+                // 更新粒子位置
+                if (decayEvent.particle) {
+                    const particle = decayEvent.particle;
+                    
+                    if (decayEvent.type === 'alpha') {
+                        // α衰变：粒子从原子核中心加速飞出
+                        // 模拟加速过程
+                        const accelerationPhase = Math.min(1, (elapsed / decayEvent.duration) * 2); // 前半段加速
+                        const alphaProgress = accelerationPhase < 1 ? 
+                            0.5 * accelerationPhase * accelerationPhase : // 加速阶段
+                            0.5 + 0.5 * (accelerationPhase - 1); // 匀速阶段
+                            
+                        particle.x = particle.initialX + (particle.targetX - particle.initialX) * alphaProgress;
+                        particle.y = particle.initialY + (particle.targetY - particle.initialY) * alphaProgress * 0.2; // 垂直偏移较小
+                        
+                        // 记录轨迹点（用于显示轨迹线）
+                        if (elapsed < decayEvent.duration * 0.8) { // 只记录前80%的轨迹
+                            particle.trail.push({x: particle.x, y: particle.y});
+                            if (particle.trail.length > 20) {
+                                particle.trail.shift();
+                            }
+                        }
+                    } else if (decayEvent.type === 'beta') {
+                        // β衰变：粒子从原子核中心飞出
+                        const betaProgress = progress;
+                        particle.x = particle.initialX + (particle.targetX - particle.initialX) * betaProgress;
+                        particle.y = particle.initialY + (particle.targetY - particle.initialY) * betaProgress;
+                        
+                        // 记录轨迹点
+                        particle.trail.push({x: particle.x, y: particle.y});
+                        if (particle.trail.length > 15) {
+                            particle.trail.shift();
+                        }
+                    }
+                    
+                    // 如果动画完成，停止动画
+                    if (progress >= 1) {
+                        isAnimating = false;
+                    }
+                }
+            }
+            
+            if (isAnimating) {
+                animationId = requestAnimationFrame(animate);
+            }
+        }
+        
+        // 重置模拟
+        function resetSimulation() {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            isAnimating = false;
+            currentElement = null;
+            decayEvent = null;
+            particles = [];
+            initCanvas();
+            nucleusInfo.innerHTML = "请选择一个元素并开始衰变过程";
+        }
+        
+        /*
+         * 半衰期可视化部分
+         */
+        
+        // 半衰期元素数据
+        const halfLifeElements = {
+            carbon: { name: "碳-14", halfLife: 5730 * 365 * 24 * 3600 * 1000, unit: "年" }, // 转换为毫秒
+            iodine: { name: "碘-131", halfLife: 8 * 24 * 3600 * 1000, unit: "天" },
+            radon: { name: "氡-222", halfLife: 3.8 * 24 * 3600 * 1000, unit: "天" }
+        };
+        
+        // 半衰期模拟变量
+        let halfLifeSimulation = {
+            isRunning: false,
+            atoms: [],
+            startTime: 0,
+            pausedTime: 0,
+            accumulatedPausedTime: 0,
+            animationId: null
+        };
+        
+        // 初始化半衰期画布
+        const halfLifeCanvas = document.getElementById('halfLifeCanvas');
+        const halfLifeCtx = halfLifeCanvas.getContext('2d');
+        
+        // 获取半衰期控制元素
+        const halfLifeElementSelect = document.getElementById('halfLifeElement');
+        const initialAtomsInput = document.getElementById('initialAtoms');
+        const startHalfLifeBtn = document.getElementById('startHalfLifeBtn');
+        const pauseHalfLifeBtn = document.getElementById('pauseHalfLifeBtn');
+        const resetHalfLifeBtn = document.getElementById('resetHalfLifeBtn');
+        const remainingAtomsSpan = document.getElementById('remainingAtoms');
+        const decayedAtomsSpan = document.getElementById('decayedAtoms');
+        const elapsedTimeSpan = document.getElementById('elapsedTime');
+        const decayPercentageSpan = document.getElementById('decayPercentage');
+        
+        // 初始化半衰期画布
+        function initHalfLifeCanvas() {
+            halfLifeCtx.fillStyle = '#1a237e';
+            halfLifeCtx.fillRect(0, 0, halfLifeCanvas.width, halfLifeCanvas.height);
+        }
+        
+        // 创建原子数组
+        function createAtoms(count) {
+            const atoms = [];
+            for (let i = 0; i < count; i++) {
+                atoms.push({
+                    x: Math.random() * halfLifeCanvas.width,
+                    y: Math.random() * halfLifeCanvas.height,
+                    radius: 3,
+                    decayed: false,
+                    decayTime: null
+                });
+            }
+            return atoms;
+        }
+        
+        // 绘制半衰期模拟
+        function drawHalfLifeSimulation() {
+            // 清除画布
+            halfLifeCtx.fillStyle = '#1a237e';
+            halfLifeCtx.fillRect(0, 0, halfLifeCanvas.width, halfLifeCanvas.height);
+            
+            // 统计信息
+            let remainingCount = 0;
+            let decayedCount = 0;
+            
+            // 绘制原子
+            for (const atom of halfLifeSimulation.atoms) {
+                if (atom.decayed) {
+                    // 衰变的原子显示为红色
+                    halfLifeCtx.fillStyle = '#f44336';
+                    decayedCount++;
+                } else {
+                    // 未衰变的原子显示为黄色
+                    halfLifeCtx.fillStyle = '#ffeb3b';
+                    remainingCount++;
+                }
+                
+                halfLifeCtx.beginPath();
+                halfLifeCtx.arc(atom.x, atom.y, atom.radius, 0, Math.PI * 2);
+                halfLifeCtx.fill();
+            }
+            
+            // 更新统计信息
+            const currentTime = Date.now();
+            const elapsedTime = currentTime - halfLifeSimulation.startTime - halfLifeSimulation.accumulatedPausedTime;
+            
+            // 获取当前选择的元素
+            const elementKey = halfLifeElementSelect.value;
+            const element = halfLifeElements[elementKey];
+                    
+            // 计算理论衰变数量
+            const initialCount = halfLifeSimulation.atoms.length;
+            const lambda = Math.LN2 / element.halfLife;
+            const theoreticalRemaining = initialCount * Math.exp(-lambda * elapsedTime);
+            const theoreticalDecayed = initialCount - theoreticalRemaining;
+            const percentage = (theoreticalDecayed / initialCount * 100).toFixed(2);
+                    
+            // 更新显示
+            remainingAtomsSpan.textContent = remainingCount;
+            decayedAtomsSpan.textContent = decayedCount;
+            elapsedTimeSpan.textContent = formatTime(elapsedTime, element.unit);
+            decayPercentageSpan.textContent = `${percentage}%`;
+        }
+        
+        // 格式化时间显示
+        function formatTime(milliseconds, unit) {
+            if (unit === "年") {
+                const years = milliseconds / (1000 * 60 * 60 * 24 * 365);
+                return years.toFixed(2) + " 年";
+            } else {
+                const days = milliseconds / (1000 * 60 * 60 * 24);
+                return days.toFixed(2) + " 天";
+            }
+        }
+        
+        // 半衰期模拟动画
+        function halfLifeAnimate() {
+            if (!halfLifeSimulation.isRunning) return;
+            
+            // 根据当前时间判断哪些原子应该衰变
+            const now = Date.now();
+            const totalElapsedTime = now - halfLifeSimulation.startTime - halfLifeSimulation.accumulatedPausedTime;
+            
+            // 获取当前选择的元素
+            const elementKey = halfLifeElementSelect.value;
+            const element = halfLifeElements[elementKey];
+            
+            // 对于每个未衰变的原子，计算其在当前时间间隔内的衰变概率
+            // 使用指数衰减模型: N(t) = N0 * e^(-λt)，其中 λ = ln(2) / T_half
+            const lambda = Math.LN2 / element.halfLife;
+            
+            // 计算每个时间步长的衰变概率
+            const timeStep = 100; // 每100ms更新一次
+            
+            // 随机让一些原子衰变
+            for (const atom of halfLifeSimulation.atoms) {
+                if (!atom.decayed) {
+                    // 计算在当前时间步长内该原子衰变的概率
+                    const decayChance = 1 - Math.exp(-lambda * timeStep);
+                    
+                    if (Math.random() < decayChance) {
+                        atom.decayed = true;
+                        atom.decayTime = now;
+                    }
+                }
+            }
+            
+            drawHalfLifeSimulation();
+            
+            if (halfLifeSimulation.isRunning) {
+                halfLifeSimulation.animationId = requestAnimationFrame(halfLifeAnimate);
+            }
+        }
+        
+        // 开始半衰期模拟
+        function startHalfLifeSimulation() {
+            if (halfLifeSimulation.isRunning) {
+                // 如果已经在运行，只是恢复
+                if (halfLifeSimulation.pausedTime > 0) {
+                    halfLifeSimulation.accumulatedPausedTime += Date.now() - halfLifeSimulation.pausedTime;
+                    halfLifeSimulation.pausedTime = 0;
+                }
+            } else {
+                // 如果没有运行，初始化模拟
+                const initialCount = parseInt(initialAtomsInput.value) || 100;
+                halfLifeSimulation.atoms = createAtoms(initialCount);
+                halfLifeSimulation.startTime = Date.now();
+                halfLifeSimulation.accumulatedPausedTime = 0;
+            }
+            
+            halfLifeSimulation.isRunning = true;
+            halfLifeAnimate();
+        }
+        
+        // 暂停半衰期模拟
+        function pauseHalfLifeSimulation() {
+            if (halfLifeSimulation.isRunning) {
+                halfLifeSimulation.isRunning = false;
+                halfLifeSimulation.pausedTime = Date.now();
+                if (halfLifeSimulation.animationId) {
+                    cancelAnimationFrame(halfLifeSimulation.animationId);
+                }
+            }
+        }
+        
+        // 重置半衰期模拟
+        function resetHalfLifeSimulation() {
+            if (halfLifeSimulation.animationId) {
+                cancelAnimationFrame(halfLifeSimulation.animationId);
+            }
+            
+            halfLifeSimulation.isRunning = false;
+            halfLifeSimulation.pausedTime = 0;
+            halfLifeSimulation.accumulatedPausedTime = 0;
+            halfLifeSimulation.atoms = [];
+            
+            initHalfLifeCanvas();
+            
+            // 重置显示信息
+            remainingAtomsSpan.textContent = "100";
+            decayedAtomsSpan.textContent = "0";
+            elapsedTimeSpan.textContent = "0";
+            decayPercentageSpan.textContent = "0%";
+        }
+        
+        // 事件监听器
+        startBtn.addEventListener('click', startDecayAnimation);
+        resetBtn.addEventListener('click', resetSimulation);
+        
+        // 半衰期模拟事件监听器
+        startHalfLifeBtn.addEventListener('click', startHalfLifeSimulation);
+        pauseHalfLifeBtn.addEventListener('click', pauseHalfLifeSimulation);
+        resetHalfLifeBtn.addEventListener('click', resetHalfLifeSimulation);
+        
+        // 初始化半衰期画布
+        initHalfLifeCanvas();
+        
+        /*
+         * 知识检测功能部分
+         */
+        
+        // 获取知识检测相关元素
+        const knowledgeTestBtn = document.getElementById('knowledgeTestBtn');
+        const quizModal = document.getElementById('quizModal');
+        const closeQuiz = document.getElementById('closeQuiz');
+        const analysisModal = document.getElementById('analysisModal');
+        const closeAnalysis = document.getElementById('closeAnalysis');
+        const prevQuestionBtn = document.getElementById('prevQuestion');
+        const nextQuestionBtn = document.getElementById('nextQuestion');
+        const submitQuizBtn = document.getElementById('submitQuiz');
+        const retakeQuizBtn = document.getElementById('retakeQuiz');
+        const questionCounter = document.getElementById('questionCounter');
+        
+        // 问题相关的DOM元素
+        const questionItems = document.querySelectorAll('.question-item');
+        
+        // 当前题目索引
+        let currentQuestionIndex = 0;
+        
+        // 正确答案
+        const correctAnswers = {
+            q1: 'B', // α衰变质量数减少4
+            q2: 'B', // β衰变中子转质子
+            q3: 'B', // 半衰期是一半原子核衰变时间
+            q4: 'B', // α粒子由2个质子和2个中子组成
+            q5: 'C'  // β衰变原子序数增加1
+        };
+        
+        // 显示指定题目
+        function showQuestion(index) {
+            // 隐藏所有问题
+            questionItems.forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // 显示当前问题
+            questionItems[index].classList.add('active');
+            
+            // 更新题目计数器
+            questionCounter.textContent = `${index + 1} / ${questionItems.length}`;
+            
+            // 更新按钮状态
+            prevQuestionBtn.disabled = index === 0;
+            nextQuestionBtn.disabled = index === questionItems.length - 1;
+            
+            // 最后一题时显示提交按钮
+            submitQuizBtn.style.display = index === questionItems.length - 1 ? 'inline-block' : 'none';
+            
+            // 不是最后一题时隐藏提交按钮
+            if (index < questionItems.length - 1) {
+                submitQuizBtn.style.display = 'none';
+                nextQuestionBtn.style.display = 'inline-block';
+            } else {
+                nextQuestionBtn.style.display = 'none';
+                submitQuizBtn.style.display = 'inline-block';
+            }
+        }
+        
+        // 显示知识检测模态框
+        function showKnowledgeTest() {
+            quizModal.style.display = 'block';
+            currentQuestionIndex = 0;
+            showQuestion(currentQuestionIndex);
+        }
+        
+        // 关闭知识检测模态框
+        function closeKnowledgeTest() {
+            quizModal.style.display = 'none';
+        }
+        
+        // 关闭学情分析模态框
+        function closeAnalysisReport() {
+            analysisModal.style.display = 'none';
+        }
+        
+        // 下一题
+        function goToNextQuestion() {
+            if (currentQuestionIndex < questionItems.length - 1) {
+                currentQuestionIndex++;
+                showQuestion(currentQuestionIndex);
+            }
+        }
+        
+        // 上一题
+        function goToPrevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                showQuestion(currentQuestionIndex);
+            }
+        }
+        
+        // 提交测验
+        function submitQuiz() {
+            // 计算得分
+            let correctCount = 0;
+            
+            for (const questionId in correctAnswers) {
+                const selectedOption = document.querySelector(`input[name="${questionId}"]:checked`);
+                if (selectedOption && selectedOption.value === correctAnswers[questionId]) {
+                    correctCount++;
+                }
+            }
+            
+            // 计算准确率
+            const totalQuestions = Object.keys(correctAnswers).length;
+            const accuracyRate = Math.round((correctCount / totalQuestions) * 100);
+            
+            // 更新分析报告
+            document.getElementById('correctAnswers').textContent = correctCount;
+            document.getElementById('accuracyRate').textContent = `${accuracyRate}%`;
+            
+            // 生成学情分析
+            let analysisText = '';
+            if (accuracyRate >= 80) {
+                analysisText = '优秀！您对原子核衰变的知识掌握得很好。';
+            } else if (accuracyRate >= 60) {
+                analysisText = '良好！您对原子核衰变有一定了解，但还需要加强某些知识点。';
+            } else {
+                analysisText = '需要加强基础知识的学习，建议重新回顾原子核衰变的核心概念。';
+            }
+            document.getElementById('analysisText').textContent = analysisText;
+            
+            // 生成个性化学习建议
+            const suggestionsList = document.getElementById('suggestionList');
+            suggestionsList.innerHTML = ''; // 清空现有建议
+            
+            // 根据错误题目生成针对性建议
+            for (const questionId in correctAnswers) {
+                const selectedOption = document.querySelector(`input[name="${questionId}"]:checked`);
+                if (!selectedOption || selectedOption.value !== correctAnswers[questionId]) {
+                    // 添加针对错误题目的建议
+                    let suggestion = '';
+                    switch(questionId) {
+                        case 'q1':
+                            suggestion = '复习α衰变的特点：α粒子由2个质子和2个中子组成，因此质量数减少4，原子序数减少2。';
+                            break;
+                        case 'q2':
+                            suggestion = '复习β衰变的机制：原子核内一个中子转变为质子并释放一个电子（β粒子），质量数不变，原子序数增加1。';
+                            break;
+                        case 'q3':
+                            suggestion = '理解半衰期的定义：放射性元素的原子核有半数发生衰变所需的时间，这是一个统计概念。';
+                            break;
+                        case 'q4':
+                            suggestion = '记住α粒子的组成：α粒子就是氦原子核，由2个质子和2个中子组成。';
+                            break;
+                        case 'q5':
+                            suggestion = '理解β衰变中原子序数的变化：中子转变为质子，因此原子序数增加1。';
+                            break;
+                    }
+                    
+                    if (suggestion) {
+                        const li = document.createElement('li');
+                        li.textContent = suggestion;
+                        suggestionsList.appendChild(li);
+                    }
+                }
+            }
+            
+            // 如果全部答对，添加鼓励性建议
+            if (correctCount === totalQuestions) {
+                const li = document.createElement('li');
+                li.textContent = '恭喜您全部答对！您可以尝试更深层次的学习，如了解γ衰变或其他放射性现象。';
+                suggestionsList.appendChild(li);
+            }
+            
+            // 隐藏测验模态框，显示分析报告
+            quizModal.style.display = 'none';
+            analysisModal.style.display = 'block';
+        }
+        
+        // 重新开始测验
+        function retakeQuiz() {
+            // 清除所有选中的选项
+            const allRadioButtons = document.querySelectorAll('input[type="radio"]');
+            allRadioButtons.forEach(radio => {
+                radio.checked = false;
+            });
+            
+            // 关闭分析报告，重新打开测验
+            analysisModal.style.display = 'none';
+            showKnowledgeTest();
+        }
+        
+        // 事件监听器
+        knowledgeTestBtn.addEventListener('click', showKnowledgeTest);
+        closeQuiz.addEventListener('click', closeKnowledgeTest);
+        closeAnalysis.addEventListener('click', closeAnalysisReport);
+        nextQuestionBtn.addEventListener('click', goToNextQuestion);
+        prevQuestionBtn.addEventListener('click', goToPrevQuestion);
+        submitQuizBtn.addEventListener('click', submitQuiz);
+        retakeQuizBtn.addEventListener('click', retakeQuiz);
+        
+        // 点击模态框外部关闭
+        window.addEventListener('click', function(event) {
+            if (event.target === quizModal) {
+                closeKnowledgeTest();
+            }
+            if (event.target === analysisModal) {
+                closeAnalysisReport();
+            }
+        });
+        
+        // 初始化画布
+        initCanvas();
+        
+        // 显示当前元素信息
+        elementSelect.addEventListener('change', function() {
+            const elementKey = this.value;
+            currentElement = elements[elementKey];
+            if (!isAnimating && !decayEvent) {
+                drawDecay();
+                
+                const totalNucleons = currentElement.protons + currentElement.neutrons;
+                nucleusInfo.innerHTML = `
+                    元素: ${currentElement.name}<br>
+                    质子数: ${currentElement.protons}, 中子数: ${currentElement.neutrons}<br>
+                    质量数: ${totalNucleons}<br>
+                    半衰期: ${currentElement.halfLife}
+                `;
+            }
+        });
+        
+        // 初始显示选中的元素
+        elementSelect.dispatchEvent(new Event('change'));
+    </script>
+</body>
+</html>

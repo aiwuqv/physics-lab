@@ -1,0 +1,1554 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>氢原子能级结构 - 高中物理教学演示</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1a2a6c, #2a4a6c, #1a2a6c);
+            color: white;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(0, 0, 30, 0.8);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            text-align: center;
+            color: #4A90E2;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            animation: glow 2s infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 5px #fff, 0 0 10px #4A90E2; }
+            to { text-shadow: 0 0 10px #fff, 0 0 20px #4A90E2, 0 0 30px #4A90E2; }
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #6BABDF;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+        }
+
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .main-section {
+            flex: 1;
+            min-width: 600px;
+            background: rgba(30, 30, 60, 0.7);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 15px rgba(0, 150, 255, 0.3);
+        }
+
+        .info-section {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(30, 30, 60, 0.7);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 15px rgba(255, 150, 0, 0.3);
+        }
+
+        .energy-diagram {
+            position: relative;
+            height: 500px;
+            margin: 20px 0;
+            border-left: 2px solid #4A90E2;
+            border-bottom: 2px solid #4A90E2;
+            padding-left: 20px;
+        }
+
+        .energy-level {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: #6BABDF;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .energy-level:hover {
+            background: #4A90E2;
+            transform: scaleX(1.05);
+        }
+
+        .energy-level.active {
+            background: #00FF00;
+            width: 150px;
+            box-shadow: 0 0 10px #00FF00;
+        }
+
+        .level-label {
+            position: absolute;
+            left: -60px;
+            font-weight: bold;
+            color: #4A90E2;
+        }
+
+        .level-energy {
+            position: absolute;
+            left: 120px;
+            color: #FFD700;
+            font-size: 0.9em;
+        }
+
+        .electron {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, #66ccff, #0066cc);
+            border-radius: 50%;
+            box-shadow: 0 0 15px #66ccff;
+            z-index: 10;
+            transition: all 1s ease;
+        }
+
+        .controls {
+            text-align: center;
+            margin: 20px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .btn {
+            background: linear-gradient(to bottom, #4CAF50, #45a049);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: linear-gradient(to bottom, #45a049, #3d8b40);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn.transition {
+            background: linear-gradient(to bottom, #2196F3, #1976D2);
+        }
+
+        .info-box {
+            background: rgba(50, 50, 70, 0.6);
+            border-left: 4px solid #00ccff;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .info-title {
+            color: #ffcc00;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        .transition-controls {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 100, 150, 0.3);
+            border-radius: 8px;
+        }
+
+        .transition-row {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            gap: 10px;
+        }
+
+        .spectral-lines {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(100, 50, 150, 0.3);
+            border-radius: 8px;
+        }
+
+        .spectrum {
+            height: 50px;
+            background: linear-gradient(to right, violet, indigo, blue, green, yellow, orange, red);
+            border-radius: 5px;
+            margin: 10px 0;
+            position: relative;
+        }
+
+        .spectral-line {
+            position: absolute;
+            top: 0;
+            width: 2px;
+            height: 100%;
+            background: black;
+        }
+
+        .series-name {
+            display: inline-block;
+            margin: 5px;
+            padding: 5px 10px;
+            background: rgba(74, 144, 226, 0.3);
+            border-radius: 5px;
+        }
+
+        .photon-animation {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: radial-gradient(circle, #ffff00, #ff9900);
+            border-radius: 50%;
+            opacity: 0;
+            z-index: 5;
+        }
+
+        .quiz-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            height: 500px;
+            background: rgba(0, 0, 0, 0.9);
+            border-radius: 15px;
+            padding: 20px;
+            z-index: 1000;
+            box-shadow: 0 0 30px rgba(0, 150, 255, 0.7);
+            display: none;
+        }
+
+        .quiz-container {
+            height: calc(100% - 60px);
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        
+        .question-slide {
+            min-height: 200px;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        
+        .swipe-indicator {
+            text-align: center;
+            margin-top: 10px;
+            color: #6BABDF;
+            font-size: 0.9em;
+        }
+
+        .question-slide {
+            padding: 15px 0;
+        }
+
+        .question-slide h3 {
+            margin-top: 0;
+            color: #00ccff;
+        }
+
+        .question-slide input[type="radio"] {
+            margin-right: 8px;
+        }
+
+        .question-slide label {
+            display: inline-block;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+        }
+
+        .analysis-result {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .analysis-result h4 {
+            color: #ffcc00;
+            margin-top: 0;
+        }
+
+        .analysis-result ul {
+            text-align: left;
+            padding-left: 20px;
+        }
+
+        .wavelength-display {
+            font-family: monospace;
+            font-size: 1.2em;
+            color: #FFD700;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            .main-section, .info-section {
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <h1>氢原子能级结构</h1>
+        <p class="subtitle">高中物理教学演示 - 电子跃迁与光谱</p>
+        
+        <div class="content">
+            <div class="main-section">
+                <h2 style="color:#00ccff; text-align:center;">氢原子能级图</h2>
+                
+                <div class="controls">
+                    <button class="btn" id="startBtn">开始演示</button>
+                    <button class="btn" id="pauseBtn">暂停动画</button>
+                    <button class="btn" id="resetBtn">重置演示</button>
+                    <button class="btn transition" id="transitionBtn">演示跃迁</button>
+                    <button class="btn" id="quizBtn">知识检测</button>
+                </div>
+                
+                <div class="energy-diagram" id="energyDiagram">
+                    <!-- 能级将通过JavaScript动态生成 -->
+                </div>
+                
+                <div class="transition-controls">
+                    <h3 style="color:#ffcc00; margin-top:0;">电子跃迁控制</h3>
+                    <div class="transition-row">
+                        <label>起始能级:</label>
+                        <select id="fromLevel">
+                            <option value="2">n=2</option>
+                            <option value="3">n=3</option>
+                            <option value="4">n=4</option>
+                            <option value="5">n=5</option>
+                            <option value="6">n=6</option>
+                        </select>
+                        
+                        <label>终止能级:</label>
+                        <select id="toLevel">
+                            <option value="1">n=1 (莱曼系)</option>
+                            <option value="2">n=2 (巴尔默系)</option>
+                            <option value="3">n=3 (帕邢系)</option>
+                        </select>
+                        
+                        <button class="btn transition" id="jumpBtn">执行跃迁</button>
+                    </div>
+                    
+                    <div style="margin-top: 15px;">
+                        <p>跃迁能量: <span id="transitionEnergy" class="wavelength-display">0 eV</span></p>
+                        <p>光子波长: <span id="photonWavelength" class="wavelength-display">∞ nm</span></p>
+                        <p>光谱区域: <span id="spectralRegion" class="wavelength-display">-</span></p>
+                        <div style="margin-top: 10px; padding: 10px; background: rgba(0, 0, 0, 0.3); border-radius: 5px;">
+                            <p><strong>跃迁类型:</strong> <span id="transitionType" class="wavelength-display">发射</span></p>
+                            <p><strong>能量变化:</strong> <span id="energyChange" class="wavelength-display">释放</span></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="spectral-lines">
+                    <h3 style="color:#ffcc00; margin-top:0;">氢原子光谱</h3>
+                    <div class="spectrum" id="spectrum"></div>
+                    <p>主要谱线系列:</p>
+                    <div>
+                        <span class="series-name">莱曼系 (紫外)</span>
+                        <span class="series-name">巴尔默系 (可见)</span>
+                        <span class="series-name">帕邢系 (红外)</span>
+                        <span class="series-name">布拉开系 (红外)</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="info-section">
+                <h2 style="color:#ff9900; text-align:center;">氢原子能级知识</h2>
+                
+                <div class="info-box">
+                    <div class="info-title">1. 氢原子能级公式</div>
+                    <p>玻尔理论给出氢原子能级公式：<br>
+                    <strong>E<sub>n</sub> = -13.6/n² eV</strong></p>
+                    <p>其中 n = 1, 2, 3... 为主量子数</p>
+                    <p>n=1 为基态，n>1 为激发态</p>
+                </div>
+                
+                <div class="info-box">
+                    <div class="info-title">2. 主要光谱线系</div>
+                    <p><strong>莱曼系：</strong>n→1 (紫外区)</p>
+                    <p><strong>巴尔默系：</strong>n→2 (可见光区)</p>
+                    <p><strong>帕邢系：</strong>n→3 (红外区)</p>
+                    <p><strong>布拉开系：</strong>n→4 (红外区)</p>
+                    <p><strong>蒲芬德系：</strong>n→5 (红外区)</p>
+                </div>
+                
+                <div class="info-box">
+                    <div class="info-title">3. 巴尔默公式</div>
+                    <p>描述氢原子可见光谱：<br>
+                    <strong>1/λ = R(1/2² - 1/n²)</strong></p>
+                    <p>R = 1.097×10⁷ m⁻¹ (里德伯常数)<br>
+                    n = 3, 4, 5... 对应不同谱线</p>
+                </div>
+                
+                <div class="info-box">
+                    <div class="info-title">4. 电子跃迁规律</div>
+                    <p><strong>吸收过程：</strong>电子从低能级跃迁到高能级，需要吸收光子</p>
+                    <p><strong>发射过程：</strong>电子从高能级跃迁到低能级，会发射光子</p>
+                    <p><strong>光子能量：</strong>E = hν = hc/λ = |Eᵢ - E<sub>f</sub>|</p>
+                </div>
+                
+                <div class="info-box">
+                    <div class="info-title">5. 重要物理常数</div>
+                    <p>基态能量：E₁ = -13.6 eV</p>
+                    <p>第一激发态：E₂ = -3.4 eV</p>
+                    <p>里德伯常数：R = 1.097×10⁷ m⁻¹</p>
+                    <p>普朗克常数：h = 6.626×10⁻³⁴ J·s</p>
+                    <p>光速：c = 3.00×10⁸ m/s</p>
+                </div>
+                
+                <div class="info-box">
+                    <div class="info-title">6. 实际应用</div>
+                    <p>氢原子光谱在天体物理学中有重要应用，可用于测定恒星成分、温度、运动速度等性质。</p>
+                    <p>激光技术中也利用了原子能级跃迁原理。</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="explanation">
+            <h3 style="color:#00ccff;">教学说明</h3>
+            <p>本演示展示氢原子的能级结构和电子跃迁现象：</p>
+            <ul>
+                <li>垂直轴表示能量，上方为高能级，下方为低能级</li>
+                <li>水平线代表不同的能级，数字表示主量子数n</li>
+                <li>点击能级可将电子移动到该能级</li>
+                <li>使用跃迁控制可观察电子在不同能级间的跳跃</li>
+                <li>观察光子发射/吸收过程以及对应的光谱线</li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- 测验面板 -->
+    <div class="modal-overlay" id="quizOverlay"></div>
+    <div class="quiz-panel" id="quizPanel">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h2 style="color:#00ccff; margin:0;">氢原子能级知识检测</h2>
+            <button class="btn" id="closeQuizBtn" style="background:linear-gradient(to bottom, #f44336, #da190b);">关闭</button>
+        </div>
+        <div class="quiz-container" id="quizContainer">
+            <div class="progress-bar" style="width: 100%; height: 5px; background: #333; border-radius: 3px; margin: 10px 0; overflow: hidden;">
+                <div id="progressIndicator" style="width: 20%; height: 100%; background: linear-gradient(to right, #4CAF50, #45a049); transition: width 0.3s;"></div>
+            </div>
+            <div class="question-slide" id="questionSlide1">
+                <h3>1. 氢原子基态能量是多少？</h3>
+                <input type="radio" name="q1" id="q1a" value="a"> <label for="q1a">A. -3.4 eV</label><br>
+                <input type="radio" name="q1" id="q1b" value="b"> <label for="q1b">B. -1.5 eV</label><br>
+                <input type="radio" name="q1" id="q1c" value="c"> <label for="q1c">C. -13.6 eV</label><br>
+                <input type="radio" name="q1" id="q1d" value="d"> <label for="q1d">D. 0 eV</label><br>
+                <div style="margin-top:15px;">
+                    <button class="btn" id="nextQ1" style="float:right;">下一题</button>
+                </div>
+                <div class="swipe-indicator">↑ ↓ 滑动查看其他题目</div>
+            </div>
+            
+            <div class="question-slide" id="questionSlide2">
+                <h3>2. 氢原子光谱中巴尔默系位于哪个光谱区域？</h3>
+                <input type="radio" name="q2" id="q2a" value="a"> <label for="q2a">A. 紫外区</label><br>
+                <input type="radio" name="q2" id="q2b" value="b"> <label for="q2b">B. 红外区</label><br>
+                <input type="radio" name="q2" id="q2c" value="c"> <label for="q2c">C. 可见光区</label><br>
+                <input type="radio" name="q2" id="q2d" value="d"> <label for="q2d">D. X射线区</label><br>
+                <div style="margin-top:15px;">
+                    <button class="btn" id="prevQ2" style="margin-right:10px;">上一题</button>
+                    <button class="btn" id="nextQ2" style="float:right;">下一题</button>
+                </div>
+                <div class="swipe-indicator">↑ ↓ 滑动查看其他题目</div>
+            </div>
+            
+            <div class="question-slide" id="questionSlide3">
+                <h3>3. 当电子从高能级跃迁到低能级时，会发生什么？</h3>
+                <input type="radio" name="q3" id="q3a" value="a"> <label for="q3a">A. 吸收光子</label><br>
+                <input type="radio" name="q3" id="q3b" value="b"> <label for="q3b">B. 发射光子</label><br>
+                <input type="radio" name="q3" id="q3c" value="c"> <label for="q3c">C. 不发生变化</label><br>
+                <input type="radio" name="q3" id="q3d" value="d"> <label for="q3d">D. 电子消失</label><br>
+                <div style="margin-top:15px;">
+                    <button class="btn" id="prevQ3" style="margin-right:10px;">上一题</button>
+                    <button class="btn" id="nextQ3" style="float:right;">下一题</button>
+                </div>
+                <div class="swipe-indicator">↑ ↓ 滑动查看其他题目</div>
+            </div>
+            
+            <div class="question-slide" id="questionSlide4">
+                <h3>4. 氢原子能级公式为E<sub>n</sub>=-13.6/n² eV，n=3时的能量是多少？</h3>
+                <input type="radio" name="q4" id="q4a" value="a"> <label for="q4a">A. -1.51 eV</label><br>
+                <input type="radio" name="q4" id="q4b" value="b"> <label for="q4b">B. -3.4 eV</label><br>
+                <input type="radio" name="q4" id="q4c" value="c"> <label for="q4c">C. -13.6 eV</label><br>
+                <input type="radio" name="q4" id="q4d" value="d"> <label for="q4d">D. -0.85 eV</label><br>
+                <div style="margin-top:15px;">
+                    <button class="btn" id="prevQ4" style="margin-right:10px;">上一题</button>
+                    <button class="btn" id="nextQ4" style="float:right;">下一题</button>
+                </div>
+                <div class="swipe-indicator">↑ ↓ 滑动查看其他题目</div>
+            </div>
+            
+            <div class="question-slide" id="questionSlide5">
+                <h3>5. 巴尔默系谱线对应电子跃迁到哪个能级？</h3>
+                <input type="radio" name="q5" id="q5a" value="a"> <label for="q5a">A. n=1</label><br>
+                <input type="radio" name="q5" id="q5b" value="b"> <label for="q5b">B. n=2</label><br>
+                <input type="radio" name="q5" id="q5c" value="c"> <label for="q5c">C. n=3</label><br>
+                <input type="radio" name="q5" id="q5d" value="d"> <label for="q5d">D. n=4</label><br>
+                <div style="margin-top:15px;">
+                    <button class="btn" id="prevQ5" style="margin-right:10px;">上一题</button>
+                    <button class="btn" id="finishQuizBtn" style="float:right; background:linear-gradient(to bottom, #4CAF50, #45a049);">提交答案</button>
+                </div>
+                <div class="swipe-indicator">↑ ↓ 滑动查看其他题目</div>
+            </div>
+            
+            <div class="analysis-result" id="analysisResult" style="display:none; padding:20px; text-align:center;">
+                <h3 style="color:#ffcc00;">学情分析报告</h3>
+                <div id="scoreDisplay"></div>
+                <div id="analysisDetails" style="margin-top:20px; text-align:left;"></div>
+                <div id="learningSuggestions" style="margin-top:20px; text-align:left;"></div>
+                <button class="btn" id="restartQuizBtn" style="margin-top:20px; background:linear-gradient(to bottom, #2196F3, #1976D2);">重新测试</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 氢原子能级数据
+        const energyLevels = [
+            {n: 1, energy: -13.6, label: "n=1", color: "#FF4136"},
+            {n: 2, energy: -3.4, label: "n=2", color: "#FF851B"},
+            {n: 3, energy: -1.51, label: "n=3", color: "#FFDC00"},
+            {n: 4, energy: -0.85, label: "n=4", color: "#2ECC40"},
+            {n: 5, energy: -0.54, label: "n=5", color: "#0074D9"},
+            {n: 6, energy: -0.38, label: "n=6", color: "#B10DC9"}
+        ];
+
+        // 测验相关变量
+        let currentQuestion = 1;
+        const totalQuestions = 5;
+        let userAnswers = {};
+        let score = 0;
+
+        // 物理常数
+        const constants = {
+            h: 6.626e-34,      // 普朗克常数
+            c: 3.00e8,         // 光速
+            e: 1.602e-19,      // 电子电荷
+            rh: 1.097e7        // 里德伯常数
+        };
+
+        // 全局变量
+        let currentLevel = 1;
+        let isAnimating = false;
+        let animationId = null;
+        let electronElement = null;
+
+        // DOM元素
+        const elements = {
+            energyDiagram: document.getElementById('energyDiagram'),
+            startBtn: document.getElementById('startBtn'),
+            pauseBtn: document.getElementById('pauseBtn'),
+            resetBtn: document.getElementById('resetBtn'),
+            transitionBtn: document.getElementById('transitionBtn'),
+            jumpBtn: document.getElementById('jumpBtn'),
+            fromLevel: document.getElementById('fromLevel'),
+            toLevel: document.getElementById('toLevel'),
+            transitionEnergy: document.getElementById('transitionEnergy'),
+            photonWavelength: document.getElementById('photonWavelength'),
+            spectralRegion: document.getElementById('spectralRegion'),
+            spectrum: document.getElementById('spectrum'),
+            quizBtn: document.getElementById('quizBtn'),
+            quizPanel: document.getElementById('quizPanel'),
+            quizOverlay: document.getElementById('quizOverlay'),
+            closeQuizBtn: document.getElementById('closeQuizBtn')
+        };
+
+        // 初始化能级图
+        function initEnergyDiagram() {
+            elements.energyDiagram.innerHTML = '';
+            
+            // 创建坐标轴标签
+            const axisLabel = document.createElement('div');
+            axisLabel.innerHTML = '<div style="position:absolute; left:-80px; top:20px; transform:rotate(-90deg); transform-origin: left top; color:#4A90E2; font-weight:bold;">能量 (eV)</div>';
+            elements.energyDiagram.appendChild(axisLabel);
+            
+            // 计算能级位置
+            const diagramHeight = elements.energyDiagram.clientHeight || 500;
+            const maxEnergy = 0;
+            const minEnergy = -15;
+            
+            energyLevels.forEach(level => {
+                const levelPos = diagramHeight * (1 - (level.energy - minEnergy) / (maxEnergy - minEnergy));
+                
+                // 创建能级线
+                const levelDiv = document.createElement('div');
+                levelDiv.className = 'energy-level';
+                levelDiv.style.bottom = `${levelPos}px`;
+                levelDiv.dataset.level = level.n;
+                
+                // 添加标签
+                const label = document.createElement('div');
+                label.className = 'level-label';
+                label.style.bottom = `${levelPos}px`;
+                label.textContent = level.label;
+                elements.energyDiagram.appendChild(label);
+                
+                // 添加能量值
+                const energyLabel = document.createElement('div');
+                energyLabel.className = 'level-energy';
+                energyLabel.style.bottom = `${levelPos}px`;
+                energyLabel.textContent = level.energy.toFixed(2) + ' eV';
+                elements.energyDiagram.appendChild(energyLabel);
+                
+                elements.energyDiagram.appendChild(levelDiv);
+                
+                // 添加点击事件
+                levelDiv.addEventListener('click', () => {
+                    moveElectronToLevel(parseInt(levelDiv.dataset.level));
+                    highlightLevel(parseInt(levelDiv.dataset.level));
+                    
+                    // 更新当前能级
+                    currentLevel = parseInt(levelDiv.dataset.level);
+                });
+            });
+            
+            // 创建电子
+            createElectron();
+        }
+
+        // 创建电子
+        function createElectron() {
+            if (electronElement) {
+                electronElement.remove();
+            }
+            
+            electronElement = document.createElement('div');
+            electronElement.className = 'electron';
+            elements.energyDiagram.appendChild(electronElement);
+            
+            // 放置在当前选定的能级
+            moveElectronToLevel(currentLevel);
+            highlightLevel(currentLevel);
+        }
+
+        // 移动电子到指定能级
+        function moveElectronToLevel(levelNum) {
+            const level = energyLevels.find(l => l.n === levelNum);
+            if (!level) return;
+            
+            currentLevel = levelNum;
+            
+            const diagramHeight = elements.energyDiagram.clientHeight || 500;
+            const maxEnergy = 0;
+            const minEnergy = -15;
+            const levelPos = diagramHeight * (1 - (level.energy - minEnergy) / (maxEnergy - minEnergy));
+            
+            electronElement.style.bottom = `${levelPos}px`;
+            electronElement.style.left = '100px';
+        }
+
+        // 高亮显示能级
+        function highlightLevel(levelNum) {
+            // 移除之前的高亮
+            document.querySelectorAll('.energy-level').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // 高亮当前能级
+            const levelElement = document.querySelector(`.energy-level[data-level="${levelNum}"]`);
+            if (levelElement) {
+                levelElement.classList.add('active');
+            }
+        }
+
+        // 计算跃迁能量和波长
+        function calculateTransition(fromLevel, toLevel) {
+            const fromEnergy = energyLevels.find(l => l.n === fromLevel)?.energy;
+            const toEnergy = energyLevels.find(l => l.n === toLevel)?.energy;
+            
+            if (fromEnergy === undefined || toEnergy === undefined) return null;
+            
+            const energyDiff = Math.abs(fromEnergy - toEnergy); // eV
+            const energyDiffJ = energyDiff * constants.e; // J
+            
+            // 计算波长
+            const wavelength = (constants.h * constants.c) / energyDiffJ; // m
+            const wavelengthNm = wavelength * 1e9; // nm
+            
+            // 确定光谱区域
+            let region = "";
+            if (wavelengthNm < 100) region = "极紫外";
+            else if (wavelengthNm < 400) region = "紫外";
+            else if (wavelengthNm <= 700) region = "可见光";
+            else if (wavelengthNm <= 1e6) region = "红外";
+            else region = "微波";
+            
+            return {
+                energy: energyDiff,
+                wavelength: wavelengthNm,
+                region: region,
+                isEmission: fromLevel > toLevel, // 发射光子
+                energyChangeType: fromLevel > toLevel ? 'release' : 'absorb' // 能量变化类型
+            };
+        }
+
+        // 执行电子跃迁
+        function performTransition(fromLevel, toLevel) {
+            if (fromLevel === toLevel) return;
+            
+            const transitionData = calculateTransition(fromLevel, toLevel);
+            if (!transitionData) return;
+            
+            // 更新数据显示
+            elements.transitionEnergy.textContent = transitionData.energy.toFixed(3) + " eV";
+            elements.photonWavelength.textContent = transitionData.wavelength.toFixed(2) + " nm";
+            elements.spectralRegion.textContent = transitionData.region;
+            
+            // 执行动画
+            animateTransition(fromLevel, toLevel, transitionData.isEmission);
+        }
+
+        // 跃迁动画
+        function animateTransition(fromLevel, toLevel, isEmission) {
+            // 获取起始和结束位置
+            const diagramHeight = elements.energyDiagram.clientHeight || 500;
+            const maxEnergy = 0;
+            const minEnergy = -15;
+            
+            const fromLevelObj = energyLevels.find(l => l.n === fromLevel);
+            const toLevelObj = energyLevels.find(l => l.n === toLevel);
+            
+            if (!fromLevelObj || !toLevelObj) return;
+            
+            const fromPos = diagramHeight * (1 - (fromLevelObj.energy - minEnergy) / (maxEnergy - minEnergy));
+            const toPos = diagramHeight * (1 - (toLevelObj.energy - minEnergy) / (maxEnergy - minEnergy));
+            
+            // 确定是否为发射过程（从高能级到低能级）
+            const actualIsEmission = fromLevel > toLevel;
+            
+            // 创建跃迁路径线
+            const transitionLine = document.createElement('div');
+            transitionLine.style.position = 'absolute';
+            transitionLine.style.left = '100px';
+            transitionLine.style.bottom = `${fromPos}px`;
+            transitionLine.style.width = '20px';
+            transitionLine.style.height = '2px';
+            transitionLine.style.backgroundColor = actualIsEmission ? '#FF4136' : '#2ECC40';
+            transitionLine.style.boxShadow = actualIsEmission ? '0 0 10px #FF4136' : '0 0 10px #2ECC40';
+            transitionLine.style.zIndex = '5';
+            elements.energyDiagram.appendChild(transitionLine);
+            
+            // 执行跃迁动画
+            let currentPos = fromPos;
+            const duration = 1000; // ms
+            const startTime = Date.now();
+            
+            function animate() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // 使用缓动函数
+                const easeProgress = 1 - Math.pow(1 - progress, 3);
+                const newPos = fromPos + (toPos - fromPos) * easeProgress;
+                
+                electronElement.style.bottom = `${newPos}px`;
+                
+                // 更新跃迁线长度和位置
+                const lineLength = Math.abs(newPos - fromPos);
+                transitionLine.style.height = '2px';
+                transitionLine.style.width = `${20 + lineLength}px`;
+                transitionLine.style.bottom = `${Math.min(fromPos, newPos)}px`;
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    // 跃迁完成
+                    currentLevel = toLevel;
+                    highlightLevel(toLevel);
+                    
+                    // 移除跃迁线
+                    setTimeout(() => {
+                        if (transitionLine.parentNode) transitionLine.remove();
+                    }, 500);
+                    
+                    // 显示能量变化指示器
+                    showEnergyChangeIndicator(fromLevel, toLevel);
+                    
+                    // 创建光子动画（发射或吸收）
+                    createPhotonAnimation(fromPos, toPos, actualIsEmission);
+                }
+            }
+            
+            requestAnimationFrame(animate);
+        }
+
+        // 创建光子动画（发射或吸收）
+        function createPhotonAnimation(startPos, endPos, isEmission) {
+            if (isEmission) {
+                // 发射光子：从高能级向低能级跃迁，释放能量
+                createEmissionAnimation(startPos, endPos);
+            } else {
+                // 吸收光子：从低能级向高能级跃迁，吸收能量
+                createAbsorptionAnimation(startPos, endPos);
+            }
+        }
+        
+        // 发射光子动画
+        function createEmissionAnimation(startPos, endPos) {
+            // 创建能量释放指示器
+            const energyIndicator = document.createElement('div');
+            energyIndicator.style.position = 'absolute';
+            energyIndicator.style.left = '120px';
+            energyIndicator.style.bottom = `${startPos}px`;
+            energyIndicator.style.color = '#FFD700';
+            energyIndicator.style.fontSize = '14px';
+            energyIndicator.style.fontWeight = 'bold';
+            energyIndicator.style.textShadow = '0 0 5px #000';
+            energyIndicator.textContent = '释放能量!';
+            elements.energyDiagram.appendChild(energyIndicator);
+            
+            // 创建箭头指示能量释放方向
+            const arrow = document.createElement('div');
+            arrow.style.position = 'absolute';
+            arrow.style.left = '120px';
+            arrow.style.bottom = `${startPos}px`;
+            arrow.style.width = '0';
+            arrow.style.height = '0';
+            arrow.style.borderLeft = '10px solid transparent';
+            arrow.style.borderRight = '10px solid transparent';
+            arrow.style.borderTop = '15px solid #FFD700';
+            arrow.style.transform = 'translateY(20px)';
+            elements.energyDiagram.appendChild(arrow);
+            
+            // 创建多个光子以模拟光子发射
+            for (let i = 0; i < 8; i++) {
+                setTimeout(() => {
+                    const photon = document.createElement('div');
+                    photon.className = 'photon-animation';
+                    
+                    // 从电子位置开始
+                    photon.style.left = '105px';
+                    photon.style.bottom = `${startPos}px`;
+                    photon.style.background = 'radial-gradient(circle, #ffff00, #ff9900)';
+                    photon.style.boxShadow = '0 0 10px #ffff00';
+                    elements.energyDiagram.appendChild(photon);
+                    
+                    // 动画参数
+                    const angle = Math.random() * Math.PI * 0.5 - Math.PI * 0.25; // 向上方向为主
+                    const distance = 150 + Math.random() * 100; // 随机距离
+                    const duration = 1000 + Math.random() * 500;
+                    const startTime = Date.now();
+                    
+                    function movePhoton() {
+                        const elapsed = Date.now() - startTime;
+                        const progress = Math.min(elapsed / duration, 1);
+                        
+                        const currentDistance = distance * progress;
+                        const x = Math.cos(angle) * currentDistance;
+                        const y = Math.sin(angle) * currentDistance;
+                        
+                        photon.style.transform = `translate(${x}px, ${y}px)`;
+                        photon.style.opacity = 1 - progress;
+                        
+                        if (progress < 1) {
+                            requestAnimationFrame(movePhoton);
+                        } else {
+                            photon.remove();
+                        }
+                    }
+                    
+                    requestAnimationFrame(movePhoton);
+                }, i * 80);
+            }
+            
+            // 移除指示器
+            setTimeout(() => {
+                if (energyIndicator.parentNode) energyIndicator.remove();
+                if (arrow.parentNode) arrow.remove();
+            }, 2000);
+        }
+        
+        // 吸收光子动画
+        function createAbsorptionAnimation(startPos, endPos) {
+            // 创建能量吸收指示器
+            const energyIndicator = document.createElement('div');
+            energyIndicator.style.position = 'absolute';
+            energyIndicator.style.left = '120px';
+            energyIndicator.style.bottom = `${startPos}px`;
+            energyIndicator.style.color = '#00FF00';
+            energyIndicator.style.fontSize = '14px';
+            energyIndicator.style.fontWeight = 'bold';
+            energyIndicator.style.textShadow = '0 0 5px #000';
+            energyIndicator.textContent = '吸收能量!';
+            elements.energyDiagram.appendChild(energyIndicator);
+            
+            // 创建箭头指示能量吸收方向
+            const arrow = document.createElement('div');
+            arrow.style.position = 'absolute';
+            arrow.style.left = '120px';
+            arrow.style.bottom = `${startPos}px`;
+            arrow.style.width = '0';
+            arrow.style.height = '0';
+            arrow.style.borderLeft = '10px solid transparent';
+            arrow.style.borderRight = '10px solid transparent';
+            arrow.style.borderBottom = '15px solid #00FF00';
+            arrow.style.transform = 'translateY(-20px)';
+            elements.energyDiagram.appendChild(arrow);
+            
+            // 从上方创建光子向原子移动
+            for (let i = 0; i < 8; i++) {
+                setTimeout(() => {
+                    const photon = document.createElement('div');
+                    photon.className = 'photon-animation';
+                    
+                    // 从上方远处开始
+                    const startX = 80 + Math.random() * 100;
+                    const startY = 600; // 从底部外开始
+                    photon.style.left = `${startX}px`;
+                    photon.style.bottom = `${startY}px`;
+                    photon.style.background = 'radial-gradient(circle, #00FFFF, #0066CC)';
+                    photon.style.boxShadow = '0 0 10px #00FFFF';
+                    elements.energyDiagram.appendChild(photon);
+                    
+                    // 动画参数
+                    const targetX = 105;
+                    const targetY = startPos;
+                    const duration = 1000 + Math.random() * 500;
+                    const startTime = Date.now();
+                    
+                    function movePhoton() {
+                        const elapsed = Date.now() - startTime;
+                        const progress = Math.min(elapsed / duration, 1);
+                        
+                        // 从起点到终点的插值
+                        const currentX = startX + (targetX - startX) * progress;
+                        const currentY = startY + (targetY - startY) * progress;
+                        
+                        photon.style.left = `${currentX}px`;
+                        photon.style.bottom = `${currentY}px`;
+                        photon.style.opacity = 1 - progress/2; // 减慢透明度变化
+                        
+                        if (progress < 1) {
+                            requestAnimationFrame(movePhoton);
+                        } else {
+                            photon.remove();
+                        }
+                    }
+                    
+                    requestAnimationFrame(movePhoton);
+                }, i * 80);
+            }
+            
+            // 移除指示器
+            setTimeout(() => {
+                if (energyIndicator.parentNode) energyIndicator.remove();
+                if (arrow.parentNode) arrow.remove();
+            }, 2000);
+        }
+                
+        // 显示能量变化指示器
+        function showEnergyChangeIndicator(fromLevel, toLevel) {
+            // 获取能级信息
+            const fromEnergy = energyLevels.find(l => l.n === fromLevel)?.energy;
+            const toEnergy = energyLevels.find(l => l.n === toLevel)?.energy;
+                    
+            if (fromEnergy === undefined || toEnergy === undefined) return;
+                    
+            const energyDiff = toEnergy - fromEnergy; // 负值表示释放能量，正值表示吸收能量
+                    
+            // 计算位置
+            const diagramHeight = elements.energyDiagram.clientHeight || 500;
+            const maxEnergy = 0;
+            const minEnergy = -15;
+            const midPos = (diagramHeight * (1 - (fromEnergy - minEnergy) / (maxEnergy - minEnergy)) + 
+                          diagramHeight * (1 - (toEnergy - minEnergy) / (maxEnergy - minEnergy))) / 2;
+                    
+            // 创建能量变化指示器
+            const energyChangeIndicator = document.createElement('div');
+            energyChangeIndicator.style.position = 'absolute';
+            energyChangeIndicator.style.left = '200px';
+            energyChangeIndicator.style.bottom = `${midPos}px`;
+            energyChangeIndicator.style.padding = '8px 15px';
+            energyChangeIndicator.style.borderRadius = '20px';
+            energyChangeIndicator.style.fontSize = '14px';
+            energyChangeIndicator.style.fontWeight = 'bold';
+            energyChangeIndicator.style.textAlign = 'center';
+            energyChangeIndicator.style.zIndex = '20';
+            energyChangeIndicator.style.opacity = '0';
+                    
+            if (energyDiff < 0) {
+                // 释放能量（从高能级到低能级）
+                energyChangeIndicator.style.background = 'linear-gradient(to right, #ff9966, #ff5e62)';
+                energyChangeIndicator.style.color = 'white';
+                energyChangeIndicator.textContent = `释放能量 |ΔE| = ${Math.abs(energyDiff).toFixed(3)} eV`;
+            } else {
+                // 吸收能量（从低能级到高能级）
+                energyChangeIndicator.style.background = 'linear-gradient(to right, #00b09b, #96c93d)';
+                energyChangeIndicator.style.color = 'black';
+                energyChangeIndicator.textContent = `吸收能量 ΔE = ${Math.abs(energyDiff).toFixed(3)} eV`;
+            }
+                    
+            elements.energyDiagram.appendChild(energyChangeIndicator);
+                    
+            // 动画效果
+            let opacity = 0;
+            const fadeIn = setInterval(() => {
+                opacity += 0.1;
+                energyChangeIndicator.style.opacity = opacity;
+                if (opacity >= 1) {
+                    clearInterval(fadeIn);
+                            
+                    // 显示一段时间后淡出
+                    setTimeout(() => {
+                        let fadeOutOpacity = 1;
+                        const fadeOut = setInterval(() => {
+                            fadeOutOpacity -= 0.05;
+                            energyChangeIndicator.style.opacity = fadeOutOpacity;
+                            if (fadeOutOpacity <= 0) {
+                                clearInterval(fadeOut);
+                                if (energyChangeIndicator.parentNode) {
+                                    energyChangeIndicator.remove();
+                                }
+                            }
+                        }, 50);
+                    }, 2000);
+                }
+            }, 50);
+        }
+                
+        // 计算巴尔默公式
+        function calculateBalmerLine(n) {
+            // 巴尔默公式: 1/λ = R(1/2² - 1/n²)
+            // 其中R = 1.097×10⁷ m⁻¹
+            const R = constants.rh; // 里德伯常数
+            const invLambda = R * (1/4 - 1/(n*n)); // 1/λ
+            const lambda = 1/invLambda; // λ in meters
+            return lambda * 1e9; // 返回纳米
+        }
+
+        // 更新光谱显示
+        function updateSpectrum() {
+            // 清空现有谱线
+            elements.spectrum.innerHTML = '';
+            
+            // 绘制连续光谱背景
+            const seriesElements = document.querySelectorAll('.series-name');
+            seriesElements.forEach(el => {
+                if (el.textContent.includes('巴尔默')) {
+                    el.style.background = 'linear-gradient(to right, violet, indigo, blue, green, yellow, orange, red)';
+                    el.style.webkitBackgroundClip = 'text';
+                    el.style.webkitTextFillColor = 'transparent';
+                    el.style.color = 'transparent';
+                }
+            });
+            
+            // 计算并添加巴尔默系谱线
+            for (let n = 3; n <= 6; n++) {
+                const wavelength = calculateBalmerLine(n);
+                if (wavelength >= 400 && wavelength <= 700) { // 可见光范围内
+                    const position = ((wavelength - 400) / 300) * 100; // 400-700nm映射到0-100%
+                    
+                    const spectralLine = document.createElement('div');
+                    spectralLine.className = 'spectral-line';
+                    spectralLine.style.left = `${position}%`;
+                    spectralLine.title = `n=${n}→n=2, λ=${wavelength.toFixed(1)}nm`;
+                    spectralLine.style.cursor = 'pointer';
+                    
+                    // 设置颜色
+                    if (wavelength >= 650) {
+                        spectralLine.style.backgroundColor = '#FF0000';
+                    } else if (wavelength >= 600) {
+                        spectralLine.style.backgroundColor = '#FF4500';
+                    } else if (wavelength >= 570) {
+                        spectralLine.style.backgroundColor = '#FFD700';
+                    } else if (wavelength >= 500) {
+                        spectralLine.style.backgroundColor = '#00FF00';
+                    } else if (wavelength >= 450) {
+                        spectralLine.style.backgroundColor = '#4169E1';
+                    } else {
+                        spectralLine.style.backgroundColor = '#8A2BE2';
+                    }
+                    
+                    elements.spectrum.appendChild(spectralLine);
+                }
+            }
+            
+            // 添加莱曼系（紫外）
+            for (let n = 2; n <= 5; n++) {
+                const wavelength = calculateLymanLine(n); // n到1的跃迁
+                if (wavelength >= 10 && wavelength < 400) { // 紫外范围
+                    // 在可见光谱区域标记UV范围
+                    const uvMarker = document.createElement('div');
+                    uvMarker.style.position = 'absolute';
+                    uvMarker.style.left = '0%';
+                    uvMarker.style.width = '20%';
+                    uvMarker.style.height = '100%';
+                    uvMarker.style.backgroundColor = 'rgba(128, 0, 128, 0.3)';
+                    uvMarker.style.zIndex = '-1';
+                    elements.spectrum.appendChild(uvMarker);
+                }
+            }
+            
+            // 添加帕邢系（红外）
+            for (let n = 4; n <= 7; n++) {
+                const wavelength = calculatePaschenLine(n); // n到3的跃迁
+                if (wavelength > 700 && wavelength < 2000) { // 近红外范围
+                    // 在可见光谱区域标记IR范围
+                    const irMarker = document.createElement('div');
+                    irMarker.style.position = 'absolute';
+                    irMarker.style.left = '80%';
+                    irMarker.style.width = '20%';
+                    irMarker.style.height = '100%';
+                    irMarker.style.backgroundColor = 'rgba(255, 165, 0, 0.3)';
+                    irMarker.style.zIndex = '-1';
+                    elements.spectrum.appendChild(irMarker);
+                }
+            }
+        }
+        
+        // 计算莱曼系谱线
+        function calculateLymanLine(n) {
+            // 莱曼系: 1/λ = R(1/1² - 1/n²)
+            const R = constants.rh;
+            const invLambda = R * (1/1 - 1/(n*n));
+            const lambda = 1/invLambda;
+            return lambda * 1e9; // 返回纳米
+        }
+        
+        // 计算帕邢系谱线
+        function calculatePaschenLine(n) {
+            // 帕邢系: 1/λ = R(1/3² - 1/n²)
+            const R = constants.rh;
+            const invLambda = R * (1/9 - 1/(n*n));
+            const lambda = 1/invLambda;
+            return lambda * 1e9; // 返回纳米
+        }
+
+        // 电子轨道运动动画
+        function animateElectronOrbit() {
+            if (!isAnimating) return;
+            
+            const level = energyLevels.find(l => l.n === currentLevel);
+            if (!level) return;
+            
+            // 计算轨道半径（基于能级）
+            const orbitRadius = 20 + currentLevel * 15; // 基础半径加上能级倍数
+            
+            // 更新电子位置
+            const angle = Date.now() / 500; // 时间决定角度
+            const x = Math.cos(angle) * orbitRadius;
+            const y = Math.sin(angle) * orbitRadius;
+            
+            // 仅改变水平位置，保持垂直位置在能级线上
+            electronElement.style.left = `${100 + x}px`;
+            
+            if (isAnimating) {
+                requestAnimationFrame(animateElectronOrbit);
+            }
+        }
+
+        // 事件监听器
+        function setupEventListeners() {
+            // 控制按钮
+            elements.startBtn.addEventListener('click', () => {
+                isAnimating = true;
+                animateElectronOrbit();
+            });
+            
+            elements.pauseBtn.addEventListener('click', () => {
+                isAnimating = false;
+            });
+            
+            elements.resetBtn.addEventListener('click', () => {
+                isAnimating = false;
+                // 将电子移回当前选定的能级（默认为基态）
+                moveElectronToLevel(currentLevel);
+                highlightLevel(currentLevel);
+            });
+            
+            elements.jumpBtn.addEventListener('click', () => {
+                const from = parseInt(elements.fromLevel.value);
+                const to = parseInt(elements.toLevel.value);
+                performTransition(from, to);
+            });
+            
+            elements.transitionBtn.addEventListener('click', () => {
+                // 随机执行一个跃迁
+                const from = Math.floor(Math.random() * 4) + 2; // 2-5
+                const to = Math.floor(Math.random() * (from - 1)) + 1; // 1 到 from-1
+                elements.fromLevel.value = from;
+                elements.toLevel.value = to;
+                performTransition(from, to);
+            });
+            
+            // 实时计算跃迁参数
+            elements.fromLevel.addEventListener('change', updateTransitionParams);
+            elements.toLevel.addEventListener('change', updateTransitionParams);
+            
+            // 测验按钮
+            elements.quizBtn.addEventListener('click', () => {
+                elements.quizOverlay.style.display = 'block';
+                elements.quizPanel.style.display = 'block';
+            });
+            
+            elements.closeQuizBtn.addEventListener('click', () => {
+                elements.quizOverlay.style.display = 'none';
+                elements.quizPanel.style.display = 'none';
+            });
+            
+            // 点击背景关闭测验
+            elements.quizOverlay.addEventListener('click', () => {
+                elements.quizOverlay.style.display = 'none';
+                elements.quizPanel.style.display = 'none';
+            });
+            
+            // 测验导航按钮
+            document.getElementById('nextQ1').addEventListener('click', () => goToQuestion(2));
+            document.getElementById('prevQ2').addEventListener('click', () => goToQuestion(1));
+            document.getElementById('nextQ2').addEventListener('click', () => goToQuestion(3));
+            document.getElementById('prevQ3').addEventListener('click', () => goToQuestion(2));
+            document.getElementById('nextQ3').addEventListener('click', () => goToQuestion(4));
+            document.getElementById('prevQ4').addEventListener('click', () => goToQuestion(3));
+            document.getElementById('nextQ4').addEventListener('click', () => goToQuestion(5));
+            document.getElementById('prevQ5').addEventListener('click', () => goToQuestion(4));
+            document.getElementById('finishQuizBtn').addEventListener('click', finishQuiz);
+            
+
+            
+            // 重新开始测验
+            document.getElementById('restartQuizBtn').addEventListener('click', restartQuiz);
+            
+            // 添加键盘事件支持上下滑动
+            document.addEventListener('keydown', handleKeyDown);
+            
+            // 设置答案记录监听器
+            setupAnswerListeners();
+        }
+        
+        // 处理键盘按键事件
+        function handleKeyDown(event) {
+            if (!elements.quizPanel.style.display || elements.quizPanel.style.display === 'none') return;
+            
+            switch(event.key) {
+                case 'ArrowUp':
+                    event.preventDefault();
+                    if (currentQuestion > 1) {
+                        goToQuestion(currentQuestion - 1);
+                    }
+                    break;
+                case 'ArrowDown':
+                    event.preventDefault();
+                    if (currentQuestion < totalQuestions) {
+                        goToQuestion(currentQuestion + 1);
+                    }
+                    break;
+            }
+        }
+        
+        // 导航到指定问题
+        function goToQuestion(questionNum) {
+            // 隐藏当前问题
+            document.getElementById(`questionSlide${currentQuestion}`).style.display = 'none';
+            
+            // 显示新问题
+            currentQuestion = questionNum;
+            document.getElementById(`questionSlide${currentQuestion}`).style.display = 'block';
+            
+            // 更新进度条
+            updateProgressBar();
+        }
+        
+        // 更新进度条
+        function updateProgressBar() {
+            const progressPercent = (currentQuestion / totalQuestions) * 100;
+            document.getElementById('progressIndicator').style.width = `${progressPercent}%`;
+        }
+        
+        // 当用户选择答案时自动记录
+        function recordAnswer(questionNum) {
+            const selectedOption = document.querySelector(`input[name=q${questionNum}]:checked`);
+            if (selectedOption) {
+                userAnswers[questionNum] = selectedOption.value;
+            }
+        }
+        
+        // 为每个单选按钮添加事件监听器
+        function setupAnswerListeners() {
+            const questions = 5;
+            for (let q = 1; q <= questions; q++) {
+                const radios = document.getElementsByName(`q${q}`);
+                radios.forEach(radio => {
+                    radio.addEventListener('change', () => recordAnswer(q));
+                });
+            }
+        }
+        
+        // 完成测验并生成分析报告
+        function finishQuiz() {
+            // 确保所有题目都有答案
+            for (let i = 1; i <= totalQuestions; i++) {
+                if (!userAnswers[i]) {
+                    alert(`请完成第${i}题！`);
+                    goToQuestion(i);
+                    return;
+                }
+            }
+            
+            // 计算分数
+            score = 0;
+            const correctAnswers = ['c', 'c', 'b', 'a', 'b'];
+            for (let i = 1; i <= totalQuestions; i++) {
+                if (userAnswers[i] === correctAnswers[i-1]) {
+                    score++;
+                }
+            }
+            
+            // 隐藏所有问题
+            for (let i = 1; i <= totalQuestions; i++) {
+                document.getElementById(`questionSlide${i}`).style.display = 'none';
+            }
+            
+            // 更新进度条到100%
+            document.getElementById('progressIndicator').style.width = '100%';
+            
+            // 显示分析结果
+            const analysisResult = document.getElementById('analysisResult');
+            analysisResult.style.display = 'block';
+            
+            // 显示得分
+            const scoreDisplay = document.getElementById('scoreDisplay');
+            scoreDisplay.innerHTML = `<h4>您的得分: ${score}/${totalQuestions} (${Math.round(score/totalQuestions*100)}%)</h4>`;
+            
+            // 生成学情分析
+            const analysisDetails = document.getElementById('analysisDetails');
+            let analysisText = '<h4>学情分析:</h4><ul>';
+            
+            if (score >= 4) {
+                analysisText += '<li><strong>优秀表现：</strong>您对氢原子能级结构有很好的理解，掌握了玻尔模型的核心要点</li>';
+                analysisText += '<li><strong>光谱认知：</strong>对氢原子光谱和巴尔默公式有较好的认识</li>';
+                analysisText += '<li><strong>跃迁理解：</strong>能够准确理解电子跃迁与光子发射/吸收的关系</li>';
+                analysisText += '<li><strong>公式应用：</strong>熟练运用能级公式计算不同轨道的能量</li>';
+            } else if (score >= 2) {
+                analysisText += '<li><strong>基础掌握：</strong>您对部分概念有一定了解，但在某些细节方面还需加强</li>';
+                analysisText += '<li><strong>关注重点：</strong>建议重点关注电子跃迁和能级的概念</li>';
+                analysisText += '<li><strong>强化认知：</strong>需要加强对氢原子光谱线系的认识</li>';
+                analysisText += '<li><strong>提升方向：</strong>加强对巴尔默公式和能级计算的理解</li>';
+            } else {
+                analysisText += '<li><strong>基础薄弱：</strong>基础知识有待加强，建议重新学习玻尔模型的基本假设</li>';
+                analysisText += '<li><strong>概念模糊：</strong>需要加强对氢原子能级和光谱概念的理解</li>';
+                analysisText += '<li><strong>重点突破：</strong>重点关注巴尔默公式和光谱线系的知识</li>';
+                analysisText += '<li><strong>系统复习：</strong>需要全面复习原子结构相关理论</li>';
+            }
+            
+            analysisText += '</ul>';
+            analysisDetails.innerHTML = analysisText;
+            
+            // 生成学习建议
+            const learningSuggestions = document.getElementById('learningSuggestions');
+            let suggestionsText = '<h4>个性化学习建议:</h4><ul>';
+            
+            // 根据错题情况提供具体建议
+            const quizCorrectAnswers = ['c', 'c', 'b', 'a', 'b'];
+            let incorrectQuestions = [];
+            for (let i = 1; i <= totalQuestions; i++) {
+                if (userAnswers[i] !== quizCorrectAnswers[i-1]) {
+                    incorrectQuestions.push(i);
+                }
+            }
+            
+            if (incorrectQuestions.length > 0) {
+                suggestionsText += '<li><strong>针对性复习：</strong>请重点复习错题涉及的知识点：';
+                incorrectQuestions.forEach((q, idx) => {
+                    if (idx > 0) suggestionsText += ', ';
+                    switch(q) {
+                        case 1: suggestionsText += '基态能量'; break;
+                        case 2: suggestionsText += '光谱区域'; break;
+                        case 3: suggestionsText += '跃迁过程'; break;
+                        case 4: suggestionsText += '能级计算'; break;
+                        case 5: suggestionsText += '谱线系别'; break;
+                        default: suggestionsText += `第${q}题`;
+                    }
+                });
+                suggestionsText += '</li>';
+            }
+            
+            if (score < 5) {
+                suggestionsText += '<li>复习玻尔模型的三个基本假设及其物理意义</li>';
+                suggestionsText += '<li>观看原子结构动画，加深对电子轨道和能级的理解</li>';
+                suggestionsText += '<li>重点掌握氢原子能级公式：Eₙ = -13.6/n² eV</li>';
+                suggestionsText += '<li>理解电子跃迁与光子发射/吸收的关系</li>';
+                suggestionsText += '<li>熟悉氢原子光谱的主要线系（莱曼、巴尔默、帕邢等）</li>';
+                suggestionsText += '<li>练习使用巴尔默公式进行波长计算</li>';
+            } else {
+                suggestionsText += '<li>继续保持良好的学习状态</li>';
+                suggestionsText += '<li>可以进一步学习量子力学对原子结构的描述</li>';
+                suggestionsText += '<li>探索更复杂的原子光谱现象</li>';
+                suggestionsText += '<li>尝试理解多电子原子的能级结构</li>';
+                suggestionsText += '<li>研究原子光谱在实际中的应用</li>';
+            }
+            
+            suggestionsText += '</ul>';
+            
+            // 添加知识拓展
+            suggestionsText += '<h4 style="color:#00ccff; margin-top:15px;">知识拓展:</h4>';
+            suggestionsText += '<ul>';
+            suggestionsText += '<li>了解里德伯原子的概念及应用</li>';
+            suggestionsText += '<li>探索塞曼效应和斯塔克效应对原子能级的影响</li>';
+            suggestionsText += '<li>学习X射线光谱和其在材料分析中的应用</li>';
+            suggestionsText += '<li>研究激光原理与原子能级跃迁的关系</li>';
+            suggestionsText += '</ul>';
+            
+            learningSuggestions.innerHTML = suggestionsText;
+        }
+        
+        // 重新开始测验
+        function restartQuiz() {
+            // 清空用户答案
+            userAnswers = {};
+            score = 0;
+            currentQuestion = 1;
+            
+            // 清除所有选中的单选框
+            for (let i = 1; i <= totalQuestions; i++) {
+                const radios = document.getElementsByName(`q${i}`);
+                radios.forEach(radio => radio.checked = false);
+            }
+            
+            // 隐藏分析结果，显示第一题
+            document.getElementById('analysisResult').style.display = 'none';
+            document.getElementById('questionSlide1').style.display = 'block';
+            for (let i = 2; i <= totalQuestions; i++) {
+                document.getElementById('questionSlide'+i).style.display = 'none';
+            }
+            
+            // 重置进度条
+            document.getElementById('progressIndicator').style.width = '20%';
+            
+            // 跳转到第一题
+            currentQuestion = 1;
+        }
+        
+        // 实时更新跃迁参数
+        function updateTransitionParams() {
+            const from = parseInt(elements.fromLevel.value);
+            const to = parseInt(elements.toLevel.value);
+            
+            if (from !== to) {
+                const transitionData = calculateTransition(from, to);
+                if (transitionData) {
+                    elements.transitionEnergy.textContent = transitionData.energy.toFixed(3) + " eV";
+                    elements.photonWavelength.textContent = transitionData.wavelength.toFixed(2) + " nm";
+                    elements.spectralRegion.textContent = transitionData.region;
+                    
+                    // 更新跃迁类型和能量变化信息
+                    if (document.getElementById('transitionType') && document.getElementById('energyChange')) {
+                        const transitionType = document.getElementById('transitionType');
+                        const energyChange = document.getElementById('energyChange');
+                        
+                        if (from > to) {
+                            // 从高能级到低能级：发射光子，释放能量
+                            transitionType.textContent = "发射";
+                            energyChange.textContent = "释放能量";
+                            transitionType.style.color = "#FF4136";
+                            energyChange.style.color = "#FF4136";
+                        } else {
+                            // 从低能级到高能级：吸收光子，吸收能量
+                            transitionType.textContent = "吸收";
+                            energyChange.textContent = "吸收能量";
+                            transitionType.style.color = "#2ECC40";
+                            energyChange.style.color = "#2ECC40";
+                        }
+                    }
+                }
+            }
+        }
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', () => {
+            initEnergyDiagram();
+            updateSpectrum();
+            setupEventListeners();
+            
+            // 默认显示基态参数
+            elements.fromLevel.value = 2;
+            elements.toLevel.value = 1;
+            currentLevel = 1; // 确保初始能级为基态
+            updateTransitionParams();
+        });
+    </script>
+</body>
+</html>

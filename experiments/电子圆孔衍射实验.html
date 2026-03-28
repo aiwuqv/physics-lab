@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电子圆孔衍射实验模拟</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(0, 0, 30, 0.8);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #4A90E2;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            animation: glow 2s infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { text-shadow: 0 0 5px #fff, 0 0 10px #4A90E2; }
+            to { text-shadow: 0 0 10px #fff, 0 0 20px #4A90E2, 0 0 30px #4A90E2; }
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #6BABDF;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+        }
+        
+        .theory-section {
+            background: rgba(30, 30, 60, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        .theory-section h2 {
+            color: #FFD700;
+            border-bottom: 2px solid #4A90E2;
+            padding-bottom: 10px;
+        }
+        
+        .experiment-setup {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .canvas-container {
+            flex: 1;
+            min-width: 500px;
+            background: black;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        canvas {
+            width: 100%;
+            height: 400px;
+            background: black;
+            display: block;
+        }
+        
+        .full-diffraction-container {
+            flex: 1;
+            min-width: 500px;
+            background: black;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            margin-top: 20px;
+        }
+        
+        .full-diffraction-canvas {
+            width: 100%;
+            height: 300px;
+            background: black;
+            display: block;
+        }
+        
+        .controls {
+            flex: 0 0 300px;
+            background: rgba(30, 30, 60, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(50, 50, 80, 0.5);
+            border-radius: 5px;
+        }
+        
+        .control-group h3 {
+            color: #4A90E2;
+            margin-top: 0;
+        }
+        
+        label {
+            display: block;
+            margin: 8px 0 5px 0;
+            color: #6BABDF;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            margin: 5px 0;
+        }
+        
+        .value-display {
+            display: inline-block;
+            width: 60px;
+            text-align: right;
+            color: #FFD700;
+        }
+        
+        button {
+            background: linear-gradient(to bottom, #4A90E2, #2A5AA0);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background: linear-gradient(to bottom, #5AA0F2, #3A6AC0);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .stat-box {
+            background: rgba(74, 144, 226, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            min-width: 150px;
+            margin: 10px;
+        }
+        
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #4A90E2;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            color: #6BABDF;
+        }
+        
+        .principle {
+            background: rgba(30, 30, 60, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            line-height: 1.6;
+        }
+        
+        .principle h2 {
+            color: #FFD700;
+            border-bottom: 2px solid #4A90E2;
+            padding-bottom: 10px;
+        }
+        
+        .formula {
+            text-align: center;
+            font-size: 1.2em;
+            margin: 15px 0;
+            color: #FFD700;
+            font-family: 'Times New Roman', serif;
+        }
+        
+        .highlight {
+            background: rgba(255, 215, 0, 0.2);
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        
+        /* 知识检测样式 */
+        .quiz-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .quiz-container {
+            background: rgba(30, 30, 60, 0.95);
+            border-radius: 15px;
+            width: 80%;
+            max-width: 700px;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 25px;
+            box-shadow: 0 0 30px rgba(74, 144, 226, 0.5);
+            position: relative;
+        }
+        
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #4A90E2;
+        }
+        
+        .quiz-question {
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(50, 50, 80, 0.5);
+            border-radius: 8px;
+        }
+        
+        .quiz-options {
+            margin: 10px 0;
+        }
+        
+        .quiz-option {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            background: rgba(74, 144, 226, 0.3);
+            border: 1px solid #4A90E2;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            text-align: left;
+        }
+        
+        .quiz-option:hover {
+            background: rgba(74, 144, 226, 0.5);
+        }
+        
+        .quiz-option.selected {
+            background: rgba(74, 144, 226, 0.7);
+            border-color: #FFD700;
+        }
+        
+        .quiz-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .quiz-progress {
+            text-align: center;
+            margin: 15px 0;
+            font-size: 1.1em;
+            color: #6BABDF;
+        }
+        
+        .result-container {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .analysis-container {
+            display: none;
+            text-align: left;
+            padding: 20px;
+            background: rgba(50, 50, 80, 0.5);
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .close-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        
+        .close-btn:hover {
+            background: #c0392b;
+        }
+        
+        .recommendation {
+            background: rgba(100, 200, 100, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #2ecc71;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <h1>电子圆孔衍射实验模拟</h1>
+        <p class="subtitle">探索电子的波动性质与衍射现象</p>
+        
+        <div class="theory-section">
+            <h2>电子衍射理论基础</h2>
+            <p><span class="highlight">德布罗意假说</span>指出，实物粒子也具有波动性，其波长由德布罗意公式给出：</p>
+            <div class="formula">λ = h/p = h/(mv)</div>
+            <p>其中，λ 是物质波波长，h 是普朗克常数，p 是粒子动量，m 是粒子质量，v 是粒子速度。</p>
+            <p>当电子束穿过圆孔时，会发生<span class="highlight">衍射现象</span>，这证实了电子的波动性。圆孔衍射会在屏幕上形成同心圆环状的衍射图样，中心为亮斑（零级衍射），周围环绕着明暗交替的同心圆环。</p>
+        </div>
+        
+        <div class="experiment-setup">
+            <div class="canvas-container">
+                <canvas id="diffractionCanvas"></canvas>
+            </div>
+            
+            <div class="controls">
+                <h2>实验控制面板</h2>
+                
+                <div class="control-group">
+                    <h3>电子束参数</h3>
+                    <label>
+                        电子加速电压: <span id="voltageValue" class="value-display">50</span>kV
+                        <input type="range" id="voltageControl" min="10" max="100" value="50">
+                    </label>
+                    <label>
+                        电子束强度: <span id="intensityValue" class="value-display">50</span>
+                        <input type="range" id="intensityControl" min="1" max="100" value="50">
+                    </label>
+                </div>
+                
+                <div class="control-group">
+                    <h3>圆孔参数</h3>
+                    <label>
+                        圆孔直径: <span id="apertureValue" class="value-display">0.1</span>μm
+                        <input type="range" id="apertureControl" min="0.05" max="0.5" step="0.01" value="0.1">
+                    </label>
+                </div>
+                
+                <div class="control-group">
+                    <h3>显示设置</h3>
+                    <label>
+                        衍射强度: <span id="brightnessValue" class="value-display">100</span>%
+                        <input type="range" id="brightnessControl" min="10" max="200" value="100">
+                    </label>
+                    <label>
+                        动画速度: <span id="speedValue" class="value-display">1.0</span>x
+                        <input type="range" id="speedControl" min="0.1" max="2" step="0.1" value="1.0">
+                    </label>
+                </div>
+                
+                <button id="startBtn">开始实验</button>
+                <button id="pauseBtn">暂停实验</button>
+                <button id="resetBtn">重置实验</button>
+                <button id="quizBtn">知识检测</button>
+            </div>
+        </div>
+        
+        <!-- 新增：完整的衍射图样显示 -->
+        <div class="full-diffraction-container">
+            <h3>完整衍射图样</h3>
+            <canvas id="fullDiffractionCanvas" class="full-diffraction-canvas"></canvas>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-value" id="electronCount">0</div>
+                <div class="stat-label">已发射电子</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="diffractionRings">1</div>
+                <div class="stat-label">衍射环数</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="centralBright">●</div>
+                <div class="stat-label">中央亮斑</div>
+            </div>
+        </div>
+        
+        <div class="principle">
+            <h2>圆孔衍射原理</h2>
+            <p>圆孔衍射的特征角度由以下公式确定：</p>
+            <div class="formula">sin θ ≈ 1.22λ/D</div>
+            <p>其中，θ 是衍射角，λ 是电子的德布罗意波长，D 是圆孔直径。对于小角度近似，sin θ ≈ θ，因此：</p>
+            <div class="formula">θ ≈ 1.22λ/D</div>
+            <p>这意味着，当电子的波长 λ 越短（即加速电压越高）或圆孔直径 D 越大时，衍射角越小，衍射现象越不明显。</p>
+            <p>衍射图样的强度分布遵循贝塞尔函数的形式，中心为亮斑，周围环绕着逐渐变暗的同心圆环。</p>
+        </div>
+    </div>
+    
+    <!-- 知识检测弹窗 -->
+    <div class="quiz-overlay" id="quizOverlay">
+        <div class="quiz-container">
+            <div class="quiz-header">
+                <h2>知识检测</h2>
+                <button class="close-btn" id="closeQuizBtn">关闭</button>
+            </div>
+            <div class="quiz-progress" id="quizProgress">第 1 题，共 5 题</div>
+            <div class="quiz-content" id="quizContent">
+                <!-- 题目内容将通过JavaScript动态加载 -->
+            </div>
+            <div class="quiz-navigation">
+                <button id="prevQuestionBtn">上一题</button>
+                <button id="nextQuestionBtn">下一题</button>
+                <button id="submitQuizBtn" style="display: none;">提交答案</button>
+            </div>
+            <div class="result-container" id="resultContainer">
+                <h3>答题结果</h3>
+                <p>您答对了 <span id="correctCount">0</span> 道题，共 <span id="totalCount">0</span> 道题</p>
+                <div class="analysis-container" id="analysisContainer">
+                    <h4>学情分析</h4>
+                    <p id="analysisText">正在分析您的学习情况...</p>
+                    <h4>学习建议</h4>
+                    <div id="recommendations" class="recommendation">正在生成个性化学习建议...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // 获取DOM元素
+        const canvas = document.getElementById('diffractionCanvas');
+        const fullDiffractionCanvas = document.getElementById('fullDiffractionCanvas');
+        const ctx = canvas.getContext('2d');
+        const fullDiffractionCtx = fullDiffractionCanvas.getContext('2d');
+        const voltageControl = document.getElementById('voltageControl');
+        const voltageValue = document.getElementById('voltageValue');
+        const intensityControl = document.getElementById('intensityControl');
+        const intensityValue = document.getElementById('intensityValue');
+        const apertureControl = document.getElementById('apertureControl');
+        const apertureValue = document.getElementById('apertureValue');
+        const brightnessControl = document.getElementById('brightnessControl');
+        const brightnessValue = document.getElementById('brightnessValue');
+        const speedControl = document.getElementById('speedControl');
+        const speedValue = document.getElementById('speedValue');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const electronCountEl = document.getElementById('electronCount');
+        const diffractionRingsEl = document.getElementById('diffractionRings');
+        
+        // 知识检测相关DOM元素
+        const quizBtn = document.getElementById('quizBtn');
+        const quizOverlay = document.getElementById('quizOverlay');
+        const closeQuizBtn = document.getElementById('closeQuizBtn');
+        const quizContent = document.getElementById('quizContent');
+        const quizProgress = document.getElementById('quizProgress');
+        const prevQuestionBtn = document.getElementById('prevQuestionBtn');
+        const nextQuestionBtn = document.getElementById('nextQuestionBtn');
+        const submitQuizBtn = document.getElementById('submitQuizBtn');
+        const resultContainer = document.getElementById('resultContainer');
+        const correctCountSpan = document.getElementById('correctCount');
+        const totalCountSpan = document.getElementById('totalCount');
+        const analysisContainer = document.getElementById('analysisContainer');
+        const analysisText = document.getElementById('analysisText');
+        const recommendationsDiv = document.getElementById('recommendations');
+        
+        // 实验状态
+        let isRunning = false;
+        let animationId = null;
+        let electronCount = 0;
+        let electrons = [];
+        
+        // 初始化屏幕撞击点数组
+        window.screenImpacts = [];
+        
+        // 设置canvas大小
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth - 20;
+            canvas.height = 400;
+            
+            // 设置完整衍射图样画布大小
+            fullDiffractionCanvas.width = fullDiffractionCanvas.parentElement.clientWidth - 20;
+            fullDiffractionCanvas.height = 300;
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        
+        // 更新显示值
+        function updateDisplayValues() {
+            voltageValue.textContent = voltageControl.value;
+            intensityValue.textContent = intensityControl.value;
+            apertureValue.textContent = apertureControl.value;
+            brightnessValue.textContent = brightnessControl.value;
+            speedValue.textContent = speedControl.value;
+        }
+        
+        // 控制滑块事件
+        voltageControl.addEventListener('input', updateDisplayValues);
+        intensityControl.addEventListener('input', updateDisplayValues);
+        apertureControl.addEventListener('input', updateDisplayValues);
+        brightnessControl.addEventListener('input', updateDisplayValues);
+        speedControl.addEventListener('input', updateDisplayValues);
+        
+        // 获取参数值
+        function getParameters() {
+            const voltage = parseFloat(voltageControl.value); // kV
+            const aperture = parseFloat(apertureControl.value); // μm
+            const intensity = parseFloat(intensityControl.value);
+            const brightness = parseFloat(brightnessControl.value) / 100;
+            const speed = parseFloat(speedControl.value);
+            
+            // 计算德布罗意波长 (更精确的公式，单位：埃)
+            // λ = h/√(2meU) ≈ 12.27/√U (U单位为V，λ单位为埃)
+            // 考虑相对论修正: λ = hc/√(2mc²U(1+U/2mc²))
+            const U_eV = voltage * 1000; // 转换为电子伏特
+            let wavelength;
+            
+            // 非相对论近似 (适用于较低电压)
+            if (voltage < 50) {
+                wavelength = 12.27 / Math.sqrt(U_eV); // 埃
+            } else {
+                // 相对论修正
+                const factor = 1 + U_eV / (2 * 511000); // 511 keV 是电子静止能量
+                wavelength = 12.27 / Math.sqrt(U_eV * factor); // 埃
+            }
+            
+            return {
+                voltage,
+                aperture,
+                intensity,
+                brightness,
+                speed,
+                wavelength
+            };
+        }
+        
+        // 电子类
+        class Electron {
+            constructor() {
+                this.vx = 0;
+                this.vy = 0;
+                this.reset();
+            }
+            
+            reset() {
+                // 从顶部发射电子
+                this.x = canvas.width / 2 + (Math.random() - 0.5) * 100;
+                this.y = 20;
+                this.originalX = this.x;
+                this.originalY = this.y;
+                this.active = true;
+                this.path = [];
+                this.maxPathLength = 20;
+                this.vx = 0;
+                this.vy = 3 * getParameters().speed;
+            }
+            
+            // 生成符合衍射强度分布的角度
+            // 这里使用简化的模型，真实情况涉及贝塞尔函数
+            generateDiffractionAngle(maxAngle) {
+                // 使用简单的余弦平方分布来近似衍射强度分布
+                // 在圆孔衍射中，强度分布由 J1(x)/x 决定，其中J1是第一类贝塞尔函数
+                // 我们用简化的模型来近似这种分布
+                
+                // 使用经验函数来近似衍射强度分布
+                // 通过逆变换采样方法生成符合特定分布的角度
+                
+                // 为了简化，我们使用一个加权的方法，偏向小角度（中心最大）
+                // 但偶尔会有较大角度的衍射
+                const rand = Math.random();
+                // 使得小角度的概率更大，符合衍射图样的特点
+                const weightedRand = Math.pow(rand, 1.5); // 偏向小角度
+                
+                return weightedRand * maxAngle;
+            }
+            
+            update() {
+                if (!this.active) return;
+                
+                // 根据圆孔衍射特性移动电子
+                const params = getParameters();
+                
+                // 模拟电子在自由空间中的直线运动
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                // 当电子到达圆孔位置时，应用衍射效果
+                if (this.y >= 150 && this.y <= 170) {
+                    // 根据圆孔衍射理论，计算衍射角
+                    // 第一极小值角度: θ ≈ 1.22λ/D
+                    const diffractionAngle = 1.22 * params.wavelength / params.aperture; // 弧度
+                    
+                    // 在圆孔处随机选择位置通过（考虑圆孔大小）
+                    const holeRadius = params.aperture * 50; // 对应canvas像素
+                    const angle = Math.random() * 2 * Math.PI;
+                    const radius = Math.random() * holeRadius;
+                    this.x = canvas.width / 2 + Math.cos(angle) * radius;
+                    this.y = 160; // 圆孔中心位置
+                    
+                    // 根据衍射理论，电子将以随机角度发散，但概率分布符合衍射强度模式
+                    // 生成符合衍射强度分布的角度
+                    let theta = this.generateDiffractionAngle(diffractionAngle);
+                    let phi = Math.random() * 2 * Math.PI; // 方位角
+                    
+                    // 计算新的速度分量
+                    const speed = 3 * params.speed;
+                    // 使用球坐标系统，theta是偏离z轴的角度，phi是方位角
+                    this.vy = speed * Math.cos(theta); // 沿屏幕法线方向
+                    const transverseSpeed = speed * Math.sin(theta); // 横向速度
+                    this.vx = transverseSpeed * Math.sin(phi); // 水平分量
+                    
+                    // 电子现在沿新的方向运动
+                    this.x += this.vx;
+                    this.y += this.vy;
+                }
+                
+                // 添加到路径
+                this.path.push({x: this.x, y: this.y});
+                if (this.path.length > this.maxPathLength) {
+                    this.path.shift();
+                }
+                
+                // 检查是否到达屏幕
+                if (this.y > canvas.height - 50) {
+                    this.recordImpact(); // 记录撞击点
+                    this.active = false;
+                    electronCount++;
+                    electronCountEl.textContent = electronCount;
+                }
+                
+                // 如果电子跑出画布边界，则移除
+                if (this.x < 0 || this.x > canvas.width || this.y > canvas.height) {
+                    this.active = false;
+                }
+            }
+            
+            draw() {
+                if (!this.active) return;
+                
+                // 绘制电子轨迹
+                if (this.path.length > 1) {
+                    ctx.beginPath();
+                    ctx.moveTo(this.path[0].x, this.path[0].y);
+                    for (let i = 1; i < this.path.length; i++) {
+                        ctx.lineTo(this.path[i].x, this.path[i].y);
+                    }
+                    ctx.strokeStyle = 'rgba(0, 255, 255, 0.5)';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+                
+                // 绘制电子
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+                ctx.fillStyle = '#00FFFF';
+                ctx.fill();
+                
+                // 添加发光效果
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 4, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0, 255, 255, 0.3)';
+                ctx.fill();
+            }
+            
+            // 当电子到达屏幕时，记录撞击点
+            recordImpact() {
+                // 在屏幕上绘制单个电子撞击点，体现颗粒感
+                if (this.y > canvas.height - 50 && this.active) {
+                    // 将电子位置记录到屏幕撞击点数组
+                    if (typeof window.screenImpacts === 'undefined') {
+                        window.screenImpacts = [];
+                    }
+                    
+                    // 添加撞击点信息
+                    window.screenImpacts.push({
+                        x: this.x,
+                        y: this.y,
+                        timestamp: Date.now(),
+                        size: 2, // 撞击点大小
+                        brightness: 1.0 // 撞击点亮度
+                    });
+                }
+            }
+        }
+        
+        // 绘制实验装置
+        function drawSetup() {
+            const centerX = canvas.width / 2;
+            const params = getParameters();
+            
+            // 绘制电子源
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(centerX - 20, 5, 40, 20);
+            ctx.fillStyle = '#FFF';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('电子源', centerX, 20);
+            
+            // 绘制圆孔
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(centerX, 160, params.aperture * 50, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // 标记圆孔
+            ctx.fillStyle = '#FFD700';
+            ctx.font = '14px Arial';
+            ctx.fillText(`圆孔 (D=${params.aperture}μm)`, centerX, 140);
+            
+            // 绘制屏幕
+            ctx.fillStyle = 'rgba(100, 100, 100, 0.3)';
+            ctx.fillRect(50, canvas.height - 50, canvas.width - 100, 40);
+            ctx.strokeStyle = '#6BABDF';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(50, canvas.height - 50, canvas.width - 100, 40);
+            ctx.fillStyle = '#6BABDF';
+            ctx.fillText('探测屏幕', centerX, canvas.height - 20);
+        }
+        
+        // 绘制光屏上的衍射图样（实际撞击点）
+        function drawScreenDiffractionPattern() {
+            // 这个函数专门绘制光屏上的电子撞击点
+            if (window.screenImpacts) {
+                // 清除过期的撞击点（保留最近的点）
+                const now = Date.now();
+                window.screenImpacts = window.screenImpacts.filter(impact => now - impact.timestamp < 10000); // 保留10秒内的点
+                
+                // 绘制所有撞击点
+                for (const impact of window.screenImpacts) {
+                    // 根据撞击时间和密度调整亮度
+                    const elapsed = now - impact.timestamp;
+                    const fadeFactor = Math.max(0, 1 - elapsed / 10000); // 逐渐淡出
+                    
+                    // 绘制撞击点
+                    ctx.beginPath();
+                    ctx.arc(impact.x, impact.y, impact.size, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255, 50, 50, ${impact.brightness * fadeFactor * 0.8})`;
+                    ctx.fill();
+                    
+                    // 添加微弱的发光效果
+                    ctx.beginPath();
+                    ctx.arc(impact.x, impact.y, impact.size * 2, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255, 100, 100, ${impact.brightness * fadeFactor * 0.3})`;
+                    ctx.fill();
+                }
+            }
+        }
+        
+        // 绘制完整的衍射图样（理论图样）
+        function drawFullDiffractionPattern() {
+            const centerX = fullDiffractionCanvas.width / 2;
+            const centerY = fullDiffractionCanvas.height / 2;
+            const params = getParameters();
+            
+            // 清空画布
+            fullDiffractionCtx.clearRect(0, 0, fullDiffractionCanvas.width, fullDiffractionCanvas.height);
+            
+            // 根据圆孔衍射理论，计算理论衍射图案
+            // 第一极小值: r = 1.22λf/D (f为焦距，这里简化为固定比例)
+            const diffractionScale = 400 * params.wavelength / params.aperture;
+            
+            // 绘制艾里斑模式（圆孔衍射的精确强度分布）
+            // 使用多层径向渐变来模拟贝塞尔函数的强度分布
+            
+            // 绘制多个同心圆环来近似衍射图样
+            // 计算前几个强度极大值的位置
+            const minimaPositions = [];
+            for (let i = 1; i <= 4; i++) {
+                // 圆孔衍射的第i个极小值近似位置
+                // 第一极小值: 1.22λ/D, 第二极小值: 2.23λ/D, 第三极小值: 3.24λ/D
+                let approxPosition;
+                if (i === 1) approxPosition = 1.22;
+                else if (i === 2) approxPosition = 2.23;
+                else if (i === 3) approxPosition = 3.24;
+                else approxPosition = 4.24;
+                
+                minimaPositions.push(approxPosition * diffractionScale / 1.22);
+            }
+            
+            // 从外到内绘制强度分布
+            for (let i = 3; i >= 0; i--) {
+                const outerRadius = i === 3 ? Math.min(fullDiffractionCanvas.width, fullDiffractionCanvas.height)/2 : minimaPositions[i+1];
+                const innerRadius = minimaPositions[i];
+                
+                if (innerRadius > 0 && outerRadius > innerRadius) {
+                    // 计算这个环的平均强度
+                    // 亮环和暗环交替出现
+                    const isBrightRing = i % 2 === 0; // 0,2是亮环；1,3是暗环
+                    
+                    // 创建径向渐变
+                    const gradient = fullDiffractionCtx.createRadialGradient(
+                        centerX, centerY, innerRadius,
+                        centerX, centerY, outerRadius
+                    );
+                    
+                    if (isBrightRing) {
+                        // 亮环 - 使用更高对比度
+                        const maxAlpha = params.brightness * 0.6;
+                        gradient.addColorStop(0, `rgba(255, 255, 100, ${maxAlpha})`);
+                        gradient.addColorStop(0.3, `rgba(255, 215, 0, ${maxAlpha * 0.8})`);
+                        gradient.addColorStop(0.7, `rgba(100, 200, 255, ${maxAlpha * 0.4})`);
+                        gradient.addColorStop(1, `rgba(74, 144, 226, 0)`);
+                    } else {
+                        // 暗环 - 几乎透明，突出明暗对比
+                        const maxAlpha = params.brightness * 0.05;
+                        gradient.addColorStop(0, `rgba(74, 144, 226, ${maxAlpha})`);
+                        gradient.addColorStop(1, `rgba(74, 144, 226, 0)`);
+                    }
+                    
+                    fullDiffractionCtx.beginPath();
+                    fullDiffractionCtx.arc(centerX, centerY, outerRadius, 0, Math.PI * 2);
+                    fullDiffractionCtx.fillStyle = gradient;
+                    fullDiffractionCtx.fill();
+                }
+            }
+            
+            // 绘制中央亮斑 (艾里斑)
+            const airyDiskRadius = minimaPositions[0] || diffractionScale; // 第一极小值位置
+            if (airyDiskRadius > 0) {
+                const centralGlow = fullDiffractionCtx.createRadialGradient(
+                    centerX, centerY, 0,
+                    centerX, centerY, airyDiskRadius
+                );
+                // 艾里斑的强度分布，中心最亮，向外递减
+                centralGlow.addColorStop(0, `rgba(255, 255, 100, ${params.brightness * 0.9})`);
+                centralGlow.addColorStop(0.5, `rgba(255, 215, 0, ${params.brightness * 0.7})`);
+                centralGlow.addColorStop(0.8, `rgba(255, 165, 0, ${params.brightness * 0.4})`);
+                centralGlow.addColorStop(1, `rgba(255, 100, 0, 0)`);
+                
+                fullDiffractionCtx.beginPath();
+                fullDiffractionCtx.arc(centerX, centerY, airyDiskRadius, 0, Math.PI * 2);
+                fullDiffractionCtx.fillStyle = centralGlow;
+                fullDiffractionCtx.fill();
+            }
+        }
+        
+        // 主动画循环
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制实验装置
+            drawSetup();
+            
+            // 更新和绘制电子
+            for (let i = electrons.length - 1; i >= 0; i--) {
+                electrons[i].update();
+                electrons[i].draw();
+                
+                // 移除不活跃的电子
+                if (!electrons[i].active) {
+                    electrons.splice(i, 1);
+                }
+            }
+            
+            // 绘制光屏上的衍射图样（实际撞击点）
+            drawScreenDiffractionPattern();
+            
+            // 绘制完整的衍射图样（理论图样）
+            drawFullDiffractionPattern();
+            
+            // 根据强度参数随机发射新电子
+            const params = getParameters();
+            const emissionRate = params.intensity / 10;
+            
+            if (isRunning && Math.random() < emissionRate / 100) {
+                electrons.push(new Electron());
+            }
+            
+            if (isRunning) {
+                animationId = requestAnimationFrame(animate);
+            }
+        }
+        
+        // 事件监听器
+        startBtn.addEventListener('click', () => {
+            if (!isRunning) {
+                isRunning = true;
+                if (!animationId) {
+                    animate();
+                }
+            }
+        });
+        
+        pauseBtn.addEventListener('click', () => {
+            isRunning = false;
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+        });
+        
+        resetBtn.addEventListener('click', () => {
+            isRunning = false;
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            electrons = [];
+            electronCount = 0;
+            electronCountEl.textContent = electronCount;
+            // 清空屏幕撞击点
+            window.screenImpacts = [];
+        });
+        
+        // 初始化显示
+        updateDisplayValues();
+        
+        // 更新衍射环显示
+        function updateDiffractionInfo() {
+            const params = getParameters();
+            // 根据波长和孔径比例计算可见衍射环数量
+            // 第一极小值角度 θ = 1.22λ/D，对于小角度近似
+            const diffractionAngle = 1.22 * params.wavelength / params.aperture;
+            // 更合理的计算方法：根据衍射角大小估算可见环数
+            const theoreticalRings = Math.min(5, Math.floor(1.0 / (diffractionAngle + 0.1))); // 避免除零
+            diffractionRingsEl.textContent = theoreticalRings > 0 ? theoreticalRings : 1;
+        }
+        
+        // 每秒更新一次衍射环信息
+        setInterval(updateDiffractionInfo, 1000);
+        
+        // 知识检测功能
+        // 题库
+        const quizQuestions = [
+            {
+                question: "德布罗意波长公式是什么？",
+                options: [
+                    "λ = mv/p",
+                    "λ = h/p",
+                    "λ = hp",
+                    "λ = m/v"
+                ],
+                correctAnswer: 1,
+                explanation: "德布罗意波长公式为 λ = h/p，其中h是普朗克常数，p是粒子动量。"
+            },
+            {
+                question: "电子圆孔衍射中，第一极小值的角度公式是什么？",
+                options: [
+                    "θ = λ/D",
+                    "θ = 2.44λ/D",
+                    "θ = 1.22λ/D",
+                    "θ = 0.5λ/D"
+                ],
+                correctAnswer: 2,
+                explanation: "圆孔衍射第一极小值角度公式为 θ = 1.22λ/D，这是艾里斑的边界。"
+            },
+            {
+                question: "当电子加速电压增大时，衍射现象会如何变化？",
+                options: [
+                    "衍射现象更明显",
+                    "衍射现象减弱",
+                    "衍射现象不变",
+                    "衍射现象消失"
+                ],
+                correctAnswer: 1,
+                explanation: "加速电压增大，电子动量增大，德布罗意波长减小，衍射角减小，衍射现象减弱。"
+            },
+            {
+                question: "什么是波粒二象性？",
+                options: [
+                    "粒子只能表现出波动性",
+                    "波只能表现出粒子性",
+                    "微观粒子既具有波动性又具有粒子性",
+                    "宏观物体具有波动性"
+                ],
+                correctAnswer: 2,
+                explanation: "波粒二象性是指微观粒子（如电子）既具有波动性又具有粒子性。"
+            },
+            {
+                question: "艾里斑是指什么？",
+                options: [
+                    "衍射图样中的暗环",
+                    "衍射图样中的中央亮斑",
+                    "衍射图样中的第二亮环",
+                    "衍射图样中的第三亮环"
+                ],
+                correctAnswer: 1,
+                explanation: "艾里斑是圆孔衍射图样中的中央亮斑，是衍射图样的零级条纹。"
+            }
+        ];
+        
+        // 问卷状态
+        let currentQuestionIndex = 0;
+        let userAnswers = new Array(quizQuestions.length).fill(null);
+        let isQuizCompleted = false;
+        
+        // 显示题目
+        function displayQuestion(index) {
+            const question = quizQuestions[index];
+            let optionsHtml = '';
+            
+            question.options.forEach((option, i) => {
+                const isSelected = userAnswers[index] === i;
+                optionsHtml += `
+                    <label class="quiz-option ${isSelected ? 'selected' : ''}" onclick="selectOption(${i})">
+                        <input type="radio" name="question${index}" value="${i}" style="display:none;" ${isSelected ? 'checked' : ''}>
+                        ${String.fromCharCode(65 + i)}. ${option}
+                    </label>
+                `;
+            });
+            
+            quizContent.innerHTML = `
+                <div class="quiz-question">
+                    <h3>${index + 1}. ${question.question}</h3>
+                    <div class="quiz-options">
+                        ${optionsHtml}
+                    </div>
+                </div>
+            `;
+            
+            // 更新进度
+            quizProgress.textContent = `第 ${index + 1} 题，共 ${quizQuestions.length} 题`;
+            
+            // 控制按钮显示
+            prevQuestionBtn.style.display = index > 0 ? 'inline-block' : 'none';
+            nextQuestionBtn.style.display = index < quizQuestions.length - 1 ? 'inline-block' : 'none';
+            submitQuizBtn.style.display = index === quizQuestions.length - 1 ? 'inline-block' : 'none';
+        }
+        
+        // 选择选项
+        function selectOption(optionIndex) {
+            userAnswers[currentQuestionIndex] = optionIndex;
+            displayQuestion(currentQuestionIndex);
+        }
+        
+        // 下一题
+        function goToNextQuestion() {
+            if (currentQuestionIndex < quizQuestions.length - 1) {
+                currentQuestionIndex++;
+                displayQuestion(currentQuestionIndex);
+            }
+        }
+        
+        // 上一题
+        function goToPrevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                displayQuestion(currentQuestionIndex);
+            }
+        }
+        
+        // 提交问卷
+        function submitQuiz() {
+            // 检查是否所有题目都已回答
+            const unanswered = userAnswers.filter(answer => answer === null).length;
+            if (unanswered > 0) {
+                if (confirm(`您还有 ${unanswered} 道题未作答，确定要提交吗？`)) {
+                    calculateResults();
+                }
+            } else {
+                calculateResults();
+            }
+        }
+        
+        // 计算结果
+        function calculateResults() {
+            let correctCount = 0;
+            let incorrectIndices = [];
+            
+            for (let i = 0; i < quizQuestions.length; i++) {
+                if (userAnswers[i] === quizQuestions[i].correctAnswer) {
+                    correctCount++;
+                } else {
+                    incorrectIndices.push(i);
+                }
+            }
+            
+            // 显示结果
+            correctCountSpan.textContent = correctCount;
+            totalCountSpan.textContent = quizQuestions.length;
+            resultContainer.style.display = 'block';
+            
+            // 生成学情分析
+            const scorePercentage = (correctCount / quizQuestions.length) * 100;
+            let analysis = '';
+            let recommendations = '';
+            
+            if (scorePercentage >= 80) {
+                analysis = `恭喜！您获得了 ${scorePercentage}% 的高分，对电子衍射概念掌握扎实。`;
+                recommendations = `
+                    <p>继续保持深入学习的热情！您可以：</p>
+                    <ul>
+                        <li>探索更复杂的量子力学概念</li>
+                        <li>研究其他类型的衍射现象</li>
+                        <li>了解电子显微镜的实际应用</li>
+                    </ul>
+                `;
+            } else if (scorePercentage >= 60) {
+                analysis = `您的得分为 ${scorePercentage}%，对基础知识有一定了解，但仍有提升空间。`;
+                recommendations = `
+                    <p>建议加强以下知识点的学习：</p>
+                    <ul>
+                        <li>回顾德布罗意波长公式的推导和应用</li>
+                        <li>深入理解波粒二象性概念</li>
+                        <li>练习衍射角度的计算</li>
+                    </ul>
+                `;
+            } else {
+                analysis = `您的得分为 ${scorePercentage}%，需要加强对电子衍射基本概念的理解。`;
+                recommendations = `
+                    <p>建议从基础开始巩固：</p>
+                    <ul>
+                        <li>重新观看本实验演示</li>
+                        <li>重点学习德布罗意假说和波粒二象性</li>
+                        <li>复习衍射现象的基本原理</li>
+                        <li>多做相关练习题加深理解</li>
+                    </ul>
+                `;
+            }
+            
+            // 添加错题分析
+            if (incorrectIndices.length > 0) {
+                analysis += `<br><br>您在以下题目上需要加强：<br>`;
+                incorrectIndices.forEach(idx => {
+                    analysis += `• 第${idx + 1}题: ${quizQuestions[idx].question}<br>`;
+                });
+            }
+            
+            analysisText.innerHTML = analysis;
+            recommendationsDiv.innerHTML = recommendations;
+            analysisContainer.style.display = 'block';
+            
+            // 隐藏题目导航，只保留关闭按钮
+            prevQuestionBtn.style.display = 'none';
+            nextQuestionBtn.style.display = 'none';
+            submitQuizBtn.style.display = 'none';
+        }
+        
+        // 打开知识检测
+        quizBtn.addEventListener('click', () => {
+            currentQuestionIndex = 0;
+            userAnswers = new Array(quizQuestions.length).fill(null);
+            isQuizCompleted = false;
+            
+            resultContainer.style.display = 'none';
+            analysisContainer.style.display = 'none';
+            quizOverlay.style.display = 'flex';
+            displayQuestion(currentQuestionIndex);
+        });
+        
+        // 关闭知识检测
+        closeQuizBtn.addEventListener('click', () => {
+            quizOverlay.style.display = 'none';
+        });
+        
+        // 导航按钮事件
+        nextQuestionBtn.addEventListener('click', goToNextQuestion);
+        prevQuestionBtn.addEventListener('click', goToPrevQuestion);
+        submitQuizBtn.addEventListener('click', submitQuiz);
+        
+        // 点击遮罩层关闭
+        quizOverlay.addEventListener('click', (e) => {
+            if (e.target === quizOverlay) {
+                quizOverlay.style.display = 'none';
+            }
+        });
+        
+
+    </script>
+</body>
+</html>

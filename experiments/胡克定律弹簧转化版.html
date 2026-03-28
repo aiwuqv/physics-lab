@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>胡克定律动画讲解</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f8ff;
+            line-height: 1.6;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #4a90e2;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .demo-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .spring-animation {
+            width: 100%;
+            height: 350px;
+            position: relative;
+            background: #f9f9f9;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .ceiling {
+            width: 100%;
+            height: 20px;
+            background: #8B7355;
+            position: absolute;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .spring-wrapper {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            top: 20px;
+            width: 50px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        #spring {
+            width: 30px;
+            height: 180px;
+            position: relative;
+            transition: height 0.5s ease;
+            overflow: visible;
+        }
+        
+        .spring-coil {
+            position: absolute;
+            left: 0;
+            width: 30px;
+            height: 12px;
+            border-radius: 50%;
+            border: 3px solid #3498db;
+            box-sizing: border-box;
+        }
+        
+        .weight {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 60px;
+            background: linear-gradient(to bottom, #34495e, #2c3e50);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            border-radius: 5px;
+            top: 200px;
+            transition: top 0.5s ease;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+            z-index: 5;
+        }
+        
+        .controls {
+            margin-top: 20px;
+        }
+        
+        .control-group {
+            margin: 15px 0;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: #e0e0e0;
+            outline: none;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 10px 15px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            flex: 1;
+            font-weight: bold;
+        }
+        
+        button:hover {
+            background: #2980b9;
+        }
+        
+        .reset-btn {
+            background: #e74c3c;
+        }
+        
+        .reset-btn:hover {
+            background: #c0392b;
+        }
+        
+        .law-display {
+            background: #e8f4fc;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #3498db;
+        }
+        
+        .formula {
+            font-size: 24px;
+            text-align: center;
+            color: #2c3e50;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        
+        .data-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        
+        table th, table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        
+        table th {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .chart-container {
+            width: 100%;
+            height: 300px;
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        canvas {
+            width: 100%;
+            height: 100%;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: white;
+        }
+        
+        .exercise-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .exercise {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        
+        .exercise h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        .options {
+            margin: 15px 0;
+        }
+        
+        .option {
+            padding: 10px;
+            border: 1px solid #ddd;
+            margin: 8px 0;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        
+        .option:hover {
+            background: #f0f7ff;
+            border-color: #3498db;
+        }
+        
+        .option.selected {
+            background: #d4edff;
+            border-color: #3498db;
+        }
+        
+        .option.correct {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+        
+        .option.incorrect {
+            background: #f8d7da;
+            border-color: #dc3545;
+        }
+        
+        .feedback {
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        
+        .correct-feedback {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .incorrect-feedback {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .current-data {
+            background: #e8f4fc;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        
+        .displacement-line {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            background: rgba(46, 204, 113, 0.8);
+            top: 200px;
+            z-index: 1;
+        }
+        
+        .displacement-label {
+            position: absolute;
+            background: rgba(46, 204, 113, 0.9);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            left: calc(50% + 10px);
+            z-index: 2;
+        }
+        
+        .original-length-line {
+            position: absolute;
+            left: 60px;
+            right: 60px;
+            height: 2px;
+            background: rgba(52, 152, 219, 0.5);
+            top: 200px;
+            z-index: 1;
+        }
+        
+        .original-length-label {
+            position: absolute;
+            background: rgba(52, 152, 219, 0.8);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            right: 60px;
+            top: 190px;
+            z-index: 2;
+        }
+        
+        .chart-title {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .force-indicator {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            text-align: center;
+            background: rgba(231, 76, 60, 0.9);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 14px;
+            z-index: 6;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <header>
+        <h1>胡克定律动画讲解</h1>
+        <p>弹簧弹力F与弹簧伸长量Δx的正比例关系</p>
+    </header>
+    
+    <div class="demo-container">
+        <h2>动画演示</h2>
+        <div class="spring-animation">
+            <div class="ceiling"></div>
+            <div class="spring-wrapper">
+                <div id="spring">
+                    <!-- 弹簧线圈将由JavaScript动态生成 -->
+                </div>
+            </div>
+            <div class="weight" id="weight">100 g</div>
+            
+            <div class="original-length-line"></div>
+            <div class="original-length-label">原长 L₀ = 0.20 m</div>
+            
+            <div class="displacement-line" id="displacementLine" style="height: 0px; display: none;"></div>
+            <div class="displacement-label" id="displacementLabel" style="display: none;">伸长量 Δx</div>
+            
+            <div class="force-indicator" id="forceIndicator" style="display: none; top: 120px;">弹力 F = 0 N</div>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label>悬挂质量: <span id="massValue">100</span> g</label>
+                <input type="range" id="massSlider" min="0" max="300" value="100" step="10">
+            </div>
+            
+            <div class="control-group">
+                <label>劲度系数: <span id="kValue">50</span> N/m</label>
+                <input type="range" id="kSlider" min="20" max="200" value="50" step="5">
+            </div>
+            
+            <div class="current-data" id="currentData">
+                当前数据：弹力 F = 0.98 N，伸长量 Δx = 0.020 m
+            </div>
+            
+            <div class="button-group">
+                <button id="resetBtn" class="reset-btn">重置</button>
+                <button id="demoBtn">自动演示</button>
+                <button id="addDataBtn">记录数据</button>
+                <button id="clearDataBtn">清空数据</button>
+                <button id="showForceBtn">显示力</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="data-container">
+        <h2>胡克定律</h2>
+        
+        <div class="law-display">
+            <div class="formula" id="formula">F = k · Δx</div>
+            <p>其中：</p>
+            <ul>
+                <li><strong>F</strong> = 弹簧的弹力 (N)</li>
+                <li><strong>k</strong> = 弹簧的劲度系数 (N/m)</li>
+                <li><strong>Δx</strong> = 弹簧的伸长量 (m)，Δx = L - L₀</li>
+            </ul>
+            <p>在弹性限度内，弹簧弹力F与弹簧伸长量Δx成正比。</p>
+        </div>
+        
+        <h3>实验数据记录</h3>
+        <table id="dataTable">
+            <thead>
+                <tr>
+                    <th>序号</th>
+                    <th>质量 (g)</th>
+                    <th>弹力 F (N)</th>
+                    <th>伸长量 Δx (m)</th>
+                </tr>
+            </thead>
+            <tbody id="dataTableBody">
+                <!-- 数据将动态添加 -->
+            </tbody>
+        </table>
+        
+        <h3>F-Δx 关系图像</h3>
+        <div class="chart-container">
+            <div class="chart-title">F = k·Δx 关系图像</div>
+            <canvas id="chart"></canvas>
+        </div>
+    </div>
+    
+    <div class="exercise-container">
+        <h2>胡克定律习题</h2>
+        
+        <div class="exercise">
+            <h3>习题1：基本概念</h3>
+            <p>胡克定律的表达式是：</p>
+            <div class="options" id="exercise1Options">
+                <div class="option" data-answer="A">A. F = k/Δx</div>
+                <div class="option" data-answer="B">B. F = k·Δx</div>
+                <div class="option" data-answer="C">C. F = Δx/k</div>
+                <div class="option" data-answer="D">D. F = k + Δx</div>
+            </div>
+            <div class="feedback" id="exercise1Feedback"></div>
+            <button onclick="checkExercise(1)">提交答案</button>
+        </div>
+        
+        <div class="exercise">
+            <h3>习题2：计算应用</h3>
+            <p>一根弹簧原长0.20m，劲度系数k=100N/m。当悬挂一个质量为200g的物体时，弹簧伸长量是多少？(g=10m/s²)</p>
+            <div class="options" id="exercise2Options">
+                <div class="option" data-answer="A">A. 0.02 m</div>
+                <div class="option" data-answer="B">B. 0.04 m</div>
+                <div class="option" data-answer="C">C. 0.06 m</div>
+                <div class="option" data-answer="D">D. 0.08 m</div>
+            </div>
+            <div class="feedback" id="exercise2Feedback"></div>
+            <button onclick="checkExercise(2)">提交答案</button>
+        </div>
+        
+        <div class="exercise">
+            <h3>习题3：综合理解</h3>
+            <p>关于胡克定律，下列说法正确的是：</p>
+            <div class="options" id="exercise3Options">
+                <div class="option" data-answer="A">A. 胡克定律适用于所有材料的形变</div>
+                <div class="option" data-answer="B">B. 弹簧弹力方向总是与伸长方向相同</div>
+                <div class="option" data-answer="C">C. 劲度系数k与弹簧的材料、形状有关</div>
+                <div class="option" data-answer="D">D. 超过弹性限度后，胡克定律仍然成立</div>
+            </div>
+            <div class="feedback" id="exercise3Feedback"></div>
+            <button onclick="checkExercise(3)">提交答案</button>
+        </div>
+    </div>
+    
+    <footer>
+        <p>胡克定律动画演示 | 物理教学工具</p>
+        <p>提示：重力加速度 g = 9.8 m/s²，弹簧原长 L₀ = 0.20 m</p>
+    </footer>
+
+    <script>
+        // 初始化变量
+        let mass = 100; // 质量 (g)
+        let k = 50; // 劲度系数 (N/m)
+        let dataPoints = []; // 存储数据点
+        let isDemoRunning = false;
+        let demoInterval = null;
+        let showForce = false;
+        
+        // DOM元素
+        const massSlider = document.getElementById('massSlider');
+        const kSlider = document.getElementById('kSlider');
+        const massValue = document.getElementById('massValue');
+        const kValue = document.getElementById('kValue');
+        const weight = document.getElementById('weight');
+        const spring = document.getElementById('spring');
+        const displacementLine = document.getElementById('displacementLine');
+        const displacementLabel = document.getElementById('displacementLabel');
+        const formula = document.getElementById('formula');
+        const currentData = document.getElementById('currentData');
+        const dataTableBody = document.getElementById('dataTableBody');
+        const chartCanvas = document.getElementById('chart');
+        const forceIndicator = document.getElementById('forceIndicator');
+        const showForceBtn = document.getElementById('showForceBtn');
+        let ctx = null;
+        
+        // 初始化
+        function init() {
+            // 初始化Canvas上下文
+            ctx = chartCanvas.getContext('2d');
+            
+            // 初始化弹簧
+            initSpring();
+            
+            // 设置事件监听
+            setupEventListeners();
+            
+            // 更新物理
+            updatePhysics();
+            
+            // 初始化表格
+            updateDataTable();
+            
+            // 绘制初始图表
+            drawChart();
+        }
+        
+        // 初始化弹簧
+        function initSpring() {
+            spring.innerHTML = '';
+            
+            // 创建更逼真的弹簧线圈
+            const coils = 12;
+            const baseHeight = 180;
+            const coilSpacing = baseHeight / coils;
+            
+            for (let i = 0; i < coils; i++) {
+                const coil = document.createElement('div');
+                coil.className = 'spring-coil';
+                coil.style.top = `${i * coilSpacing}px`;
+                spring.appendChild(coil);
+            }
+            
+            spring.style.height = baseHeight + 'px';
+        }
+        
+        // 设置事件监听
+        function setupEventListeners() {
+            // 质量滑块
+            massSlider.addEventListener('input', function() {
+                mass = parseInt(this.value);
+                massValue.textContent = mass;
+                weight.textContent = mass + ' g'; // 更新动画中的质量显示
+                updatePhysics();
+            });
+            
+            // 劲度系数滑块
+            kSlider.addEventListener('input', function() {
+                k = parseInt(this.value);
+                kValue.textContent = k;
+                updatePhysics();
+            });
+            
+            // 重置按钮
+            document.getElementById('resetBtn').addEventListener('click', function() {
+                reset();
+            });
+            
+            // 自动演示按钮
+            document.getElementById('demoBtn').addEventListener('click', function() {
+                toggleDemo();
+            });
+            
+            // 记录数据按钮
+            document.getElementById('addDataBtn').addEventListener('click', function() {
+                addDataPoint();
+            });
+            
+            // 清空数据按钮
+            document.getElementById('clearDataBtn').addEventListener('click', function() {
+                clearData();
+            });
+            
+            // 显示力按钮
+            document.getElementById('showForceBtn').addEventListener('click', function() {
+                toggleForce();
+            });
+            
+            // 习题选项点击
+            document.querySelectorAll('.option').forEach(option => {
+                option.addEventListener('click', function() {
+                    // 移除同组其他选项的选中状态
+                    const options = this.parentNode.querySelectorAll('.option');
+                    options.forEach(opt => opt.classList.remove('selected'));
+                    
+                    // 添加当前选项的选中状态
+                    this.classList.add('selected');
+                });
+            });
+        }
+        
+        // 更新物理计算和显示
+        function updatePhysics() {
+            // 计算
+            const massKg = mass / 1000;
+            const gravityForce = massKg * 9.8;
+            const displacement = gravityForce / k;
+            
+            // 限制最大伸长量
+            const maxDisplacement = 0.12;
+            const actualDisplacement = Math.min(displacement, maxDisplacement);
+            const actualForce = k * actualDisplacement;
+            
+            // 更新弹簧高度
+            const springHeight = 180 + (actualDisplacement / maxDisplacement) * 100;
+            spring.style.height = springHeight + 'px';
+            
+            // 更新弹簧线圈位置
+            const coils = document.querySelectorAll('.spring-coil');
+            const coilSpacing = springHeight / coils.length;
+            coils.forEach((coil, i) => {
+                coil.style.top = `${i * coilSpacing}px`;
+            });
+            
+            // 更新重物位置
+            const weightTop = 200 + (actualDisplacement / maxDisplacement) * 100;
+            weight.style.top = weightTop + 'px';
+            
+            // 更新位移标记
+            if (mass > 0) {
+                const displacementPx = (actualDisplacement / maxDisplacement) * 100;
+                displacementLine.style.display = 'block';
+                displacementLine.style.height = displacementPx + 'px';
+                displacementLine.style.top = (200 - displacementPx) + 'px';
+                
+                displacementLabel.style.display = 'block';
+                displacementLabel.textContent = 'Δx = ' + actualDisplacement.toFixed(3) + ' m';
+                displacementLabel.style.top = (200 - displacementPx/2 - 15) + 'px';
+            } else {
+                displacementLine.style.display = 'none';
+                displacementLabel.style.display = 'none';
+            }
+            
+            // 更新力指示器
+            if (showForce && mass > 0) {
+                forceIndicator.style.display = 'block';
+                forceIndicator.textContent = `弹力 F = ${actualForce.toFixed(2)} N`;
+                forceIndicator.style.top = (120 + (actualDisplacement / maxDisplacement) * 50) + 'px';
+            } else {
+                forceIndicator.style.display = 'none';
+            }
+            
+            // 更新公式显示
+            formula.textContent = `F = k · Δx = ${k} × ${actualDisplacement.toFixed(3)} = ${actualForce.toFixed(2)} N`;
+            
+            // 更新当前数据显示
+            currentData.textContent = `当前数据：弹力 F = ${actualForce.toFixed(2)} N，伸长量 Δx = ${actualDisplacement.toFixed(3)} m`;
+            
+            // 绘制图表
+            drawChart();
+        }
+        
+        // 切换显示力
+        function toggleForce() {
+            showForce = !showForce;
+            showForceBtn.textContent = showForce ? '隐藏力' : '显示力';
+            updatePhysics();
+        }
+        
+        // 添加数据点
+        function addDataPoint() {
+            if (mass === 0) {
+                alert('请先设置质量（大于0）再记录数据！');
+                return;
+            }
+            
+            const massKg = mass / 1000;
+            const gravityForce = massKg * 9.8;
+            const displacement = gravityForce / k;
+            const actualDisplacement = Math.min(displacement, 0.12);
+            const actualForce = k * actualDisplacement;
+            
+            // 检查是否已存在相同质量的数据点
+            const existingIndex = dataPoints.findIndex(p => Math.abs(p.mass - mass) < 1);
+            
+            if (existingIndex === -1) {
+                // 添加新数据点
+                dataPoints.push({
+                    mass: mass,
+                    force: actualForce,
+                    displacement: actualDisplacement
+                });
+                
+                // 按质量排序
+                dataPoints.sort((a, b) => a.mass - b.mass);
+                
+                // 限制最多6个数据点
+                if (dataPoints.length > 6) {
+                    dataPoints.shift();
+                }
+                
+                // 更新数据表格
+                updateDataTable();
+                
+                // 绘制图表
+                drawChart();
+                
+                alert('数据记录成功！');
+            } else {
+                alert('已存在相同质量的数据点，请调整质量后再记录！');
+            }
+        }
+        
+        // 更新数据表格
+        function updateDataTable() {
+            let tableHTML = '';
+            
+            dataPoints.forEach((point, index) => {
+                tableHTML += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${point.mass}</td>
+                        <td>${point.force.toFixed(2)}</td>
+                        <td>${point.displacement.toFixed(3)}</td>
+                    </tr>
+                `;
+            });
+            
+            dataTableBody.innerHTML = tableHTML;
+            
+            // 如果表格为空，显示提示
+            if (dataPoints.length === 0) {
+                dataTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="4" style="text-align: center; color: #999; padding: 20px;">
+                            暂无数据，请使用"记录数据"按钮添加实验数据
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+        
+        // 清空数据
+        function clearData() {
+            if (dataPoints.length === 0) {
+                alert('当前没有数据可清空！');
+                return;
+            }
+            
+            if (confirm('确定要清空所有实验数据吗？')) {
+                dataPoints = [];
+                updateDataTable();
+                drawChart();
+                alert('数据已清空！');
+            }
+        }
+        
+        // 绘制图表
+        function drawChart() {
+            if (!ctx) return;
+            
+            // 清空画布
+            ctx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
+            
+            // 设置画布尺寸
+            chartCanvas.width = chartCanvas.offsetWidth;
+            chartCanvas.height = chartCanvas.offsetHeight;
+            
+            const width = chartCanvas.width;
+            const height = chartCanvas.height;
+            const margin = {top: 40, right: 40, bottom: 50, left: 60};
+            const chartWidth = width - margin.left - margin.right;
+            const chartHeight = height - margin.top - margin.bottom;
+            
+            // 确定数据范围
+            const maxX = Math.max(...dataPoints.map(p => p.displacement), 0.15, 0.001);
+            const maxY = Math.max(...dataPoints.map(p => p.force), 6, 0.01);
+            
+            // 绘制坐标轴
+            ctx.beginPath();
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            
+            // X轴
+            ctx.moveTo(margin.left, margin.top + chartHeight);
+            ctx.lineTo(margin.left + chartWidth, margin.top + chartHeight);
+            
+            // Y轴
+            ctx.moveTo(margin.left, margin.top);
+            ctx.lineTo(margin.left, margin.top + chartHeight);
+            
+            ctx.stroke();
+            
+            // 绘制坐标轴箭头
+            // X轴箭头
+            ctx.beginPath();
+            ctx.moveTo(margin.left + chartWidth, margin.top + chartHeight);
+            ctx.lineTo(margin.left + chartWidth - 10, margin.top + chartHeight - 5);
+            ctx.lineTo(margin.left + chartWidth - 10, margin.top + chartHeight + 5);
+            ctx.closePath();
+            ctx.fillStyle = '#333';
+            ctx.fill();
+            
+            // Y轴箭头
+            ctx.beginPath();
+            ctx.moveTo(margin.left, margin.top);
+            ctx.lineTo(margin.left - 5, margin.top + 10);
+            ctx.lineTo(margin.left + 5, margin.top + 10);
+            ctx.closePath();
+            ctx.fillStyle = '#333';
+            ctx.fill();
+            
+            // 绘制刻度
+            ctx.fillStyle = '#333';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            
+            // X轴刻度
+            for (let i = 0; i <= 5; i++) {
+                const x = margin.left + (i / 5) * chartWidth;
+                const value = (i / 5) * maxX;
+                
+                ctx.beginPath();
+                ctx.moveTo(x, margin.top + chartHeight - 5);
+                ctx.lineTo(x, margin.top + chartHeight + 5);
+                ctx.strokeStyle = '#666';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                
+                ctx.fillText(value.toFixed(2), x, margin.top + chartHeight + 20);
+            }
+            
+            // Y轴刻度
+            for (let i = 0; i <= 5; i++) {
+                const y = margin.top + chartHeight - (i / 5) * chartHeight;
+                const value = (i / 5) * maxY;
+                
+                ctx.beginPath();
+                ctx.moveTo(margin.left - 5, y);
+                ctx.lineTo(margin.left + 5, y);
+                ctx.strokeStyle = '#666';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                
+                ctx.textAlign = 'right';
+                ctx.fillText(value.toFixed(1), margin.left - 10, y + 4);
+                ctx.textAlign = 'center';
+            }
+            
+            // 绘制坐标轴标签
+            ctx.font = 'bold 14px Arial';
+            ctx.fillStyle = '#2c3e50';
+            ctx.fillText('伸长量 Δx (m)', margin.left + chartWidth/2, margin.top + chartHeight + 40);
+            
+            ctx.save();
+            ctx.translate(20, margin.top + chartHeight/2);
+            ctx.rotate(-Math.PI/2);
+            ctx.fillText('弹力 F (N)', 0, 0);
+            ctx.restore();
+            
+            // 绘制网格线
+            ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+            ctx.lineWidth = 0.5;
+            
+            // 垂直网格线
+            for (let i = 1; i < 5; i++) {
+                const x = margin.left + (i / 5) * chartWidth;
+                ctx.beginPath();
+                ctx.moveTo(x, margin.top);
+                ctx.lineTo(x, margin.top + chartHeight);
+                ctx.stroke();
+            }
+            
+            // 水平网格线
+            for (let i = 1; i < 5; i++) {
+                const y = margin.top + chartHeight - (i / 5) * chartHeight;
+                ctx.beginPath();
+                ctx.moveTo(margin.left, y);
+                ctx.lineTo(margin.left + chartWidth, y);
+                ctx.stroke();
+            }
+            
+            // 绘制理论线 (F = k·Δx)
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(231, 76, 60, 0.8)';
+            ctx.lineWidth = 2;
+            
+            for (let i = 0; i <= 100; i++) {
+                const x = (i / 100) * maxX;
+                const y = k * x;
+                
+                const plotX = margin.left + (x / maxX) * chartWidth;
+                const plotY = margin.top + chartHeight - (y / maxY) * chartHeight;
+                
+                if (i === 0) {
+                    ctx.moveTo(plotX, plotY);
+                } else {
+                    ctx.lineTo(plotX, plotY);
+                }
+            }
+            
+            ctx.stroke();
+            
+            // 绘制数据点
+            dataPoints.forEach(point => {
+                const plotX = margin.left + (point.displacement / maxX) * chartWidth;
+                const plotY = margin.top + chartHeight - (point.force / maxY) * chartHeight;
+                
+                ctx.beginPath();
+                ctx.arc(plotX, plotY, 6, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(52, 152, 219, 0.8)';
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(52, 152, 219, 1)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            });
+            
+            // 绘制图例
+            const legendX = margin.left + chartWidth - 150;
+            const legendY = margin.top + 20;
+            
+            // 理论线图例
+            ctx.fillStyle = 'rgba(231, 76, 60, 0.8)';
+            ctx.fillRect(legendX, legendY, 20, 3);
+            ctx.fillStyle = '#333';
+            ctx.font = '12px Arial';
+            ctx.fillText('理论线: F = k·Δx', legendX + 30, legendY + 8);
+            
+            // 数据点图例
+            ctx.beginPath();
+            ctx.arc(legendX + 10, legendY + 20, 4, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(52, 152, 219, 0.8)';
+            ctx.fill();
+            ctx.fillStyle = '#333';
+            ctx.fillText('实验数据点', legendX + 30, legendY + 23);
+            
+            // 如果数据点足够多，绘制回归线
+            if (dataPoints.length >= 2) {
+                // 计算线性回归
+                let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+                const n = dataPoints.length;
+                
+                dataPoints.forEach(point => {
+                    sumX += point.displacement;
+                    sumY += point.force;
+                    sumXY += point.displacement * point.force;
+                    sumX2 += point.displacement * point.displacement;
+                });
+                
+                const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+                const intercept = (sumY - slope * sumX) / n;
+                
+                // 绘制回归线
+                ctx.beginPath();
+                ctx.strokeStyle = 'rgba(46, 204, 113, 0.8)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                
+                const y1 = intercept;
+                const y2 = slope * maxX + intercept;
+                
+                const plotX1 = margin.left;
+                const plotY1 = margin.top + chartHeight - (y1 / maxY) * chartHeight;
+                const plotX2 = margin.left + chartWidth;
+                const plotY2 = margin.top + chartHeight - (y2 / maxY) * chartHeight;
+                
+                ctx.moveTo(plotX1, plotY1);
+                ctx.lineTo(plotX2, plotY2);
+                ctx.stroke();
+                
+                ctx.setLineDash([]);
+                
+                // 回归线图例
+                ctx.beginPath();
+                ctx.moveTo(legendX, legendY + 40);
+                ctx.lineTo(legendX + 20, legendY + 40);
+                ctx.strokeStyle = 'rgba(46, 204, 113, 0.8)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                ctx.fillStyle = '#333';
+                ctx.fillText('实验回归线', legendX + 30, legendY + 43);
+                
+                // 显示回归方程
+                ctx.fillStyle = 'rgba(46, 204, 113, 0.9)';
+                ctx.font = 'bold 12px Arial';
+                ctx.fillText(`实验斜率: ${slope.toFixed(2)} N/m`, margin.left + 10, margin.top + 20);
+            }
+        }
+        
+        // 重置
+        function reset() {
+            mass = 100;
+            k = 50;
+            showForce = false;
+            
+            massSlider.value = mass;
+            kSlider.value = k;
+            massValue.textContent = mass;
+            kValue.textContent = k;
+            weight.textContent = mass + ' g';
+            showForceBtn.textContent = '显示力';
+            
+            if (isDemoRunning) {
+                clearInterval(demoInterval);
+                isDemoRunning = false;
+                document.getElementById('demoBtn').textContent = '自动演示';
+            }
+            
+            updatePhysics();
+        }
+        
+        // 切换自动演示
+        function toggleDemo() {
+            if (isDemoRunning) {
+                clearInterval(demoInterval);
+                isDemoRunning = false;
+                document.getElementById('demoBtn').textContent = '自动演示';
+            } else {
+                isDemoRunning = true;
+                document.getElementById('demoBtn').textContent = '停止演示';
+                
+                let direction = 1;
+                let demoMass = 50;
+                
+                demoInterval = setInterval(() => {
+                    demoMass += 30 * direction;
+                    
+                    if (demoMass >= 250) direction = -1;
+                    if (demoMass <= 50) direction = 1;
+                    
+                    mass = demoMass;
+                    massSlider.value = mass;
+                    massValue.textContent = mass;
+                    weight.textContent = mass + ' g';
+                    updatePhysics();
+                }, 600);
+            }
+        }
+        
+        // 检查习题答案
+        function checkExercise(exerciseNum) {
+            const options = document.querySelectorAll(`#exercise${exerciseNum}Options .option`);
+            const feedback = document.getElementById(`exercise${exerciseNum}Feedback`);
+            
+            let selectedAnswer = '';
+            options.forEach(option => {
+                if (option.classList.contains('selected')) {
+                    selectedAnswer = option.getAttribute('data-answer');
+                }
+                option.classList.remove('correct', 'incorrect');
+            });
+            
+            if (!selectedAnswer) {
+                feedback.textContent = '请先选择一个答案！';
+                feedback.className = 'feedback incorrect-feedback';
+                feedback.style.display = 'block';
+                return;
+            }
+            
+            // 正确答案
+            const correctAnswers = {
+                1: 'B', // F = k·Δx
+                2: 'A', // F = mg = 0.2×10 = 2N, Δx = F/k = 2/100 = 0.02m
+                3: 'C'  // 劲度系数k与弹簧的材料、形状有关
+            };
+            
+            const isCorrect = selectedAnswer === correctAnswers[exerciseNum];
+            
+            // 显示正确/错误反馈
+            options.forEach(option => {
+                if (option.getAttribute('data-answer') === correctAnswers[exerciseNum]) {
+                    option.classList.add('correct');
+                } else if (option.classList.contains('selected')) {
+                    option.classList.add('incorrect');
+                }
+            });
+            
+            if (isCorrect) {
+                feedback.textContent = '✓ 回答正确！';
+                feedback.className = 'feedback correct-feedback';
+            } else {
+                feedback.textContent = '✗ 回答错误，请再思考一下！';
+                feedback.className = 'feedback incorrect-feedback';
+            }
+            
+            feedback.style.display = 'block';
+        }
+        
+        // 页面加载完成后初始化
+        window.onload = init;
+    </script>
+</body>
+</html>

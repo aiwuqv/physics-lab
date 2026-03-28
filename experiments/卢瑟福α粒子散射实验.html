@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>卢瑟福α粒子散射实验</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #000;
+            color: white;
+            font-family: Arial, sans-serif;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(0, 0, 30, 0.8);
+            border-radius: 10px;
+            padding: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #4A90E2;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            animation: glow 2s infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { text-shadow: 0 0 5px #fff, 0 0 10px #4A90E2; }
+            to { text-shadow: 0 0 10px #fff, 0 0 20px #4A90E2, 0 0 30px #4A90E2; }
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #6BABDF;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+        }
+        
+        .canvas-container {
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        canvas {
+            background-color: #111;
+            border: 2px solid #4A90E2;
+            border-radius: 10px;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            background: linear-gradient(to bottom, #4A90E2, #2C5AA0);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:hover {
+            background: linear-gradient(to bottom, #5A9FFF, #3C6AC0);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button.active {
+            background: linear-gradient(to bottom, #FF6B6B, #C0392B);
+            box-shadow: 0 0 15px rgba(255, 107, 107, 0.5);
+        }
+        
+        .info {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(100, 100, 150, 0.3);
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .physics-principles {
+            margin: 20px auto;
+            padding: 15px;
+            background: rgba(50, 100, 150, 0.4);
+            border-radius: 8px;
+            max-width: 1000px;
+        }
+        
+        .physics-principles h3 {
+            color: #4A90E2;
+            text-align: center;
+            margin-top: 0;
+            font-size: 1.5em;
+        }
+        
+        .principle {
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(80, 120, 160, 0.3);
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .principle:hover {
+            background: rgba(100, 140, 180, 0.4);
+            transform: translateX(5px);
+        }
+        
+        .principle h4 {
+            color: #6BABDF;
+            margin-top: 0;
+            font-size: 1.2em;
+        }
+        
+        .principle p {
+            margin: 8px 0;
+        }
+        
+        .principle strong {
+            color: #FFD700;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .stat-box {
+            background: rgba(74, 144, 226, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            min-width: 200px;
+            margin: 10px;
+        }
+        
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #4A90E2;
+        }
+        
+        .stat-label {
+            font-size: 1em;
+            color: #6BABDF;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <h1>卢瑟福α粒子散射实验</h1>
+        <p class="subtitle">探索原子内部结构的经典实验</p>
+        
+        <div class="controls">
+            <button id="startBtn">开始实验</button>
+            <button id="stopBtn">停止实验</button>
+            <button id="resetBtn">重置实验</button>
+            <button id="foilBtn" class="">放置/移除金箔</button>
+            <button id="quizBtn">知识检测</button>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-value" id="totalParticles">0</div>
+                <div class="stat-label">总粒子数</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="straightParticles">0</div>
+                <div class="stat-label">直线通过</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="smallAngleParticles">0</div>
+                <div class="stat-label">小角度偏转</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="largeAngleParticles">0</div>
+                <div class="stat-label">大角度偏转</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="backScatteredParticles">0</div>
+                <div class="stat-label">反向散射</div>
+            </div>
+        </div>
+        
+        <div class="canvas-container">
+            <canvas id="experimentCanvas" width="1000" height="600"></canvas>
+        </div>
+        
+        <div class="physics-principles">
+            <h3>实验原理与现象</h3>
+            <div class="principle">
+                <h4>1. 放射源与α粒子束</h4>
+                <p>放射源放出的α粒子从铅盒的小空中<strong>水平射出</strong>，形成很细的一束射线，射到圆形荧光屏上产生闪光。</p>
+            </div>
+            <div class="principle">
+                <h4>2. 金箔的作用</h4>
+                <p>放上金箔后，观察α粒子穿过金箔打到荧光屏上发出闪光，可以研究原子内部结构。</p>
+            </div>
+            <div class="principle">
+                <h4>3. 实验现象</h4>
+                <p>
+                    <strong>绝大多数α粒子</strong>穿过金箔后仍沿原方向前进<br>
+                    <strong>有少数α粒子</strong>发生了较大角度的偏转<br>
+                    <strong>极少数粒子</strong>偏转超过90度，几乎被撞了回来
+                </p>
+            </div>
+            <div class="principle">
+                <h4>4. 科学意义</h4>
+                <p>该实验推翻了汤姆孙的原子葡萄干布丁模型，证明了原子具有一个致密的原子核，从而建立了原子的核式结构模型。</p>
+            </div>
+            <div class="principle">
+                <h4>5. 操作说明</h4>
+                <p>
+                    <strong>开始/停止实验：</strong> 控制α粒子的发射<br>
+                    <strong>重置实验：</strong> 清空所有粒子和统计数据<br>
+                    <strong>放置/移除金箔：</strong> 观察有无金箔时的不同现象<br>
+                    <strong>键盘快捷键：</strong> 空格键开始/停止，R键重置，F键切换金箔<br>
+                    <strong>粒子发射速率：</strong> 调节滑块控制α粒子发射频率
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 获取Canvas元素和上下文
+        const canvas = document.getElementById('experimentCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 获取控制元素
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const foilBtn = document.getElementById('foilBtn');
+        const quizBtn = document.getElementById('quizBtn');
+        
+        // 统计元素
+        const totalParticlesEl = document.getElementById('totalParticles');
+        const straightParticlesEl = document.getElementById('straightParticles');
+        const smallAngleParticlesEl = document.getElementById('smallAngleParticles');
+        const largeAngleParticlesEl = document.getElementById('largeAngleParticles');
+        const backScatteredParticlesEl = document.getElementById('backScatteredParticles');
+        
+        // 实验参数
+        const PARTICLE_SPEED = 2;
+        const FOIL_THICKNESS = 40;
+        const FOIL_X = canvas.width / 2 - FOIL_THICKNESS / 2;
+        const FOIL_Y = canvas.height / 2 - 100;
+        const FOIL_HEIGHT = 200;
+        const SCREEN_RADIUS = 250;
+        const SCREEN_CENTER_X = canvas.width / 2;
+        const SCREEN_CENTER_Y = canvas.height / 2;
+        
+        // 实验状态
+        let isRunning = false;
+        let particles = [];
+        let hasFoil = false;
+        let animationId = null;
+        let stats = {
+            total: 0,
+            straight: 0,
+            smallAngle: 0,
+            largeAngle: 0,
+            backScattered: 0,
+            forwardScattered: 0,  // 偏转角度小于90度的粒子
+            backwardScattered: 0  // 偏转角度大于等于90度的粒子
+        };
+        
+        // α粒子类
+        class AlphaParticle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.startX = x;
+                this.startY = y;
+                this.vx = PARTICLE_SPEED;
+                this.vy = 0;
+                this.active = true;
+                this.hasHitFoil = false;
+                this.originalDirection = 'right'; // 初始方向
+                this.path = [{x: x, y: y}]; // 轨迹记录
+            }
+            
+            update() {
+                if (!this.active) return;
+                
+                // 更新位置
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                // 记录轨迹
+                if (Math.random() < 0.3) { // 不是每个位置都记录，减少数据量
+                    this.path.push({x: this.x, y: this.y});
+                }
+                
+                // 限制轨迹长度
+                if (this.path.length > 100) {
+                    this.path.shift();
+                }
+                
+                // 检查是否与金箔交互（如果有金箔）
+                if (hasFoil && !this.hasHitFoil) {
+                    if (this.x >= FOIL_X && this.x <= FOIL_X + FOIL_THICKNESS &&
+                        this.y >= FOIL_Y && this.y <= FOIL_Y + FOIL_HEIGHT) {
+                        
+                        this.interactWithFoil();
+                        this.hasHitFoil = true;
+                        
+                        // 更新统计数据
+                        // 计算偏转角度（相对于初始运动方向）
+                        const initialDirection = Math.atan2(0, PARTICLE_SPEED); // 初始方向是向右的
+                        const finalDirection = Math.atan2(this.vy, this.vx); // 最终方向
+                        let deflectionAngle = Math.abs(finalDirection - initialDirection);
+                        
+                        // 处理角度跨越-pi/pi边界的情况
+                        if (deflectionAngle > Math.PI) {
+                            deflectionAngle = 2 * Math.PI - deflectionAngle;
+                        }
+                        
+                        // 根据偏转角度分类统计
+                        if (deflectionAngle < Math.PI / 2) { // 小于90度
+                            stats.forwardScattered++;
+                        } else { // 大于等于90度
+                            stats.backwardScattered++;
+                        }
+                        
+                        // 同时保持原有分类统计
+                        if (Math.abs(this.vy) < 0.5) {
+                            stats.straight++;
+                        } else {
+                            // 根据偏转角度进一步分类
+                            // 计算偏转角度（相对于初始运动方向）
+                            const initialDirection = Math.atan2(0, PARTICLE_SPEED); // 初始方向是向右的
+                            const finalDirection = Math.atan2(this.vy, this.vx); // 最终方向
+                            let actualDeflectionAngle = Math.abs(finalDirection - initialDirection);
+                            
+                            // 处理角度跨越-pi/pi边界的情况
+                            if (actualDeflectionAngle > Math.PI) {
+                                actualDeflectionAngle = 2 * Math.PI - actualDeflectionAngle;
+                            }
+                            
+                            if (actualDeflectionAngle > Math.PI / 2) { // 大于90度，算作大角度偏转
+                                stats.largeAngle++;
+                            } else {
+                                stats.smallAngle++; // 小角度偏转
+                            }
+                        }
+                    }
+                }
+                
+                // 检查是否撞击荧光屏
+                const dx = this.x - SCREEN_CENTER_X;
+                const dy = this.y - SCREEN_CENTER_Y;
+                const distanceFromCenter = Math.sqrt(dx * dx + dy * dy);
+                
+                // 计算粒子相对于圆心的角度
+                let angle = Math.atan2(dy, dx);
+                if (angle < 0) angle += 2 * Math.PI;
+                
+                // 检查是否在荧光屏边界（排除小孔位置）
+                // 左侧小孔的角度大约在π（180度）左右
+                const holeCenterAngle = Math.PI; // 小孔中心在左侧
+                const holeHalfWidth = 0.05 * Math.PI; // 小孔半角宽度（与绘制时一致）
+                const holeStartAngle = holeCenterAngle - holeHalfWidth;
+                const holeEndAngle = holeCenterAngle + holeHalfWidth;
+                
+                // 检查粒子是否在小孔范围内
+                let isNearHole = false;
+                if (angle >= holeStartAngle && angle <= holeEndAngle) {
+                    isNearHole = true;
+                } else if (holeStartAngle < 0 && (angle >= (2 * Math.PI + holeStartAngle) || angle <= holeEndAngle)) {
+                    // 处理跨越0度边界的情况
+                    isNearHole = true;
+                }
+                
+                if (distanceFromCenter >= SCREEN_RADIUS - 5 && distanceFromCenter <= SCREEN_RADIUS + 5 && !isNearHole) {
+                    // 粒子撞击荧光屏，显示闪光效果
+                    this.onHitScreen(this.x, this.y);
+                    this.active = false; // 粒子撞击后消失
+                }
+                
+                // 检查是否超出画布边界（除了荧光屏区域）
+                if (this.x > canvas.width || this.x < 0 || this.y > canvas.height || this.y < 0) {
+                    if (distanceFromCenter > SCREEN_RADIUS + 5) { // 确保不是在荧光屏区域外
+                        this.active = false;
+                    }
+                }
+            }
+            
+            onHitScreen(x, y) {
+                // 在撞击点创建一个临时的闪光效果
+                const flash = {
+                    x: x,
+                    y: y,
+                    radius: 2,
+                    maxRadius: 8,
+                    alpha: 1,
+                    active: true
+                };
+                
+                // 添加到全局闪光数组中
+                if (!window.flashes) window.flashes = [];
+                window.flashes.push(flash);
+            }
+            
+            interactWithFoil() {
+                // 根据粒子与金箔中心的距离来决定散射角度
+                const distanceFromCenter = Math.abs(this.y - (FOIL_Y + FOIL_HEIGHT/2));
+                const normalizedDistance = distanceFromCenter / (FOIL_HEIGHT/2); // 0-1之间，0为中心，1为边缘
+                
+                // 根据距离计算散射概率 - 更符合真实物理
+                // 在真实实验中，只有极少数粒子接近金原子核，因此散射概率随距离急剧下降
+                const impactParameter = normalizedDistance; // 离金原子核的相对距离
+                
+                // 散射概率函数，模仿库仑散射
+                let scatterProbability = 0;
+                if (impactParameter < 0.05) {
+                    // 极近，极高散射概率
+                    scatterProbability = 0.8;
+                } else if (impactParameter < 0.1) {
+                    // 很近，高散射概率
+                    scatterProbability = 0.3;
+                } else if (impactParameter < 0.2) {
+                    // 较近，中等散射概率
+                    scatterProbability = 0.1;
+                } else if (impactParameter < 0.3) {
+                    // 中等距离，低散射概率
+                    scatterProbability = 0.02;
+                } else {
+                    // 远距离，极低散射概率
+                    scatterProbability = 0.005;
+                }
+                
+                let scatterType;
+                const rand = Math.random();
+                
+                if (rand < scatterProbability * 0.01) {
+                    // 极少数粒子反向散射（>90度）
+                    scatterType = 'back';
+                } else if (rand < scatterProbability * 0.1) {
+                    // 少数粒子大角度散射
+                    scatterType = 'large';
+                } else if (rand < scatterProbability) {
+                    // 更多粒子小角度散射
+                    scatterType = 'small';
+                } else {
+                    // 绝大多数粒子直线通过
+                    scatterType = 'straight';
+                }
+                
+                // 根据散射类型设置新的运动方向
+                switch(scatterType) {
+                    case 'straight':
+                        // 几乎直线通过（非常小的角度偏转）
+                        this.vy = (Math.random() - 0.5) * 0.1;
+                        break;
+                    case 'small':
+                        // 小角度偏转
+                        const smallAngle = (Math.random() - 0.5) * 0.5; // 小角度范围
+                        this.vy = Math.tan(smallAngle) * Math.abs(this.vx) * 0.8;
+                        break;
+                    case 'large':
+                        // 大角度偏转
+                        const largeAngle = (Math.random() - 0.5) * Math.PI * 1.2; // 大角度范围
+                        const speed = PARTICLE_SPEED * (0.7 + Math.random() * 0.3); // 保持大部分速度
+                        this.vx = Math.cos(largeAngle) * speed;
+                        this.vy = Math.sin(largeAngle) * speed;
+                        break;
+                    case 'back':
+                        // 反向散射（大于90度）
+                        const backAngle = (Math.random() - 0.5) * Math.PI * 0.8; // 反向附近的角度
+                        const backSpeed = PARTICLE_SPEED * (0.3 + Math.random() * 0.3); // 减速
+                        this.vx = Math.cos(backAngle + Math.PI) * backSpeed; // 加上PI使方向相反
+                        this.vy = Math.sin(backAngle + Math.PI) * backSpeed;
+                        break;
+                }
+            }
+            
+            draw() {
+                if (!this.active) return;
+                
+                // 根据散射类型选择不同的轨迹颜色
+                let trailColor;
+                if (this.hasHitFoil) {
+                    // 计算偏转角度大小
+                    const angle = Math.atan2(Math.abs(this.vy), Math.abs(this.vx));
+                    if (angle > Math.PI / 4) { // 大于45度
+                        trailColor = 'rgba(255, 50, 50, 0.5)'; // 红色表示大角度散射
+                    } else if (angle > Math.PI / 12) { // 大于15度
+                        trailColor = 'rgba(255, 165, 0, 0.4)'; // 橙色表示小角度散射
+                    } else {
+                        trailColor = 'rgba(255, 215, 0, 0.3)'; // 黄色表示几乎直线
+                    }
+                } else {
+                    trailColor = 'rgba(255, 215, 0, 0.3)'; // 未撞击前的轨迹
+                }
+                
+                // 绘制轨迹
+                ctx.beginPath();
+                ctx.moveTo(this.path[0].x, this.path[0].y);
+                for (let i = 1; i < this.path.length; i++) {
+                    ctx.lineTo(this.path[i].x, this.path[i].y);
+                }
+                ctx.strokeStyle = trailColor;
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+                
+                // 绘制粒子
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 4, 0, Math.PI * 2);
+                ctx.fillStyle = '#FFD700'; // 金色代表α粒子
+                ctx.fill();
+                
+                // 添加发光效果
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 7, 0, Math.PI * 2);
+                const gradient = ctx.createRadialGradient(
+                    this.x, this.y, 0,
+                    this.x, this.y, 7
+                );
+                gradient.addColorStop(0, 'rgba(255, 215, 0, 0.8)');
+                gradient.addColorStop(1, 'rgba(255, 215, 0, 0)');
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                
+                // 如果粒子已撞击金箔，在撞击点标记一个小圆圈
+                if (this.hasHitFoil && this.path.length > 0) {
+                    const hitPoint = this.path.find(point => {
+                        return point.x >= FOIL_X && point.x <= FOIL_X + FOIL_THICKNESS &&
+                               point.y >= FOIL_Y && point.y <= FOIL_Y + FOIL_HEIGHT;
+                    });
+                    if (hitPoint) {
+                        ctx.beginPath();
+                        ctx.arc(hitPoint.x, hitPoint.y, 6, 0, Math.PI * 2);
+                        ctx.strokeStyle = 'rgba(255, 0, 0, 0.6)';
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+        
+        // 绘制实验装置
+        function drawSetup() {
+            // 绘制放射源（铅盒）
+            ctx.fillStyle = '#8B4513'; // 棕色
+            ctx.fillRect(50, canvas.height/2 - 30, 40, 60);
+            
+            // 绘制放射源小孔
+            ctx.fillStyle = '#000';
+            ctx.fillRect(85, canvas.height/2 - 5, 10, 10);
+            
+            // 绘制放射源标签
+            ctx.fillStyle = '#FFF';
+            ctx.font = '16px Arial';
+            ctx.fillText('放射源', 55, canvas.height/2 - 40);
+            
+            // 绘制金箔
+            if (hasFoil) {
+                ctx.fillStyle = 'rgba(100, 100, 100, 0.6)'; // 半透明灰色
+                ctx.fillRect(FOIL_X, FOIL_Y, FOIL_THICKNESS, FOIL_HEIGHT);
+                
+                // 金箔标签
+                ctx.fillStyle = '#FFF';
+                ctx.save();
+                ctx.translate(FOIL_X + FOIL_THICKNESS/2, FOIL_Y + FOIL_HEIGHT/2);
+                ctx.rotate(-Math.PI/2);
+                ctx.textAlign = 'center';
+                ctx.fillText('金箔', 0, 0);
+                ctx.restore();
+            }
+            
+            // 绘制圆形荧光屏（带小孔）
+            ctx.beginPath();
+            
+            // 绘制荧光屏（在左侧留一个小孔）
+            const holeCenterAngle = Math.PI; // 小孔中心在左侧（180度）
+            const holeHalfWidth = 0.05 * Math.PI; // 小孔半角宽度（缩小了）
+            const holeStartAngle = holeCenterAngle - holeHalfWidth;
+            const holeEndAngle = holeCenterAngle + holeHalfWidth;
+            
+            // 绘制荧光屏，避开小孔区域
+            // 从holeEndAngle到holeStartAngle + 2*PI（绕一圈）
+            ctx.arc(SCREEN_CENTER_X, SCREEN_CENTER_Y, SCREEN_RADIUS, holeEndAngle, holeStartAngle + 2 * Math.PI, false);
+            
+            ctx.strokeStyle = '#4A90E2';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            // 荧光屏表面效果（同样留出小孔）
+            ctx.beginPath();
+            ctx.arc(SCREEN_CENTER_X, SCREEN_CENTER_Y, SCREEN_RADIUS, holeEndAngle, holeStartAngle + 2 * Math.PI, false);
+            
+            const gradient = ctx.createRadialGradient(
+                SCREEN_CENTER_X, SCREEN_CENTER_Y, SCREEN_RADIUS * 0.7,
+                SCREEN_CENTER_X, SCREEN_CENTER_Y, SCREEN_RADIUS
+            );
+            gradient.addColorStop(0, 'rgba(100, 200, 255, 0.1)');
+            gradient.addColorStop(1, 'rgba(74, 144, 226, 0.3)');
+            ctx.fillStyle = gradient;
+            ctx.fill();
+            
+            // 绘制小孔（黑色）
+            const holeX = SCREEN_CENTER_X - SCREEN_RADIUS * Math.cos(0); // 小孔在左侧中心
+            const holeY = SCREEN_CENTER_Y - SCREEN_RADIUS * Math.sin(0);
+            
+            ctx.beginPath();
+            ctx.arc(holeX, SCREEN_CENTER_Y, 4, 0, Math.PI * 2); // 小孔半径改为4（更小了）
+            ctx.fillStyle = '#000';
+            ctx.fill();
+            
+            // 小孔边框
+            ctx.beginPath();
+            ctx.arc(holeX, SCREEN_CENTER_Y, 4, 0, Math.PI * 2);
+            ctx.strokeStyle = '#4A90E2';
+            ctx.lineWidth = 1.5;  // 边框也相应缩小
+            ctx.stroke();
+            
+            // 荧光屏标签
+            ctx.fillStyle = '#4A90E2';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('圆形荧光屏', SCREEN_CENTER_X, SCREEN_CENTER_Y - SCREEN_RADIUS - 20);
+        }
+        
+        // 主动画循环
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制实验装置
+            drawSetup();
+            
+            // 更新和绘制粒子
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                particles[i].draw();
+                
+                // 移除不活跃的粒子
+                if (!particles[i].active) {
+                    particles.splice(i, 1);
+                }
+            }
+            
+            // 更新和绘制荧光屏上的闪光效果
+            updateAndDrawFlashes();
+            
+            // 随机生成新粒子
+            if (isRunning && Math.random() < particleRate) { // 使用可调节的发射速率
+                particles.push(new AlphaParticle(95, canvas.height/2)); // 从放射源小孔位置发射
+                stats.total++;
+            }
+            
+            // 更新统计信息显示
+            updateStatsDisplay();
+            
+            animationId = requestAnimationFrame(animate);
+        }
+        
+        // 更新和绘制荧光屏上的闪光效果
+        function updateAndDrawFlashes() {
+            if (!window.flashes) window.flashes = [];
+            
+            for (let i = window.flashes.length - 1; i >= 0; i--) {
+                const flash = window.flashes[i];
+                
+                // 更新闪光效果
+                flash.radius += 0.5;
+                flash.alpha -= 0.03;
+                
+                // 绘制闪光
+                ctx.beginPath();
+                ctx.arc(flash.x, flash.y, flash.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(0, 255, 0, ${flash.alpha})`;
+                ctx.fill();
+                
+                // 绘制发光外圈
+                ctx.beginPath();
+                ctx.arc(flash.x, flash.y, flash.radius + 2, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(100, 255, 100, ${flash.alpha * 0.5})`;
+                ctx.fill();
+                
+                // 移除已消失的闪光
+                if (flash.alpha <= 0) {
+                    window.flashes.splice(i, 1);
+                }
+            }
+        }
+        
+        // 添加粒子发射速率控制
+        let particleRate = 0.2; // 默认发射概率
+        
+        // 添加控制面板功能
+        function addControls() {
+            // 创建额外的控制UI
+            const controlsDiv = document.createElement('div');
+            controlsDiv.className = 'controls';
+            controlsDiv.style.marginTop = '10px';
+            controlsDiv.innerHTML = `
+                <label style="display: inline-block; margin: 0 10px;">
+                    粒子发射速率: 
+                    <input type="range" id="rateControl" min="0.05" max="0.5" step="0.05" value="${particleRate}" style="width: 150px; vertical-align: middle;">
+                    <span id="rateValue">${Math.round(particleRate * 100)}%</span>
+                </label>
+            `;
+            document.querySelector('.controls').appendChild(controlsDiv);
+            
+            // 绑定速率控制事件
+            document.getElementById('rateControl').addEventListener('input', function(e) {
+                particleRate = parseFloat(e.target.value);
+                document.getElementById('rateValue').textContent = Math.round(particleRate * 100) + '%';
+            });
+        }
+        
+        // 在初始化时添加控制
+        window.onload = function() {
+            addControls();
+            
+            // 添加说明提示
+            setTimeout(() => {
+                if (!hasFoil) {
+                    alert('欢迎使用卢瑟福α粒子散射实验模拟器！\n\n请先点击"放置金箔"按钮，然后点击"开始实验"按钮观察现象。');
+                }
+            }, 1000);
+        };
+        
+        // 更新统计信息显示
+        function updateStatsDisplay() {
+            totalParticlesEl.textContent = stats.total;
+            straightParticlesEl.textContent = stats.straight;
+            smallAngleParticlesEl.textContent = stats.smallAngle;
+            largeAngleParticlesEl.textContent = stats.largeAngle;
+            backScatteredParticlesEl.textContent = stats.backScattered;
+        }
+        
+        // 开始实验
+        startBtn.addEventListener('click', () => {
+            if (!isRunning) {
+                isRunning = true;
+                if (!animationId) {
+                    animate();
+                }
+            }
+        });
+        
+        // 停止实验
+        stopBtn.addEventListener('click', () => {
+            isRunning = false;
+        });
+        
+        // 重置实验
+        resetBtn.addEventListener('click', () => {
+            isRunning = false;
+            particles = [];
+            stats = {
+                total: 0,
+                straight: 0,
+                smallAngle: 0,
+                largeAngle: 0,
+                backScattered: 0,
+                forwardScattered: 0,  // 偏转角度小于90度的粒子
+                backwardScattered: 0  // 偏转角度大于等于90度的粒子
+            };
+            updateStatsDisplay();
+            
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+        });
+        
+        // 切换金箔
+        foilBtn.addEventListener('click', () => {
+            hasFoil = !hasFoil;
+            foilBtn.classList.toggle('active', hasFoil);
+            foilBtn.textContent = hasFoil ? '移除金箔' : '放置金箔';
+            
+            // 添加视觉反馈
+            if (hasFoil) {
+                alert('金箔已放置！现在可以观察α粒子与金箔的相互作用。');
+            } else {
+                alert('金箔已移除！此时α粒子将直线传播到荧光屏。');
+            }
+        });
+        
+        // 添加键盘快捷键支持
+        document.addEventListener('keydown', (event) => {
+            switch(event.key) {
+                case ' ': // 空格键控制开始/停止
+                    event.preventDefault();
+                    if (isRunning) {
+                        stopBtn.click();
+                    } else {
+                        startBtn.click();
+                    }
+                    break;
+                case 'r': // R键重置
+                case 'R':
+                    event.preventDefault();
+                    resetBtn.click();
+                    break;
+                case 'f': // F键切换金箔
+                case 'F':
+                    event.preventDefault();
+                    foilBtn.click();
+                    break;
+                case 'q': // Q键打开知识检测
+                case 'Q':
+                    event.preventDefault();
+                    document.getElementById('quizBtn').click();
+                    break;
+            }
+        });
+                
+        // 知识检测和学情分析功能
+                
+        // 为知识检测按钮添加事件监听器
+        quizBtn.addEventListener('click', function() {
+            // 创建遮罩层
+            var overlay = document.createElement('div');
+            overlay.id = 'quiz-overlay';
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100%';
+            overlay.style.height = '100%';
+            overlay.style.background = 'rgba(0, 0, 0, 0.8)';
+            overlay.style.display = 'flex';
+            overlay.style.justifyContent = 'center';
+            overlay.style.alignItems = 'center';
+            overlay.style.zIndex = '1000';
+            overlay.style.fontFamily = 'Arial, sans-serif';
+                    
+            // 创建测试容器
+            var quizContainer = document.createElement('div');
+            quizContainer.id = 'quiz-container';
+            quizContainer.style.background = 'white';
+            quizContainer.style.width = '80%';
+            quizContainer.style.maxWidth = '700px';
+            quizContainer.style.borderRadius = '10px';
+            quizContainer.style.padding = '20px';
+            quizContainer.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.5)';
+            quizContainer.style.position = 'relative';
+            quizContainer.style.maxHeight = '90vh';
+            quizContainer.style.overflowY = 'auto';
+                    
+            // 创建标题
+            var title = document.createElement('h2');
+            title.textContent = '卢瑟福α粒子散射实验知识检测';
+            title.style.color = '#4A90E2';
+            title.style.textAlign = 'center';
+            title.style.marginTop = '0';
+            title.style.borderBottom = '2px solid #4A90E2';
+            title.style.paddingBottom = '10px';
+                    
+            // 测试题目
+            var quizQuestions = [
+                {
+                    question: "卢瑟福α粒子散射实验中，绝大多数α粒子的运动情况是？",
+                    options: ["发生很大角度偏转", "被反弹回来", "穿过金箔继续沿原方向前进", "被吸收"],
+                    correct: 2,
+                    explanation: "实验结果显示，绝大多数α粒子穿过金箔后仍沿原方向前进，说明原子内部大部分是空的。"
+                },
+                {
+                    question: "在卢瑟福α粒子散射实验中，使α粒子发生大角度偏转的力是？",
+                    options: ["万有引力", "核力", "电磁力", "磁力"],
+                    correct: 2,
+                    explanation: "α粒子带正电，金原子核也带正电，两者间的库仑斥力（电磁力）使α粒子发生大角度偏转。"
+                },
+                {
+                    question: "卢瑟福α粒子散射实验的主要结论是什么？",
+                    options: ["发现了电子", "证实了原子的葡萄干布丁模型", "提出了原子的核式结构模型", "证明了原子不可再分"],
+                    correct: 2,
+                    explanation: "该实验推翻了汤姆孙的葡萄干布丁模型，证明了原子具有一个致密的原子核，建立了原子的核式结构模型。"
+                },
+                {
+                    question: "为什么只有少数α粒子会发生大角度偏转？",
+                    options: ["金原子数量太少", "α粒子能量太低", "原子核体积很小，很少有α粒子靠近", "金原子核带负电"],
+                    correct: 2,
+                    explanation: "原子核体积很小，大部分α粒子并不靠近原子核，所以只有极少数α粒子会受到强库仑斥力而大角度偏转。"
+                },
+                {
+                    question: "α粒子实际上是什么？",
+                    options: ["质子", "中子", "氦原子核", "电子"],
+                    correct: 2,
+                    explanation: "α粒子是由2个质子和2个中子组成的氦原子核。"
+                }
+            ];
+                    
+            // 创建题目容器
+            var questionsContainer = document.createElement('div');
+            questionsContainer.id = 'questions-container';
+                    
+            // 生成题目
+            quizQuestions.forEach(function(q, index) {
+                var questionDiv = document.createElement('div');
+                questionDiv.className = 'question-item';
+                questionDiv.style.marginBottom = '20px';
+                questionDiv.style.padding = '15px';
+                questionDiv.style.border = '1px solid #ddd';
+                questionDiv.style.borderRadius = '5px';
+                questionDiv.style.background = '#f9f9f9';
+                        
+                var qTitle = document.createElement('p');
+                qTitle.innerHTML = '<strong>' + (index + 1) + '. ' + q.question + '</strong>';
+                qTitle.style.margin = '0 0 10px 0';
+                qTitle.style.color = '#333';
+                        
+                var optionsContainer = document.createElement('div');
+                optionsContainer.style.marginLeft = '20px';
+                        
+                q.options.forEach(function(option, optIndex) {
+                    var optionDiv = document.createElement('div');
+                    optionDiv.style.marginBottom = '8px';
+                            
+                    var radio = document.createElement('input');
+                    radio.type = 'radio';
+                    radio.name = 'question-' + index;
+                    radio.value = optIndex;
+                    radio.id = 'q' + index + '-opt' + optIndex;
+                    radio.style.marginRight = '8px';
+                            
+                    var label = document.createElement('label');
+                    label.htmlFor = 'q' + index + '-opt' + optIndex;
+                    label.textContent = String.fromCharCode(65 + optIndex) + '. ' + option;
+                            
+                    optionDiv.appendChild(radio);
+                    optionDiv.appendChild(label);
+                    optionsContainer.appendChild(optionDiv);
+                });
+                        
+                questionDiv.appendChild(qTitle);
+                questionDiv.appendChild(optionsContainer);
+                questionsContainer.appendChild(questionDiv);
+            });
+                    
+            // 创建提交按钮
+            var submitBtn = document.createElement('button');
+            submitBtn.textContent = '提交答案';
+            submitBtn.style.background = 'linear-gradient(to bottom, #4A90E2, #2C5AA0)';
+            submitBtn.style.color = 'white';
+            submitBtn.style.border = 'none';
+            submitBtn.style.padding = '12px 24px';
+            submitBtn.style.fontSize = '16px';
+            submitBtn.style.borderRadius = '25px';
+            submitBtn.style.cursor = 'pointer';
+            submitBtn.style.display = 'block';
+            submitBtn.style.margin = '20px auto 0';
+                    
+            submitBtn.onclick = function() {
+                // 评估答案并显示学情分析
+                var score = 0;
+                var total = quizQuestions.length;
+                var results = [];
+                        
+                quizQuestions.forEach(function(q, index) {
+                    var selectedOption = document.querySelector('input[name="question-' + index + '"]:checked');
+                    if (selectedOption) {
+                        var userAnswer = parseInt(selectedOption.value);
+                        var isCorrect = userAnswer === q.correct;
+                        if (isCorrect) {
+                            score++;
+                        }
+                        results.push({
+                            questionIndex: index,
+                            userAnswer: userAnswer,
+                            correctAnswer: q.correct,
+                            isCorrect: isCorrect,
+                            explanation: q.explanation
+                        });
+                    } else {
+                        // 用户未选择答案，记为错误
+                        results.push({
+                            questionIndex: index,
+                            userAnswer: null,
+                            correctAnswer: q.correct,
+                            isCorrect: false,
+                            explanation: q.explanation
+                        });
+                    }
+                });
+                        
+                // 计算百分比
+                var percentage = Math.round((score / total) * 100);
+                        
+                // 清空容器
+                quizContainer.innerHTML = '';
+                        
+                // 创建结果标题
+                var resultTitle = document.createElement('h2');
+                resultTitle.textContent = '测试结果';
+                resultTitle.style.color = '#4A90E2';
+                resultTitle.style.textAlign = 'center';
+                resultTitle.style.marginTop = '0';
+                resultTitle.style.borderBottom = '2px solid #4A90E2';
+                resultTitle.style.paddingBottom = '10px';
+                        
+                // 创建得分显示
+                var scoreDiv = document.createElement('div');
+                scoreDiv.style.textAlign = 'center';
+                scoreDiv.style.fontSize = '24px';
+                scoreDiv.style.margin = '20px 0';
+                scoreDiv.style.color = percentage >= 60 ? '#27AE60' : '#E74C3C';
+                scoreDiv.style.fontWeight = 'bold';
+                        
+                scoreDiv.innerHTML = '你的得分: <span>' + score + '</span> / <span>' + total + '</span><br>正确率: <span>' + percentage + '%</span>';
+                        
+                // 创建学情分析
+                var analysisDiv = document.createElement('div');
+                analysisDiv.style.margin = '20px 0';
+                analysisDiv.style.padding = '15px';
+                analysisDiv.style.background = '#f0f8ff';
+                analysisDiv.style.borderRadius = '8px';
+                analysisDiv.style.borderLeft = '4px solid #4A90E2';
+                        
+                var analysisText = '<h3>学情分析与建议:</h3>';
+                if (percentage >= 80) {
+                    analysisText += '<p style="color: #2ecc71;">表现优秀！你对卢瑟福α粒子散射实验有很好的理解。</p>';
+                } else if (percentage >= 60) {
+                    analysisText += '<p style="color: #f39c12;">表现良好，但还有提升空间。建议复习实验的关键点。</p>';
+                } else {
+                    analysisText += '<p style="color: #e74c3c;">需要加强学习。建议重新观看实验演示并重点理解实验原理。</p>';
+                }
+                        
+                // 根据错误题目提供显眼颜色的建议
+                var wrongAnswers = results.filter(function(r) { return !r.isCorrect; });
+                if (wrongAnswers.length > 0) {
+                    analysisText += '<p><strong style="color: #e67e22;">需要重点关注的知识点：</strong></p><ul>';
+                    wrongAnswers.forEach(function(result) {
+                        var question = quizQuestions[result.questionIndex];
+                        analysisText += '<li style="color: #9b59b6;">' + question.question + '</li>';
+                    });
+                    analysisText += '</ul>';
+                }
+                        
+                analysisDiv.innerHTML = analysisText;
+                        
+                // 显示详细解析
+                var detailsDiv = document.createElement('div');
+                detailsDiv.style.marginTop = '20px';
+                detailsDiv.style.maxHeight = '300px';
+                detailsDiv.style.overflowY = 'auto';
+                        
+                results.forEach(function(result) {
+                    var detailItem = document.createElement('div');
+                    detailItem.style.marginBottom = '15px';
+                    detailItem.style.padding = '10px';
+                    detailItem.style.borderRadius = '5px';
+                    detailItem.style.background = result.isCorrect ? '#e8f5e9' : '#ffebee';
+                    detailItem.style.border = '1px solid ' + (result.isCorrect ? '#c8e6c9' : '#ffcdd2');
+                            
+                    var question = quizQuestions[result.questionIndex];
+                    var userAnswer = result.userAnswer !== null ? 
+                        String.fromCharCode(65 + result.userAnswer) : '未回答';
+                    var correctAnswer = String.fromCharCode(65 + result.correctAnswer);
+                            
+                    detailItem.innerHTML = '<p><strong>第' + (result.questionIndex + 1) + '题:</strong></p>' +
+                                          '<p>' + question.question + '</p>' +
+                                          '<p style="color: #3498db;">你的答案: ' + userAnswer + ' | 正确答案: ' + correctAnswer + '</p>' +
+                                          '<p><strong>解析:</strong> ' + question.explanation + '</p>';
+                            
+                    detailsDiv.appendChild(detailItem);
+                });
+                        
+                // 创建返回按钮
+                var backBtn = document.createElement('button');
+                backBtn.textContent = '返回实验';
+                backBtn.style.background = 'linear-gradient(to bottom, #4A90E2, #2C5AA0)';
+                backBtn.style.color = 'white';
+                backBtn.style.border = 'none';
+                backBtn.style.padding = '12px 24px';
+                backBtn.style.fontSize = '16px';
+                backBtn.style.borderRadius = '25px';
+                backBtn.style.cursor = 'pointer';
+                backBtn.style.display = 'block';
+                backBtn.style.margin = '20px auto 0';
+                        
+                backBtn.onclick = function() {
+                    var overlay = document.getElementById('quiz-overlay');
+                    if (overlay) {
+                        document.body.removeChild(overlay);
+                    }
+                };
+                        
+                // 添加元素到容器
+                quizContainer.appendChild(resultTitle);
+                quizContainer.appendChild(scoreDiv);
+                quizContainer.appendChild(analysisDiv);
+                quizContainer.appendChild(detailsDiv);
+                quizContainer.appendChild(backBtn);
+            };
+                    
+            // 创建关闭按钮
+            var closeBtn = document.createElement('button');
+            closeBtn.textContent = '关闭';
+            closeBtn.style.background = 'linear-gradient(to bottom, #FF6B6B, #C0392B)';
+            closeBtn.style.color = 'white';
+            closeBtn.style.border = 'none';
+            closeBtn.style.padding = '10px 20px';
+            closeBtn.style.fontSize = '14px';
+            closeBtn.style.borderRadius = '20px';
+            closeBtn.style.cursor = 'pointer';
+            closeBtn.style.display = 'block';
+            closeBtn.style.margin = '10px auto 0';
+                    
+            closeBtn.onclick = function() {
+                document.body.removeChild(overlay);
+            };
+                    
+            quizContainer.appendChild(title);
+            quizContainer.appendChild(questionsContainer);
+            quizContainer.appendChild(submitBtn);
+            quizContainer.appendChild(closeBtn);
+            overlay.appendChild(quizContainer);
+            document.body.appendChild(overlay);
+        });
+                
+        // 初始化画布
+        drawSetup();
+        updateStatsDisplay();
+    </script>
+</body>
+</html>

@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>交变电流动画演示 - 矩形线圈在匀强磁场中旋转</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            display: flex;
+            min-height: 100vh;
+            background-color: #f0f2f5;
+            color: #333;
+            padding: 20px;
+        }
+        
+        .container {
+            display: flex;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            gap: 20px;
+        }
+        
+        /* 左侧控制面板 */
+        .control-panel {
+            width: 300px;
+            background-color: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .panel-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+        
+        .panel-subtitle {
+            font-size: 14px;
+            color: #7f8c8d;
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .control-group {
+            margin-bottom: 25px;
+        }
+        
+        .control-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #34495e;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .control-title i {
+            margin-right: 8px;
+            color: #3498db;
+        }
+        
+        .slider-container {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .slider-label span {
+            font-size: 14px;
+            color: #555;
+        }
+        
+        .slider-value {
+            font-weight: 600;
+            color: #3498db;
+        }
+        
+        .slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: #e0e0e0;
+            outline: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3498db;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .slider::-webkit-slider-thumb:hover {
+            background: #2980b9;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 12px 5px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-secondary {
+            background-color: #ecf0f1;
+            color: #2c3e50;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #d5dbdb;
+        }
+        
+        .explanation {
+            background-color: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            border-radius: 0 6px 6px 0;
+            margin-top: 20px;
+        }
+        
+        .explanation h3 {
+            font-size: 16px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .explanation p {
+            font-size: 14px;
+            line-height: 1.5;
+            color: #555;
+        }
+        
+        /* 右侧演示区域 */
+        .demo-area {
+            flex: 1;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .demo-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .demo-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .demo-subtitle {
+            font-size: 15px;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        
+        .animation-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            min-height: 600px;
+        }
+        
+        .scene {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            perspective: 1200px;
+        }
+        
+        .magnetic-field {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .magnet {
+            position: absolute;
+            width: 60px;
+            height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 24px;
+            color: white;
+        }
+        
+        .n-pole {
+            left: calc(50% - 120px);
+            background-color: #e74c3c;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .s-pole {
+            right: calc(50% - 120px);
+            background-color: #3498db;
+            border-radius: 0 0 8px 8px;
+        }
+        
+        .axis {
+            position: absolute;
+            width: 500px;
+            height: 4px;
+            background-color: #333;
+            z-index: 5;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .coil-container {
+            position: absolute;
+            width: 300px;
+            height: 200px;
+            transform-style: preserve-3d;
+            transition: transform 0.1s linear;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .coil {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 4px solid #2ecc71;
+            border-radius: 8px;
+            transform-style: preserve-3d;
+        }
+        
+        .coil-side {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 3px solid #2ecc71;
+            border-radius: 6px;
+        }
+        
+        .current-indicator {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .current-direction {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 18px;
+            color: white;
+            z-index: 10;
+        }
+        
+        .current-positive {
+            background-color: #e74c3c;
+        }
+        
+        .current-negative {
+            background-color: #3498db;
+        }
+        
+        .magnetic-lines {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .info-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            min-width: 200px;
+        }
+        
+        .info-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .info-label {
+            font-size: 14px;
+            color: #555;
+        }
+        
+        .info-value {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .current-graph {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 300px;
+            height: 120px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .graph-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+        
+        .graph-canvas {
+            width: 100%;
+            height: calc(100% - 20px);
+        }
+        
+        .magnetic-label {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+        
+        .magnetic-line {
+            position: absolute;
+            height: 2px;
+            background: repeating-linear-gradient(90deg, #3498db, #3498db 5px, transparent 5px, transparent 10px);
+        }
+        
+        .magnet-label {
+            position: absolute;
+            bottom: 20px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .n-label {
+            left: calc(50% - 120px);
+            transform: translateX(-50%);
+        }
+        
+        .s-label {
+            right: calc(50% - 120px);
+            transform: translateX(50%);
+        }
+        
+        @media (max-width: 1100px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .control-panel {
+                width: 100%;
+            }
+            
+            .animation-container {
+                min-height: 500px;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <!-- 左侧控制面板 -->
+        <div class="control-panel">
+            <h1 class="panel-title">交变电流教学演示</h1>
+            <p class="panel-subtitle">矩形线圈在匀强磁场中旋转产生交变电流</p>
+            
+            <div class="control-group">
+                <div class="control-title">
+                    <i>↻</i> 旋转控制
+                </div>
+                
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>旋转角度</span>
+                        <span class="slider-value" id="angleValue">0°</span>
+                    </div>
+                    <input type="range" min="0" max="360" value="0" class="slider" id="angleSlider">
+                </div>
+                
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>旋转速度</span>
+                        <span class="slider-value" id="speedValue">中速</span>
+                    </div>
+                    <input type="range" min="1" max="5" value="3" class="slider" id="speedSlider">
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <div class="control-title">
+                    <i>⚙️</i> 线圈参数
+                </div>
+                
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>线圈宽度</span>
+                        <span class="slider-value" id="widthValue">300px</span>
+                    </div>
+                    <input type="range" min="200" max="400" value="300" class="slider" id="widthSlider">
+                </div>
+                
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>线圈高度</span>
+                        <span class="slider-value" id="heightValue">200px</span>
+                    </div>
+                    <input type="range" min="150" max="300" value="200" class="slider" id="heightSlider">
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <div class="control-title">
+                    <i>🧲</i> 磁场参数
+                </div>
+                
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>磁感应强度</span>
+                        <span class="slider-value" id="fieldValue">1.0 T</span>
+                    </div>
+                    <input type="range" min="5" max="20" value="10" class="slider" id="fieldSlider">
+                </div>
+                
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>磁极间距</span>
+                        <span class="slider-value" id="magnetGapValue">240px</span>
+                    </div>
+                    <input type="range" min="200" max="400" value="240" class="slider" id="magnetGapSlider">
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn btn-primary" id="playBtn">开始旋转</button>
+                <button class="btn btn-secondary" id="resetBtn">重置</button>
+            </div>
+            
+            <div class="explanation">
+                <h3>物理原理</h3>
+                <p>当矩形线圈在匀强磁场中绕垂直于磁场方向的轴匀速转动时，线圈两边切割磁感线，产生感应电动势。由于切割速度方向周期性变化，感应电动势和感应电流的大小、方向也做周期性变化，从而产生交变电流。线圈位于两磁极正中间时，磁通量变化最明显，产生的感应电动势最大。</p>
+            </div>
+        </div>
+        
+        <!-- 右侧演示区域 -->
+        <div class="demo-area">
+            <div class="demo-header">
+                <h2 class="demo-title">交变电流产生演示</h2>
+                <p class="demo-subtitle">矩形线圈在匀强磁场中旋转，感应电流大小和方向周期性变化</p>
+            </div>
+            
+            <div class="animation-container">
+                <div class="scene" id="scene">
+                    <div class="magnetic-label">匀强磁场方向：N → S</div>
+                    
+                    <!-- 磁场磁极 -->
+                    <div class="magnetic-field">
+                        <div class="magnet n-pole">N</div>
+                        <div class="magnet s-pole">S</div>
+                        <div class="magnet-label n-label">N极</div>
+                        <div class="magnet-label s-label">S极</div>
+                    </div>
+                    
+                    <!-- 磁感线 -->
+                    <div class="magnetic-lines" id="magneticLines"></div>
+                    
+                    <!-- 中轴线 -->
+                    <div class="axis" id="axis"></div>
+                    
+                    <!-- 线圈容器 -->
+                    <div class="coil-container" id="coilContainer">
+                        <div class="coil" id="coil"></div>
+                        <div class="current-indicator">
+                            <div class="current-direction current-positive" id="currentDirection">→</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 线圈位置指示器 -->
+                    <div class="coil-position-indicator" id="coilPositionIndicator">
+                        <div class="indicator-text">线圈位于两磁极正中间</div>
+                    </div>
+                    
+                    <!-- 信息面板 -->
+                    <div class="info-panel">
+                        <div class="info-title">实时数据</div>
+                        <div class="info-item">
+                            <span class="info-label">旋转角度：</span>
+                            <span class="info-value" id="currentAngle">0°</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">电流方向：</span>
+                            <span class="info-value" id="currentDirText">A→B→C→D→A</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">电流大小：</span>
+                            <span class="info-value" id="currentMagnitude">0.00 A</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">电动势：</span>
+                            <span class="info-value" id="emfValue">0.00 V</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">线圈位置：</span>
+                            <span class="info-value">两磁极正中间</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 电流变化图 -->
+                    <div class="current-graph">
+                        <div class="graph-title">感应电流随时间变化</div>
+                        <canvas class="graph-canvas" id="currentGraph"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 获取DOM元素
+        const angleSlider = document.getElementById('angleSlider');
+        const angleValue = document.getElementById('angleValue');
+        const speedSlider = document.getElementById('speedSlider');
+        const speedValue = document.getElementById('speedValue');
+        const widthSlider = document.getElementById('widthSlider');
+        const widthValue = document.getElementById('widthValue');
+        const heightSlider = document.getElementById('heightSlider');
+        const heightValue = document.getElementById('heightValue');
+        const fieldSlider = document.getElementById('fieldSlider');
+        const fieldValue = document.getElementById('fieldValue');
+        const magnetGapSlider = document.getElementById('magnetGapSlider');
+        const magnetGapValue = document.getElementById('magnetGapValue');
+        
+        const playBtn = document.getElementById('playBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        
+        const coilContainer = document.getElementById('coilContainer');
+        const coil = document.getElementById('coil');
+        const axis = document.getElementById('axis');
+        const currentDirection = document.getElementById('currentDirection');
+        const magneticLines = document.getElementById('magneticLines');
+        const nPole = document.querySelector('.n-pole');
+        const sPole = document.querySelector('.s-pole');
+        const nLabel = document.querySelector('.n-label');
+        const sLabel = document.querySelector('.s-label');
+        
+        const currentAngle = document.getElementById('currentAngle');
+        const currentDirText = document.getElementById('currentDirText');
+        const currentMagnitude = document.getElementById('currentMagnitude');
+        const emfValue = document.getElementById('emfValue');
+        
+        const currentGraph = document.getElementById('currentGraph');
+        const graphCtx = currentGraph.getContext('2d');
+        
+        // 动画状态
+        let isPlaying = false;
+        let animationId = null;
+        let currentRotation = 0;
+        let animationSpeed = 3; // 默认速度
+        let time = 0;
+        
+        // 线圈参数
+        let coilWidth = 300;
+        let coilHeight = 200;
+        let magneticFieldStrength = 1.0; // 特斯拉
+        let magnetGap = 240; // 磁极间距
+        
+        // 电流图数据
+        let currentData = [];
+        const maxDataPoints = 100;
+        
+        // 初始化
+        function init() {
+            updateCoilSize();
+            updateMagnetPositions();
+            updateAxis();
+            drawMagneticLines();
+            updateRotation();
+            drawCurrentGraph();
+            
+            // 事件监听
+            angleSlider.addEventListener('input', () => {
+                if (!isPlaying) {
+                    currentRotation = parseInt(angleSlider.value);
+                    updateRotation();
+                }
+            });
+            
+            speedSlider.addEventListener('input', () => {
+                animationSpeed = parseInt(speedSlider.value);
+                speedValue.textContent = 
+                    animationSpeed === 1 ? '极慢' : 
+                    animationSpeed === 2 ? '慢速' : 
+                    animationSpeed === 3 ? '中速' : 
+                    animationSpeed === 4 ? '快速' : '极速';
+                
+                if (isPlaying) {
+                    stopAnimation();
+                    startAnimation();
+                }
+            });
+            
+            widthSlider.addEventListener('input', () => {
+                coilWidth = parseInt(widthSlider.value);
+                widthValue.textContent = `${coilWidth}px`;
+                updateCoilSize();
+            });
+            
+            heightSlider.addEventListener('input', () => {
+                coilHeight = parseInt(heightSlider.value);
+                heightValue.textContent = `${coilHeight}px`;
+                updateCoilSize();
+            });
+            
+            fieldSlider.addEventListener('input', () => {
+                magneticFieldStrength = parseInt(fieldSlider.value) / 10;
+                fieldValue.textContent = `${magneticFieldStrength.toFixed(1)} T`;
+            });
+            
+            magnetGapSlider.addEventListener('input', () => {
+                magnetGap = parseInt(magnetGapSlider.value);
+                magnetGapValue.textContent = `${magnetGap}px`;
+                updateMagnetPositions();
+            });
+            
+            playBtn.addEventListener('click', () => {
+                if (isPlaying) {
+                    stopAnimation();
+                    playBtn.textContent = '开始旋转';
+                } else {
+                    startAnimation();
+                    playBtn.textContent = '暂停旋转';
+                }
+            });
+            
+            resetBtn.addEventListener('click', () => {
+                stopAnimation();
+                currentRotation = 0;
+                time = 0;
+                currentData = [];
+                angleSlider.value = 0;
+                angleValue.textContent = '0°';
+                playBtn.textContent = '开始旋转';
+                updateRotation();
+                drawCurrentGraph();
+            });
+        }
+        
+        // 更新磁铁位置
+        function updateMagnetPositions() {
+            nPole.style.left = `calc(50% - ${magnetGap/2}px)`;
+            sPole.style.right = `calc(50% - ${magnetGap/2}px)`;
+            nLabel.style.left = `calc(50% - ${magnetGap/2}px)`;
+            sLabel.style.right = `calc(50% - ${magnetGap/2}px)`;
+            drawMagneticLines();
+        }
+        
+        // 更新线圈大小
+        function updateCoilSize() {
+            coilContainer.style.width = `${coilWidth}px`;
+            coilContainer.style.height = `${coilHeight}px`;
+            coil.style.width = `${coilWidth}px`;
+            coil.style.height = `${coilHeight}px`;
+            updateAxis();
+        }
+        
+        // 更新中轴线
+        function updateAxis() {
+            const axisLength = Math.max(500, magnetGap + 100);
+            axis.style.width = `${axisLength}px`;
+        }
+        
+        // 绘制磁感线
+        function drawMagneticLines() {
+            magneticLines.innerHTML = '';
+            const lineCount = 15;
+            const sceneWidth = document.querySelector('.scene').offsetWidth;
+            const sceneHeight = document.querySelector('.scene').offsetHeight;
+            
+            // 计算磁铁中心位置
+            const magnetCenterX = sceneWidth / 2;
+            
+            for (let i = 0; i < lineCount; i++) {
+                const line = document.createElement('div');
+                line.className = 'magnetic-line';
+                
+                // 磁感线从N极到S极
+                const top = 50 + (i * (sceneHeight - 100) / lineCount);
+                const left = magnetCenterX - magnetGap/2;
+                const width = magnetGap;
+                
+                line.style.top = `${top}px`;
+                line.style.left = `${left}px`;
+                line.style.width = `${width}px`;
+                
+                magneticLines.appendChild(line);
+            }
+        }
+        
+        // 更新旋转
+        function updateRotation() {
+            // 更新线圈旋转
+            coilContainer.style.transform = `translate(-50%, -50%) rotateY(${currentRotation}deg)`;
+            
+            // 更新角度显示
+            angleValue.textContent = `${currentRotation}°`;
+            currentAngle.textContent = `${currentRotation}°`;
+            
+            // 计算感应电流
+            const angleInRadians = (currentRotation * Math.PI) / 180;
+            const emf = magneticFieldStrength * coilWidth/100 * coilHeight/100 * Math.sin(angleInRadians);
+            const current = emf * 2; // 假设电阻为0.5Ω
+            
+            // 更新电流方向显示
+            let directionText = "A→B→C→D→A";
+            let currentDirClass = "current-positive";
+            let currentSymbol = "→";
+            
+            if (Math.sin(angleInRadians) > 0) {
+                directionText = "A→B→C→D→A";
+                currentDirClass = "current-positive";
+                currentSymbol = "→";
+            } else if (Math.sin(angleInRadians) < 0) {
+                directionText = "A→D→C→B→A";
+                currentDirClass = "current-negative";
+                currentSymbol = "←";
+            } else {
+                directionText = "无电流";
+                currentDirClass = "current-positive";
+                currentSymbol = "○";
+            }
+            
+            currentDirection.className = `current-direction ${currentDirClass}`;
+            currentDirection.textContent = currentSymbol;
+            currentDirText.textContent = directionText;
+            
+            // 更新数值显示
+            currentMagnitude.textContent = `${Math.abs(current).toFixed(2)} A`;
+            emfValue.textContent = `${Math.abs(emf).toFixed(2)} V`;
+            
+            // 记录电流数据
+            if (isPlaying) {
+                currentData.push({
+                    time: time,
+                    current: current
+                });
+                
+                // 保持数据点数量
+                if (currentData.length > maxDataPoints) {
+                    currentData.shift();
+                }
+                
+                time += 0.1;
+                drawCurrentGraph();
+            }
+        }
+        
+        // 绘制电流图
+        function drawCurrentGraph() {
+            const width = currentGraph.width = currentGraph.offsetWidth;
+            const height = currentGraph.height = currentGraph.offsetHeight;
+            
+            // 清空画布
+            graphCtx.clearRect(0, 0, width, height);
+            
+            if (currentData.length < 2) return;
+            
+            // 设置坐标轴
+            graphCtx.beginPath();
+            graphCtx.moveTo(20, height / 2);
+            graphCtx.lineTo(width - 20, height / 2);
+            graphCtx.strokeStyle = '#aaa';
+            graphCtx.lineWidth = 1;
+            graphCtx.stroke();
+            
+            // 绘制时间轴标签
+            graphCtx.fillStyle = '#666';
+            graphCtx.font = '10px Arial';
+            graphCtx.fillText("时间 (s)", width - 30, height / 2 + 15);
+            
+            // 绘制电流轴标签
+            graphCtx.save();
+            graphCtx.translate(15, 10);
+            graphCtx.rotate(-Math.PI/2);
+            graphCtx.fillText("电流 (A)", 0, 0);
+            graphCtx.restore();
+            
+            // 绘制电流曲线
+            graphCtx.beginPath();
+            const maxTime = currentData[currentData.length - 1].time;
+            const minCurrent = Math.min(...currentData.map(d => d.current));
+            const maxCurrent = Math.max(...currentData.map(d => d.current));
+            const currentRange = Math.max(Math.abs(minCurrent), Math.abs(maxCurrent));
+            
+            // 绘制曲线
+            for (let i = 0; i < currentData.length; i++) {
+                const x = 20 + (currentData[i].time / maxTime) * (width - 40);
+                const y = height/2 - (currentData[i].current / (currentRange * 1.5)) * (height/2 - 20);
+                
+                if (i === 0) {
+                    graphCtx.moveTo(x, y);
+                } else {
+                    graphCtx.lineTo(x, y);
+                }
+            }
+            
+            graphCtx.strokeStyle = '#e74c3c';
+            graphCtx.lineWidth = 2;
+            graphCtx.stroke();
+            
+            // 绘制最后一个点
+            if (currentData.length > 0) {
+                const lastPoint = currentData[currentData.length - 1];
+                const x = 20 + (lastPoint.time / maxTime) * (width - 40);
+                const y = height/2 - (lastPoint.current / (currentRange * 1.5)) * (height/2 - 20);
+                
+                graphCtx.beginPath();
+                graphCtx.arc(x, y, 4, 0, Math.PI * 2);
+                graphCtx.fillStyle = lastPoint.current > 0 ? '#e74c3c' : '#3498db';
+                graphCtx.fill();
+            }
+        }
+        
+        // 开始动画
+        function startAnimation() {
+            isPlaying = true;
+            
+            function animate() {
+                // 根据速度更新角度
+                const speedFactor = animationSpeed * 0.5;
+                currentRotation += speedFactor;
+                
+                if (currentRotation >= 360) {
+                    currentRotation = 0;
+                }
+                
+                // 更新滑块和显示
+                angleSlider.value = currentRotation;
+                angleValue.textContent = `${Math.round(currentRotation)}°`;
+                
+                // 更新旋转
+                updateRotation();
+                
+                // 继续动画
+                animationId = requestAnimationFrame(animate);
+            }
+            
+            animationId = requestAnimationFrame(animate);
+        }
+        
+        // 停止动画
+        function stopAnimation() {
+            isPlaying = false;
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+        }
+        
+        // 初始化应用
+        window.addEventListener('load', init);
+        window.addEventListener('resize', () => {
+            drawMagneticLines();
+            drawCurrentGraph();
+        });
+        
+        // 添加线圈位置指示器样式
+        const style = document.createElement('style');
+        style.textContent = `
+            .coil-position-indicator {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 10px;
+                height: 10px;
+                background-color: #f39c12;
+                border-radius: 50%;
+                z-index: 20;
+                box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.3);
+            }
+            
+            .coil-position-indicator::after {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 1px;
+                height: 100px;
+                background-color: #f39c12;
+                transform: translate(-50%, -50%);
+                z-index: 19;
+            }
+            
+            .coil-position-indicator::before {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 100px;
+                height: 1px;
+                background-color: #f39c12;
+                transform: translate(-50%, -50%);
+                z-index: 19;
+            }
+            
+            .indicator-text {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -60px);
+                white-space: nowrap;
+                font-size: 14px;
+                color: #f39c12;
+                font-weight: bold;
+                background-color: rgba(255, 255, 255, 0.9);
+                padding: 4px 8px;
+                border-radius: 4px;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

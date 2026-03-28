@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>波的干涉与衍射 · 惠更斯原理动态模拟</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background: #162531;
+            font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+        .container {
+            max-width: 1300px;
+            width: 100%;
+            background: #0d1f2f;
+            border-radius: 40px;
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.7);
+            border: 1px solid #2b5072;
+        }
+        .title {
+            font-size: 2.2rem;
+            font-weight: 500;
+            color: #ecf5ff;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .title span {
+            background: #264f73;
+            font-size: 1rem;
+            padding: 6px 18px;
+            border-radius: 40px;
+            color: #cde2ff;
+        }
+        /* 控制面板 */
+        .control-panel {
+            background: #123045;
+            border-radius: 36px;
+            padding: 22px 28px;
+            margin: 20px 0 24px;
+            border: 1px solid #2d5f8c;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            align-items: flex-end;
+        }
+        .slider-group {
+            flex: 1 1 150px;
+        }
+        .slider-group label {
+            display: flex;
+            justify-content: space-between;
+            color: #d2e8ff;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        .slider-group label span {
+            background: #1d4a6b;
+            padding: 3px 14px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+        }
+        input[type=range] {
+            width: 100%;
+            height: 8px;
+            background: #23527a;
+            border-radius: 20px;
+            -webkit-appearance: none;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            background: #6bb0ff;
+            border-radius: 50%;
+            border: 2px solid #d2e6ff;
+            cursor: pointer;
+            box-shadow: 0 2px 8px black;
+            margin-top: -7px;
+        }
+        .mode-switch {
+            display: flex;
+            gap: 12px;
+            background: #0e273e;
+            padding: 8px 16px;
+            border-radius: 50px;
+            border: 1px solid #31699b;
+        }
+        .mode-btn {
+            background: #1c405e;
+            border: none;
+            color: white;
+            padding: 10px 28px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1rem;
+            border: 1px solid #407bb0;
+            box-shadow: 0 4px 0 #082433;
+            transition: 0.1s;
+        }
+        .mode-btn.active {
+            background: #3f82be;
+            box-shadow: 0 4px 0 #1d405e;
+        }
+        .mode-btn:hover {
+            background: #3273aa;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #082433;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 16px;
+            margin-left: auto;
+        }
+        .action-buttons button {
+            background: #2a5a82;
+            border: none;
+            color: white;
+            padding: 12px 28px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1rem;
+            border: 1px solid #5085b9;
+            box-shadow: 0 5px 0 #0b2235;
+        }
+        .action-buttons button:hover {
+            background: #3b73a5;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 0 #0b2235;
+        }
+        /* 动画区 */
+        .animation-area {
+            background: #0f273d;
+            border-radius: 40px;
+            padding: 20px;
+            border: 1px solid #2e6190;
+            margin-bottom: 24px;
+        }
+        #waveCanvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: #0b1e30;
+            border-radius: 32px;
+            border: 1px solid #3070a5;
+        }
+        .caption {
+            color: #aac8e8;
+            margin-top: 8px;
+            padding-left: 16px;
+            font-size: 0.9rem;
+        }
+        /* 图样区 */
+        .pattern-area {
+            background: #0f273d;
+            border-radius: 40px;
+            padding: 20px 20px 18px;
+            border: 1px solid #2e6190;
+            margin-bottom: 24px;
+        }
+        .pattern-header {
+            display: flex;
+            justify-content: space-between;
+            color: #c1dcff;
+            margin-bottom: 16px;
+            padding: 0 8px;
+        }
+        #patternCanvas {
+            display: block;
+            width: 100%;
+            height: 120px;
+            background: #0b1e30;
+            border-radius: 28px;
+            border: 1px solid #3070a5;
+        }
+        /* 底部结论 */
+        .conclusion {
+            background: #124160;
+            border-radius: 60px;
+            padding: 18px 28px;
+            color: #e3f0ff;
+            border: 1px solid #3980b7;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+        .conclusion div {
+            background: #1d5780;
+            padding: 6px 22px;
+            border-radius: 40px;
+            font-size: 0.98rem;
+        }
+        hr {
+            border: 0.5px solid #2f6996;
+            margin: 12px 0;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+<div class="container">
+    <div class="title">
+        🌊 波的干涉与衍射 · 惠更斯原理
+        <span>双缝干涉 / 单缝衍射</span>
+    </div>
+
+    <!-- 控制面板 -->
+    <div class="control-panel">
+        <div class="slider-group">
+            <label>📏 波长 λ <span id="lambdaVal">2.0</span></label>
+            <input type="range" id="lambdaSlider" min="0.8" max="5" value="2" step="0.1">
+        </div>
+        <div class="slider-group">
+            <label>🔲 缝宽 a <span id="aVal">2.0</span></label>
+            <input type="range" id="aSlider" min="0.5" max="5" value="2" step="0.1">
+        </div>
+        <div class="slider-group">
+            <label>🔹 缝间距 d <span id="dVal">4.0</span></label>
+            <input type="range" id="dSlider" min="1" max="8" value="4" step="0.2">
+        </div>
+        <div class="mode-switch">
+            <button id="interferenceBtn" class="mode-btn active">✨ 干涉 (双缝)</button>
+            <button id="diffractionBtn" class="mode-btn">🌀 衍射 (单缝)</button>
+        </div>
+        <div class="action-buttons">
+            <button id="playPauseBtn">⏸️ 暂停</button>
+            <button id="resetBtn">↺ 重置</button>
+        </div>
+    </div>
+
+    <!-- 动画区 -->
+    <div class="animation-area">
+        <canvas id="waveCanvas" width="900" height="280"></canvas>
+        <div class="caption">⬅️ 平面波入射 · 缝隙处发出子波 (同心圆代表波峰)</div>
+    </div>
+
+    <!-- 图样区 -->
+    <div class="pattern-area">
+        <div class="pattern-header">
+            <span>📊 干涉/衍射强度分布 (明暗条纹)</span>
+            <span style="color:#ffd966;">波长越长，条纹越宽</span>
+        </div>
+        <canvas id="patternCanvas" width="900" height="120"></canvas>
+    </div>
+
+    <!-- 底部固定结论 -->
+    <div class="conclusion">
+        <div>1️⃣ 干涉条纹等间距，衍射中央亮纹最宽</div>
+        <div>2️⃣ 波长越长，干涉衍射现象越明显</div>
+        <div>3️⃣ 干涉衍射是波特有的现象</div>
+    </div>
+</div>
+
+<script>
+(function() {
+    // 获取 canvas
+    const waveCanvas = document.getElementById('waveCanvas');
+    const ctxWave = waveCanvas.getContext('2d');
+    const patternCanvas = document.getElementById('patternCanvas');
+    const ctxPattern = patternCanvas.getContext('2d');
+
+    // 控制元素
+    const lambdaSlider = document.getElementById('lambdaSlider');
+    const aSlider = document.getElementById('aSlider');
+    const dSlider = document.getElementById('dSlider');
+    const lambdaVal = document.getElementById('lambdaVal');
+    const aVal = document.getElementById('aVal');
+    const dVal = document.getElementById('dVal');
+    const interferenceBtn = document.getElementById('interferenceBtn');
+    const diffractionBtn = document.getElementById('diffractionBtn');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    // 参数
+    let lambda = 2.0;        // 波长
+    let a = 2.0;             // 缝宽
+    let d = 4.0;             // 缝间距
+    let mode = 'interference'; // 'interference' 或 'diffraction'
+
+    // 动画控制
+    let isPlaying = true;
+    let phase = 0;           // 用于波形传播 (半径偏移)
+
+    // 更新显示值
+    function updateLabels() {
+        lambdaVal.innerText = lambda.toFixed(1);
+        aVal.innerText = a.toFixed(1);
+        dVal.innerText = d.toFixed(1);
+    }
+
+    // 从滑块读取
+    function readSliders() {
+        lambda = parseFloat(lambdaSlider.value);
+        a = parseFloat(aSlider.value);
+        d = parseFloat(dSlider.value);
+        updateLabels();
+    }
+
+    // 重置相位
+    function resetPhase() {
+        phase = 0;
+    }
+
+    // 绘制波形动画 (惠更斯子波)
+    function drawWaveAnimation() {
+        const w = waveCanvas.width;
+        const h = waveCanvas.height;
+        ctxWave.clearRect(0, 0, w, h);
+
+        // 画入射波方向 (左侧平面波)
+        ctxWave.strokeStyle = '#5f9fd0';
+        ctxWave.lineWidth = 1.2;
+        ctxWave.setLineDash([5, 4]);
+        for (let i = 0; i < 5; i++) {
+            let offset = (phase * 0.02 + i * 0.8) % 2.0;
+            let x = 80 + offset * 25;
+            ctxWave.beginPath();
+            ctxWave.moveTo(x, 40);
+            ctxWave.lineTo(x, h-40);
+            ctxWave.strokeStyle = '#77b9ff';
+            ctxWave.stroke();
+        }
+        ctxWave.setLineDash([]);
+
+        // 画挡板
+        ctxWave.fillStyle = '#4f6f8a';
+        ctxWave.fillRect(150, 20, 15, h-40);
+        ctxWave.fillStyle = '#3a5e7a';
+        ctxWave.fillRect(150, 20, 15, h-40);
+
+        // 根据模式绘制缝隙
+        if (mode === 'interference') {
+            // 双缝: 两个缝隙中心
+            let slit1Y = h/2 - d * 5; // 间距缩放
+            let slit2Y = h/2 + d * 5;
+            // 绘制缝隙 (挖空)
+            ctxWave.clearRect(150, slit1Y-8, 15, 16);
+            ctxWave.clearRect(150, slit2Y-8, 15, 16);
+            // 标记缝隙
+            ctxWave.fillStyle = '#fff3c9';
+            ctxWave.font = 'bold 14px monospace';
+            ctxWave.fillText('⟷', 120, slit1Y-10);
+            ctxWave.fillText('⟷', 120, slit2Y-10);
+
+            // 从两个缝隙发出子波 (同心圆)
+            drawCircularWaves(165, slit1Y);
+            drawCircularWaves(165, slit2Y);
+        } else {
+            // 单缝衍射: 一个宽缝
+            let slitCenter = h/2;
+            let halfA = a * 3; // 缝宽缩放
+            ctxWave.clearRect(150, slitCenter - halfA, 15, halfA*2);
+            ctxWave.fillStyle = '#fff3c9';
+            ctxWave.font = 'bold 14px monospace';
+            ctxWave.fillText('⟷', 120, slitCenter-10);
+
+            // 模拟多个点源 (惠更斯) 简化: 用三个点源代表
+            let numSources = 5;
+            for (let i = 0; i < numSources; i++) {
+                let offsetY = -halfA + (i * (2*halfA/(numSources-1)));
+                drawCircularWaves(165, slitCenter + offsetY);
+            }
+        }
+
+        // 辅助文字
+        ctxWave.fillStyle = '#cce4ff';
+        ctxWave.font = '12px sans-serif';
+        ctxWave.fillText('挡板', 110, 60);
+    }
+
+    // 绘制从 (x, y) 发出的一系列同心圆 (子波)
+    function drawCircularWaves(x, y) {
+        const maxRadius = 200;
+        const step = lambda * 6; // 波峰间距正比于波长
+        if (step < 2) return;
+        let baseRadius = (phase * 0.5) % step; // 移动
+        ctxWave.strokeStyle = 'rgba(180, 220, 255, 0.5)';
+        ctxWave.lineWidth = 1.2;
+        for (let r = baseRadius; r < maxRadius; r += step) {
+            ctxWave.beginPath();
+            ctxWave.arc(x, y, r, 0, 2 * Math.PI);
+            ctxWave.stroke();
+        }
+    }
+
+    // 绘制干涉/衍射图样 (一维强度分布)
+    function drawPattern() {
+        const w = patternCanvas.width;
+        const h = patternCanvas.height;
+        ctxPattern.clearRect(0, 0, w, h);
+
+        // 计算强度分布
+        const centerX = w / 2;
+        const L = 200; // 屏幕距离 (像素)
+        const maxX = w / 2;
+        const intensity = new Array(w);
+
+        if (mode === 'interference') {
+            // 双缝干涉: I = cos²(π d x / (λ L))
+            for (let i = 0; i < w; i++) {
+                let x = i - centerX;
+                let phaseDiff = (Math.PI * d * x) / (lambda * L);
+                let I = Math.cos(phaseDiff) ** 2;
+                intensity[i] = I;
+            }
+        } else {
+            // 单缝衍射: I = (sin(β)/β)², β = π a x / (λ L)
+            for (let i = 0; i < w; i++) {
+                let x = i - centerX;
+                let beta = (Math.PI * a * x) / (lambda * L);
+                if (Math.abs(beta) < 1e-6) {
+                    intensity[i] = 1.0;
+                } else {
+                    let sinc = Math.sin(beta) / beta;
+                    intensity[i] = sinc * sinc;
+                }
+            }
+        }
+
+        // 归一化并绘制灰度条纹
+        let maxI = Math.max(...intensity);
+        if (maxI < 0.001) maxI = 1;
+        for (let i = 0; i < w; i++) {
+            let val = intensity[i] / maxI;
+            // 映射到灰度 (0~255)
+            let g = Math.floor(255 * val);
+            ctxPattern.fillStyle = `rgb(${g}, ${g}, ${g})`;
+            ctxPattern.fillRect(i, 0, 1, h);
+        }
+
+        // 叠加中心标记
+        ctxPattern.strokeStyle = '#ffcc66';
+        ctxPattern.lineWidth = 1;
+        ctxPattern.setLineDash([4, 3]);
+        ctxPattern.beginPath();
+        ctxPattern.moveTo(centerX, 0);
+        ctxPattern.lineTo(centerX, h);
+        ctxPattern.stroke();
+        ctxPattern.setLineDash([]);
+
+        // 标注
+        ctxPattern.font = '12px "JetBrains Mono"';
+        ctxPattern.fillStyle = '#dddddd';
+        ctxPattern.fillText('中央', centerX-30, 30);
+    }
+
+    // 动画循环
+    function animate() {
+        if (isPlaying) {
+            phase += 0.5; // 移动波前
+        }
+        drawWaveAnimation();
+        drawPattern();   // 图样随参数实时更新
+        requestAnimationFrame(animate);
+    }
+
+    // 重置
+    function reset() {
+        phase = 0;
+        readSliders();
+        drawWaveAnimation();
+        drawPattern();
+    }
+
+    // 切换模式
+    function setMode(newMode, activeBtn) {
+        mode = newMode;
+        document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+        activeBtn.classList.add('active');
+        reset();
+    }
+
+    // 事件绑定
+    lambdaSlider.addEventListener('input', () => {
+        lambda = parseFloat(lambdaSlider.value);
+        lambdaVal.innerText = lambda.toFixed(1);
+        drawPattern();
+    });
+    aSlider.addEventListener('input', () => {
+        a = parseFloat(aSlider.value);
+        aVal.innerText = a.toFixed(1);
+        drawPattern();
+    });
+    dSlider.addEventListener('input', () => {
+        d = parseFloat(dSlider.value);
+        dVal.innerText = d.toFixed(1);
+        drawPattern();
+    });
+
+    interferenceBtn.addEventListener('click', () => setMode('interference', interferenceBtn));
+    diffractionBtn.addEventListener('click', () => setMode('diffraction', diffractionBtn));
+
+    playPauseBtn.addEventListener('click', () => {
+        isPlaying = !isPlaying;
+        playPauseBtn.innerHTML = isPlaying ? '⏸️ 暂停' : '▶ 开始';
+    });
+
+    resetBtn.addEventListener('click', reset);
+
+    // 初始化
+    function init() {
+        readSliders();
+        reset();
+        animate();
+    }
+    init();
+})();
+</script>
+</body>
+</html>

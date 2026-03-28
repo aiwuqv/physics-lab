@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>光的全反射交互实验</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(90deg, #303f9f, #3f51b5);
+            padding: 25px;
+            text-align: center;
+            border-bottom: 4px solid #5c6bc0;
+        }
+        
+        h1 {
+            color: white;
+            font-size: 2.4em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .subtitle {
+            color: #c5cae9;
+            font-size: 1.2em;
+            font-weight: 300;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 25px;
+            gap: 25px;
+        }
+        
+        .experiment-section {
+            flex: 2;
+            min-width: 300px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+        
+        .controls-section {
+            flex: 1;
+            min-width: 250px;
+            background: #fff;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+        
+        .canvas-container {
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 25px;
+            border: 3px solid #3f51b5;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #simulationCanvas {
+            width: 100%;
+            height: 400px;
+            display: block;
+            background: radial-gradient(circle at center, #2d2d2d, #1a1a1a);
+            cursor: pointer;
+        }
+        
+        .legend {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 4px;
+            margin-right: 8px;
+        }
+        
+        .control-group {
+            background: #e8eaf6;
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 18px;
+            border-left: 5px solid #3f51b5;
+            transition: transform 0.3s;
+        }
+        
+        .control-group:hover {
+            transform: translateY(-2px);
+        }
+        
+        .control-title {
+            color: #283593;
+            font-weight: bold;
+            margin-bottom: 12px;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .slider-container {
+            margin: 15px 0;
+        }
+        
+        label {
+            display: block;
+            color: #424242;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 10px;
+            -webkit-appearance: none;
+            background: linear-gradient(90deg, #c5cae9, #7986cb);
+            border-radius: 5px;
+            outline: none;
+            border: 1px solid #9fa8da;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            background: #3f51b5;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid white;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+            transition: all 0.2s;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: #303f9f;
+            transform: scale(1.1);
+        }
+        
+        .value-display {
+            text-align: center;
+            font-size: 1.2em;
+            color: #283593;
+            font-weight: bold;
+            margin-top: 8px;
+            padding: 8px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #c5cae9;
+        }
+        
+        .critical-angle {
+            background: linear-gradient(135deg, #ffebee, #ffcdd2);
+            border-radius: 12px;
+            padding: 18px;
+            margin-top: 20px;
+            border-left: 5px solid #f44336;
+        }
+        
+        .critical-angle h3 {
+            color: #c62828;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* 角度显示区域样式 */
+        .angle-display-section {
+            background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+            border-radius: 12px;
+            padding: 18px;
+            margin-top: 20px;
+            border-left: 5px solid #9c27b0;
+        }
+        
+        .angle-display-section h3 {
+            color: #7b1fa2;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .angle-values {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #e1bee7;
+        }
+        
+        .angle-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 8px 12px;
+            border-radius: 6px;
+            background: #f8f9fa;
+            transition: all 0.3s;
+        }
+        
+        .angle-item:hover {
+            background: #e8eaf6;
+            transform: translateX(5px);
+        }
+        
+        .angle-color {
+            width: 20px;
+            height: 4px;
+            margin-right: 12px;
+            display: inline-block;
+            border-radius: 2px;
+        }
+        
+        .formula {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            color: #1565c0;
+            padding: 18px;
+            border-radius: 12px;
+            font-family: 'Times New Roman', serif;
+            font-size: 1.3em;
+            margin: 18px 0;
+            text-align: center;
+            border: 2px solid #2196f3;
+        }
+        
+        .formula span {
+            font-weight: bold;
+            color: #0d47a1;
+        }
+        
+        .observation-section {
+            background: linear-gradient(135deg, #fff8e1, #ffecb3);
+            border-radius: 12px;
+            padding: 22px;
+            margin-top: 20px;
+            border: 2px solid #ffb300;
+        }
+        
+        .observation-section h3 {
+            color: #ff8f00;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .observation-section p {
+            color: #5d4037;
+            margin: 12px 0;
+            font-weight: 500;
+        }
+        
+        .blank-input {
+            width: 120px;
+            padding: 10px;
+            margin: 0 8px;
+            border: 2px solid #ffb300;
+            border-radius: 6px;
+            font-size: 1em;
+            text-align: center;
+            background: white;
+            color: #333;
+            transition: all 0.3s;
+        }
+        
+        .blank-input:focus {
+            border-color: #ff9800;
+            box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.2);
+            outline: none;
+        }
+        
+        .test-section {
+            background: #fff;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px;
+            margin-top: 0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+        
+        .test-section h2 {
+            color: #283593;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e8eaf6;
+        }
+        
+        .test-question {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-left: 5px solid #4caf50;
+            transition: transform 0.3s;
+        }
+        
+        .test-question:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .test-question p {
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+        
+        .option {
+            display: block;
+            margin: 12px 0;
+            padding: 12px 15px;
+            background: #e8f5e8;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #2e7d32;
+            font-weight: 500;
+            border: 2px solid transparent;
+        }
+        
+        .option:hover {
+            background: #c8e6c9;
+            transform: translateX(8px);
+            border-color: #81c784;
+        }
+        
+        .option.selected {
+            background: #4caf50;
+            color: white;
+            border-color: #388e3c;
+            box-shadow: 0 3px 8px rgba(76, 175, 80, 0.3);
+        }
+        
+        button {
+            background: linear-gradient(90deg, #303f9f, #3f51b5);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            margin: 10px 8px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+        }
+        
+        button:active {
+            transform: translateY(-1px);
+        }
+        
+        .submit-btn {
+            background: linear-gradient(90deg, #388e3c, #4caf50);
+        }
+        
+        .reset-btn {
+            background: linear-gradient(90deg, #d32f2f, #f44336);
+        }
+        
+        .analysis-section {
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 25px;
+            display: none;
+            border: 2px solid #4caf50;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .analysis-section h3 {
+            color: #2e7d32;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .score-display {
+            font-size: 2em;
+            color: #2e7d32;
+            font-weight: bold;
+            text-align: center;
+            margin: 15px 0;
+        }
+        
+        .progress-bar {
+            height: 24px;
+            background: #c8e6c9;
+            border-radius: 12px;
+            margin: 20px 0;
+            overflow: hidden;
+            border: 2px solid #81c784;
+        }
+        
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, #4caf50, #81c784);
+            width: 0%;
+            transition: width 1s ease-out;
+            position: relative;
+        }
+        
+        .progress::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shimmer 2s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .tip {
+            background: #fff3e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid #ff9800;
+            font-size: 0.95em;
+            color: #5d4037;
+        }
+        
+        .analysis-text {
+            color: #333;
+            line-height: 1.6;
+            margin: 15px 0;
+        }
+        
+        .analysis-text div {
+            margin: 12px 0;
+            padding: 12px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.7);
+        }
+        
+        .correct {
+            border-left: 4px solid #4caf50;
+            background: #e8f5e9 !important;
+        }
+        
+        .incorrect {
+            border-left: 4px solid #f44336;
+            background: #ffebee !important;
+        }
+        
+        .partial {
+            border-left: 4px solid #ff9800;
+            background: #fff8e1 !important;
+        }
+        
+        .section-title {
+            color: #283593;
+            margin: 25px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e8eaf6;
+            font-size: 1.4em;
+        }
+        
+        .action-buttons {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .blank-input {
+                width: 100px;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            .formula {
+                font-size: 1.1em;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <header>
+            <h1>🔬 光的全反射交互实验</h1>
+            <div class="subtitle">调整参数观察全反射现象 · 理解临界角概念 · 掌握全反射条件</div>
+        </header>
+        
+        <div class="main-content">
+            <section class="experiment-section">
+                <h2 class="section-title">🌊 全反射现象模拟</h2>
+                <div class="tip">💡 提示：使用下方的滑块调节入射角，观察光线的变化</div>
+                
+                <div class="canvas-container">
+                    <canvas id="simulationCanvas" width="800" height="400"></canvas>
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #ff9800;"></div>
+                            <span style="color: #333;">入射光</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #f44336;"></div>
+                            <span style="color: #333;">反射光</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #4caf50;"></div>
+                            <span style="color: #333;">折射光</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="formula" id="formulaDisplay">
+                    临界角公式：sin(θ<sub>c</sub>) = <span id="formulaN2">n₂</span>/<span id="formulaN1">n₁</span>
+                </div>
+                
+                <div class="observation-section">
+                    <h3>👀 观察现象记录</h3>
+                    <p>1. 当入射角小于临界角时，折射角 <input type="text" class="blank-input" id="blank1" placeholder="填空"> 于入射角，且折射光线 <input type="text" class="blank-input" id="blank1b" placeholder="填空">（存在/消失）。</p>
+                    <p>2. 当入射角等于临界角时，折射角为 <input type="text" class="blank-input" id="blank2" placeholder="填空"> 度，折射光线 <input type="text" class="blank-input" id="blank2b" placeholder="填空">（消失/沿界面传播）。</p>
+                    <p>3. 当入射角大于临界角时，观察到 <input type="text" class="blank-input" id="blank3" placeholder="填空"> 现象，此时折射光线 <input type="text" class="blank-input" id="blank3b" placeholder="填空">。</p>
+                    <div class="action-buttons">
+                        <button onclick="checkObservation()">检查观察结果</button>
+                        <button class="reset-btn" onclick="resetObservation()">清空记录</button>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="controls-section">
+                <h2 class="section-title">⚙️ 实验参数调节</h2>
+                
+                <div class="control-group">
+                    <div class="control-title">
+                        <span>📊</span> 介质折射率调节
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label>介质1折射率 (n₁): <span id="n1Value">1.50</span></label>
+                        <input type="range" id="n1Slider" min="1.0" max="3.0" step="0.01" value="1.50">
+                        <div class="tip">介质1为光密介质（折射率较大）</div>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label>介质2折射率 (n₂): <span id="n2Value">1.00</span></label>
+                        <input type="range" id="n2Slider" min="1.0" max="3.0" step="0.01" value="1.00">
+                        <div class="tip">介质2为光疏介质（折射率较小）</div>
+                    </div>
+                    
+                    <div class="value-display">
+                        相对折射率: n₁/n₂ = <span id="relativeN">1.50</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <div class="control-title">
+                        <span>📐</span> 入射角调节
+                    </div>
+                    <div class="slider-container">
+                        <label>入射角 (θ): <span id="angleValue">30</span>°</label>
+                        <input type="range" id="angleSlider" min="0" max="90" step="1" value="30">
+                    </div>
+                    <div class="tip">入射角变化范围：0° - 90°</div>
+                </div>
+                
+                <div class="critical-angle" id="criticalAngleDisplay">
+                    <h3>📏 临界角计算</h3>
+                    <div class="value-display" style="font-size: 1.4em;">
+                        当前临界角: θ<sub>c</sub> = <span id="criticalAngle">41.81</span>°
+                    </div>
+                    <p id="conditionStatus" style="color: #4caf50; margin-top: 10px; font-weight: bold;">
+                        ✓ 当前入射角(30°)小于临界角(41.81°)，发生折射现象
+                    </p>
+                    <div class="tip">
+                        💡 临界角计算公式：θ<sub>c</sub> = arcsin(n₂/n₁)
+                    </div>
+                </div>
+                
+                <!-- 角度显示区域 -->
+                <div class="angle-display-section">
+                    <h3>📐 角度信息</h3>
+                    <div class="angle-values">
+                        <div class="angle-item">
+                            <span class="angle-color" style="background: #ff9800;"></span>
+                            <span>入射角 θ = <span id="displayIncidentAngle">30</span>°</span>
+                        </div>
+                        <div class="angle-item">
+                            <span class="angle-color" style="background: #f44336;"></span>
+                            <span>反射角 θ' = <span id="displayReflectAngle">30</span>°</span>
+                        </div>
+                        <div class="angle-item">
+                            <span class="angle-color" style="background: #4caf50;"></span>
+                            <span>折射角 θ'' = <span id="displayRefractAngle">48.6</span>°</span>
+                        </div>
+                        <div class="angle-item">
+                            <span class="angle-color" style="background: #ff5722;"></span>
+                            <span>临界角 θ<sub>c</sub> = <span id="displayCriticalAngle">41.81</span>°</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="reset-btn" onclick="resetExperiment()">重置实验</button>
+                    <button onclick="showTheory()">查看原理</button>
+                </div>
+            </section>
+        </div>
+        
+        <section class="test-section">
+            <h2>📝 知识检测</h2>
+            <div class="tip">💡 请认真思考后选择正确答案，提交后可查看详细解析</div>
+            
+            <div class="test-question">
+                <p>1. 关于光的全反射现象，下列说法正确的是：</p>
+                <div class="option" onclick="selectOption(this, 1)">A. 光从光疏介质射入光密介质时可能发生全反射</div>
+                <div class="option" onclick="selectOption(this, 1)">B. 发生全反射时，折射光完全消失，反射光强度等于入射光强度</div>
+                <div class="option" onclick="selectOption(this, 1)">C. 临界角随入射介质折射率的增大而减小</div>
+                <div class="option" onclick="selectOption(this, 1)">D. 全反射时仍有少量折射光存在</div>
+            </div>
+            
+            <div class="test-question">
+                <p>2. 水的折射率为1.33，玻璃的折射率为1.5。光从玻璃射向水时，临界角约为：(sin41.8°≈0.666，sin62.7°≈0.888)</p>
+                <div class="option" onclick="selectOption(this, 2)">A. 30°</div>
+                <div class="option" onclick="selectOption(this, 2)">B. 41.8°</div>
+                <div class="option" onclick="selectOption(this, 2)">C. 62.7°</div>
+                <div class="option" onclick="selectOption(this, 2)">D. 90°</div>
+            </div>
+            
+            <div class="test-question">
+                <p>3. 下列哪些应用利用了光的全反射原理？（多选）</p>
+                <div class="option" onclick="selectOption(this, 3)">A. 光纤通信</div>
+                <div class="option" onclick="selectOption(this, 3)">B. 水面上的油膜呈现彩色</div>
+                <div class="option" onclick="selectOption(this, 3)">C. 海市蜃楼现象</div>
+                <div class="option" onclick="selectOption(this, 3)">D. 钻石的璀璨光芒</div>
+                <div class="option" onclick="selectOption(this, 3)">E. 潜望镜</div>
+            </div>
+            
+            <div class="test-question">
+                <p>4. 一束光线从折射率为n的介质射向空气，当入射角为30°时，折射角为45°。该介质的临界角为：</p>
+                <div class="option" onclick="selectOption(this, 4)">A. arcsin(1/√2)</div>
+                <div class="option" onclick="selectOption(this, 4)">B. arcsin(√2/2)</div>
+                <div class="option" onclick="selectOption(this, 4)">C. 30°</div>
+                <div class="option" onclick="selectOption(this, 4)">D. 45°</div>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="submit-btn" onclick="submitTest()">提交答案并查看分析</button>
+                <button onclick="resetTest()">重新答题</button>
+            </div>
+            
+            <div class="analysis-section" id="analysisSection">
+                <h3>📊 学情分析报告</h3>
+                <div class="score-display">
+                    得分: <span id="score">0</span>/100
+                </div>
+                
+                <div class="progress-bar">
+                    <div class="progress" id="progressBar"></div>
+                </div>
+                
+                <div class="analysis-text" id="analysisText">
+                    <div id="analysis1">等待分析第1题...</div>
+                    <div id="analysis2">等待分析第2题...</div>
+                    <div id="analysis3">等待分析第3题...</div>
+                    <div id="analysis4">等待分析第4题...</div>
+                </div>
+                
+                <div class="tip" id="recommendation">
+                    学习建议将在此显示...
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // 获取Canvas和上下文
+        const canvas = document.getElementById('simulationCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 实验参数
+        let params = {
+            n1: 1.50,
+            n2: 1.00,
+            angle: 30,
+            criticalAngle: 41.81,
+            incidentPoint: { x: 0, y: 0 },
+            lightRadius: 150,
+            rotationCenter: { x: 0, y: 0 }
+        };
+        
+        // 初始化Canvas
+        function initCanvas() {
+            canvas.width = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+            
+            params.incidentPoint.x = canvas.width / 2;
+            params.incidentPoint.y = canvas.height / 2;
+            
+            params.rotationCenter.x = params.incidentPoint.x;
+            params.rotationCenter.y = params.incidentPoint.y - 100;
+        }
+        
+        // 计算临界角
+        function calculateCriticalAngle() {
+            if (params.n1 <= params.n2) {
+                params.criticalAngle = 90;
+            } else {
+                params.criticalAngle = Math.asin(params.n2 / params.n1) * 180 / Math.PI;
+            }
+            return params.criticalAngle;
+        }
+        
+        // 计算光源位置
+        function calculateLightSourcePosition() {
+            const angleRad = params.angle * Math.PI / 180;
+            return {
+                x: params.rotationCenter.x - params.lightRadius * Math.sin(angleRad),
+                y: params.rotationCenter.y - params.lightRadius * Math.cos(angleRad)
+            };
+        }
+        
+        // 绘制界面
+        function drawInterface() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const interfaceY = canvas.height / 2;
+            
+            // 绘制介质1
+            const gradient1 = ctx.createLinearGradient(0, 0, 0, interfaceY);
+            gradient1.addColorStop(0, 'rgba(33, 150, 243, 0.15)');
+            gradient1.addColorStop(1, 'rgba(33, 150, 243, 0.3)');
+            ctx.fillStyle = gradient1;
+            ctx.fillRect(0, 0, canvas.width, interfaceY);
+            
+            ctx.fillStyle = '#1976d2';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText(`介质1 (n₁ = ${params.n1.toFixed(2)})`, 20, interfaceY - 10);
+            
+            // 绘制介质2
+            const gradient2 = ctx.createLinearGradient(0, interfaceY, 0, canvas.height);
+            gradient2.addColorStop(0, 'rgba(76, 175, 80, 0.15)');
+            gradient2.addColorStop(1, 'rgba(76, 175, 80, 0.3)');
+            ctx.fillStyle = gradient2;
+            ctx.fillRect(0, interfaceY, canvas.width, canvas.height - interfaceY);
+            
+            ctx.fillStyle = '#2e7d32';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText(`介质2 (n₂ = ${params.n2.toFixed(2)})`, 20, interfaceY + 30);
+            
+            // 绘制分界线
+            ctx.beginPath();
+            ctx.moveTo(0, interfaceY);
+            ctx.lineTo(canvas.width, interfaceY);
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            // 绘制光线
+            drawLightRays(interfaceY);
+        }
+        
+        // 绘制光线
+        function drawLightRays(interfaceY) {
+            const intersectionX = params.incidentPoint.x;
+            const intersectionY = params.incidentPoint.y;
+            
+            const lightSource = calculateLightSourcePosition();
+            const angleRad = params.angle * Math.PI / 180;
+            
+            // 绘制入射光线
+            ctx.beginPath();
+            ctx.moveTo(lightSource.x, lightSource.y);
+            ctx.lineTo(intersectionX, intersectionY);
+            ctx.strokeStyle = '#ff9800';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+            
+            ctx.fillStyle = '#ff9800';
+            ctx.font = 'bold 14px Arial';
+            ctx.fillText('入射光', (lightSource.x + intersectionX) / 2 - 20, 
+                        (lightSource.y + intersectionY) / 2 - 10);
+            
+            // 绘制法线
+            ctx.beginPath();
+            ctx.moveTo(intersectionX, interfaceY - 100);
+            ctx.lineTo(intersectionX, interfaceY + 100);
+            ctx.strokeStyle = '#757575';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([8, 4]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // 判断是否全反射
+            let isTotalReflection = false;
+            const criticalAngle = calculateCriticalAngle();
+            if (params.n1 > params.n2 && params.angle > criticalAngle) {
+                isTotalReflection = true;
+            }
+            
+            // 绘制反射光线
+            const reflectLength = 150;
+            const reflectX = intersectionX + reflectLength * Math.sin(angleRad);
+            const reflectY = intersectionY - reflectLength * Math.cos(angleRad);
+            
+            if (isTotalReflection) {
+                ctx.beginPath();
+                ctx.moveTo(intersectionX, intersectionY);
+                ctx.lineTo(reflectX, reflectY);
+                ctx.strokeStyle = '#ff5252';
+                ctx.lineWidth = 6;
+                ctx.stroke();
+                ctx.fillStyle = '#ff5252';
+                ctx.font = 'bold 16px Arial';
+                ctx.fillText('全反射', reflectX + 10, reflectY - 10);
+            } else {
+                ctx.beginPath();
+                ctx.moveTo(intersectionX, intersectionY);
+                ctx.lineTo(reflectX, reflectY);
+                ctx.strokeStyle = '#f44336';
+                ctx.lineWidth = 4;
+                ctx.stroke();
+            }
+            
+            // 计算折射角
+            let refractionAngle = null;
+            if (!isTotalReflection) {
+                const sinRefraction = (params.n1 / params.n2) * Math.sin(angleRad);
+                if (Math.abs(sinRefraction) <= 1) {
+                    refractionAngle = Math.asin(sinRefraction);
+                }
+            }
+            
+            // 绘制折射光线
+            if (!isTotalReflection && refractionAngle !== null) {
+                const refractLength = 150;
+                const refractX = intersectionX + refractLength * Math.sin(refractionAngle);
+                const refractY = intersectionY + refractLength * Math.cos(refractionAngle);
+                
+                ctx.beginPath();
+                ctx.moveTo(intersectionX, intersectionY);
+                ctx.lineTo(refractX, refractY);
+                ctx.strokeStyle = '#4caf50';
+                ctx.lineWidth = 4;
+                ctx.stroke();
+                
+                ctx.fillStyle = '#4caf50';
+                ctx.font = 'bold 14px Arial';
+                ctx.fillText('折射光', refractX + 10, refractY + 20);
+            }
+            
+            // 绘制光源
+            ctx.beginPath();
+            ctx.arc(lightSource.x, lightSource.y, 10, 0, Math.PI * 2);
+            ctx.fillStyle = '#ff9800';
+            ctx.fill();
+            
+            // 绘制入射点
+            ctx.beginPath();
+            ctx.arc(intersectionX, intersectionY, 5, 0, Math.PI * 2);
+            ctx.fillStyle = '#333';
+            ctx.fill();
+            
+            // 更新状态
+            const statusElement = document.getElementById('conditionStatus');
+            if (isTotalReflection) {
+                statusElement.innerHTML = `🔴 发生全反射！入射角(${params.angle}°)大于临界角(${criticalAngle.toFixed(2)}°)，折射光消失`;
+                statusElement.style.color = '#f44336';
+            } else if (Math.abs(params.angle - criticalAngle) < 0.5) {
+                statusElement.innerHTML = `🟡 入射角(${params.angle}°)等于临界角(${criticalAngle.toFixed(2)}°)，折射角为90°`;
+                statusElement.style.color = '#ff9800';
+            } else {
+                statusElement.innerHTML = `✓ 入射角(${params.angle}°)小于临界角(${criticalAngle.toFixed(2)}°)，发生折射现象`;
+                statusElement.style.color = '#4caf50';
+            }
+            
+            // 更新角度显示（在控制台）
+            updateAngleDisplay(isTotalReflection, refractionAngle);
+        }
+        
+        // 更新角度显示（在控制台）
+        function updateAngleDisplay(isTotalReflection, refractionAngle) {
+            const criticalAngle = calculateCriticalAngle();
+            
+            document.getElementById('displayIncidentAngle').textContent = params.angle;
+            document.getElementById('displayReflectAngle').textContent = params.angle;
+            document.getElementById('displayCriticalAngle').textContent = criticalAngle.toFixed(2);
+            
+            if (!isTotalReflection && refractionAngle !== null) {
+                const refractionAngleDeg = (refractionAngle * 180 / Math.PI).toFixed(1);
+                document.getElementById('displayRefractAngle').textContent = refractionAngleDeg;
+            } else if (isTotalReflection) {
+                document.getElementById('displayRefractAngle').textContent = '无折射光';
+            } else {
+                document.getElementById('displayRefractAngle').textContent = '-';
+            }
+        }
+        
+        // 更新显示
+        function updateDisplays() {
+            document.getElementById('n1Value').textContent = params.n1.toFixed(2);
+            document.getElementById('n2Value').textContent = params.n2.toFixed(2);
+            document.getElementById('angleValue').textContent = params.angle;
+            document.getElementById('relativeN').textContent = (params.n1 / params.n2).toFixed(2);
+            
+            const criticalAngle = calculateCriticalAngle();
+            document.getElementById('criticalAngle').textContent = criticalAngle.toFixed(2);
+            
+            document.getElementById('formulaN1').textContent = params.n1.toFixed(2);
+            document.getElementById('formulaN2').textContent = params.n2.toFixed(2);
+            
+            drawInterface();
+        }
+        
+        // 事件监听
+        document.getElementById('n1Slider').addEventListener('input', (e) => {
+            params.n1 = parseFloat(e.target.value);
+            updateDisplays();
+        });
+        
+        document.getElementById('n2Slider').addEventListener('input', (e) => {
+            params.n2 = parseFloat(e.target.value);
+            updateDisplays();
+        });
+        
+        document.getElementById('angleSlider').addEventListener('input', (e) => {
+            params.angle = parseInt(e.target.value);
+            updateDisplays();
+        });
+        
+        // 观察结果检查
+        function checkObservation() {
+            const blanks = ['blank1', 'blank1b', 'blank2', 'blank2b', 'blank3', 'blank3b'];
+            const answers = ['大', '存在', '90', '沿界面传播', '全反射', '消失'];
+            
+            let correctCount = 0;
+            
+            blanks.forEach((id, index) => {
+                const element = document.getElementById(id);
+                const answer = element.value.trim();
+                const correct = answers[index];
+                
+                if (answer.includes(correct) || (index === 0 && (answer.includes('>') || answer.includes('大于')))) {
+                    correctCount++;
+                    element.style.borderColor = '#4caf50';
+                    element.style.backgroundColor = '#e8f5e9';
+                } else {
+                    element.style.borderColor = '#f44336';
+                    element.style.backgroundColor = '#ffebee';
+                }
+            });
+            
+            const score = Math.round((correctCount / blanks.length) * 100);
+            alert(`检查完成！\n答对 ${correctCount}/${blanks.length} 个空\n得分: ${score}分`);
+        }
+        
+        function resetObservation() {
+            const blanks = ['blank1', 'blank1b', 'blank2', 'blank2b', 'blank3', 'blank3b'];
+            blanks.forEach(id => {
+                const element = document.getElementById(id);
+                element.value = '';
+                element.style.borderColor = '#ffb300';
+                element.style.backgroundColor = 'white';
+            });
+        }
+        
+        // 测试题
+        let selectedAnswers = {1: null, 2: null, 3: [], 4: null};
+        
+        function selectOption(element, questionNum) {
+            const options = element.parentElement.querySelectorAll('.option');
+            
+            if (questionNum === 3) {
+                element.classList.toggle('selected');
+                const answerText = element.textContent.substring(3);
+                const index = selectedAnswers[3].indexOf(answerText);
+                if (index > -1) {
+                    selectedAnswers[3].splice(index, 1);
+                } else {
+                    selectedAnswers[3].push(answerText);
+                }
+            } else {
+                options.forEach(opt => opt.classList.remove('selected'));
+                element.classList.add('selected');
+                selectedAnswers[questionNum] = element.textContent.substring(0, 1);
+            }
+        }
+        
+        function submitTest() {
+            let score = 0;
+            
+            // 清空分析
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById(`analysis${i}`).className = '';
+            }
+            
+            // 第1题分析
+            const analysis1 = document.getElementById('analysis1');
+            if (selectedAnswers[1] === 'B' || selectedAnswers[1] === 'C') {
+                score += 25;
+                analysis1.innerHTML = '✓ 第1题正确！';
+                analysis1.className = 'correct';
+            } else {
+                analysis1.innerHTML = '✗ 第1题错误。正确答案是B和C。<br>B：全反射时折射光完全消失<br>C：临界角公式θ_c=arcsin(n₂/n₁)，n₁增大则临界角减小';
+                analysis1.className = 'incorrect';
+            }
+            
+            // 第2题分析
+            const analysis2 = document.getElementById('analysis2');
+            if (selectedAnswers[2] === 'C') {
+                score += 25;
+                analysis2.innerHTML = '✓ 第2题正确！临界角θ_c=arcsin(1.33/1.5)=arcsin(0.8867)≈62.7°';
+                analysis2.className = 'correct';
+            } else {
+                analysis2.innerHTML = '✗ 第2题错误。正确答案是C。<br>θ_c = arcsin(1.33/1.5) = arcsin(0.8867) ≈ 62.7°';
+                analysis2.className = 'incorrect';
+            }
+            
+            // 第3题分析
+            const analysis3 = document.getElementById('analysis3');
+            const selected3 = selectedAnswers[3];
+            const correct3 = ['A', 'C', 'D'];
+            
+            let q3CorrectCount = 0;
+            selected3.forEach(ans => {
+                if (correct3.includes(ans)) q3CorrectCount++;
+            });
+            
+            if (q3CorrectCount === 3 && selected3.length === 3) {
+                score += 25;
+                analysis3.innerHTML = '✓ 第3题完全正确！光纤通信、海市蜃楼、钻石光芒都利用了全反射原理';
+                analysis3.className = 'correct';
+            } else if (q3CorrectCount > 0) {
+                score += q3CorrectCount * 8;
+                analysis3.innerHTML = `△ 第3题部分正确：答对${q3CorrectCount}个。正确答案：A、C、D`;
+                analysis3.className = 'partial';
+            } else {
+                analysis3.innerHTML = '✗ 第3题错误。正确答案是A、C、D。';
+                analysis3.className = 'incorrect';
+            }
+            
+            // 第4题分析
+            const analysis4 = document.getElementById('analysis4');
+            if (selectedAnswers[4] === 'A' || selectedAnswers[4] === 'B') {
+                score += 25;
+                analysis4.innerHTML = '✓ 第4题正确！根据折射定律：n·sin30°=1·sin45°，解得n=√2，临界角θ_c=arcsin(1/√2)';
+                analysis4.className = 'correct';
+            } else {
+                analysis4.innerHTML = '✗ 第4题错误。正确答案是A/B。<br>n = sin45°/sin30° = √2，θ_c = arcsin(1/√2)';
+                analysis4.className = 'incorrect';
+            }
+            
+            // 显示结果
+            document.getElementById('score').textContent = score;
+            document.getElementById('progressBar').style.width = score + '%';
+            document.getElementById('analysisSection').style.display = 'block';
+            
+            // 学习建议
+            const recommendation = document.getElementById('recommendation');
+            if (score >= 90) {
+                recommendation.innerHTML = '🎉 优秀！你已经完全掌握了全反射的概念、计算和应用';
+            } else if (score >= 70) {
+                recommendation.innerHTML = '📚 良好！建议重点复习临界角计算和全反射条件判断';
+            } else if (score >= 50) {
+                recommendation.innerHTML = '💡 中等！建议重新进行实验，理解全反射发生的条件';
+            } else {
+                recommendation.innerHTML = '🔍 需要加强学习！建议重新操作实验，观察不同条件下的现象';
+            }
+        }
+        
+        function resetTest() {
+            selectedAnswers = {1: null, 2: null, 3: [], 4: null};
+            document.querySelectorAll('.option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            document.getElementById('analysisSection').style.display = 'none';
+        }
+        
+        function resetExperiment() {
+            params.n1 = 1.50;
+            params.n2 = 1.00;
+            params.angle = 30;
+            
+            document.getElementById('n1Slider').value = params.n1;
+            document.getElementById('n2Slider').value = params.n2;
+            document.getElementById('angleSlider').value = params.angle;
+            
+            updateDisplays();
+            resetObservation();
+        }
+        
+        function showTheory() {
+            const theory = `光的全反射原理：
+1. 发生条件：光从光密介质射向光疏介质，且入射角大于临界角
+2. 临界角公式：θ_c = arcsin(n₂/n₁)
+3. 特点：折射光完全消失，反射光强度等于入射光强度
+4. 应用：光纤通信、内窥镜、钻石切割等`;
+            alert(theory);
+        }
+        
+        // 初始化
+        window.addEventListener('load', () => {
+            initCanvas();
+            updateDisplays();
+            
+            window.addEventListener('resize', () => {
+                initCanvas();
+                updateDisplays();
+            });
+        });
+    </script>
+</body>
+</html>

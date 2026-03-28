@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>力的合成与分解 - 物理教学动画</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #2c3e50, #4a6491);
+            color: #333;
+            padding: 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(90deg, #2c3e50, #3498db);
+            color: white;
+            text-align: center;
+            padding: 25px;
+            border-bottom: 5px solid #1a252f;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 20px;
+            gap: 20px;
+        }
+        
+        .demo-area {
+            flex: 1;
+            min-width: 400px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .demo-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        .demo-title {
+            font-size: 1.6rem;
+            color: #2c3e50;
+        }
+        
+        .demo-subtitle {
+            color: #7f8c8d;
+            font-size: 1rem;
+        }
+        
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background-color: #ecf0f1;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #bdc3c7;
+            margin-bottom: 20px;
+        }
+        
+        .canvas-container canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        .controls {
+            flex: 1;
+            min-width: 400px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .control-group {
+            margin-bottom: 25px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+        }
+        
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        .slider-container {
+            margin-bottom: 18px;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .value-display {
+            font-weight: bold;
+            color: #3498db;
+            background-color: #e3f2fd;
+            padding: 2px 8px;
+            border-radius: 4px;
+            min-width: 60px;
+            text-align: center;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 10px;
+            -webkit-appearance: none;
+            background: linear-gradient(90deg, #2c3e50, #3498db);
+            border-radius: 5px;
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            border: 3px solid #2c3e50;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 14px 15px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+        
+        #resetBtn {
+            background: linear-gradient(90deg, #e74c3c, #c0392b);
+            color: white;
+        }
+        
+        #randomBtn {
+            background: linear-gradient(90deg, #9b59b6, #8e44ad);
+            color: white;
+        }
+        
+        #showFormulasBtn {
+            background: linear-gradient(90deg, #2ecc71, #27ae60);
+            color: white;
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .physics-info {
+            flex: 1 100%;
+            margin-top: 25px;
+            padding: 20px;
+            background-color: #f0f7ff;
+            border-radius: 10px;
+            border: 2px solid #bbdefb;
+        }
+        
+        .formula-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        
+        .formula-box {
+            flex: 1;
+            min-width: 300px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #3498db;
+        }
+        
+        .formula {
+            font-family: 'Cambria', 'Times New Roman', serif;
+            font-size: 1.3rem;
+            margin: 15px 0;
+            text-align: center;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border: 1px dashed #bdc3c7;
+        }
+        
+        .vector-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .vector-box {
+            flex: 1;
+            min-width: 180px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .vector-title {
+            font-size: 1.1rem;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+        
+        .vector-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .vector-components {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        
+        .explanation {
+            margin-top: 20px;
+            line-height: 1.7;
+            color: #444;
+        }
+        
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: white;
+            margin-top: 20px;
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+        
+        @media (max-width: 900px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            .demo-area, .controls {
+                width: 100%;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .demo-title {
+                font-size: 1.4rem;
+            }
+        }
+        
+        .tab-container {
+            display: flex;
+            margin-bottom: 20px;
+            background-color: #ecf0f1;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            background-color: #bdc3c7;
+            color: #2c3e50;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        .tab.active {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <div class="container">
+        <header>
+            <h1>力的合成与分解物理模型</h1>
+            <p class="subtitle">交互式物理教学演示 - 平行四边形法则与正交分解法</p>
+        </header>
+        
+        <div class="tab-container">
+            <div class="tab active" data-tab="composition">力的合成</div>
+            <div class="tab" data-tab="decomposition">力的分解</div>
+        </div>
+        
+        <div class="content">
+            <!-- 力的合成演示区域 -->
+            <div class="demo-area tab-content active" id="composition-content">
+                <div class="demo-header">
+                    <div>
+                        <div class="demo-title">力的合成演示</div>
+                        <div class="demo-subtitle">平行四边形法则：两个力的合力</div>
+                    </div>
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #e74c3c;"></div>
+                            <span>力 F₁</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #3498db;"></div>
+                            <span>力 F₂</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #2ecc71;"></div>
+                            <span>合力 R</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #f39c12;"></div>
+                            <span>平行四边形</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="canvas-container">
+                    <canvas id="compositionCanvas"></canvas>
+                </div>
+                
+                <div class="physics-info">
+                    <h2>力的合成原理</h2>
+                    <div class="formula-section">
+                        <div class="formula-box">
+                            <h3>平行四边形法则</h3>
+                            <div class="formula">
+                                R = √(F₁² + F₂² + 2F₁F₂cosθ)
+                            </div>
+                            <div class="explanation">
+                                <p>两个力F₁和F₂的合力R可以通过平行四边形法则计算：</p>
+                                <p>1. 以两个力为邻边作平行四边形</p>
+                                <p>2. 合力R的大小等于平行四边形的对角线长度</p>
+                                <p>3. 合力R的方向沿对角线方向</p>
+                            </div>
+                        </div>
+                        
+                        <div class="formula-box">
+                            <h3>合力信息</h3>
+                            <div class="vector-info">
+                                <div class="vector-box">
+                                    <div class="vector-title">合力大小</div>
+                                    <div class="vector-value" id="resultantMagnitude">0.0 N</div>
+                                </div>
+                                <div class="vector-box">
+                                    <div class="vector-title">合力方向</div>
+                                    <div class="vector-value" id="resultantDirection">0.0°</div>
+                                </div>
+                            </div>
+                            <div class="explanation">
+                                <p>合力的水平分量：<span id="resultantXComponent">0.0</span> N</p>
+                                <p>合力的垂直分量：<span id="resultantYComponent">0.0</span> N</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 力的分解演示区域 -->
+            <div class="demo-area tab-content" id="decomposition-content">
+                <div class="demo-header">
+                    <div>
+                        <div class="demo-title">力的分解演示</div>
+                        <div class="demo-subtitle">正交分解法：一个力分解为两个垂直分力</div>
+                    </div>
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #9b59b6;"></div>
+                            <span>原力 F</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #e74c3c;"></div>
+                            <span>水平分力 Fₓ</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #3498db;"></div>
+                            <span>垂直分力 Fᵧ</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="canvas-container">
+                    <canvas id="decompositionCanvas"></canvas>
+                </div>
+                
+                <div class="physics-info">
+                    <h2>力的分解原理</h2>
+                    <div class="formula-section">
+                        <div class="formula-box">
+                            <h3>正交分解公式</h3>
+                            <div class="formula">
+                                Fₓ = F·cosθ<br>
+                                Fᵧ = F·sinθ
+                            </div>
+                            <div class="explanation">
+                                <p>一个力F可以分解为两个互相垂直的分力：</p>
+                                <p>1. 水平分力Fₓ = F × cosθ</p>
+                                <p>2. 垂直分力Fᵧ = F × sinθ</p>
+                                <p>其中θ是力F与水平方向的夹角</p>
+                            </div>
+                        </div>
+                        
+                        <div class="formula-box">
+                            <h3>分力信息</h3>
+                            <div class="vector-info">
+                                <div class="vector-box">
+                                    <div class="vector-title">水平分力</div>
+                                    <div class="vector-value" id="horizontalForce">0.0 N</div>
+                                </div>
+                                <div class="vector-box">
+                                    <div class="vector-title">垂直分力</div>
+                                    <div class="vector-value" id="verticalForce">0.0 N</div>
+                                </div>
+                            </div>
+                            <div class="explanation">
+                                <p>原力大小：<span id="originalForce">0.0</span> N</p>
+                                <p>原力方向：<span id="originalForceAngle">0.0</span>°</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 控制面板 -->
+            <div class="controls">
+                <div class="control-group" id="composition-controls">
+                    <h2>力的合成控制</h2>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <label for="force1Magnitude">力 F₁ 大小 (N):</label>
+                            <div class="value-display" id="force1MagnitudeVal">50.0</div>
+                        </div>
+                        <input type="range" id="force1Magnitude" min="10" max="100" step="1" value="50">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <label for="force1Angle">力 F₁ 方向 (°):</label>
+                            <div class="value-display" id="force1AngleVal">30</div>
+                        </div>
+                        <input type="range" id="force1Angle" min="0" max="360" step="1" value="30">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <label for="force2Magnitude">力 F₂ 大小 (N):</label>
+                            <div class="value-display" id="force2MagnitudeVal">70.0</div>
+                        </div>
+                        <input type="range" id="force2Magnitude" min="10" max="100" step="1" value="70">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <label for="force2Angle">力 F₂ 方向 (°):</label>
+                            <div class="value-display" id="force2AngleVal">120</div>
+                        </div>
+                        <input type="range" id="force2Angle" min="0" max="360" step="1" value="120">
+                    </div>
+                </div>
+                
+                <div class="control-group" id="decomposition-controls" style="display: none;">
+                    <h2>力的分解控制</h2>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <label for="originalForceMagnitude">原力 F 大小 (N):</label>
+                            <div class="value-display" id="originalForceMagnitudeVal">80.0</div>
+                        </div>
+                        <input type="range" id="originalForceMagnitude" min="10" max="100" step="1" value="80">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <label for="originalForceAngle">原力 F 方向 (°):</label>
+                            <div class="value-display" id="originalForceAngleVal">45</div>
+                        </div>
+                        <input type="range" id="originalForceAngle" min="0" max="90" step="1" value="45">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <label for="decompositionAngle1">分解方向 1 (°):</label>
+                            <div class="value-display" id="decompositionAngle1Val">0</div>
+                        </div>
+                        <input type="range" id="decompositionAngle1" min="0" max="180" step="1" value="0">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <label for="decompositionAngle2">分解方向 2 (°):</label>
+                            <div class="value-display" id="decompositionAngle2Val">90</div>
+                        </div>
+                        <input type="range" id="decompositionAngle2" min="0" max="180" step="1" value="90">
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h2>显示选项</h2>
+                    <div>
+                        <input type="checkbox" id="showComponents" checked>
+                        <label for="showComponents">显示分力分量</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" id="showGrid" checked>
+                        <label for="showGrid">显示坐标网格</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" id="showLabels" checked>
+                        <label for="showLabels">显示力标签</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" id="showValues" checked>
+                        <label for="showValues">显示力数值</label>
+                    </div>
+                </div>
+                
+                <div class="buttons">
+                    <button id="resetBtn">重置参数</button>
+                    <button id="randomBtn">随机生成</button>
+                    <button id="showFormulasBtn">公式说明</button>
+                </div>
+                
+                <div class="explanation">
+                    <h3>使用说明</h3>
+                    <p>1. 通过滑块调整力的大小和方向</p>
+                    <p>2. 在"力的合成"中，观察平行四边形法则如何计算合力</p>
+                    <p>3. 在"力的分解"中，观察一个力如何分解为两个方向的分力</p>
+                    <p>4. 点击"随机生成"随机设置参数</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>力的合成与分解物理教学动画 | 平行四边形法则与正交分解法 | 使用HTML5 Canvas和JavaScript实现</p>
+    </footer>
+
+    <script>
+        // 获取Canvas元素和上下文
+        const compositionCanvas = document.getElementById('compositionCanvas');
+        const decompositionCanvas = document.getElementById('decompositionCanvas');
+        const compCtx = compositionCanvas.getContext('2d');
+        const decompCtx = decompositionCanvas.getContext('2d');
+        
+        // 设置Canvas尺寸
+        function resizeCanvases() {
+            const containers = document.querySelectorAll('.canvas-container');
+            compositionCanvas.width = containers[0].clientWidth;
+            compositionCanvas.height = containers[0].clientHeight;
+            decompositionCanvas.width = containers[1].clientWidth;
+            decompositionCanvas.height = containers[1].clientHeight;
+        }
+        
+        // 初始调整Canvas尺寸
+        resizeCanvases();
+        window.addEventListener('resize', resizeCanvases);
+        
+        // 力的合成参数
+        let force1 = {
+            magnitude: 50, // 大小 (N)
+            angle: 30,     // 方向 (度)
+            color: '#e74c3c'
+        };
+        
+        let force2 = {
+            magnitude: 70,
+            angle: 120,
+            color: '#3498db'
+        };
+        
+        // 力的分解参数
+        let originalForce = {
+            magnitude: 80,
+            angle: 45, // 与水平方向的夹角
+            color: '#9b59b6'
+        };
+        
+        // 分解方向
+        let decompositionAngles = {
+            angle1: 0,   // 水平方向
+            angle2: 90   // 垂直方向
+        };
+        
+        // 显示选项
+        let showComponents = true;
+        let showGrid = true;
+        let showLabels = true;
+        let showValues = true;
+        
+        // 获取DOM元素
+        // 力的合成控制
+        const force1MagnitudeSlider = document.getElementById('force1Magnitude');
+        const force1AngleSlider = document.getElementById('force1Angle');
+        const force2MagnitudeSlider = document.getElementById('force2Magnitude');
+        const force2AngleSlider = document.getElementById('force2Angle');
+        
+        const force1MagnitudeVal = document.getElementById('force1MagnitudeVal');
+        const force1AngleVal = document.getElementById('force1AngleVal');
+        const force2MagnitudeVal = document.getElementById('force2MagnitudeVal');
+        const force2AngleVal = document.getElementById('force2AngleVal');
+        
+        // 力的分解控制
+        const originalForceMagnitudeSlider = document.getElementById('originalForceMagnitude');
+        const originalForceAngleSlider = document.getElementById('originalForceAngle');
+        const decompositionAngle1Slider = document.getElementById('decompositionAngle1');
+        const decompositionAngle2Slider = document.getElementById('decompositionAngle2');
+        
+        const originalForceMagnitudeVal = document.getElementById('originalForceMagnitudeVal');
+        const originalForceAngleVal = document.getElementById('originalForceAngleVal');
+        const decompositionAngle1Val = document.getElementById('decompositionAngle1Val');
+        const decompositionAngle2Val = document.getElementById('decompositionAngle2Val');
+        
+        // 信息显示
+        const resultantMagnitude = document.getElementById('resultantMagnitude');
+        const resultantDirection = document.getElementById('resultantDirection');
+        const resultantXComponent = document.getElementById('resultantXComponent');
+        const resultantYComponent = document.getElementById('resultantYComponent');
+        
+        const horizontalForce = document.getElementById('horizontalForce');
+        const verticalForce = document.getElementById('verticalForce');
+        const originalForceDisplay = document.getElementById('originalForce');
+        const originalForceAngleDisplay = document.getElementById('originalForceAngle');
+        
+        // 控制元素
+        const resetBtn = document.getElementById('resetBtn');
+        const randomBtn = document.getElementById('randomBtn');
+        const showFormulasBtn = document.getElementById('showFormulasBtn');
+        
+        const showComponentsCheckbox = document.getElementById('showComponents');
+        const showGridCheckbox = document.getElementById('showGrid');
+        const showLabelsCheckbox = document.getElementById('showLabels');
+        const showValuesCheckbox = document.getElementById('showValues');
+        
+        // 标签切换
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const compositionControls = document.getElementById('composition-controls');
+        const decompositionControls = document.getElementById('decomposition-controls');
+        
+        // 标签切换功能
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                
+                // 更新标签状态
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // 更新内容显示
+                tabContents.forEach(content => {
+                    content.classList.remove('active');
+                    if (content.id === `${tabId}-content`) {
+                        content.classList.add('active');
+                    }
+                });
+                
+                // 更新控制面板显示
+                if (tabId === 'composition') {
+                    compositionControls.style.display = 'block';
+                    decompositionControls.style.display = 'none';
+                    drawComposition();
+                } else {
+                    compositionControls.style.display = 'none';
+                    decompositionControls.style.display = 'block';
+                    drawDecomposition();
+                }
+            });
+        });
+        
+        // 更新滑块显示值
+        function updateSliderValues() {
+            // 力的合成
+            force1MagnitudeVal.textContent = force1MagnitudeSlider.value;
+            force1AngleVal.textContent = force1AngleSlider.value;
+            force2MagnitudeVal.textContent = force2MagnitudeSlider.value;
+            force2AngleVal.textContent = force2AngleSlider.value;
+            
+            // 力的分解
+            originalForceMagnitudeVal.textContent = originalForceMagnitudeSlider.value;
+            originalForceAngleVal.textContent = originalForceAngleSlider.value;
+            decompositionAngle1Val.textContent = decompositionAngle1Slider.value;
+            decompositionAngle2Val.textContent = decompositionAngle2Slider.value;
+        }
+        
+        // 更新物理参数
+        function updatePhysicsParameters() {
+            // 力的合成参数
+            force1.magnitude = parseFloat(force1MagnitudeSlider.value);
+            force1.angle = parseFloat(force1AngleSlider.value);
+            force2.magnitude = parseFloat(force2MagnitudeSlider.value);
+            force2.angle = parseFloat(force2AngleSlider.value);
+            
+            // 力的分解参数
+            originalForce.magnitude = parseFloat(originalForceMagnitudeSlider.value);
+            originalForce.angle = parseFloat(originalForceAngleSlider.value);
+            decompositionAngles.angle1 = parseFloat(decompositionAngle1Slider.value);
+            decompositionAngles.angle2 = parseFloat(decompositionAngle2Slider.value);
+            
+            // 计算并更新显示
+            calculateAndDisplayForces();
+        }
+        
+        // 计算力并更新显示
+        function calculateAndDisplayForces() {
+            // 力的合成计算
+            const angle1Rad = force1.angle * Math.PI / 180;
+            const angle2Rad = force2.angle * Math.PI / 180;
+            
+            // 计算分力
+            const force1X = force1.magnitude * Math.cos(angle1Rad);
+            const force1Y = force1.magnitude * Math.sin(angle1Rad);
+            const force2X = force2.magnitude * Math.cos(angle2Rad);
+            const force2Y = force2.magnitude * Math.sin(angle2Rad);
+            
+            // 计算合力
+            const resultantX = force1X + force2X;
+            const resultantY = force1Y + force2Y;
+            const resultantMag = Math.sqrt(resultantX * resultantX + resultantY * resultantY);
+            let resultantDir = Math.atan2(resultantY, resultantX) * 180 / Math.PI;
+            if (resultantDir < 0) resultantDir += 360;
+            
+            // 更新显示
+            resultantMagnitude.textContent = resultantMag.toFixed(1) + " N";
+            resultantDirection.textContent = resultantDir.toFixed(1) + "°";
+            resultantXComponent.textContent = resultantX.toFixed(1);
+            resultantYComponent.textContent = resultantY.toFixed(1);
+            
+            // 力的分解计算
+            const originalAngleRad = originalForce.angle * Math.PI / 180;
+            const decompAngle1Rad = decompositionAngles.angle1 * Math.PI / 180;
+            const decompAngle2Rad = decompositionAngles.angle2 * Math.PI / 180;
+            
+            // 计算分力（使用向量投影公式）
+            const Fx = originalForce.magnitude * Math.cos(originalAngleRad - decompAngle1Rad) / Math.cos(decompAngle2Rad - decompAngle1Rad);
+            const Fy = originalForce.magnitude * Math.cos(originalAngleRad - decompAngle2Rad) / Math.cos(decompAngle1Rad - decompAngle2Rad);
+            
+            // 更新显示
+            originalForceDisplay.textContent = originalForce.magnitude.toFixed(1);
+            originalForceAngleDisplay.textContent = originalForce.angle.toFixed(1);
+            
+            // 对于正交分解（两个分解方向垂直），使用简化公式
+            if (Math.abs(decompositionAngles.angle2 - decompositionAngles.angle1) === 90) {
+                const simplifiedFx = originalForce.magnitude * Math.cos(originalAngleRad - decompAngle1Rad);
+                const simplifiedFy = originalForce.magnitude * Math.sin(originalAngleRad - decompAngle1Rad);
+                
+                horizontalForce.textContent = simplifiedFx.toFixed(1) + " N";
+                verticalForce.textContent = simplifiedFy.toFixed(1) + " N";
+            } else {
+                horizontalForce.textContent = Fx.toFixed(1) + " N";
+                verticalForce.textContent = Fy.toFixed(1) + " N";
+            }
+        }
+        
+        // 绘制力的合成
+        function drawComposition() {
+            // 清除画布
+            compCtx.clearRect(0, 0, compositionCanvas.width, compositionCanvas.height);
+            
+            // 绘制背景
+            drawBackground(compCtx, compositionCanvas);
+            
+            // 设置原点（力的作用点）
+            const originX = compositionCanvas.width / 2;
+            const originY = compositionCanvas.height / 2;
+            
+            // 计算缩放因子（使力的大小在画布上合理显示）
+            const scale = Math.min(compositionCanvas.width, compositionCanvas.height) / 200;
+            
+            // 计算力的终点坐标
+            const angle1Rad = force1.angle * Math.PI / 180;
+            const angle2Rad = force2.angle * Math.PI / 180;
+            
+            const force1EndX = originX + force1.magnitude * Math.cos(angle1Rad) * scale;
+            const force1EndY = originY + force1.magnitude * Math.sin(angle1Rad) * scale;
+            
+            const force2EndX = originX + force2.magnitude * Math.cos(angle2Rad) * scale;
+            const force2EndY = originY + force2.magnitude * Math.sin(angle2Rad) * scale;
+            
+            // 绘制平行四边形
+            compCtx.strokeStyle = 'rgba(243, 156, 18, 0.6)';
+            compCtx.lineWidth = 2;
+            compCtx.setLineDash([5, 5]);
+            compCtx.beginPath();
+            compCtx.moveTo(originX, originY);
+            compCtx.lineTo(force1EndX, force1EndY);
+            compCtx.lineTo(force1EndX + force2EndX - originX, force1EndY + force2EndY - originY);
+            compCtx.lineTo(force2EndX, force2EndY);
+            compCtx.closePath();
+            compCtx.stroke();
+            compCtx.setLineDash([]);
+            
+            // 绘制力 F1
+            drawVector(compCtx, originX, originY, force1EndX, force1EndY, force1.color, "F₁", force1.magnitude);
+            
+            // 绘制力 F2
+            drawVector(compCtx, originX, originY, force2EndX, force2EndY, force2.color, "F₂", force2.magnitude);
+            
+            // 计算合力
+            const resultantX = force1EndX + force2EndX - originX;
+            const resultantY = force1EndY + force2EndY - originY;
+            
+            // 绘制合力
+            drawVector(compCtx, originX, originY, resultantX, resultantY, '#2ecc71', "R", parseFloat(resultantMagnitude.textContent));
+            
+            // 绘制分力分量
+            if (showComponents) {
+                // F1的分量
+                drawVectorComponent(compCtx, originX, originY, force1EndX, force1EndY, '#e74c3c', 0.5);
+                // F2的分量
+                drawVectorComponent(compCtx, originX, originY, force2EndX, force2EndY, '#3498db', 0.5);
+                // 合力的分量
+                drawVectorComponent(compCtx, originX, originY, resultantX, resultantY, '#2ecc71', 0.5);
+            }
+        }
+        
+        // 绘制力的分解
+        function drawDecomposition() {
+            // 清除画布
+            decompCtx.clearRect(0, 0, decompositionCanvas.width, decompositionCanvas.height);
+            
+            // 绘制背景
+            drawBackground(decompCtx, decompositionCanvas);
+            
+            // 设置原点
+            const originX = decompositionCanvas.width / 2;
+            const originY = decompositionCanvas.height / 2;
+            
+            // 计算缩放因子
+            const scale = Math.min(decompositionCanvas.width, decompositionCanvas.height) / 200;
+            
+            // 计算原力的终点坐标
+            const originalAngleRad = originalForce.angle * Math.PI / 180;
+            const originalEndX = originX + originalForce.magnitude * Math.cos(originalAngleRad) * scale;
+            const originalEndY = originY + originalForce.magnitude * Math.sin(originalAngleRad) * scale;
+            
+            // 绘制原力
+            drawVector(decompCtx, originX, originY, originalEndX, originalEndY, originalForce.color, "F", originalForce.magnitude);
+            
+            // 计算分力
+            const decompAngle1Rad = decompositionAngles.angle1 * Math.PI / 180;
+            const decompAngle2Rad = decompositionAngles.angle2 * Math.PI / 180;
+            
+            // 对于正交分解（两个分解方向垂直），使用简化公式
+            let Fx, Fy;
+            if (Math.abs(decompositionAngles.angle2 - decompositionAngles.angle1) === 90) {
+                Fx = originalForce.magnitude * Math.cos(originalAngleRad - decompAngle1Rad);
+                Fy = originalForce.magnitude * Math.sin(originalAngleRad - decompAngle1Rad);
+            } else {
+                // 通用分解公式
+                Fx = originalForce.magnitude * Math.cos(originalAngleRad - decompAngle1Rad) / Math.cos(decompAngle2Rad - decompAngle1Rad);
+                Fy = originalForce.magnitude * Math.cos(originalAngleRad - decompAngle2Rad) / Math.cos(decompAngle1Rad - decompAngle2Rad);
+            }
+            
+            // 计算分力终点坐标
+            const component1EndX = originX + Fx * Math.cos(decompAngle1Rad) * scale;
+            const component1EndY = originY + Fx * Math.sin(decompAngle1Rad) * scale;
+            
+            const component2EndX = originX + Fy * Math.cos(decompAngle2Rad) * scale;
+            const component2EndY = originY + Fy * Math.sin(decompAngle2Rad) * scale;
+            
+            // 绘制分力
+            drawVector(decompCtx, originX, originY, component1EndX, component1EndY, '#e74c3c', "Fₓ", Fx);
+            drawVector(decompCtx, originX, originY, component2EndX, component2EndY, '#3498db', "Fᵧ", Fy);
+            
+            // 绘制分解辅助线（平行四边形）
+            decompCtx.strokeStyle = 'rgba(243, 156, 18, 0.6)';
+            decompCtx.lineWidth = 2;
+            decompCtx.setLineDash([5, 5]);
+            decompCtx.beginPath();
+            decompCtx.moveTo(originX, originY);
+            decompCtx.lineTo(component1EndX, component1EndY);
+            decompCtx.lineTo(originalEndX, originalEndY);
+            decompCtx.lineTo(component2EndX, component2EndY);
+            decompCtx.closePath();
+            decompCtx.stroke();
+            decompCtx.setLineDash([]);
+        }
+        
+        // 绘制背景和坐标网格
+        function drawBackground(ctx, canvas) {
+            // 绘制背景
+            ctx.fillStyle = '#ecf0f1';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制坐标网格
+            if (showGrid) {
+                ctx.strokeStyle = 'rgba(189, 195, 199, 0.5)';
+                ctx.lineWidth = 1;
+                
+                // 垂直线
+                for (let x = 0; x < canvas.width; x += 40) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, canvas.height);
+                    ctx.stroke();
+                }
+                
+                // 水平线
+                for (let y = 0; y < canvas.height; y += 40) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(canvas.width, y);
+                    ctx.stroke();
+                }
+                
+                // 坐标轴
+                ctx.strokeStyle = '#7f8c8d';
+                ctx.lineWidth = 2;
+                
+                // X轴
+                ctx.beginPath();
+                ctx.moveTo(0, canvas.height / 2);
+                ctx.lineTo(canvas.width, canvas.height / 2);
+                ctx.stroke();
+                
+                // Y轴
+                ctx.beginPath();
+                ctx.moveTo(canvas.width / 2, 0);
+                ctx.lineTo(canvas.width / 2, canvas.height);
+                ctx.stroke();
+                
+                // 坐标轴标签
+                ctx.fillStyle = '#7f8c8d';
+                ctx.font = 'bold 14px Arial';
+                ctx.fillText('x', canvas.width - 20, canvas.height / 2 - 10);
+                ctx.fillText('y', canvas.width / 2 + 10, 20);
+            }
+        }
+        
+        // 绘制矢量箭头
+        function drawVector(ctx, startX, startY, endX, endY, color, label, magnitude) {
+            // 绘制矢量线
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+            
+            // 计算箭头参数
+            const angle = Math.atan2(endY - startY, endX - startX);
+            const arrowLength = 15;
+            
+            // 绘制箭头头部
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(endX, endY);
+            ctx.lineTo(
+                endX - arrowLength * Math.cos(angle - Math.PI / 6),
+                endY - arrowLength * Math.sin(angle - Math.PI / 6)
+            );
+            ctx.lineTo(
+                endX - arrowLength * Math.cos(angle + Math.PI / 6),
+                endY - arrowLength * Math.sin(angle + Math.PI / 6)
+            );
+            ctx.closePath();
+            ctx.fill();
+            
+            // 绘制标签
+            if (showLabels) {
+                const labelX = startX + (endX - startX) * 0.5;
+                const labelY = startY + (endY - startY) * 0.5;
+                
+                // 标签背景
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 1;
+                
+                const text = showValues ? `${label} = ${magnitude.toFixed(1)} N` : label;
+                const textWidth = ctx.measureText(text).width;
+                
+                ctx.beginPath();
+                ctx.roundRect(labelX - textWidth/2 - 5, labelY - 15, textWidth + 10, 20, 5);
+                ctx.fill();
+                ctx.stroke();
+                
+                // 标签文字
+                ctx.fillStyle = color;
+                ctx.font = 'bold 14px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(text, labelX, labelY);
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'alphabetic';
+            }
+        }
+        
+        // 绘制矢量的分量（虚线）
+        function drawVectorComponent(ctx, startX, startY, endX, endY, color, opacity) {
+            ctx.strokeStyle = color.replace(')', `, ${opacity})`).replace('rgb', 'rgba');
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 3]);
+            
+            // X分量
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(endX, startY);
+            ctx.stroke();
+            
+            // Y分量
+            ctx.beginPath();
+            ctx.moveTo(endX, startY);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+            
+            ctx.setLineDash([]);
+        }
+        
+        // 重置参数
+        function resetParameters() {
+            // 力的合成参数
+            force1MagnitudeSlider.value = 50;
+            force1AngleSlider.value = 30;
+            force2MagnitudeSlider.value = 70;
+            force2AngleSlider.value = 120;
+            
+            // 力的分解参数
+            originalForceMagnitudeSlider.value = 80;
+            originalForceAngleSlider.value = 45;
+            decompositionAngle1Slider.value = 0;
+            decompositionAngle2Slider.value = 90;
+            
+            // 更新显示
+            updateSliderValues();
+            updatePhysicsParameters();
+            
+            // 重绘
+            if (document.querySelector('.tab.active').getAttribute('data-tab') === 'composition') {
+                drawComposition();
+            } else {
+                drawDecomposition();
+            }
+        }
+        
+        // 随机生成参数
+        function randomizeParameters() {
+            // 力的合成随机参数
+            force1MagnitudeSlider.value = Math.floor(Math.random() * 91) + 10; // 10-100
+            force1AngleSlider.value = Math.floor(Math.random() * 361); // 0-360
+            force2MagnitudeSlider.value = Math.floor(Math.random() * 91) + 10; // 10-100
+            force2AngleSlider.value = Math.floor(Math.random() * 361); // 0-360
+            
+            // 力的分解随机参数
+            originalForceMagnitudeSlider.value = Math.floor(Math.random() * 91) + 10; // 10-100
+            originalForceAngleSlider.value = Math.floor(Math.random() * 91); // 0-90
+            decompositionAngle1Slider.value = Math.floor(Math.random() * 181); // 0-180
+            decompositionAngle2Slider.value = (parseInt(decompositionAngle1Slider.value) + 90) % 180;
+            
+            // 更新显示
+            updateSliderValues();
+            updatePhysicsParameters();
+            
+            // 重绘
+            if (document.querySelector('.tab.active').getAttribute('data-tab') === 'composition') {
+                drawComposition();
+            } else {
+                drawDecomposition();
+            }
+        }
+        
+        // 显示公式说明
+        function showFormulasExplanation() {
+            alert(`力的合成与分解公式说明：
+
+1. 力的合成（平行四边形法则）：
+   R = √(F₁² + F₂² + 2F₁F₂cosθ)
+   其中θ是两个力之间的夹角
+
+2. 力的分解（正交分解法）：
+   Fₓ = F·cosθ
+   Fᵧ = F·sinθ
+   其中θ是力F与x轴的夹角
+
+3. 力的分解（通用公式）：
+   当分解方向不垂直时，可以使用：
+   F₁ = F·cos(α-β)/cos(γ-β)
+   F₂ = F·cos(α-γ)/cos(β-γ)
+   其中α是原力方向，β和γ是两个分解方向
+
+通过调整参数观察这些公式如何应用于实际力的合成与分解。`);
+        }
+        
+        // 事件监听器
+        // 力的合成控制
+        force1MagnitudeSlider.addEventListener('input', function() {
+            updateSliderValues();
+            updatePhysicsParameters();
+            drawComposition();
+        });
+        
+        force1AngleSlider.addEventListener('input', function() {
+            updateSliderValues();
+            updatePhysicsParameters();
+            drawComposition();
+        });
+        
+        force2MagnitudeSlider.addEventListener('input', function() {
+            updateSliderValues();
+            updatePhysicsParameters();
+            drawComposition();
+        });
+        
+        force2AngleSlider.addEventListener('input', function() {
+            updateSliderValues();
+            updatePhysicsParameters();
+            drawComposition();
+        });
+        
+        // 力的分解控制
+        originalForceMagnitudeSlider.addEventListener('input', function() {
+            updateSliderValues();
+            updatePhysicsParameters();
+            drawDecomposition();
+        });
+        
+        originalForceAngleSlider.addEventListener('input', function() {
+            updateSliderValues();
+            updatePhysicsParameters();
+            drawDecomposition();
+        });
+        
+        decompositionAngle1Slider.addEventListener('input', function() {
+            updateSliderValues();
+            updatePhysicsParameters();
+            drawDecomposition();
+        });
+        
+        decompositionAngle2Slider.addEventListener('input', function() {
+            updateSliderValues();
+            updatePhysicsParameters();
+            drawDecomposition();
+        });
+        
+        // 按钮事件
+        resetBtn.addEventListener('click', resetParameters);
+        randomBtn.addEventListener('click', randomizeParameters);
+        showFormulasBtn.addEventListener('click', showFormulasExplanation);
+        
+        // 显示选项事件
+        showComponentsCheckbox.addEventListener('change', function() {
+            showComponents = this.checked;
+            if (document.querySelector('.tab.active').getAttribute('data-tab') === 'composition') {
+                drawComposition();
+            } else {
+                drawDecomposition();
+            }
+        });
+        
+        showGridCheckbox.addEventListener('change', function() {
+            showGrid = this.checked;
+            if (document.querySelector('.tab.active').getAttribute('data-tab') === 'composition') {
+                drawComposition();
+            } else {
+                drawDecomposition();
+            }
+        });
+        
+        showLabelsCheckbox.addEventListener('change', function() {
+            showLabels = this.checked;
+            if (document.querySelector('.tab.active').getAttribute('data-tab') === 'composition') {
+                drawComposition();
+            } else {
+                drawDecomposition();
+            }
+        });
+        
+        showValuesCheckbox.addEventListener('change', function() {
+            showValues = this.checked;
+            if (document.querySelector('.tab.active').getAttribute('data-tab') === 'composition') {
+                drawComposition();
+            } else {
+                drawDecomposition();
+            }
+        });
+        
+        // 初始化
+        function init() {
+            // 添加Canvas API的roundRect支持（如果浏览器不支持）
+            if (!CanvasRenderingContext2D.prototype.roundRect) {
+                CanvasRenderingContext2D.prototype.roundRect = function(x, y, width, height, radius) {
+                    if (width < 2 * radius) radius = width / 2;
+                    if (height < 2 * radius) radius = height / 2;
+                    this.beginPath();
+                    this.moveTo(x + radius, y);
+                    this.arcTo(x + width, y, x + width, y + height, radius);
+                    this.arcTo(x + width, y + height, x, y + height, radius);
+                    this.arcTo(x, y + height, x, y, radius);
+                    this.arcTo(x, y, x + width, y, radius);
+                    this.closePath();
+                    return this;
+                };
+            }
+            
+            updateSliderValues();
+            updatePhysicsParameters();
+            drawComposition();
+            drawDecomposition();
+        }
+        
+        // 页面加载完成后初始化
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
