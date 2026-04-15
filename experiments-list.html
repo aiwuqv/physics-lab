@@ -1,0 +1,1069 @@
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?ac767b1801023bbced078f6aa6b0d5d8";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI物趣 - 高中物理虚拟仿真实验平台</title>
+<style>
+:root {
+  --bg-primary: #060e1a;
+  --bg-secondary: #0c1829;
+  --bg-tertiary: #132240;
+  --color-blue: #00d4ff;
+  --color-purple: #7b2ff7;
+  --color-orange: #ff6b35;
+  --color-green: #00e676;
+  --color-gold: #ffd700;
+  --color-white: #ffffff;
+  --color-text: #c8d6e5;
+  --color-text-dim: #6b7b8d;
+  --glass-bg: rgba(12,24,41,0.6);
+  --glass-border: rgba(0,212,255,0.12);
+  --glass-bg-hover: rgba(0,212,255,0.1);
+  --max-width: 1400px;
+  --radius: 16px;
+  --transition: 0.35s cubic-bezier(.25,.8,.25,1);
+  --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-mono: "SF Mono", "Fira Code", "Consolas", monospace;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:80px}
+body{font-family:var(--font-main);background:var(--bg-primary);color:var(--color-text);line-height:1.6;overflow-x:hidden;min-height:100vh}
+a{text-decoration:none;color:inherit}
+
+/* ====== 全局背景 ====== */
+.bg-layer{position:fixed;inset:0;pointer-events:none;z-index:0}
+.bg-grid{background-image:linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);background-size:60px 60px}
+.bg-orb{border-radius:50%;filter:blur(100px);opacity:.18;position:absolute}
+.bg-orb-1{width:600px;height:600px;background:radial-gradient(circle,var(--color-blue),transparent);top:-200px;left:-100px;animation:orbDrift 25s ease-in-out infinite}
+.bg-orb-2{width:500px;height:500px;background:radial-gradient(circle,var(--color-purple),transparent);bottom:-150px;right:-100px;animation:orbDrift 30s ease-in-out infinite reverse}
+.bg-orb-3{width:400px;height:400px;background:radial-gradient(circle,var(--color-green),transparent);top:50%;left:60%;animation:orbDrift 20s ease-in-out infinite 5s}
+@keyframes orbDrift{0%,100%{transform:translate(0,0)}33%{transform:translate(80px,-60px)}66%{transform:translate(-50px,70px)}}
+
+/* ====== 星空 ====== */
+.stars-container{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.star{position:absolute;border-radius:50%;background:#fff;animation:floatStar linear infinite}
+@keyframes floatStar{0%{transform:translateY(0);opacity:0}10%{opacity:var(--so,.5)}90%{opacity:var(--so,.5)}100%{transform:translateY(-100vh);opacity:0}}
+
+/* ====== 页面顶部粒子流光画布 ====== */
+.particle-flow-canvas{position:fixed;top:0;left:0;width:100%;height:220px;pointer-events:none;z-index:1;opacity:.85}
+
+/* ====== 导航栏 ====== */
+.header{position:sticky;top:0;z-index:1000;background:rgba(6,14,26,0.75);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-bottom:1px solid rgba(0,212,255,0.08);padding:0 24px;box-shadow:0 4px 30px rgba(0,0,0,0.4)}
+.header-inner{max-width:var(--max-width);margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:68px}
+.logo-area{display:flex;align-items:center;gap:14px;flex-shrink:0}
+.atom-icon{width:42px;height:42px;position:relative;flex-shrink:0}
+.atom-nucleus{position:absolute;width:10px;height:10px;background:var(--color-blue);border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);box-shadow:0 0 14px var(--color-blue),0 0 28px rgba(0,212,255,0.4)}
+.atom-orbit{position:absolute;top:50%;left:50%;border:1.5px solid rgba(0,212,255,0.45);border-radius:50%}
+.atom-orbit:nth-child(2){width:38px;height:15px;margin-left:-19px;margin-top:-7.5px;animation:orb1 5s linear infinite}
+.atom-orbit:nth-child(3){width:38px;height:15px;margin-left:-19px;margin-top:-7.5px;animation:orb2 5s linear infinite}
+.atom-orbit:nth-child(4){width:38px;height:15px;margin-left:-19px;margin-top:-7.5px;animation:orb3 5s linear infinite}
+@keyframes orb1{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes orb2{from{transform:rotate(60deg)}to{transform:rotate(420deg)}}
+@keyframes orb3{from{transform:rotate(120deg)}to{transform:rotate(480deg)}}
+.logo-title{font-size:20px;font-weight:800;background:linear-gradient(135deg,var(--color-blue),#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:1px}
+.nav-links{display:flex;align-items:center;gap:4px;list-style:none}
+.nav-link{padding:10px 18px;font-size:14px;color:var(--color-text);border-radius:10px;cursor:pointer;transition:var(--transition);position:relative;white-space:nowrap;background:none;border:none;font-family:var(--font-main);font-weight:500}
+.nav-link::after{content:'';position:absolute;bottom:4px;left:50%;width:0;height:2.5px;background:linear-gradient(90deg,var(--color-blue),var(--color-purple));transition:var(--transition);transform:translateX(-50%);border-radius:2px}
+.nav-link:hover{color:var(--color-white);background:rgba(0,212,255,0.06)}
+.nav-link:hover::after,.nav-link.active::after{width:65%}
+.nav-link.active{color:var(--color-blue)}
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:8px;background:none;border:none}
+.hamburger span{display:block;width:24px;height:2.5px;background:var(--color-white);transition:var(--transition);border-radius:2px}
+.hamburger.active span:nth-child(1){transform:rotate(45deg) translate(6px,6px)}
+.hamburger.active span:nth-child(2){opacity:0}
+.hamburger.active span:nth-child(3){transform:rotate(-45deg) translate(6px,-6px)}
+.mobile-menu{display:none;position:fixed;top:68px;left:0;right:0;background:rgba(6,14,26,0.95);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-bottom:1px solid rgba(0,212,255,0.08);padding:16px 24px;z-index:999;transform:translateY(-100%);opacity:0;transition:var(--transition)}
+.mobile-menu.open{transform:translateY(0);opacity:1}
+.mobile-menu .nav-link{display:block;padding:14px 16px;font-size:16px}
+
+/* ====== 英雄区域 ====== */
+.hero{min-height:68vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 24px 60px;position:relative;z-index:1}
+.hero::before{content:'';position:absolute;top:-80px;left:50%;width:700px;height:700px;background:radial-gradient(circle,rgba(0,212,255,0.12),transparent 70%);transform:translateX(-50%);border-radius:50%;pointer-events:none}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 20px;border-radius:50px;background:linear-gradient(135deg,rgba(0,212,255,0.12),rgba(123,47,247,0.08));border:1px solid rgba(0,212,255,0.2);font-size:13px;color:var(--color-blue);font-weight:600;margin-bottom:28px;letter-spacing:0.5px;animation:fadeSlideDown .8s ease .2s both}
+.hero-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--color-green);box-shadow:0 0 8px var(--color-green);animation:blink 2s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.hero-title{font-size:clamp(42px,7vw,76px);font-weight:900;background:linear-gradient(135deg,var(--color-blue) 0%,#a78bfa 50%,var(--color-purple) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200% 200%;animation:gradFlow 6s ease infinite,fadeSlideDown .8s ease both;margin-bottom:20px;line-height:1.1;letter-spacing:-1px}
+@keyframes gradFlow{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+@keyframes fadeSlideDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+.hero-subtitle{font-size:clamp(15px,2.2vw,20px);color:var(--color-text-dim);margin-bottom:56px;max-width:650px;font-weight:400;letter-spacing:.3px;animation:fadeSlideDown .8s ease .4s both}
+.stats-grid{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin-bottom:56px;max-width:900px;animation:fadeSlideDown .8s ease .6s both}
+.stat-card{background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:var(--radius);padding:24px 30px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);text-align:center;min-width:140px;transition:var(--transition);cursor:pointer;position:relative;overflow:hidden}
+.stat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:3px 3px 0 0;opacity:0;transition:var(--transition)}
+.stat-card:nth-child(1)::after{background:linear-gradient(90deg,var(--color-blue),rgba(0,212,255,0.3))}
+.stat-card:nth-child(2)::after{background:linear-gradient(90deg,var(--color-orange),rgba(255,107,53,0.3))}
+.stat-card:nth-child(3)::after{background:linear-gradient(90deg,var(--color-green),rgba(0,230,118,0.3))}
+.stat-card:nth-child(4)::after{background:linear-gradient(90deg,var(--color-purple),rgba(123,47,247,0.3))}
+.stat-card:nth-child(5)::after{background:linear-gradient(90deg,var(--color-gold),rgba(255,215,0,0.3))}
+.stat-card:hover::after{opacity:1}
+.stat-card:hover{transform:translateY(-6px);border-color:rgba(0,212,255,0.3);box-shadow:0 16px 48px rgba(0,0,0,0.3)}
+.stat-icon{font-size:26px;margin-bottom:10px;display:block;transition:var(--transition)}
+.stat-card:hover .stat-icon{transform:scale(1.15)}
+.stat-number{font-size:34px;font-weight:900;font-family:var(--font-mono);display:block;margin-bottom:4px}
+.stat-card:nth-child(1) .stat-number{color:var(--color-blue)}
+.stat-card:nth-child(2) .stat-number{color:var(--color-orange)}
+.stat-card:nth-child(3) .stat-number{color:var(--color-green)}
+.stat-card:nth-child(4) .stat-number{color:var(--color-purple)}
+.stat-card:nth-child(5) .stat-number{color:var(--color-gold)}
+.stat-label{font-size:12px;color:var(--color-text-dim);font-weight:600;letter-spacing:1px;text-transform:uppercase}
+.scroll-indicator{animation:bounce 2.5s ease infinite;cursor:pointer;opacity:.5;transition:var(--transition)}
+.scroll-indicator:hover{opacity:1}
+.scroll-arrow{width:28px;height:28px;border-right:2px solid var(--color-blue);border-bottom:2px solid var(--color-blue);transform:rotate(45deg);margin:0 auto}
+@keyframes bounce{0%,20%,50%,80%,100%{transform:translateY(0)}40%{transform:translateY(10px)}60%{transform:translateY(5px)}}
+
+/* ====== 搜索筛选 ====== */
+.search-filter-section{max-width:var(--max-width);margin:0 auto;padding:0 24px 48px;position:relative;z-index:1}
+.search-box{max-width:580px;margin:0 auto 28px;position:relative}
+.search-icon{position:absolute;left:18px;top:50%;transform:translateY(-50%);width:18px;height:18px;opacity:.4}
+.search-icon::before{content:'';position:absolute;width:12px;height:12px;border:2.5px solid var(--color-text-dim);border-radius:50%;top:0;left:0}
+.search-icon::after{content:'';position:absolute;width:7px;height:2.5px;background:var(--color-text-dim);bottom:0;right:-2px;transform:rotate(45deg);border-radius:1px}
+.search-input{width:100%;padding:16px 24px 16px 48px;background:var(--glass-bg);border:1.5px solid var(--glass-border);border-radius:50px;color:var(--color-white);font-size:15px;font-family:var(--font-main);outline:none;transition:var(--transition);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.search-input::placeholder{color:var(--color-text-dim)}
+.search-input:focus{border-color:rgba(0,212,255,0.5);box-shadow:0 0 40px rgba(0,212,255,0.15)}
+.filter-tags{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.filter-tag{padding:10px 22px;border-radius:50px;font-size:13px;cursor:pointer;background:var(--glass-bg);border:1.5px solid var(--glass-border);color:var(--color-text);transition:var(--transition);user-select:none;font-weight:600;letter-spacing:.3px}
+.filter-tag:hover{border-color:rgba(0,212,255,0.3);color:var(--color-white);transform:translateY(-2px)}
+.filter-tag.active{background:rgba(0,212,255,0.15);border-color:rgba(0,212,255,0.5);color:var(--color-blue);box-shadow:0 0 20px rgba(0,212,255,0.12)}
+.filter-tag[data-filter="thermodynamics"].active{background:rgba(255,107,53,0.15);border-color:rgba(255,107,53,0.5);color:var(--color-orange);box-shadow:0 0 20px rgba(255,107,53,0.12)}
+.filter-tag[data-filter="optics"].active{background:rgba(0,230,118,0.15);border-color:rgba(0,230,118,0.5);color:var(--color-green);box-shadow:0 0 20px rgba(0,230,118,0.12)}
+.filter-tag[data-filter="electromagnetism"].active{background:rgba(123,47,247,0.15);border-color:rgba(123,47,247,0.5);color:var(--color-purple);box-shadow:0 0 20px rgba(123,47,247,0.12)}
+.filter-tag[data-filter="atomic"].active{background:rgba(255,215,0,0.15);border-color:rgba(255,215,0,0.5);color:var(--color-gold);box-shadow:0 0 20px rgba(255,215,0,0.12)}
+.no-results{text-align:center;padding:80px 24px;color:var(--color-text-dim);font-size:18px;display:none;position:relative;z-index:1}
+.no-results.visible{display:block}
+
+/* ====== 模块区域 ====== */
+.main-content{max-width:var(--max-width);margin:0 auto;padding:0 24px 80px;position:relative;z-index:1}
+.module-section{margin-bottom:72px;transition:opacity .3s ease}
+.module-section.hidden{display:none}
+.module-header{display:flex;align-items:center;gap:16px;margin-bottom:10px;flex-wrap:wrap}
+.module-icon{width:50px;height:50px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;font-size:24px}
+.module-icon.mechanics{background:linear-gradient(135deg,rgba(0,212,255,0.2),rgba(0,212,255,0.08));border:1px solid rgba(0,212,255,0.25)}
+.module-icon.mechanics::before{content:'⚙️';font-size:24px}
+.module-icon.thermodynamics{background:linear-gradient(135deg,rgba(255,107,53,0.2),rgba(255,107,53,0.08));border:1px solid rgba(255,107,53,0.25)}
+.module-icon.thermodynamics::before{content:'🌡️';font-size:24px}
+.module-icon.optics{background:linear-gradient(135deg,rgba(0,230,118,0.2),rgba(0,230,118,0.08));border:1px solid rgba(0,230,118,0.25)}
+.module-icon.optics::before{content:'💡';font-size:24px}
+.module-icon.electromagnetism{background:linear-gradient(135deg,rgba(123,47,247,0.2),rgba(123,47,247,0.08));border:1px solid rgba(123,47,247,0.25)}
+.module-icon.electromagnetism::before{content:'⚡';font-size:24px}
+.module-icon.atomic{background:linear-gradient(135deg,rgba(255,215,0,0.2),rgba(255,215,0,0.08));border:1px solid rgba(255,215,0,0.25)}
+.module-icon.atomic::before{content:'⚛️';font-size:24px}
+
+/* 模块标题做成发光立体字 */
+.module-title{
+  font-size:24px;
+  font-weight:800;
+  color:var(--color-white);
+  letter-spacing:.5px;
+  position:relative;
+  -webkit-text-stroke:.3px rgba(255,255,255,0.15);
+  animation:glowPulse 4s ease-in-out infinite
+}
+.module-title span{font-size:13px;font-weight:400;color:var(--color-text-dim);margin-left:8px;font-family:var(--font-mono)}
+
+/* 模块标题发光脉冲动画 */
+@keyframes glowPulse{
+  0%,100%{filter:brightness(1)}
+  50%{filter:brightness(1.15)}
+}
+
+/* 力学模块标题发光效果 */
+.module-section[data-module="mechanics"] .module-title{
+  text-shadow:
+    0 0 10px rgba(0,212,255,0.5),
+    0 0 30px rgba(0,212,255,0.25),
+    0 0 60px rgba(0,212,255,0.1),
+    0 2px 0 rgba(0,140,200,0.6),
+    0 4px 8px rgba(0,0,0,0.5)
+}
+
+/* 热学模块标题发光效果 */
+.module-section[data-module="thermodynamics"] .module-title{
+  text-shadow:
+    0 0 10px rgba(255,107,53,0.5),
+    0 0 30px rgba(255,107,53,0.25),
+    0 0 60px rgba(255,107,53,0.1),
+    0 2px 0 rgba(200,70,20,0.6),
+    0 4px 8px rgba(0,0,0,0.5)
+}
+
+/* 光学模块标题发光效果 */
+.module-section[data-module="optics"] .module-title{
+  text-shadow:
+    0 0 10px rgba(0,230,118,0.5),
+    0 0 30px rgba(0,230,118,0.25),
+    0 0 60px rgba(0,230,118,0.1),
+    0 2px 0 rgba(0,160,80,0.6),
+    0 4px 8px rgba(0,0,0,0.5)
+}
+
+/* 电磁学模块标题发光效果 */
+.module-section[data-module="electromagnetism"] .module-title{
+  text-shadow:
+    0 0 10px rgba(123,47,247,0.5),
+    0 0 30px rgba(123,47,247,0.25),
+    0 0 60px rgba(123,47,247,0.1),
+    0 2px 0 rgba(90,30,200,0.6),
+    0 4px 8px rgba(0,0,0,0.5)
+}
+
+/* 原子物理模块标题发光效果 */
+.module-section[data-module="atomic"] .module-title{
+  text-shadow:
+    0 0 10px rgba(255,215,0,0.5),
+    0 0 30px rgba(255,215,0,0.25),
+    0 0 60px rgba(255,215,0,0.1),
+    0 2px 0 rgba(200,170,0,0.6),
+    0 4px 8px rgba(0,0,0,0.5)
+}
+
+.module-badge{padding:5px 14px;border-radius:50px;font-size:12px;font-weight:700;font-family:var(--font-mono)}
+.module-badge.mechanics{background:rgba(0,212,255,0.12);color:var(--color-blue);border:1px solid rgba(0,212,255,0.2)}
+.module-badge.thermodynamics{background:rgba(255,107,53,0.12);color:var(--color-orange);border:1px solid rgba(255,107,53,0.2)}
+.module-badge.optics{background:rgba(0,230,118,0.12);color:var(--color-green);border:1px solid rgba(0,230,118,0.2)}
+.module-badge.electromagnetism{background:rgba(123,47,247,0.12);color:var(--color-purple);border:1px solid rgba(123,47,247,0.2)}
+.module-badge.atomic{background:rgba(255,215,0,0.12);color:var(--color-gold);border:1px solid rgba(255,215,0,0.2)}
+.module-enter-btn{margin-left:auto;padding:8px 20px;border-radius:50px;font-size:13px;cursor:pointer;transition:var(--transition);display:inline-flex;align-items:center;gap:6px;border:1px solid var(--glass-border);background:var(--glass-bg);color:var(--color-text);font-weight:600;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.module-enter-btn:hover{background:var(--glass-bg-hover);color:var(--color-white);border-color:rgba(0,212,255,0.3);box-shadow:0 4px 20px rgba(0,0,0,0.2)}
+.module-enter-btn .arrow{transition:transform .3s ease}
+.module-enter-btn:hover .arrow{transform:translateX(4px)}
+.module-desc{color:var(--color-text-dim);font-size:14px;margin-bottom:24px;padding-left:66px;line-height:1.7}
+.module-divider{height:1px;background:linear-gradient(90deg,transparent,var(--glass-border),transparent);margin-bottom:24px}
+
+/* ====== 实验卡片 ====== */
+.experiments-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.experiment-card{display:flex;flex-direction:column;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:var(--radius);padding:22px 20px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:transform .35s ease,box-shadow .35s ease,background .35s ease,border-color .35s ease;position:relative;overflow:hidden;opacity:0;transform:translateY(20px);cursor:pointer}
+.experiment-card.visible{opacity:1;transform:translateY(0)}
+.experiment-card.filter-hidden{display:none}
+.experiment-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;opacity:0;transition:opacity .35s ease}
+.experiment-card[data-module="mechanics"]::before{background:linear-gradient(90deg,var(--color-blue),rgba(0,212,255,0.2))}
+.experiment-card[data-module="thermodynamics"]::before{background:linear-gradient(90deg,var(--color-orange),rgba(255,107,53,0.2))}
+.experiment-card[data-module="optics"]::before{background:linear-gradient(90deg,var(--color-green),rgba(0,230,118,0.2))}
+.experiment-card[data-module="electromagnetism"]::before{background:linear-gradient(90deg,var(--color-purple),rgba(123,47,247,0.2))}
+.experiment-card[data-module="atomic"]::before{background:linear-gradient(90deg,var(--color-gold),rgba(255,215,0,0.2))}
+.experiment-card:hover::before{opacity:1}
+.experiment-card:hover{transform:translateY(-8px);background:rgba(0,212,255,0.06);border-color:rgba(0,212,255,0.25)}
+.experiment-card[data-module="mechanics"]:hover{box-shadow:0 12px 40px rgba(0,212,255,0.15);border-color:rgba(0,212,255,0.3)}
+.experiment-card[data-module="thermodynamics"]:hover{box-shadow:0 12px 40px rgba(255,107,53,0.15);border-color:rgba(255,107,53,0.3);background:rgba(255,107,53,0.06)}
+.experiment-card[data-module="optics"]:hover{box-shadow:0 12px 40px rgba(0,230,118,0.15);border-color:rgba(0,230,118,0.3);background:rgba(0,230,118,0.06)}
+.experiment-card[data-module="electromagnetism"]:hover{box-shadow:0 12px 40px rgba(123,47,247,0.15);border-color:rgba(123,47,247,0.3);background:rgba(123,47,247,0.06)}
+.experiment-card[data-module="atomic"]:hover{box-shadow:0 12px 40px rgba(255,215,0,0.15);border-color:rgba(255,215,0,0.3);background:rgba(255,215,0,0.06)}
+
+.card-seq{position:absolute;top:14px;left:18px;font-size:11px;font-family:var(--font-mono);color:rgba(255,255,255,0.15);font-weight:800}
+.card-new{position:absolute;top:12px;right:12px;padding:
+2px 8px;border-radius:6px;font-size:10px;font-weight:800;background:linear-gradient(135deg,var(--color-green),#00c853);color:#000;letter-spacing:.5px;animation:newPulse 2s ease-in-out infinite}
+@keyframes newPulse{0%,100%{box-shadow:0 0 8px rgba(0,230,118,0.4)}50%{box-shadow:0 0 16px rgba(0,230,118,0.7)}}
+
+/* 缩略图封面 */
+.card-thumbnail{
+  width:100%;
+  height:120px;
+  border-radius:12px;
+  margin-bottom:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,0.06)
+}
+
+/* 缩略图图标 */
+.card-thumbnail-icon{
+  font-size:42px;
+  z-index:1;
+  filter:drop-shadow(0 4px 12px rgba(0,0,0,0.4));
+  transition:transform .35s ease
+}
+
+/* 卡片悬停时缩略图图标放大旋转 */
+.experiment-card:hover .card-thumbnail-icon{
+  transform:scale(1.18) rotate(-4deg)
+}
+
+/* 缩略图闪光效果 */
+.card-thumbnail::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(135deg,transparent 40%,rgba(255,255,255,0.08) 50%,transparent 60%);
+  background-size:200% 200%;
+  animation:thumbShimmer 4s ease-in-out infinite
+}
+
+/* 缩略图闪光动画 */
+@keyframes thumbShimmer{
+  0%,100%{background-position:200% 0}
+  50%{background-position:-200% 0}
+}
+
+/* 力学模块缩略图背景 */
+.experiment-card[data-module="mechanics"] .card-thumbnail{
+  background:linear-gradient(135deg,rgba(0,212,255,0.12) 0%,rgba(0,100,180,0.18) 100%);
+  border-color:rgba(0,212,255,0.12)
+}
+
+/* 热学模块缩略图背景 */
+.experiment-card[data-module="thermodynamics"] .card-thumbnail{
+  background:linear-gradient(135deg,rgba(255,107,53,0.12) 0%,rgba(180,50,20,0.18) 100%);
+  border-color:rgba(255,107,53,0.12)
+}
+
+/* 光学模块缩略图背景 */
+.experiment-card[data-module="optics"] .card-thumbnail{
+  background:linear-gradient(135deg,rgba(0,230,118,0.12) 0%,rgba(0,140,70,0.18) 100%);
+  border-color:rgba(0,230,118,0.12)
+}
+
+/* 电磁学模块缩略图背景 */
+.experiment-card[data-module="electromagnetism"] .card-thumbnail{
+  background:linear-gradient(135deg,rgba(123,47,247,0.12) 0%,rgba(80,20,180,0.18) 100%);
+  border-color:rgba(123,47,247,0.12)
+}
+
+/* 原子物理模块缩略图背景 */
+.experiment-card[data-module="atomic"] .card-thumbnail{
+  background:linear-gradient(135deg,rgba(255,215,0,0.12) 0%,rgba(180,150,0,0.18) 100%);
+  border-color:rgba(255,215,0,0.12)
+}
+
+.card-tag{display:inline-block;padding:3px 10px;border-radius:50px;font-size:11px;font-weight:700;margin-bottom:14px;align-self:flex-start;margin-left:28px}
+.card-tag.mechanics{background:rgba(0,212,255,0.12);color:var(--color-blue)}
+.card-tag.thermodynamics{background:rgba(255,107,53,0.12);color:var(--color-orange)}
+.card-tag.optics{background:rgba(0,230,118,0.12);color:var(--color-green)}
+.card-tag.electromagnetism{background:rgba(123,47,247,0.12);color:var(--color-purple)}
+.card-tag.atomic{background:rgba(255,215,0,0.12);color:var(--color-gold)}
+
+.card-title{font-size:15px;font-weight:650;color:var(--color-white);margin-bottom:16px;flex-grow:1;line-height:1.5;letter-spacing:.2px}
+.card-btn{font-size:13px;color:var(--color-text-dim);transition:var(--transition);display:flex;align-items:center;gap:6px;font-weight:600}
+.experiment-card:hover .card-btn{color:var(--color-blue)}
+.card-btn-arrow{transition:transform .3s ease;display:inline-block}
+.experiment-card:hover .card-btn-arrow{transform:translateX(4px)}
+
+/* 卡片波纹特效 */
+.ripple-circle{
+  position:absolute;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(255,255,255,0.5) 0%,rgba(255,255,255,0.15) 40%,transparent 70%);
+  transform:scale(0);
+  animation:rippleExpand .6s ease-out forwards;
+  pointer-events:none;
+  z-index:10
+}
+
+/* 波纹扩散动画 */
+@keyframes rippleExpand{
+  to{transform:scale(4);opacity:0}
+}
+
+/* ====== 回到顶部 ====== */
+.back-to-top{position:fixed;bottom:28px;right:28px;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,rgba(0,212,255,0.2),rgba(123,47,247,0.2));border:1px solid rgba(0,212,255,0.25);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:999;opacity:0;visibility:hidden;transform:translateY(20px);transition:var(--transition);box-shadow:0 8px 30px rgba(0,0,0,0.25)}
+.back-to-top.visible{opacity:1;visibility:visible;transform:translateY(0)}
+.back-to-top:hover{background:linear-gradient(135deg,rgba(0,212,255,0.35),rgba(123,47,247,0.25));box-shadow:0 0 22px rgba(0,212,255,0.25),0 8px 30px rgba(0,0,0,0.25)}
+.back-to-top::before{content:'';width:10px;height:10px;border-top:2px solid var(--color-blue);border-left:2px solid var(--color-blue);transform:rotate(45deg) translateY(3px)}
+
+/* ====== 页脚 ====== */
+.footer{position:relative;z-index:1;text-align:center;padding:42px 24px;border-top:1px solid transparent;border-image:linear-gradient(90deg,var(--color-blue),var(--color-purple),var(--color-green),var(--color-gold)) 1;background:linear-gradient(180deg,transparent,rgba(0,0,0,0.12))}
+.footer p{color:var(--color-text-dim);font-size:14px;margin-bottom:8px}
+.footer .footer-stats{font-size:13px;color:rgba(255,255,255,0.35);letter-spacing:.4px}
+
+/* ====== 动效辅助 ====== */
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(18px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.fade-up{animation:fadeUp .6s ease both}
+.count-pop{animation:countPop .4s ease}
+@keyframes countPop{
+  0%{transform:scale(1)}
+  50%{transform:scale(1.08)}
+  100%{transform:scale(1)}
+}
+
+/* ====== 响应式 ====== */
+@media(max-width:1199px){.experiments-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:992px){
+  .hero{min-height:auto;padding:70px 24px 50px}
+  .module-desc{padding-left:0}
+}
+@media(max-width:767px){
+  .header-inner{height:60px}
+  .nav-links{display:none}
+  .hamburger{display:flex}
+  .mobile-menu{display:block}
+  .logo-title{font-size:15px}
+  .hero{padding:48px 20px 38px}
+  .hero-title{letter-spacing:-.5px}
+  .stats-grid{flex-direction:column;align-items:center}
+  .stat-card{width:100%;max-width:300px}
+  .experiments-grid{grid-template-columns:1fr}
+  .search-input{font-size:14px}
+  .module-header{gap:12px}
+  .module-enter-btn{margin-left:0;margin-top:8px}
+  .module-title{font-size:22px}
+  .module-desc{font-size:13px}
+  .back-to-top{bottom:18px;right:18px;width:42px;height:42px}
+}
+@media(max-width:480px){
+  .main-content,.search-filter-section,.header{padding-left:16px;padding-right:16px}
+  .hero-title{font-size:34px}
+  .hero-subtitle{font-size:14px}
+  .filter-tag{padding:8px 16px;font-size:12px}
+}
+</style>
+</head>
+<body>
+
+<div class="bg-layer bg-grid"></div>
+<div class="bg-layer">
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+  <div class="bg-orb bg-orb-3"></div>
+</div>
+<div class="stars-container" id="starsContainer"></div>
+
+<!-- 页面顶部粒子流光画布 -->
+<canvas class="particle-flow-canvas" id="particleFlowCanvas"></canvas>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="logo-area">
+      <div class="atom-icon" aria-hidden="true">
+        <div class="atom-nucleus"></div>
+        <div class="atom-orbit"></div>
+        <div class="atom-orbit"></div>
+        <div class="atom-orbit"></div>
+      </div>
+      <div class="logo-title">AI物趣</div>
+    </div>
+    <nav>
+      <ul class="nav-links" id="navLinks">
+        <li><a class="nav-link active" href="#mechanics" data-target="mechanics">力学</a></li>
+        <li><a class="nav-link" href="#thermodynamics" data-target="thermodynamics">热学</a></li>
+        <li><a class="nav-link" href="#optics" data-target="optics">光学</a></li>
+        <li><a class="nav-link" href="#electromagnetism" data-target="electromagnetism">电磁学</a></li>
+        <li><a class="nav-link" href="#atomic" data-target="atomic">原子物理</a></li>
+      </ul>
+    </nav>
+    <button class="hamburger" id="hamburgerBtn" aria-label="打开菜单"><span></span><span></span><span></span></button>
+  </div>
+</header>
+
+<div class="mobile-menu" id="mobileMenu">
+  <a class="nav-link" href="#mechanics" data-target="mechanics">力学</a>
+  <a class="nav-link" href="#thermodynamics" data-target="thermodynamics">热学</a>
+  <a class="nav-link" href="#optics" data-target="optics">光学</a>
+  <a class="nav-link" href="#electromagnetism" data-target="electromagnetism">电磁学</a>
+  <a class="nav-link" href="#atomic" data-target="atomic">原子物理</a>
+</div>
+
+<section class="hero">
+  <div class="hero-badge">
+    <span class="hero-badge-dot"></span>
+    <span>虚拟交互式实验平台 · 持续更新中</span>
+  </div>
+  <h1 class="hero-title">探索物理世界的奥秘</h1>
+  <p class="hero-subtitle">108个交互式虚拟仿真实验 · 覆盖高中物理核心知识点</p>
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card">
+      <span class="stat-icon">⚙️</span>
+      <span class="stat-number" data-target="36">0</span>
+      <span class="stat-label">力学实验</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-icon">🌡️</span>
+      <span class="stat-number" data-target="15">0</span>
+      <span class="stat-label">热学实验</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-icon">💡</span>
+      <span class="stat-number" data-target="19">0</span>
+      <span class="stat-label">光学实验</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-icon">⚡</span>
+      <span class="stat-number" data-target="21">0</span>
+      <span class="stat-label">电磁学实验</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-icon">⚛️</span>
+      <span class="stat-number" data-target="17">0</span>
+      <span class="stat-label">原子物理实验</span>
+    </div>
+  </div>
+  <div class="scroll-indicator" id="scrollIndicator"><div class="scroll-arrow"></div></div>
+</section>
+
+<section class="search-filter-section">
+  <div class="search-box">
+    <div class="search-icon" aria-hidden="true"></div>
+    <input type="text" class="search-input" id="searchInput" placeholder="搜索实验名称..." aria-label="搜索实验">
+  </div>
+  <div class="filter-tags" id="filterTags">
+    <span class="filter-tag active" data-filter="all">全部</span>
+    <span class="filter-tag" data-filter="mechanics">力学</span>
+    <span class="filter-tag" data-filter="thermodynamics">热学</span>
+    <span class="filter-tag" data-filter="optics">光学</span>
+    <span class="filter-tag" data-filter="electromagnetism">电磁学</span>
+    <span class="filter-tag" data-filter="atomic">原子物理</span>
+  </div>
+</section>
+
+<div class="no-results" id="noResults">🔍 未找到匹配的实验，请尝试其他关键词</div>
+
+<main class="main-content" id="mainContent">
+  <section class="module-section" id="mechanics" data-module="mechanics">
+    <div class="module-header">
+      <div class="module-icon mechanics"></div>
+      <h2 class="module-title">力学 <span>Mechanics</span></h2>
+      <span class="module-badge mechanics">36个实验</span>
+      <a href="./modules/mechanics.html" class="module-enter-btn">进入力学专区 <span class="arrow">→</span></a>
+    </div>
+    <p class="module-desc">涵盖运动学、动力学、功与能、动量、万有引力、机械振动与机械波等核心力学知识</p>
+    <div class="module-divider"></div>
+    <div class="experiments-grid" id="grid-mechanics"></div>
+  </section>
+
+  <section class="module-section" id="thermodynamics" data-module="thermodynamics">
+    <div class="module-header">
+      <div class="module-icon thermodynamics"></div>
+      <h2 class="module-title">热学 <span>Thermodynamics</span></h2>
+      <span class="module-badge thermodynamics">15个实验</span>
+      <a href="./modules/thermodynamics.html" class="module-enter-btn">进入热学专区 <span class="arrow">→</span></a>
+    </div>
+    <p class="module-desc">涵盖分子动理论、气体实验定律、热力学定律、物态变化等热学核心知识</p>
+    <div class="module-divider"></div>
+    <div class="experiments-grid" id="grid-thermodynamics"></div>
+  </section>
+
+  <section class="module-section" id="optics" data-module="optics">
+    <div class="module-header">
+      <div class="module-icon optics"></div>
+      <h2 class="module-title">光学 <span>Optics</span></h2>
+      <span class="module-badge optics">19个实验</span>
+      <a href="./modules/optics.html" class="module-enter-btn">进入光学专区 <span class="arrow">→</span></a>
+    </div>
+    <p class="module-desc">涵盖光的折射、全反射、干涉、衍射、偏振等波动光学与几何光学核心知识</p>
+    <div class="module-divider"></div>
+    <div class="experiments-grid" id="grid-optics"></div>
+  </section>
+
+  <section class="module-section" id="electromagnetism" data-module="electromagnetism">
+    <div class="module-header">
+      <div class="module-icon electromagnetism"></div>
+      <h2 class="module-title">电磁学 <span>Electromagnetism</span></h2>
+      <span class="module-badge electromagnetism">21个实验</span>
+      <a href="./modules/electromagnetism.html" class="module-enter-btn">进入电磁学专区 <span class="arrow">→</span></a>
+    </div>
+    <p class="module-desc">涵盖静电场、恒定电流、磁场、电磁感应、交变电流、电磁波等电磁学核心知识</p>
+    <div class="module-divider"></div>
+    <div class="experiments-grid" id="grid-electromagnetism"></div>
+  </section>
+
+  <section class="module-section" id="atomic" data-module="atomic">
+    <div class="module-header">
+      <div class="module-icon atomic"></div>
+      <h2 class="module-title">原子物理学 <span>Atomic Physics</span></h2>
+      <span class="module-badge atomic">17个实验</span>
+      <a href="./modules/atomic.html" class="module-enter-btn">进入原子物理专区 <span class="arrow">→</span></a>
+    </div>
+    <p class="module-desc">涵盖原子结构、原子核、量子力学初步、核能等近代物理核心知识</p>
+    <div class="module-divider"></div>
+    <div class="experiments-grid" id="grid-atomic"></div>
+  </section>
+</main>
+
+<button class="back-to-top" id="backToTop" aria-label="回到顶部"></button>
+
+<footer class="footer">
+  <p>© 2026 AI物趣</p>
+  <p class="footer-stats">共 108 个实验 · 5 大模块 · 持续更新中</p>
+</footer>
+
+<script>
+/* ====== 实验数据对象 ====== */
+var D = {
+  mechanics:{
+    label:'力学',
+    names:[
+      '太阳系虚拟实验','卫星变轨','小船渡河','斜抛','追及相遇问题','自由落体','波的干涉与衍射','超重与失重','单摆','弹簧振子简谐运动','动量定理：冲量与动量变化','动能定理','多普勒效应交互程序','伽利略理想斜面实验','横波与纵波','胡克定律弹簧转化版','机械能守恒定律','简谐运动','近地卫星、同步卫星、赤道物体','静摩擦力与滑动摩擦力对比','开普勒三定律虚拟实验','力的合成与分解','牛顿第二定律','牛顿第一定律交互式','平抛运动','三种碰撞对比','竖直平面内的圆周运动：单轨模型与双轨模型','竖直平面内圆周运动：绳模型与杆模型','竖直上抛运动','水平面和斜面的匀速圆周运动','水平碰撞','多普勒效应','机械波各分量表示','平抛运动-力的合成分解','摩擦力突变——情景演示','弹簧振子演示实验'
+    ]
+  },
+  thermodynamics:{
+    label:'热学',
+    names:[
+      '玻意耳定律','布朗运动','查理定律','分子间作用力与分子间距离的关系','分子势能与分子间距离的关系','盖-吕萨克定律','观察毛细现象','黑体辐射','晶体的微观结构','热传递','分子热运动','液晶','油膜法估测油酸分子的大小','做功与内能的改变','布朗运动模拟'
+    ]
+  },
+  optics:{
+    label:'光学',
+    names:[
+      '薄膜干涉（肥皂泡）','波的叠加','测量玻璃砖的折射率','测量双缝干涉波长','干涉条纹与波长的关系','干涉与衍射对比','光导纤维','光的偏振','光的全反射','光的衍射','牛顿环等厚干涉','劈尖干涉','透光面积','托马斯杨双缝干涉实验','圆孔衍射','折射定律','单缝衍射-彩色光','薄膜干涉-带折射角','劈尖干涉-平整度检测'
+    ]
+  },
+  electromagnetism:{
+    label:'电磁学',
+    names:[
+      '安培力','变压器','磁感线','磁通量','带电粒子在电场中的运动','带电粒子在电磁场中的运动','带电粒子在匀强磁场中的运动','导线切割磁感线','电磁波谱','电磁振荡','电荷和电场','电势与电势差','发电机','法拉第电磁感应定律','交变电流','库仑定律','楞次定律','路端电压与负载的关系','洛伦兹力','麦克斯韦电磁场理论','RLC串联谐振电路'
+    ]
+  },
+  atomic:{
+    label:'原子物理',
+    names:[
+      '氢原子能级','射线在磁场中的偏转','四种基本相互作用演示','阴极射线实验','原子核结合能模拟实验','原子核衰变模拟','原子结构模型发展','玻尔的原子模型','电子双缝干涉实验','电子圆孔衍射实验','光电效应电路图模拟','核反应堆原理模拟实验','核聚变演示','核裂变链式反应模拟实验','康普顿效应','可见光光谱','卢瑟福α粒子散射实验'
+    ]
+  }
+};
+
+/* ====== 缩略图图标映射表 ====== */
+var thumbIcons = {
+  '太阳系虚拟实验':'🪐','卫星变轨':'🛰️','小船渡河':'⛵','斜抛':'📐','追及相遇问题':'🏃',
+  '自由落体':'🍎','波的干涉与衍射':'🌊','超重与失重':'⚖️','单摆':'🕰️','弹簧振子简谐运动':'🔩',
+  '动量定理：冲量与动量变化':'💥','动能定理':'🎯','多普勒效应交互程序':'🚑','伽利略理想斜面实验':'📏',
+  '横波与纵波':'〰️','胡克定律弹簧转化版':'🧲','机械能守恒定律':'🎢','简谐运动':'📈',
+  '近地卫星、同步卫星、赤道物体':'🌍','静摩擦力与滑动摩擦力对比':'🧊','开普勒三定律虚拟实验':'🌌',
+  '力的合成与分解':'⚖️','牛顿第二定律':'🚀','牛顿第一定律交互式':'🎱','平抛运动':'🏀',
+  '三种碰撞对比':'💫','竖直平面内的圆周运动：单轨模型与双轨模型':'🎡',
+  '竖直平面内圆周运动：绳模型与杆模型':'🔄','竖直上抛运动':'⬆️',
+  '水平面和斜面的匀速圆周运动':'🔃','水平碰撞':'🎳','多普勒效应':'🔔',
+  '机械波各分量表示':'📊','平抛运动-力的合成分解':'🎯','摩擦力突变——情景演示':'🛞','弹簧振子演示实验':'🔩',
+  '玻意耳定律':'🫧','布朗运动':'🔬','查理定律':'📊','分子间作用力与分子间距离的关系':'🧬',
+  '分子势能与分子间距离的关系':'📉','盖-吕萨克定律':'🎈','观察毛细现象':'💧','黑体辐射':'☀️',
+  '晶体的微观结构':'💎','热传递':'🔥','分子热运动':'🌀','液晶':'📱',
+  '油膜法估测油酸分子的大小':'🫗','做功与内能的改变':'♨️','布朗运动模拟':'🔬',
+  '薄膜干涉（肥皂泡）':'🫧','波的叠加':'🌊','测量玻璃砖的折射率':'🔷','测量双缝干涉波长':'📏',
+  '干涉条纹与波长的关系':'🌈','干涉与衍射对比':'🔍','光导纤维':'💡','光的偏振':'🕶️',
+  '光的全反射':'💎','光的衍射':'🌅','牛顿环等厚干涉':'🔘','劈尖干涉':'📐',
+  '透光面积':'🪟','托马斯杨双缝干涉实验':'🧪','圆孔衍射':'⭕','折射定律':'🔻',
+  '单缝衍射-彩色光':'🌈','薄膜干涉-带折射角':'🫧','劈尖干涉-平整度检测':'📐',
+  '安培力':'🧲','变压器':'🔌','磁感线':'🧭','磁通量':'🌀',
+  '带电粒子在电场中的运动':'⚡','带电粒子在电磁场中的运动':'💫',
+  '带电粒子在匀强磁场中的运动':'🔄','导线切割磁感线':'✂️','电磁波谱':'📡',
+  '电磁振荡':'📻','电荷和电场':'⚡','电势与电势差':'🔋','发电机':'⚙️',
+  '法拉第电磁感应定律':'🧲','交变电流':'〰️','库仑定律':'💥','楞次定律':'🔁',
+  '路端电压与负载的关系':'📊','洛伦兹力':'🌀','麦克斯韦电磁场理论':'🌐','RLC串联谐振电路':'📡',
+  '氢原子能级':'⚛️','射线在磁场中的偏转':'☢️','四种基本相互作用演示':'💠','阴极射线实验':'📺',
+  '原子核结合能模拟实验':'🔗','原子核衰变模拟':'☢️','原子结构模型发展':'🏛️',
+  '玻尔的原子模型':'⚛️','电子双缝干涉实验':'🔬','电子圆孔衍射实验':'⭕',
+  '光电效应电路图模拟':'💡','核反应堆原理模拟实验':'🏭','核聚变演示':'☀️',
+  '核裂变链式反应模拟实验':'💥','康普顿效应':'📡','可见光光谱':'🌈','卢瑟福α粒子散射实验':'🎯'
+};
+
+/* ====== 默认模块图标 ====== */
+var defaultIcons = {
+  mechanics:'⚙️',
+  thermodynamics:'🌡️',
+  optics:'💡',
+  electromagnetism:'⚡',
+  atomic:'⚛️'
+};
+
+/* ====== 生成实验卡片 ====== */
+var seq = 0;
+Object.keys(D).forEach(function(mk){
+  var mod = D[mk];
+  var grid = document.getElementById('grid-'+mk);
+
+  mod.names.forEach(function(name){
+    seq++;
+    // 序号补零处理（01、02、03...）
+    var s = String(seq).padStart(2,'0');
+
+    // 标记部分实验为 NEW（新增实验）
+    var isNew = (
+      name === '多普勒效应' ||
+      name === '机械波各分量表示' ||
+      name === '平抛运动-力的合成分解' ||
+      name === '摩擦力突变——情景演示' ||
+      name === '弹簧振子演示实验' ||
+      name === '单缝衍射-彩色光' ||
+      name === '薄膜干涉-带折射角' ||
+      name === '劈尖干涉-平整度检测' ||
+      name === '布朗运动模拟'
+    );
+
+    // 获取缩略图图标，如果没有则使用默认图标
+    var icon = thumbIcons[name] || defaultIcons[mk];
+
+    // 创建卡片元素
+    var a = document.createElement('a');
+    a.href = './experiments/' + name + '.html';
+    a.className = 'experiment-card';
+    a.setAttribute('data-module', mk);
+    a.setAttribute('data-name', name);
+    a.setAttribute('aria-label', '实验'+s+'：'+name);
+
+    // 构建卡片 HTML 结构
+    a.innerHTML =
+      '<span class="card-seq">'+s+'</span>' +
+      (isNew ? '<span class="card-new">NEW</span>' : '') +
+      '<div class="card-thumbnail"><span class="card-thumbnail-icon">'+icon+'</span></div>' +
+      '<span class="card-tag '+mk+'">'+mod.label+'</span>' +
+      '<div class="card-title">'+name+'</div>' +
+      '<div class="card-btn">开始实验 <span class="card-btn-arrow">→</span></div>';
+
+    grid.appendChild(a);
+  });
+});
+
+/* ====== 搜索筛选功能 ====== */
+var searchInput = document.getElementById('searchInput');
+var noResults = document.getElementById('noResults');
+var allCards = document.querySelectorAll('.experiment-card');
+var allSections = document.querySelectorAll('.module-section');
+
+// 执行搜索和筛选
+function filterExperiments(){
+  // 获取搜索关键词
+  var kw = searchInput.value.trim().toLowerCase();
+  // 获取当前活跃的筛选标签
+  var af = document.querySelector('.filter-tag.active').getAttribute('data-filter');
+
+  var vc = 0; // 可见卡片计数
+  var mc = {}; // 模块卡片计数
+  Object.keys(D).forEach(function(k){mc[k]=0});
+
+  // 遍历所有卡片进行筛选
+  allCards.forEach(function(card){
+    var n = card.getAttribute('data-name').toLowerCase();
+    var m = card.getAttribute('data-module');
+
+    // 判断是否符合搜索和筛选条件
+    if((!kw || n.indexOf(kw)!==-1) && (af==='all' || m===af)){
+      card.classList.remove('filter-hidden');
+      mc[m]++;
+      vc++;
+    } else {
+      card.classList.add('filter-hidden');
+    }
+  });
+
+  // 隐藏没有可见卡片的模块
+  allSections.forEach(function(s){
+    var k = s.getAttribute('data-module');
+    if(mc[k]===0) s.classList.add('hidden');
+    else s.classList.remove('hidden');
+  });
+
+  // 显示或隐藏"无结果"提示
+  if(vc===0) noResults.classList.add('visible');
+  else noResults.classList.remove('visible');
+}
+
+// 监听搜索输入框
+searchInput.addEventListener('input', filterExperiments);
+
+/* ====== 筛选标签点击事件 ====== */
+document.querySelectorAll('.filter-tag').forEach(function(tag){
+  tag.addEventListener('click', function(){
+    // 移除所有标签的活跃状态
+    document.querySelectorAll('.filter-tag').forEach(function(t){
+      t.classList.remove('active');
+    });
+    // 添加当前标签的活跃状态
+    tag.classList.add('active');
+    // 执行筛选
+    filterExperiments();
+  });
+});
+
+/* ====== 汉堡菜单功能 ====== */
+var hBtn = document.getElementById('hamburgerBtn');
+var mMenu = document.getElementById('mobileMenu');
+
+// 汉堡菜单按钮点击事件
+hBtn.addEventListener('click', function(){
+  hBtn.classList.toggle('active');
+  mMenu.classList.toggle('open');
+});
+
+// 菜单链接点击后关闭菜单
+mMenu.querySelectorAll('.nav-link').forEach(function(l){
+  l.addEventListener('click', function(){
+    hBtn.classList.remove('active');
+    mMenu.classList.remove('open');
+  });
+});
+
+/* ====== 导航栏高亮功能 ====== */
+var navAll = document.querySelectorAll('.nav-link');
+var secObs = new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(e.isIntersecting){
+      var id = e.target.id;
+      navAll.forEach(function(l){
+        if(l.getAttribute('data-target')===id) l.classList.add('active');
+        else l.classList.remove('active');
+      });
+    }
+  });
+},{rootMargin:'-100px 0px -60% 0px',threshold:0});
+
+allSections.forEach(function(s){
+  secObs.observe(s);
+});
+
+/* ====== 回到顶部功能 ====== */
+var btt = document.getElementById('backToTop');
+
+// 监听滚动事件，显示或隐藏回到顶部按钮
+window.addEventListener('scroll', function(){
+  if(window.scrollY>500) btt.classList.add('visible');
+  else btt.classList.remove('visible');
+},{passive:true});
+
+// 回到顶部按钮点击事件
+btt.addEventListener('click', function(){
+  window.scrollTo({top:0,behavior:'smooth'});
+});
+
+/* ====== 向下箭头滚动功能 ====== */
+document.getElementById('scrollIndicator').addEventListener('click', function(){
+  document.querySelector('.search-filter-section').scrollIntoView({behavior:'smooth'});
+});
+
+/* ====== 数字递增动画 ====== */
+function countUp(el, target, dur){
+  var st = performance.now();
+  function step(now){
+    var p = Math.min((now-st)/dur,1);
+    // 使用缓动函数实现平滑动画
+    var e = 1-Math.pow(1-p,3);
+    el.textContent = Math.round(target*e);
+    if(p<1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+// 当统计卡片进入视口时触发数字动画
+var statsAnim = false;
+var stObs = new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(e.isIntersecting && !statsAnim){
+      statsAnim = true;
+      document.querySelectorAll('.stat-number').forEach(function(n){
+        countUp(n, parseInt(n.dataset.target), 1500);
+      });
+    }
+  });
+},{threshold:0.3});
+stObs.observe(document.getElementById('statsGrid'));
+
+/* ====== 卡片入场动画 ====== */
+var cObs = new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(e.isIntersecting){
+      var card = e.target;
+      // 获取同级卡片中的可见卡片
+      var sibs = Array.from(card.parentElement.querySelectorAll('.experiment-card:not(.filter-hidden)'));
+      // 计算延迟时间（每张卡片延迟50ms）
+      var delay = Math.min(sibs.indexOf(card),8)*50;
+
+      setTimeout(function(){
+        card.classList.add('visible');
+      }, delay);
+
+      // 观察过一次后就停止观察
+      cObs.unobserve(card);
+    }
+  });
+},{rootMargin:'0px 0px -50px 0px',threshold:0.05});
+
+allCards.forEach(function(c){
+  cObs.observe(c);
+});
+
+/* ====== 卡片点击波纹特效 + 声音反馈 ====== */
+var audioCtx = null;
+
+// 播放点击音效函数
+function playClickSound(){
+  try{
+    // 初始化音频上下文
+    if(!audioCtx){
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    // 创建振荡器和增益节点
+    var osc = audioCtx.createOscillator();
+    var gain = audioCtx.createGain();
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    // 设置振荡器参数
+    osc.type = 'sine';
+    // 频率从880Hz下降到440Hz
+    osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.12);
+
+    // 设置音量包络
+    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+
+    // 播放声音
+    osc.start(audioCtx.currentTime);
+    osc.stop(audioCtx.currentTime + 0.2);
+  }catch(err){
+    // 如果浏览器不支持音频，则直接忽略
+    console.log('音效播放失败：', err);
+  }
+}
+
+// 给每个实验卡片添加点击事件
+document.querySelectorAll('.experiment-card').forEach(function(card){
+  card.addEventListener('click', function(e){
+    // 创建波纹效果
+    var rect = card.getBoundingClientRect();
+    var ripple = document.createElement('span');
+    ripple.className = 'ripple-circle';
+
+    // 计算波纹大小
+    var size = Math.max(rect.width, rect.height);
+    ripple.style.width = size + 'px';
+    ripple.style.height = size + 'px';
+    // 设置波纹位置（从点击点开始）
+    ripple.style.left = (e.clientX - rect.left - size/2) + 'px';
+    ripple.style.top = (e.clientY - rect.top - size/2) + 'px';
+
+    card.appendChild(ripple);
+
+    // 600ms后移除波纹元素
+    setTimeout(function(){
+      ripple.remove();
+    }, 600);
+
+    // 播放点击音效
+    playClickSound();
+  });
+});
+
+/* ====== 星空粒子生成 ====== */
+var container = document.getElementById('starsContainer');
+for (var i = 0; i < 80; i++) {
+  var star = document.createElement('div');
+  star.className = 'star';
+  // 随机位置
+  star.style.left = Math.random() * 100 + '%';
+  star.style.top = Math.random() * 100 + '%';
+
+  // 随机大小
+  var size = (1 + Math.random() * 3) + 'px';
+  star.style.width = size;
+  star.style.height = size;
+
+  // 随机动画时长和延迟
+  star.style.animationDuration = (15 + Math.random() * 25) + 's';
+  star.style.animationDelay = Math.random() * 8 + 's';
+  // 随机透明度
+  star.style.setProperty('--so', (0.25 + Math.random() * 0.6).toFixed(2));
+
+  container.appendChild(star);
+}
+
+/* ====== 页面顶部粒子流光效果 ====== */
+(function(){
+  var cvs = document.getElementById('particleFlowCanvas');
+  if(!cvs) return;
+
+  var ctx = cvs.getContext('2d');
+  var W = 0, H = 0;
+
+  // 初始化画布大小
+  function resize(){
+    W = cvs.width = window.innerWidth;
+    H = cvs.height = 220;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  var particles = [];
+  // 粒子流光的颜色
+  var colors = ['#00d4ff','#7b2ff7','#00e676','#ff6b35','#ffd700'];
+
+  // 粒子构造函数
+  function Particle(){
+    this.reset();
+    this.y = Math.random() * H;
+  }
+
+  // 重置粒子属性
+  Particle.prototype.reset = function(){
+    this.x = Math.random() * W;
+    this.y = -2;
+    this.speed = 0.3 + Math.random() * 1.2;
+    this.size = 1 + Math.random() * 2;
+    this.color = colors[Math.floor(Math.random() * colors.length)];
+    this.alpha = 0.3 + Math.random() * 0.5;
+    this.drift = (Math.random() - 0.5) * 0.5;
+    this.tail = 8 + Math.random() * 16;
+  };
+
+  // 更新粒子位置
+  Particle.prototype.update = function(){
+    this.y += this.speed;
+    this.x += this.drift;
+    // 粒子超出画布时重置
+    if(this.y > H + 10) this.reset();
+  };
+
+  // 绘制粒子
+  Particle.prototype.draw = function(){
+    // 创建渐变效果（尾部）
+    var grad = ctx.createLinearGradient(this.x, this.y - this.tail, this.x, this.y);
+    grad.addColorStop(0, 'transparent');
+    grad.addColorStop(1, this.color);
+
+    // 绘制粒子尾部
+    ctx.beginPath();
+    ctx.strokeStyle = grad;
+    ctx.globalAlpha = this.alpha;
+    ctx.lineWidth = this.size;
+    ctx.lineCap = 'round';
+    ctx.moveTo(this.x, this.y - this.tail);
+    ctx.lineTo(this.x, this.y);
+    ctx.stroke();
+
+    // 绘制粒子头部光点
+    ctx.beginPath();
+    ctx.fillStyle = this.color;
+    ctx.globalAlpha = this.alpha * 1.5;
+    ctx.arc(this.x, this.y, this.size * 0.8, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.globalAlpha = 1;
+  };
+
+  // 初始化粒子数组
+  for(var i = 0; i < 60; i++){
+    particles.push(new Particle());
+  }
+
+  // 动画循环
+  function animate(){
+    // 清空画布
+    ctx.clearRect(0, 0, W, H);
+    // 更新并绘制所有粒子
+    for(var i = 0; i < particles.length; i++){
+      particles[i].update();
+      particles[i].draw();
+    }
+    requestAnimationFrame(animate);
+  }
+  animate();
+})();
+</script>
+
+<!-- 百度统计代码 -->
+<script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+</body>
+</html>
