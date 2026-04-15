@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>原子物理 - 高中物理虚拟仿真实验室</title>
+
+<style>
+:root{
+  --bg-primary:#08101d;
+  --bg-secondary:#0d1a2d;
+  --bg-tertiary:#14243c;
+  --color-white:#ffffff;
+  --color-text:#c8d6e5;
+  --color-text-dim:#7890a3;
+  --glass-bg:rgba(255,255,255,0.06);
+  --glass-bg-hover:rgba(255,255,255,0.1);
+  --glass-border:rgba(255,255,255,0.12);
+  --radius:14px;
+  --transition:0.35s cubic-bezier(.25,.8,.25,1);
+  --font-main:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  --font-mono:"SF Mono","Fira Code","Consolas",monospace;
+  --mc:#ffd700;
+  --mcr:255,215,0;
+}
+
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font-main);
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255,215,0,0.08), transparent 25%),
+    radial-gradient(circle at 80% 10%, rgba(123,47,247,0.08), transparent 22%),
+    radial-gradient(circle at 50% 80%, rgba(0,212,255,0.06), transparent 30%),
+    var(--bg-primary);
+  color:var(--color-text);
+  line-height:1.6;
+  overflow-x:hidden;
+  min-height:100vh;
+}
+a{text-decoration:none;color:inherit}
+
+/* =========================
+   星空背景
+========================= */
+.stars{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:0;
+  overflow:hidden;
+}
+.s{
+  position:absolute;
+  border-radius:50%;
+  background:#fff;
+  animation:sf linear infinite;
+}
+@keyframes sf{
+  0%{transform:translateY(0) translateX(0);opacity:0}
+  10%{opacity:var(--o,.5)}
+  90%{opacity:var(--o,.5)}
+  100%{transform:translateY(-100vh) translateX(var(--d,20px));opacity:0}
+}
+.s:nth-child(1){width:2px;height:2px;left:5%;top:90%;--o:.6;--d:15px;animation-duration:25s}
+.s:nth-child(2){width:3px;height:3px;left:14%;top:85%;--o:.4;--d:-20px;animation-duration:30s;animation-delay:2s}
+.s:nth-child(3){width:1px;height:1px;left:22%;top:95%;--o:.8;--d:10px;animation-duration:20s;animation-delay:1s}
+.s:nth-child(4){width:2px;height:2px;left:30%;top:80%;--o:.5;--d:-15px;animation-duration:28s;animation-delay:3s}
+.s:nth-child(5){width:4px;height:4px;left:38%;top:92%;--o:.3;--d:25px;animation-duration:35s;animation-delay:.5s}
+.s:nth-child(6){width:1px;height:1px;left:46%;top:88%;--o:.7;--d:-10px;animation-duration:22s;animation-delay:4s}
+.s:nth-child(7){width:3px;height:3px;left:54%;top:96%;--o:.4;--d:18px;animation-duration:32s;animation-delay:1.5s}
+.s:nth-child(8){width:2px;height:2px;left:62%;top:82%;--o:.6;--d:-22px;animation-duration:26s;animation-delay:2.5s}
+.s:nth-child(9){width:1px;height:1px;left:70%;top:91%;--o:.9;--d:12px;animation-duration:18s;animation-delay:.8s}
+.s:nth-child(10){width:3px;height:3px;left:78%;top:87%;--o:.35;--d:-16px;animation-duration:33s;animation-delay:3.5s}
+.s:nth-child(11){width:2px;height:2px;left:86%;top:94%;--o:.55;--d:20px;animation-duration:27s;animation-delay:1.2s}
+.s:nth-child(12){width:1px;height:1px;left:94%;top:83%;--o:.75;--d:-14px;animation-duration:21s;animation-delay:4.5s}
+.s:nth-child(13){width:2px;height:2px;left:10%;top:76%;--o:.5;--d:22px;animation-duration:29s;animation-delay:1.7s}
+.s:nth-child(14){width:3px;height:3px;left:50%;top:78%;--o:.35;--d:-18px;animation-duration:34s;animation-delay:3.2s}
+.s:nth-child(15){width:1px;height:1px;left:66%;top:98%;--o:.85;--d:8px;animation-duration:19s;animation-delay:5s}
+
+/* =========================
+   顶部导航栏
+========================= */
+.header{
+  position:sticky;
+  top:0;
+  z-index:100;
+  background:rgba(8,16,29,.88);
+  backdrop-filter:blur(22px);
+  -webkit-backdrop-filter:blur(22px);
+  border-bottom:1px solid rgba(255,255,255,.08);
+  padding:0 24px;
+  box-shadow:0 8px 30px rgba(0,0,0,.35);
+}
+.header-inner{
+  max-width:1400px;
+  margin:0 auto;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  height:68px;
+}
+.back-btn{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:var(--color-text);
+  font-size:14px;
+  transition:var(--transition);
+  padding:8px 16px;
+  border-radius:10px;
+}
+.back-btn:hover{
+  color:var(--color-white);
+  background:rgba(255,255,255,.06);
+}
+.back-arrow{
+  display:inline-block;
+  transition:transform .3s;
+}
+.back-btn:hover .back-arrow{
+  transform:translateX(-3px);
+}
+.header-title{
+  font-size:16px;
+  font-weight:700;
+  color:var(--color-white);
+  letter-spacing:.4px;
+}
+.header-count{
+  font-size:13px;
+  color:var(--mc);
+  font-family:var(--font-mono);
+  padding:5px 12px;
+  border-radius:50px;
+  background:rgba(var(--mcr),.14);
+  border:1px solid rgba(var(--mcr),.22);
+  box-shadow:0 0 18px rgba(var(--mcr),.12);
+}
+
+/* =========================
+   页面头部
+========================= */
+.page-hero{
+  padding:72px 24px 44px;
+  text-align:center;
+  position:relative;
+  z-index:1;
+}
+.page-hero::before{
+  content:'';
+  position:absolute;
+  left:50%;
+  top:-40px;
+  width:680px;
+  height:680px;
+  transform:translateX(-50%);
+  background:radial-gradient(circle, rgba(255,215,0,.12), transparent 68%);
+  pointer-events:none;
+}
+.page-hero-icon{
+  width:86px;
+  height:86px;
+  border-radius:22px;
+  background:linear-gradient(135deg, rgba(255,215,0,.16), rgba(255,215,0,.06));
+  border:1px solid rgba(255,215,0,.22);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin:0 auto 22px;
+  font-size:38px;
+  box-shadow:0 0 28px rgba(255,215,0,.12);
+}
+.page-title{
+  font-size:clamp(30px,5vw,52px);
+  font-weight:900;
+  color:var(--color-white);
+  margin-bottom:8px;
+  text-shadow:
+    0 0 12px rgba(255,215,0,.25),
+    0 2px 0 rgba(160,130,0,.7),
+    0 6px 18px rgba(0,0,0,.45);
+}
+.page-title-en{
+  font-size:clamp(14px,2vw,18px);
+  color:var(--mc);
+  font-family:var(--font-mono);
+  margin-bottom:16px;
+  letter-spacing:1px;
+}
+.page-desc{
+  font-size:15px;
+  color:var(--color-text-dim);
+  max-width:720px;
+  margin:0 auto 28px;
+}
+
+/* =========================
+   搜索框
+========================= */
+.search-wrap{
+  max-width:520px;
+  margin:0 auto;
+  position:relative;
+  z-index:1;
+}
+.search-wrap input{
+  width:100%;
+  padding:13px 20px 13px 46px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:50px;
+  color:var(--color-white);
+  font-size:15px;
+  font-family:var(--font-main);
+  outline:none;
+  transition:var(--transition);
+  box-shadow:0 0 0 1px rgba(255,255,255,0);
+}
+.search-wrap input::placeholder{color:var(--color-text-dim)}
+.search-wrap input:focus{
+  border-color:var(--mc);
+  box-shadow:0 0 26px rgba(var(--mcr),.15);
+}
+.search-wrap .si{
+  position:absolute;
+  left:16px;
+  top:50%;
+  transform:translateY(-50%);
+  width:18px;
+  height:18px;
+}
+.search-wrap .si::before{
+  content:'';
+  position:absolute;
+  width:12px;
+  height:12px;
+  border:2px solid var(--color-text-dim);
+  border-radius:50%;
+  top:0;
+  left:0;
+}
+.search-wrap .si::after{
+  content:'';
+  position:absolute;
+  width:6px;
+  height:2px;
+  background:var(--color-text-dim);
+  bottom:1px;
+  right:0;
+  transform:rotate(45deg);
+  border-radius:1px;
+}
+
+/* =========================
+   子分类标签
+========================= */
+.sub-tags{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  justify-content:center;
+  margin:24px auto 0;
+  max-width:860px;
+  position:relative;
+  z-index:1;
+}
+.sub-tag{
+  padding:7px 16px;
+  border-radius:50px;
+  font-size:13px;
+  cursor:pointer;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.1);
+  color:var(--color-text);
+  transition:var(--transition);
+  user-select:none;
+}
+.sub-tag:hover{
+  background:rgba(255,255,255,.09);
+  color:var(--color-white);
+  transform:translateY(-1px);
+}
+.sub-tag.active{
+  background:rgba(var(--mcr),.16);
+  border-color:rgba(var(--mcr),.36);
+  color:var(--mc);
+  box-shadow:0 0 20px rgba(var(--mcr),.15);
+}
+
+/* =========================
+   实验卡片区域
+========================= */
+.grid-section{
+  max-width:1400px;
+  margin:0 auto;
+  padding:38px 24px 64px;
+  position:relative;
+  z-index:1;
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:18px;
+}
+
+/* 卡片主体 */
+.card{
+  display:flex;
+  flex-direction:column;
+  background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.035));
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:var(--radius);
+  padding:18px 18px 20px;
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  transition:transform .35s,box-shadow .35s,background .35s,border-color .35s;
+  position:relative;
+  overflow:hidden;
+  opacity:0;
+  transform:translateY(20px);
+  min-height:230px;
+}
+
+/* 卡片渐变边框高光 */
+.card::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  padding:1px;
+  background:linear-gradient(135deg, rgba(255,215,0,.22), rgba(123,47,247,.08), rgba(0,212,255,.08));
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;
+  mask-composite:exclude;
+  opacity:.5;
+  pointer-events:none;
+}
+.card.visible{
+  opacity:1;
+  transform:translateY(0);
+}
+.card.hidden{display:none}
+.card:hover{
+  transform:translateY(-8px);
+  background:rgba(255,255,255,.09);
+  box-shadow:0 16px 36px rgba(0,0,0,.28),0 0 0 1px rgba(var(--mcr),.18);
+  border-color:rgba(var(--mcr),.22);
+}
+
+/* 卡片序号 */
+.card-seq{
+  position:absolute;
+  top:14px;
+  left:16px;
+  font-size:12px;
+  font-family:var(--font-mono);
+  color:rgba(255,255,255,.22);
+  font-weight:700;
+  letter-spacing:.5px;
+  z-index:2;
+}
+
+/* 卡片缩略图封面 */
+.card-thumb{
+  width:100%;
+  height:116px;
+  border-radius:12px;
+  margin-bottom:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.08);
+  flex-shrink:0;
+}
+.card-thumb::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(135deg, transparent 35%, rgba(255,255,255,.08) 50%, transparent 65%);
+  background-size:220% 220%;
+  animation:thumbShimmer 4.5s ease-in-out infinite;
+}
+@keyframes thumbShimmer{
+  0%,100%{background-position:180% 0}
+  50%{background-position:-180% 0}
+}
+.card-thumb-icon{
+  font-size:42px;
+  z-index:1;
+  filter:drop-shadow(0 4px 14px rgba(0,0,0,.4));
+  transition:transform .35s ease;
+}
+.card:hover .card-thumb-icon{
+  transform:scale(1.14) rotate(-4deg);
+}
+
+/* 原子物理缩略图颜色风格 */
+.card[data-sub="原子结构"] .card-thumb{
+  background:linear-gradient(135deg, rgba(255,215,0,.14), rgba(255,255,255,.04));
+}
+.card[data-sub="量子理论"] .card-thumb{
+  background:linear-gradient(135deg, rgba(123,47,247,.14), rgba(255,255,255,.04));
+}
+.card[data-sub="原子核"] .card-thumb{
+  background:linear-gradient(135deg, rgba(255,85,85,.14), rgba(255,255,255,.04));
+}
+.card[data-sub="核能"] .card-thumb{
+  background:linear-gradient(135deg, rgba(0,212,255,.14), rgba(255,255,255,.04));
+}
+.card[data-sub="粒子与射线"] .card-thumb{
+  background:linear-gradient(135deg, rgba(0,230,118,.14), rgba(255,255,255,.04));
+}
+
+/* 子分类标签 */
+.card-sub{
+  display:inline-block;
+  padding:3px 10px;
+  border-radius:50px;
+  font-size:11px;
+  font-weight:700;
+  margin-bottom:12px;
+  align-self:flex-start;
+  margin-left:28px;
+  background:rgba(var(--mcr),.14);
+  color:var(--mc);
+  border:1px solid rgba(var(--mcr),.16);
+}
+
+/* 卡片标题 */
+.card-title{
+  font-size:16px;
+  font-weight:700;
+  color:var(--color-white);
+  margin-bottom:18px;
+  flex-grow:1;
+  line-height:1.5;
+  letter-spacing:.2px;
+  text-shadow:0 1px 0 rgba(0,0,0,.35);
+}
+
+/* 卡片按钮 */
+.card-btn{
+  font-size:13px;
+  color:var(--color-text-dim);
+  transition:var(--transition);
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-weight:600;
+}
+.card:hover .card-btn{
+  color:var(--mc);
+}
+.card-btn .arr{
+  transition:transform .3s;
+  display:inline-block;
+}
+.card:hover .card-btn .arr{
+  transform:translateX(4px);
+}
+
+/* =========================
+   卡片点击波纹特效
+========================= */
+.ripple-circle{
+  position:absolute;
+  border-radius:50%;
+  background:radial-gradient(circle, rgba(255,255,255,.5) 0%, rgba(255,255,255,.16) 40%, transparent 72%);
+  transform:scale(0);
+  animation:rippleExpand .6s ease-out forwards;
+  pointer-events:none;
+  z-index:10;
+}
+@keyframes rippleExpand{
+  to{transform:scale(4);opacity:0}
+}
+
+/* =========================
+   无结果提示
+========================= */
+.no-res{
+  text-align:center;
+  padding:60px 24px;
+  color:var(--color-text-dim);
+  font-size:18px;
+  display:none;
+  position:relative;
+  z-index:1;
+}
+.no-res.show{display:block}
+
+/* =========================
+   回到顶部
+========================= */
+.btt{
+  position:fixed;
+  bottom:32px;
+  right:32px;
+  width:48px;
+  height:48px;
+  border-radius:50%;
+  background:rgba(var(--mcr),.18);
+  border:1px solid rgba(var(--mcr),.28);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:99;
+  opacity:0;
+  visibility:hidden;
+  transform:translateY(20px);
+  transition:var(--transition);
+  box-shadow:0 8px 30px rgba(0,0,0,.2);
+}
+.btt.visible{
+  opacity:1;
+  visibility:visible;
+  transform:translateY(0);
+}
+.btt:hover{
+  background:rgba(var(--mcr),.3);
+  box-shadow:0 0 20px rgba(var(--mcr),.25);
+}
+.btt::before{
+  content:'';
+  width:10px;
+  height:10px;
+  border-top:2px solid var(--mc);
+  border-left:2px solid var(--mc);
+  transform:rotate(45deg) translateY(3px);
+}
+
+/* =========================
+   页脚
+========================= */
+.footer{
+  position:relative;
+  z-index:1;
+  text-align:center;
+  padding:40px 24px;
+  border-top:1px solid rgba(255,255,255,.08);
+  background:linear-gradient(180deg, transparent, rgba(0,0,0,.16));
+}
+.footer p{
+  color:var(--color-text-dim);
+  font-size:13px;
+  margin-bottom:6px;
+}
+.footer a{
+  color:var(--mc);
+  transition:var(--transition);
+}
+.footer a:hover{
+  opacity:.8;
+}
+
+/* =========================
+   模块标题发光立体字
+========================= */
+.section-title{
+  font-size:24px;
+  font-weight:900;
+  color:var(--color-white);
+  text-shadow:
+    0 0 10px rgba(255,215,0,.45),
+    0 0 30px rgba(255,215,0,.18),
+    0 2px 0 rgba(150,120,0,.7),
+    0 4px 10px rgba(0,0,0,.45);
+  letter-spacing:.6px;
+}
+
+/* =========================
+   响应式
+========================= */
+@media(max-width:1199px){
+  .grid{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:767px){
+  .header-inner{
+    height:auto;
+    min-height:64px;
+    padding:10px 0;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .header-title{display:none}
+  .page-hero{padding:42px 24px 28px}
+  .grid{grid-template-columns:1fr}
+  .card{min-height:auto}
+  .btt{
+    bottom:20px;
+    right:20px;
+    width:42px;
+    height:42px;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- 星空背景 -->
+<div class="stars" aria-hidden="true">
+  <div class="s"></div><div class="s"></div><div class="s"></div><div class="s"></div><div class="s"></div>
+  <div class="s"></div><div class="s"></div><div class="s"></div><div class="s"></div><div class="s"></div>
+  <div class="s"></div><div class="s"></div><div class="s"></div><div class="s"></div><div class="s"></div>
+</div>
+
+<!-- 顶部导航栏 -->
+<header class="header">
+  <div class="header-inner">
+    <a href="../index.html" class="back-btn">
+      <span class="back-arrow">←</span> 返回主页
+    </a>
+    <div class="header-title">原子物理 Atomic Physics</div>
+    <span class="header-count">17 个实验</span>
+  </div>
+</header>
+
+<!-- 页面头部 -->
+<section class="page-hero">
+  <div class="page-hero-icon">⚛️</div>
+  <h1 class="page-title">原子物理学</h1>
+  <div class="page-title-en">Atomic Physics</div>
+  <p class="page-desc">涵盖原子结构、原子核、量子力学初步、核能等近代物理核心知识</p>
+
+  <!-- 搜索框 -->
+  <div class="search-wrap">
+    <div class="si"></div>
+    <input type="text" id="searchInput" placeholder="搜索原子物理实验..." aria-label="搜索实验">
+  </div>
+
+  <!-- 子分类标签 -->
+  <div class="sub-tags" id="subTags">
+    <span class="sub-tag active" data-sub="all">全部</span>
+    <span class="sub-tag" data-sub="原子结构">原子结构</span>
+    <span class="sub-tag" data-sub="量子理论">量子理论</span>
+    <span class="sub-tag" data-sub="原子核">原子核</span>
+    <span class="sub-tag" data-sub="核能">核能</span>
+    <span class="sub-tag" data-sub="粒子与射线">粒子与射线</span>
+  </div>
+</section>
+
+<!-- 无结果提示 -->
+<div class="no-res" id="noRes">🔍 未找到匹配的实验</div>
+
+<!-- 实验卡片网格 -->
+<section class="grid-section">
+  <div class="grid" id="grid"></div>
+</section>
+
+<!-- 回到顶部按钮 -->
+<button class="btt" id="btt" aria-label="回到顶部"></button>
+
+<!-- 页脚 -->
+<footer class="footer">
+  <p><a href="../index.html">← 返回实验室主页</a></p>
+  <p>© 2025 高中物理虚拟仿真实验室</p>
+</footer>
+
+<script>
+/* =========================
+   实验数据
+========================= */
+var experiments = [
+  {name:'氢原子能级', sub:'原子结构'},
+  {name:'α、β、γ射线在磁场中的偏转', sub:'粒子与射线'},
+  {name:'四种基本相互作用演示', sub:'粒子与射线'},
+  {name:'阴极射线实验', sub:'粒子与射线'},
+  {name:'原子核结合能模拟实验', sub:'原子核'},
+  {name:'原子核衰变模拟', sub:'原子核'},
+  {name:'原子结构模型发展史', sub:'原子结构'},
+  {name:'玻尔的原子模型', sub:'原子结构'},
+  {name:'电子双缝干涉实验', sub:'量子理论'},
+  {name:'电子圆孔衍射实验', sub:'量子理论'},
+  {name:'光电效应电路图模拟', sub:'量子理论'},
+  {name:'核反应堆原理模拟实验', sub:'核能'},
+  {name:'核聚变演示', sub:'核能'},
+  {name:'核裂变链式反应模拟实验', sub:'核能'},
+  {name:'康普顿效应', sub:'量子理论'},
+  {name:'可见光光谱', sub:'原子结构'},
+  {name:'卢瑟福α粒子散射实验', sub:'原子结构'}
+];
+
+/* =========================
+   缩略图图标映射
+========================= */
+var iconMap = {
+  '原子结构':'⚛️',
+  '量子理论':'🔬',
+  '原子核':'☢️',
+  '核能':'🏭',
+  '粒子与射线':'💠'
+};
+
+/* =========================
+   生成卡片
+========================= */
+var grid = document.getElementById('grid');
+var searchInput = document.getElementById('searchInput');
+var noRes = document.getElementById('noRes');
+
+experiments.forEach(function(exp, i) {
+  var a = document.createElement('a');
+  a.href = '../experiments/' + exp.name + '.html';
+  a.className = 'card';
+  a.setAttribute('data-name', exp.name);
+  a.setAttribute('data-sub', exp.sub);
+  a.setAttribute('aria-label', '实验' + String(i + 1).padStart(2, '0') + '：' + exp.name);
+
+  a.innerHTML =
+    '<span class="card-seq">' + String(i + 1).padStart(2, '0') + '</span>' +
+    '<div class="card-thumb"><span class="card-thumb-icon">' + (iconMap[exp.sub] || '⚛️') + '</span></div>' +
+    '<span class="card-sub">' + exp.sub + '</span>' +
+    '<div class="card-title">' + exp.name + '</div>' +
+    '<div class="card-btn">开始实验 <span class="arr">→</span></div>';
+
+  grid.appendChild(a);
+});
+
+var allCards = document.querySelectorAll('.card');
+
+/* =========================
+   搜索与筛选
+========================= */
+function filter() {
+  var kw = searchInput.value.trim().toLowerCase();
+  var activeSub = document.querySelector('.sub-tag.active').getAttribute('data-sub');
+  var count = 0;
+
+  allCards.forEach(function(card) {
+    var name = card.getAttribute('data-name').toLowerCase();
+    var sub = card.getAttribute('data-sub');
+    var matchSearch = !kw || name.indexOf(kw) !== -1;
+    var matchSub = activeSub === 'all' || sub === activeSub;
+
+    if (matchSearch && matchSub) {
+      card.classList.remove('hidden');
+      count++;
+    } else {
+      card.classList.add('hidden');
+    }
+  });
+
+  if (count === 0) {
+    noRes.classList.add('show');
+  } else {
+    noRes.classList.remove('show');
+  }
+}
+
+searchInput.addEventListener('input', filter);
+
+document.querySelectorAll('.sub-tag').forEach(function(tag) {
+  tag.addEventListener('click', function() {
+    document.querySelectorAll('.sub-tag').forEach(function(t) {
+      t.classList.remove('active');
+    });
+    tag.classList.add('active');
+    filter();
+  });
+});
+
+/* =========================
+   卡片入场动画
+========================= */
+var cardObserver = new IntersectionObserver(function(entries) {
+  entries.forEach(function(entry) {
+    if (entry.isIntersecting) {
+      var card = entry.target;
+      var siblings = Array.from(card.parentElement.querySelectorAll('.card:not(.hidden)'));
+      var index = siblings.indexOf(card);
+      var delay = Math.min(index, 8) * 50;
+
+      setTimeout(function() {
+        card.classList.add('visible');
+      }, delay);
+
+      cardObserver.unobserve(card);
+    }
+  });
+}, {
+  rootMargin: '0px 0px -30px 0px',
+  threshold: 0.05
+});
+
+allCards.forEach(function(card) {
+  cardObserver.observe(card);
+});
+
+/* =========================
+   卡片点击波纹 + 声音反馈
+========================= */
+var audioCtx = null;
+
+function playClickSound(){
+  try{
+    if(!audioCtx){
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    var osc = audioCtx.createOscillator();
+    var gain = audioCtx.createGain();
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(520, audioCtx.currentTime + 0.12);
+
+    gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.18);
+
+    osc.start(audioCtx.currentTime);
+    osc.stop(audioCtx.currentTime + 0.18);
+  }catch(err){
+    console.log('音效播放失败：', err);
+  }
+}
+
+document.querySelectorAll('.card').forEach(function(card){
+  card.addEventListener('click', function(e){
+    var rect = card.getBoundingClientRect();
+    var ripple = document.createElement('span');
+    ripple.className = 'ripple-circle';
+
+    var size = Math.max(rect.width, rect.height);
+    ripple.style.width = size + 'px';
+    ripple.style.height = size + 'px';
+    ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+    ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+
+    card.appendChild(ripple);
+
+    setTimeout(function(){
+      ripple.remove();
+    }, 600);
+
+    playClickSound();
+  });
+});
+
+/* =========================
+   回到顶部按钮
+========================= */
+var btt = document.getElementById('btt');
+
+window.addEventListener('scroll', function() {
+  if (window.scrollY > 400) {
+    btt.classList.add('visible');
+  } else {
+    btt.classList.remove('visible');
+  }
+}, { passive: true });
+
+btt.addEventListener('click', function() {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+/* =========================
+   星空粒子动态生成
+========================= */
+(function(){
+  var stars = document.querySelector('.stars');
+  if(!stars) return;
+})();
+</script>
+</body>
+</html>
