@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>物理模拟：弹簧木块斜面运动 | 摩擦力方向正确展示</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Poppins', 'Roboto', sans-serif;
+            background: linear-gradient(145deg, #f5f7fc 0%, #e9eef4 100%);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .card {
+            max-width: 1300px;
+            width: 100%;
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: blur(2px);
+            border-radius: 2.5rem;
+            box-shadow: 0 20px 35px rgba(0,0,0,0.2), 0 5px 12px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        .canvas-container {
+            background: #fef9e8;
+            padding: 20px 20px 0 20px;
+            border-bottom: 2px solid #ddd8cc;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: #fffef7;
+            border-radius: 1.5rem;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.1);
+            cursor: pointer;
+        }
+
+        .controls {
+            display: flex;
+            gap: 18px;
+            justify-content: center;
+            padding: 20px 25px;
+            background: #ffffffcc;
+            backdrop-filter: blur(8px);
+            flex-wrap: wrap;
+            border-bottom: 1px solid #e0d9cc;
+        }
+
+        button {
+            background: #2c3e66;
+            border: none;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            padding: 10px 28px;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            font-family: inherit;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            background: #1e2a47;
+            transform: scale(0.97);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .reset-btn {
+            background: #5e3c2c;
+        }
+        .reset-btn:hover {
+            background: #3e2a1f;
+        }
+        .pause-btn {
+            background: #2f6b47;
+        }
+        .pause-btn:hover {
+            background: #1f5337;
+        }
+
+        .info-panel {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding: 25px 30px;
+            background: #ffffffdd;
+        }
+
+        .options-box {
+            flex: 2;
+            min-width: 260px;
+            background: #faf6ef;
+            border-radius: 1.8rem;
+            padding: 18px 22px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.05);
+            border-left: 6px solid #ffb347;
+        }
+
+        .options-box h3 {
+            margin-top: 0;
+            font-weight: 700;
+            color: #2d3e50;
+            border-bottom: 2px solid #ffb347;
+            display: inline-block;
+            padding-right: 10px;
+        }
+
+        .option-item {
+            margin: 14px 0;
+            font-size: 1rem;
+            line-height: 1.4;
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .opt-letter {
+            font-weight: 800;
+            background: #2c3e66;
+            color: white;
+            width: 28px;
+            height: 28px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 30px;
+            font-size: 0.9rem;
+        }
+
+        .opt-text {
+            flex: 1;
+            color: #1e2f3a;
+        }
+
+        .correct-badge {
+            background: #2b7a3e;
+            color: white;
+            border-radius: 40px;
+            padding: 4px 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-left: 10px;
+            white-space: nowrap;
+        }
+        .wrong-badge {
+            background: #a13e2d;
+            color: white;
+            border-radius: 40px;
+            padding: 4px 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-left: 10px;
+            white-space: nowrap;
+        }
+
+        .explanation {
+            flex: 3;
+            background: #eef3fc;
+            border-radius: 1.8rem;
+            padding: 18px 25px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.05);
+            border-right: 4px solid #3b8db0;
+        }
+
+        .explanation h3 {
+            margin-top: 0;
+            color: #1e5f7a;
+        }
+
+        .exp-text {
+            font-size: 0.98rem;
+            line-height: 1.5;
+            color: #1f2e3a;
+        }
+
+        .status-tag {
+            margin-top: 15px;
+            background: #d9e6f5;
+            border-radius: 30px;
+            padding: 8px 16px;
+            text-align: center;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: #004070;
+        }
+
+        footer {
+            font-size: 0.75rem;
+            text-align: center;
+            padding: 12px;
+            background: #ede7db;
+            color: #5f5b4e;
+        }
+
+        @media (max-width: 760px) {
+            .option-item { flex-direction: column; gap: 6px; }
+            .opt-letter { width: auto; display: inline-block; margin-right: 10px; }
+            .controls button { padding: 6px 18px; font-size: 0.9rem; }
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+<div class="card">
+    <div class="canvas-container">
+        <canvas id="physicsCanvas" width="1000" height="460" style="width:100%; height:auto; max-width:1000px; aspect-ratio:1000/460"></canvas>
+    </div>
+    <div class="controls">
+        <button id="playBtn">▶ 播放</button>
+        <button id="pauseBtn" class="pause-btn">⏸ 暂停</button>
+        <button id="resetBtn" class="reset-btn">🔄 重置</button>
+    </div>
+    <div class="info-panel">
+        <div class="options-box">
+            <h3>📌 多项选择题</h3>
+            <div class="option-item"><span class="opt-letter">A</span><span class="opt-text">从 D 点运动到 E 点的过程中，弹簧的弹性势能全部转化为小木块的动能</span><span class="correct-badge">✓ 正确</span></div>
+            <div class="option-item"><span class="opt-letter">B</span><span class="opt-text">从 D 点运动到 B 点的过程中，动能先增大后不变</span><span class="correct-badge">✓ 正确</span></div>
+            <div class="option-item"><span class="opt-letter">C</span><span class="opt-text">在斜面上向上运动时，动能减少，重力势能增加</span><span class="correct-badge">✓ 正确</span></div>
+            <div class="option-item"><span class="opt-letter">D</span><span class="opt-text">在斜面上时，摩擦力的方向保持不变</span><span class="wrong-badge">✗ 错误</span></div>
+            <div style="margin-top:12px; font-size:0.85rem; background:#ffe0b5; padding:8px; border-radius:18px; text-align:center;">
+                ✅ 正确答案：<strong>A、B、C</strong><br>
+                <span style="font-size:0.75rem;">⚠️ D错误：上滑时滑动摩擦力沿斜面向下，静止顶端时静摩擦力沿斜面向上，方向改变。</span>
+            </div>
+        </div>
+        <div class="explanation">
+            <h3>🧠 物理原理精讲</h3>
+            <div class="exp-text">
+                <strong>🔹 A选项</strong>：水平面AB光滑，从D到E弹簧恢复原长，弹力做功，弹性势能完全转化为动能 → 正确。<br>
+                <strong>🔹 B选项</strong>：D→E弹力正功，动能一直增大；E→B光滑匀速，动能保持不变 → 正确。<br>
+                <strong>🔹 C选项</strong>：斜面上粗糙，木块减速上升，动能减少，高度增加，重力势能增加 → 正确。<br>
+                <strong>🔹 D选项（错误）</strong>：木块沿斜面向上滑动时，滑动摩擦力方向与运动方向相反，始终沿斜面向下；<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;当木块静止在斜面顶端时，静摩擦力方向变为沿斜面向上（与重力分力平衡）。<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;因此摩擦力的方向<strong>发生了改变</strong>，D选项错误。<br>
+                💡 动画严格模拟：<strong>加速段→匀速段→匀减速至顶端静止</strong>，并动态显示摩擦力方向变化。
+            </div>
+            <div class="status-tag" id="phaseStatus">⚡ 当前状态： 静止于 D 点 (弹簧压缩)</div>
+        </div>
+    </div>
+    <footer>模拟基于理想模型 | 摩擦力方向：上滑时滑动摩擦力沿斜面向下（红色箭头），静止时静摩擦力沿斜面向上（绿色箭头）</footer>
+</div>
+
+<script>
+    (function(){
+        // ----- 画布元素 -----
+        const canvas = document.getElementById('physicsCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // ----- 几何参数 (像素单位) -----
+        const wallX = 80;            // 墙壁位置
+        const D_point = 130;         // 释放点 D (压缩位置)
+        const E_point = 220;         // 弹簧原长位置
+        const B_point = 580;          // 水平面与斜面连接点 B (x坐标)
+        const groundY = 330;          // 水平面高度
+        
+        // 斜面参数 (角度30°, 沿斜面长度L_s = 230px)
+        const slopeAngle = 30 * Math.PI / 180;  // 30度
+        const slopeLen = 245;          // 斜面长度 (沿斜面方向像素)
+        // 终点C坐标计算
+        const slopeEndX = B_point + slopeLen * Math.cos(slopeAngle);
+        const slopeEndY = groundY - slopeLen * Math.sin(slopeAngle);
+        
+        // 木块大小
+        const blockW = 24;
+        const blockH = 24;
+        
+        // ----- 运动学参数 (设计使得: D→E匀加速, E→B匀速, 斜面上匀减速至顶端恰好停止) -----
+        const dist_DE = E_point - D_point;      // 90px
+        const dist_EB = B_point - E_point;      // 360px
+        const dist_slope = slopeLen;            // 245px 斜面长度
+        
+        // 设定最大速度 v_max 使得整体流畅且木块恰好停在斜面顶端
+        const v_max = 280;   // px/s
+        
+        // 加速段时间 t1 = 2*dist_DE / v_max (匀加速平均速度v_max/2)
+        const t1 = (2 * dist_DE) / v_max;      // 0.6428s 左右
+        // 匀速段时间 t2 = dist_EB / v_max
+        const t2 = dist_EB / v_max;            // 1.2857s
+        // 斜面上匀减速时间 t3 = 2*dist_slope / v_max
+        const t3 = (2 * dist_slope) / v_max;    // 1.75s
+        
+        const totalDuration = t1 + t2 + t3;     // 约3.6785秒
+        
+        // 加速度 (用于精确位置)
+        const a_acc = v_max / t1;               // 加速段加速度 px/s²
+        const a_dec = -v_max / t3;              // 斜面减速度 px/s² (负值)
+        
+        // ----- 动画控制变量 (支持暂停/继续) -----
+        let animFrame = null;
+        let isAnimating = false;
+        let paused = false;
+        let accumulatedTime = 0;       // 已经播放的总时长 (秒)
+        let animationStartTimestamp = null; // 当前播放周期的起始时间戳(用于计算增量)
+        
+        // 木块的状态变量 (由 currentTime 计算)
+        let currentTime = 0;        // 当前时刻(秒) 相对于动画起点
+        let onSlope = false;
+        let blockX = D_point;
+        let slopeOffset = 0;
+        
+        // ----- 辅助函数: 根据绝对时间 t (秒) 计算木块位置 -----
+        function computePosition(t) {
+            if (t <= 0) {
+                return { type: 'horizontal', x: D_point, onSlope: false, slopeOffset: 0 };
+            }
+            if (t >= totalDuration) {
+                // 终点: 斜面顶端
+                return { type: 'slope', slopeOffset: dist_slope, onSlope: true, final: true };
+            }
+            
+            if (t <= t1) {
+                // 阶段1: 匀加速 D -> E
+                const s = 0.5 * a_acc * t * t;
+                let x = D_point + s;
+                if (x > E_point) x = E_point;
+                return { type: 'horizontal', x: x, onSlope: false, slopeOffset: 0 };
+            }
+            else if (t <= t1 + t2) {
+                // 阶段2: 匀速 E -> B
+                const t_seg = t - t1;
+                let x = E_point + v_max * t_seg;
+                if (x > B_point) x = B_point;
+                return { type: 'horizontal', x: x, onSlope: false, slopeOffset: 0 };
+            }
+            else {
+                // 阶段3: 斜面上匀减速 从B点出发沿斜面
+                const t_seg = t - (t1 + t2);
+                let s = v_max * t_seg + 0.5 * a_dec * t_seg * t_seg;
+                if (s < 0) s = 0;
+                if (s > dist_slope) s = dist_slope;
+                return { type: 'slope', slopeOffset: s, onSlope: true };
+            }
+        }
+        
+        // 更新全局木块显示变量
+        function updateBlockState(t) {
+            const pos = computePosition(t);
+            if (pos.type === 'horizontal') {
+                onSlope = false;
+                blockX = pos.x;
+                slopeOffset = 0;
+            } else {
+                onSlope = true;
+                slopeOffset = pos.slopeOffset;
+                blockX = B_point + slopeOffset * Math.cos(slopeAngle);
+            }
+            if (blockX < wallX) blockX = wallX;
+            if (blockX > B_point && !onSlope) blockX = B_point;
+        }
+        
+        // 获取木块绘制的实际canvas坐标
+        function getBlockDrawPosition() {
+            if (!onSlope) {
+                return { x: blockX, y: groundY - blockH/2 };
+            } else {
+                const offsetX = slopeOffset * Math.cos(slopeAngle);
+                const offsetY = - slopeOffset * Math.sin(slopeAngle);
+                const centerX = B_point + offsetX;
+                const centerY = groundY + offsetY;
+                return { x: centerX - blockW/2, y: centerY - blockH/2 };
+            }
+        }
+        
+        // 获取弹簧右端绘制坐标
+        function getSpringRightEnd() {
+            if (!onSlope && blockX <= E_point) {
+                return { x: blockX + blockW/2, y: groundY };
+            } else {
+                return { x: E_point, y: groundY };
+            }
+        }
+        
+        // 判断木块在斜面上是否处于运动状态（速度向上）
+        function isMovingUpOnSlope(t) {
+            if (!onSlope) return false;
+            if (t >= totalDuration) return false; // 静止在顶端
+            if (t <= t1 + t2) return false;       // 还没上斜面
+            const t_seg = t - (t1 + t2);
+            if (t_seg < 0) return false;
+            const v = v_max + a_dec * t_seg;
+            return v > 0.01;
+        }
+        
+        // 绘制摩擦力箭头 (修正方向：滑动摩擦力沿斜面向下，静摩擦力沿斜面向上)
+        function drawFrictionArrow() {
+            if (!onSlope) return;
+            const blockPos = getBlockDrawPosition();
+            const centerX = blockPos.x + blockW/2;
+            const centerY = blockPos.y + blockH/2;
+            
+            const isStaticAtTop = (currentTime >= totalDuration && onSlope && Math.abs(slopeOffset - dist_slope) < 0.1);
+            const isMovingUp = isMovingUpOnSlope(currentTime);
+            
+            // 定义斜面的单位方向向量（从 B 指向 C）：右下->右上，沿斜面向上为 (cos, -sin)，沿斜面向下为 (-cos, sin)
+            // 为了让箭头更直观：沿斜面向下指向左下方（因为斜面是右上方向，向下实际指向左下）
+            const unitUpX = Math.cos(slopeAngle);    // 向上方向X分量 (正值，向右)
+            const unitUpY = -Math.sin(slopeAngle);   // 向上方向Y分量 (负值，向上)
+            const unitDownX = -Math.cos(slopeAngle); // 向下方向X分量 (负值，向左)
+            const unitDownY = Math.sin(slopeAngle);  // 向下方向Y分量 (正值，向下)
+            
+            if (isStaticAtTop) {
+                // 静止在顶端: 静摩擦力沿斜面向上 (平衡重力分力)
+                const fx = unitUpX;
+                const fy = unitUpY;
+                const arrowLen = 30;
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(centerX + fx*arrowLen, centerY + fy*arrowLen);
+                ctx.strokeStyle = "#2c8c5a";
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                ctx.fillStyle = "#1f6e48";
+                const angleArrow = Math.atan2(fy, fx);
+                const arrX = centerX + fx*arrowLen;
+                const arrY = centerY + fy*arrowLen;
+                ctx.beginPath();
+                ctx.moveTo(arrX, arrY);
+                ctx.lineTo(arrX - 7*Math.cos(angleArrow-0.6), arrY - 7*Math.sin(angleArrow-0.6));
+                ctx.lineTo(arrX - 7*Math.cos(angleArrow+0.6), arrY - 7*Math.sin(angleArrow+0.6));
+                ctx.fill();
+                ctx.fillStyle = "#1f6e48";
+                ctx.font = "bold 12px 'Segoe UI'";
+                ctx.fillText("静摩擦力(向上)", centerX+10, centerY-20);
+            } 
+            else if (isMovingUp) {
+                // 向上滑动过程: 滑动摩擦力沿斜面向下
+                const fx = unitDownX;
+                const fy = unitDownY;
+                const arrowLen = 30;
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(centerX + fx*arrowLen, centerY + fy*arrowLen);
+                ctx.strokeStyle = "#d9534f";
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                ctx.fillStyle = "#c9302c";
+                const angleArrow = Math.atan2(fy, fx);
+                const arrX = centerX + fx*arrowLen;
+                const arrY = centerY + fy*arrowLen;
+                ctx.beginPath();
+                ctx.moveTo(arrX, arrY);
+                ctx.lineTo(arrX - 7*Math.cos(angleArrow-0.6), arrY - 7*Math.sin(angleArrow-0.6));
+                ctx.lineTo(arrX - 7*Math.cos(angleArrow+0.6), arrY - 7*Math.sin(angleArrow+0.6));
+                ctx.fill();
+                ctx.fillStyle = "#b33";
+                ctx.font = "bold 12px 'Segoe UI'";
+                ctx.fillText("滑动摩擦力(向下)", centerX-40, centerY-8);
+            }
+        }
+        
+        // ----- 绘制整个场景 -----
+        function drawScene() {
+            if (!ctx) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 背景
+            ctx.fillStyle = "#fdf8ed";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#d9cdb0";
+            ctx.fillRect(0, groundY+6, canvas.width, 8);
+            ctx.fillStyle = "#b7a87a";
+            ctx.fillRect(0, groundY+8, canvas.width, 25);
+            ctx.fillStyle = "#ece3d0";
+            ctx.fillRect(0, groundY-8, canvas.width, 12);
+            ctx.fillStyle = "#cbc2a8";
+            ctx.fillRect(0, groundY-2, canvas.width, 4);
+            
+            // 斜面
+            ctx.beginPath();
+            ctx.moveTo(B_point, groundY);
+            ctx.lineTo(slopeEndX, slopeEndY);
+            ctx.lineTo(slopeEndX+6, slopeEndY-4);
+            ctx.lineTo(B_point+6, groundY-6);
+            ctx.fillStyle = "#b8aa87";
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(B_point, groundY);
+            ctx.lineTo(slopeEndX, slopeEndY);
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = "#8b7a5c";
+            ctx.stroke();
+            ctx.fillStyle = "#9d8b66";
+            for(let i=0;i<80;i++) {
+                let t = i/80;
+                let sx = B_point + t * (slopeEndX - B_point);
+                let sy = groundY + t * (slopeEndY - groundY);
+                ctx.beginPath();
+                ctx.arc(sx + (Math.random()*4-2), sy-2 + (Math.random()*4-2), 1.2, 0, Math.PI*2);
+                ctx.fill();
+            }
+            ctx.fillStyle = "#6f5a3e";
+            ctx.font = "bold 12px 'Segoe UI'";
+            ctx.fillText("顶端 C", slopeEndX-20, slopeEndY-10);
+            ctx.fillText("斜面 BC", B_point+70, groundY-40);
+            
+            // 墙壁
+            ctx.fillStyle = "#9c8e72";
+            ctx.fillRect(wallX-12, groundY-60, 14, 82);
+            ctx.fillStyle = "#7e6b4e";
+            ctx.fillRect(wallX-8, groundY-55, 10, 74);
+            ctx.fillStyle = "#bfae8a";
+            ctx.fillRect(wallX-4, groundY-50, 6, 65);
+            
+            // 弹簧
+            const springEnd = getSpringRightEnd();
+            const startX = wallX+4;
+            const startY = groundY;
+            const endX = springEnd.x;
+            const endY = springEnd.y;
+            ctx.beginPath();
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = "#ac8e5a";
+            ctx.lineCap = "round";
+            const segments = 18;
+            const dx = (endX - startX) / segments;
+            ctx.beginPath();
+            let amplitude = 5;
+            for (let i=0; i<=segments; i++) {
+                let x = startX + i*dx;
+                let t = i/segments;
+                let yOffset = Math.sin(i * Math.PI * 1.2) * amplitude * (1 - t*0.5);
+                let y = startY + yOffset;
+                if (i===0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(startX, startY, 5, 0, 2*Math.PI);
+            ctx.fillStyle = "#b5986b";
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(endX, endY, 5, 0, 2*Math.PI);
+            ctx.fill();
+            
+            // 字母标识
+            ctx.font = "bold 16px 'Segoe UI'";
+            ctx.fillStyle = "#5f4c32";
+            ctx.fillText("D", D_point-8, groundY-12);
+            ctx.fillText("E", E_point-6, groundY-12);
+            ctx.fillText("B", B_point-12, groundY-10);
+            ctx.font = "italic 14px sans-serif";
+            ctx.fillStyle = "#746a56";
+            ctx.fillText("光滑水平面", 260, groundY-18);
+            ctx.fillStyle = "#936e42";
+            ctx.fillText("粗糙斜面", B_point+45, groundY-45);
+            
+            // 摩擦力动态绘制
+            drawFrictionArrow();
+            
+            // 木块
+            const blockPos = getBlockDrawPosition();
+            ctx.shadowColor = "rgba(0,0,0,0.2)";
+            ctx.shadowBlur = 5;
+            ctx.fillStyle = "#e07a3a";
+            ctx.beginPath();
+            ctx.roundRect(blockPos.x, blockPos.y, blockW, blockH, 6);
+            ctx.fill();
+            ctx.fillStyle = "#b95c26";
+            ctx.beginPath();
+            ctx.roundRect(blockPos.x+3, blockPos.y+3, blockW-6, 4, 2);
+            ctx.fill();
+            ctx.fillStyle = "#f7b26a";
+            ctx.font = "bold 15px monospace";
+            ctx.fillText("■", blockPos.x+6, blockPos.y+18);
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = "#2f2e2a";
+            ctx.beginPath();
+            ctx.arc(blockPos.x+blockW-8, blockPos.y+8, 2, 0, 2*Math.PI);
+            ctx.fill();
+            
+            // 状态文字
+            let statusText = "";
+            if (currentTime <= 0) statusText = "静止于 D 点 (弹簧压缩)";
+            else if (currentTime >= totalDuration) statusText = "静止于斜面顶端 · 静摩擦力向上平衡重力分力";
+            else if (onSlope) statusText = "沿粗糙斜面上滑 · 滑动摩擦力向下 · 动能减少";
+            else if (blockX < E_point) statusText = "加速阶段 · 弹性势能 → 动能";
+            else if (blockX < B_point) statusText = "光滑水平面匀速 · 动能不变";
+            else statusText = "运动过程中";
+            document.getElementById("phaseStatus").innerHTML = `🎯 运动状态：${statusText}`;
+        }
+        
+        // ----- 动画循环 (支持暂停继续) -----
+        function animationLoop(timestamp) {
+            if (!isAnimating || paused) {
+                animFrame = null;
+                return;
+            }
+            if (!animationStartTimestamp) {
+                animationStartTimestamp = timestamp;
+                animFrame = requestAnimationFrame(animationLoop);
+                return;
+            }
+            const delta = (timestamp - animationStartTimestamp) / 1000;
+            let newTime = accumulatedTime + delta;
+            if (newTime >= totalDuration) {
+                newTime = totalDuration;
+                currentTime = newTime;
+                updateBlockState(currentTime);
+                drawScene();
+                isAnimating = false;
+                paused = false;
+                if (animFrame) cancelAnimationFrame(animFrame);
+                animFrame = null;
+                animationStartTimestamp = null;
+                return;
+            }
+            currentTime = newTime;
+            updateBlockState(currentTime);
+            drawScene();
+            animFrame = requestAnimationFrame(animationLoop);
+        }
+        
+        function startAnimation() {
+            if (isAnimating && !paused) return;
+            if (paused) {
+                paused = false;
+                isAnimating = true;
+                animationStartTimestamp = null;
+                animFrame = requestAnimationFrame(animationLoop);
+                return;
+            }
+            if (!isAnimating && currentTime >= totalDuration - 0.01) {
+                resetToInitial(true);
+            }
+            isAnimating = true;
+            paused = false;
+            animationStartTimestamp = null;
+            if (animFrame) cancelAnimationFrame(animFrame);
+            animFrame = requestAnimationFrame(animationLoop);
+        }
+        
+        function pauseAnimation() {
+            if (!isAnimating || paused) return;
+            paused = true;
+            if (animFrame) {
+                cancelAnimationFrame(animFrame);
+                animFrame = null;
+            }
+            accumulatedTime = currentTime;
+            animationStartTimestamp = null;
+            isAnimating = false;
+        }
+        
+        function resetToInitial(keepAccumulated = false) {
+            if (isAnimating) {
+                if (animFrame) cancelAnimationFrame(animFrame);
+                isAnimating = false;
+                paused = false;
+            }
+            currentTime = 0;
+            accumulatedTime = 0;
+            animationStartTimestamp = null;
+            updateBlockState(0);
+            drawScene();
+            document.getElementById("phaseStatus").innerHTML = "⚡ 重置完成 · 木块位于 D 点 (弹簧压缩)";
+        }
+        
+        // 圆角矩形辅助
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+                if (w < 2 * r) r = w / 2;
+                if (h < 2 * r) r = h / 2;
+                this.moveTo(x+r, y);
+                this.lineTo(x+w-r, y);
+                this.quadraticCurveTo(x+w, y, x+w, y+r);
+                this.lineTo(x+w, y+h-r);
+                this.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+                this.lineTo(x+r, y+h);
+                this.quadraticCurveTo(x, y+h, x, y+h-r);
+                this.lineTo(x, y+r);
+                this.quadraticCurveTo(x, y, x+r, y);
+                return this;
+            };
+        }
+        
+        // 绑定按钮
+        document.getElementById('playBtn').addEventListener('click', startAnimation);
+        document.getElementById('pauseBtn').addEventListener('click', pauseAnimation);
+        document.getElementById('resetBtn').addEventListener('click', () => resetToInitial(false));
+        
+        // 初始绘制
+        resetToInitial(false);
+    })();
+</script>
+</body>
+</html>

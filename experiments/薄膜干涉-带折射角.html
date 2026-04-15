@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>薄膜干涉（完整物理版·带角度） - 物理教学</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background: #f5f7fa;
+            padding: 20px;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+        .title {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 26px;
+        }
+        .section {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .container {
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+        .canvas-box {
+            flex: 1;
+            min-width: 600px;
+        }
+        #canvas {
+            width: 100%;
+            height: 420px;
+            background: #ffffff;
+            border-radius: 8px;
+        }
+        .control-box {
+            width: 340px;
+        }
+        .item {
+            margin: 16px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+            color: #34495e;
+        }
+        input {
+            width: 100%;
+            height: 6px;
+            background: #ddd;
+            border-radius: 3px;
+        }
+        .value {
+            font-size: 14px;
+            color: #1976d2;
+            margin-top: 5px;
+        }
+        .formula {
+            background: #f8f9fa;
+            padding: 14px;
+            border-radius: 8px;
+            font-family: "Times New Roman", serif;
+            font-size: 17px;
+            line-height: 1.8;
+            margin: 10px 0;
+            color: #2c3e50;
+        }
+        .note {
+            background: #e3f2fd;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 15px;
+            line-height: 1.6;
+            margin: 10px 0;
+        }
+        h3 {
+            color: #2c3e50;
+            margin: 10px 0;
+            border-left: 4px solid #3498db;
+            padding-left: 10px;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+
+<h1 class="title">薄膜干涉（完整物理模型·带折射角）</h1>
+
+<div class="section">
+    <div class="container">
+        <div class="canvas-box section">
+            <canvas id="canvas"></canvas>
+        </div>
+
+        <div class="control-box section">
+            <h3>⚙️ 实验参数</h3>
+            <div class="item">
+                <label>薄膜厚度 d (nm)</label>
+                <input type="range" id="d" min="10" max="800" value="300">
+                <div class="value" id="d_val">300 nm</div>
+            </div>
+            <div class="item">
+                <label>折射率 n</label>
+                <input type="range" id="n" min="1.0" max="2.5" value="1.5" step="0.01">
+                <div class="value" id="n_val">1.50</div>
+            </div>
+            <div class="item">
+                <label>光波长 λ (nm)</label>
+                <input type="range" id="lam" min="380" max="780" value="550">
+                <div class="value" id="lam_val">550 nm</div>
+            </div>
+            <div class="item">
+                <label>入射角 θ (°)</label>
+                <input type="range" id="theta" min="0" max="80" value="0">
+                <div class="value" id="t_val">0°</div>
+            </div>
+
+            <div class="note">
+                ✔ 厚度 d 越大 → 条纹越密<br>
+                ✔ 角度 θ 越大 → cosθ₂ 越小 → 光程差越小<br>
+                ✔ 所有参数实时改变图像
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="section">
+    <h3>📘 薄膜干涉 · 完整知识点（授课专用）</h3>
+
+    <div class="formula">
+        1. 完整光程差公式（含折射角）<br>
+        Δ = <strong>2 n d cosθ₂</strong> + λ/2
+    </div>
+
+    <div class="note">
+        • n：薄膜折射率<br>
+        • d：薄膜厚度<br>
+        • θ₂：薄膜内<strong>折射角</strong><br>
+        • λ/2：半波损失
+    </div>
+
+    <div class="formula">
+        2. 折射定律（斯涅尔定律）<br>
+        sinθ = n sinθ₂
+    </div>
+
+    <div class="formula">
+        3. 亮纹（加强）条件：<br>
+        2nd cosθ₂ + λ/2 = kλ (k=1,2,3...)
+
+        <br><br>
+        4. 暗纹（减弱）条件：<br>
+        2nd cosθ₂ + λ/2 = (k+0.5)λ (k=0,1,2...)
+    </div>
+
+    <h3>📌 核心结论</h3>
+    <div class="note">
+        ✔ 入射角越大 → 折射角越大 → cosθ₂ 越小 → 光程差越小<br>
+        ✔ 厚度均匀 → 等倾干涉<br>
+        ✔ 厚度变化 → 等厚干涉（劈尖、牛顿环）<br>
+        ✔ 白光 → 彩色条纹；单色光 → 明暗条纹
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+
+    let d = 300;
+    let n = 1.5;
+    let lam = 550;
+    let theta = 0;
+
+    function wavelengthToRGB(w) {
+        let r,g,b;
+        if (w >= 380 && w < 440) { r = -(w - 440) / (440 - 380); g = 0; b = 1; }
+        else if (w >= 440 && w < 490) { r = 0; g = (w - 440) / (490 - 440); b = 1; }
+        else if (w >= 490 && w < 510) { r = 0; g = 1; b = -(w - 510) / (510 - 490); }
+        else if (w >= 510 && w < 580) { r = (w - 510) / (580 - 510); g = 1; b = 0; }
+        else if (w >= 580 && w < 645) { r = 1; g = -(w - 645) / (645 - 580); b = 0; }
+        else { r = 1; g = 0; b = 0; }
+        return [Math.round(r*255), Math.round(g*255), Math.round(b*255)];
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        let rad = theta * Math.PI / 180;
+        let sinT2 = Math.sin(rad) / n;
+        let cosT2 = Math.sqrt(1 - sinT2 * sinT2);
+
+        for (let x = 0; x < canvas.width; x++) {
+            let dx = d * (x / canvas.width);
+            let delta = 2 * n * dx * cosT2 + lam / 2;
+            let phase = (2 * Math.PI * delta) / lam;
+            let inten = 0.5 * (1 - Math.cos(phase));
+            let [r, g, b] = wavelengthToRGB(lam);
+            ctx.fillStyle = `rgb(${Math.round(r * inten)},${Math.round(g * inten)},${Math.round(b * inten)})`;
+            ctx.fillRect(x, 0, 1, canvas.height);
+        }
+    }
+
+    function update() {
+        d = parseInt(document.getElementById('d').value);
+        n = parseFloat(document.getElementById('n').value);
+        lam = parseInt(document.getElementById('lam').value);
+        theta = parseInt(document.getElementById('theta').value);
+
+        document.getElementById('d_val').innerText = d + " nm";
+        document.getElementById('n_val').innerText = n.toFixed(2);
+        document.getElementById('lam_val').innerText = lam + " nm";
+        document.getElementById('t_val').innerText = theta + "°";
+
+        draw();
+    }
+
+    document.getElementById('d').oninput = update;
+    document.getElementById('n').oninput = update;
+    document.getElementById('lam').oninput = update;
+    document.getElementById('theta').oninput = update;
+
+    draw();
+</script>
+</body>
+</html>

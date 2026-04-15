@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>AI 高中物理实验室 · 彩色光的衍射实验（单缝衍射）</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background: radial-gradient(circle at 20% 30%, #0a0f2a, #030617);
+            font-family: 'Inter', 'Segoe UI', 'Poppins', system-ui, -apple-system, 'Roboto', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+        }
+
+        .experiment-container {
+            max-width: 1400px;
+            width: 100%;
+            background: rgba(15, 25, 45, 0.65);
+            backdrop-filter: blur(12px);
+            border-radius: 2.5rem;
+            border: 1px solid rgba(72, 187, 255, 0.25);
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(0, 255, 255, 0.1);
+            overflow: hidden;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 1.5rem;
+            padding: 1.8rem;
+        }
+
+        .control-panel {
+            background: rgba(5, 12, 24, 0.7);
+            border-radius: 1.8rem;
+            padding: 1.5rem;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .simulation-area {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: rgba(10, 20, 35, 0.65);
+            border-radius: 1.5rem;
+            padding: 1.2rem;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #7dd3fc;
+            letter-spacing: -0.3px;
+            border-left: 4px solid #3b82f6;
+            padding-left: 12px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .title-icon {
+            font-size: 1.3rem;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #E0F2FE, #38BDF8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 0.25rem;
+        }
+
+        .sub {
+            color: #8ba3c9;
+            font-size: 0.8rem;
+            border-bottom: 1px dashed #2d4a7c;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+
+        .slider-group {
+            margin-bottom: 1.8rem;
+        }
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            color: #cbd5e6;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        input[type="range"] {
+            width: 100%;
+            height: 5px;
+            -webkit-appearance: none;
+            background: linear-gradient(90deg, #2c6e9e, #4b9eff);
+            border-radius: 10px;
+            outline: none;
+            cursor: pointer;
+        }
+        input[type="range"]:focus {
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: white;
+            border-radius: 50%;
+            border: 2px solid #0ae0ff;
+            box-shadow: 0 0 8px #00ccff;
+            cursor: pointer;
+        }
+        .param-value {
+            background: #0a1424;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-family: monospace;
+            font-weight: 600;
+            color: #7dd3fc;
+        }
+        .info-text {
+            font-size: 0.85rem;
+            color: #a5b9da;
+            line-height: 1.4;
+            margin-top: 6px;
+        }
+
+        .ai-box {
+            background: linear-gradient(145deg, #07152b, #020a18);
+            border-radius: 1.2rem;
+            padding: 1rem 1.2rem;
+            margin-top: 1rem;
+            border-left: 4px solid #0ff;
+            box-shadow: 0 4px 12px rgba(0,200,255,0.1);
+        }
+        .ai-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            color: #6ee7ff;
+            margin-bottom: 10px;
+        }
+        .ai-message {
+            color: #e0edff;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            background: rgba(0,20,50,0.6);
+            padding: 10px 12px;
+            border-radius: 18px;
+        }
+        .badge {
+            background: #0e2a3b;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: normal;
+            color: #80e0ff;
+        }
+
+        .pattern-canvas {
+            background: #010511;
+            border-radius: 1rem;
+            width: 100%;
+            height: auto;
+            display: block;
+            margin-top: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            border: 1px solid #2c5270;
+        }
+        canvas {
+            width: 100%;
+            height: auto;
+            background: #000000;
+            border-radius: 12px;
+        }
+        .curve-canvas {
+            background: #03060f;
+            border-radius: 1rem;
+            width: 100%;
+            margin-top: 8px;
+            border: 1px solid #2c5270;
+        }
+        .schematic {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            background: #07121e;
+            border-radius: 1rem;
+            padding: 10px 16px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        .slit-icon {
+            background: #1a2f44;
+            width: 80px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+        }
+        .slit {
+            width: 8px;
+            height: 45px;
+            background: #ffd966;
+            box-shadow: 0 0 10px #ffb347;
+            border-radius: 2px;
+        }
+        .wave-arrow {
+            font-size: 1.8rem;
+            letter-spacing: 4px;
+            color: #88ddff;
+        }
+        .formula {
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: #bbd4ff;
+            background: #0f1a2c;
+            padding: 6px 12px;
+            border-radius: 28px;
+        }
+        button {
+            background: rgba(59,130,246,0.3);
+            border: 1px solid #3b82f6;
+            padding: 6px 16px;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: 0.2s;
+            margin-top: 8px;
+        }
+        button:hover {
+            background: #3b82f6;
+            box-shadow: 0 0 8px #3b82f6;
+        }
+        .color-indicator {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #071222;
+            border-radius: 40px;
+            padding: 6px 16px 6px 12px;
+            margin-top: 12px;
+            width: fit-content;
+        }
+        .color-swatch {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            box-shadow: 0 0 8px currentColor;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        @media (max-width: 800px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            body {
+                padding: 12px;
+            }
+        }
+        footer {
+            font-size: 0.7rem;
+            text-align: center;
+            padding: 12px;
+            border-top: 1px solid #1e3a5f;
+            color: #4f7aa6;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+<div class="experiment-container">
+    <div class="dashboard">
+        <!-- 左侧控制 + AI讲解 -->
+        <div class="control-panel">
+            <div style="margin-bottom: 0.5rem;">
+                <h1>🌈 彩色光的衍射 · 单缝实验</h1>
+                <div class="sub">AI 智能模拟 | 波长决定颜色 & 衍射图样</div>
+            </div>
+            <div class="slider-group">
+                <div class="slider-label">
+                    <span>🔬 相对缝宽 <span style="color:#9acdff;">b</span> <span class="badge">b 越小 → 衍射越强</span></span>
+                    <span class="param-value" id="slitWidthVal">0.65</span>
+                </div>
+                <input type="range" id="slitSlider" min="0.2" max="1.8" step="0.01" value="0.65">
+                <div class="info-text">缝宽越接近光波长，衍射现象越明显，中央亮纹越宽。</div>
+            </div>
+            <div class="slider-group">
+                <div class="slider-label">
+                    <span>🌈 相对波长 <span style="color:#9acdff;">λ</span> <span class="badge">λ 越大 → 条纹越宽 & 颜色偏红</span></span>
+                    <span class="param-value" id="waveLenVal">1.00</span>
+                </div>
+                <input type="range" id="lambdaSlider" min="0.4" max="1.8" step="0.01" value="1.00">
+                <div class="info-text">波长增大时，衍射角增大，条纹间距变宽，颜色从紫到红变化。</div>
+            </div>
+            <button id="resetBtn">⟳ 重置经典参数 (缝宽0.65 / 波长1.0 黄绿光)</button>
+            
+            <!-- 当前光色指示器 -->
+            <div class="color-indicator" id="colorIndicator">
+                <div class="color-swatch" id="lightSwatch"></div>
+                <span id="lightColorText" style="color:#eef4ff; font-size:0.85rem;">当前光色: 黄绿</span>
+            </div>
+
+            <div class="ai-box">
+                <div class="ai-header">
+                    <span>🧠 AI 实验导师</span>
+                    <span class="badge">实时分析 | 彩色衍射</span>
+                </div>
+                <div class="ai-message" id="aiExplanation">
+                    正在分析您的实验参数... 调节滑块，我将为您解读不同波长光的衍射现象及颜色变化。
+                </div>
+            </div>
+            <div class="info-text" style="margin-top: 1rem;">
+                💡 实验原理：平行光通过单缝，光强分布满足 <strong>I = I₀·(sinβ/β)²</strong>，β = π·b·sinθ/λ。<br>
+                不同波长的光呈现不同颜色，波长越长(红)衍射条纹越宽，波长越短(紫)条纹越窄。
+            </div>
+        </div>
+
+        <!-- 右侧模拟区域 -->
+        <div class="simulation-area">
+            <div class="card">
+                <div class="card-title">
+                    <span class="title-icon">🌈</span> 彩色衍射图样 (波长映射真实颜色)
+                </div>
+                <canvas id="diffractionCanvas" width="600" height="180" class="pattern-canvas" style="width:100%; height:auto; aspect-ratio:600/180"></canvas>
+                <div class="info-text" style="text-align:center; margin-top: 5px;">⬅️ 中央亮纹 | 明暗相间条纹 | 颜色随波长改变 ➡️</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    <span class="title-icon">📈</span> 相对光强分布 I / I₀ (同色系曲线)
+                </div>
+                <canvas id="intensityCurveCanvas" width="600" height="160" class="curve-canvas" style="width:100%; height:auto; aspect-ratio:600/160"></canvas>
+                <div class="info-text" style="font-size:0.75rem;">横坐标：偏离中心的角度 sinθ (相对值) &nbsp;&nbsp; 纵坐标：光强相对值</div>
+            </div>
+
+            <div class="schematic">
+                <div class="slit-icon">
+                    <div class="slit"></div>
+                </div>
+                <div class="wave-arrow">⟶  ✧ 彩色衍射 ✧  ⟶</div>
+                <div class="formula" id="dynamicFormula">
+                    b = 0.65 λ (相对)<br>
+                    Δθ ∝ λ / b
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer>
+        🧪 基于波动光学模拟 | 波长映射真实颜色 (紫→蓝→绿→黄→红) | 调节滑块观察彩色条纹变化
+    </footer>
+</div>
+
+<script>
+    (function(){
+        // DOM 元素
+        const slitSlider = document.getElementById('slitSlider');
+        const lambdaSlider = document.getElementById('lambdaSlider');
+        const slitValSpan = document.getElementById('slitWidthVal');
+        const lambdaValSpan = document.getElementById('waveLenVal');
+        const resetBtn = document.getElementById('resetBtn');
+        const diffractionCanvas = document.getElementById('diffractionCanvas');
+        const curveCanvas = document.getElementById('intensityCurveCanvas');
+        const aiMessageDiv = document.getElementById('aiExplanation');
+        const formulaDiv = document.getElementById('dynamicFormula');
+        const lightSwatch = document.getElementById('lightSwatch');
+        const lightColorText = document.getElementById('lightColorText');
+
+        // 画布尺寸
+        const PAT_WIDTH = 600;
+        const PAT_HEIGHT = 180;
+        const CURVE_WIDTH = 600;
+        const CURVE_HEIGHT = 160;
+        
+        diffractionCanvas.width = PAT_WIDTH;
+        diffractionCanvas.height = PAT_HEIGHT;
+        curveCanvas.width = CURVE_WIDTH;
+        curveCanvas.height = CURVE_HEIGHT;
+        
+        const patCtx = diffractionCanvas.getContext('2d');
+        const curveCtx = curveCanvas.getContext('2d');
+        
+        // 参数
+        let slitWidth = 0.65;
+        let wavelength = 1.00;
+        const maxSinTheta = 1.28;
+        
+        // ----- 核心物理函数 -----
+        function intensity(b, lambda, sinTheta) {
+            if (Math.abs(sinTheta) > 1.25 && (b*Math.abs(sinTheta)/lambda) > 5) return 0;
+            let beta = Math.PI * b * sinTheta / lambda;
+            if (Math.abs(beta) < 1e-8) return 1.0;
+            let sinc = Math.sin(beta) / beta;
+            return Math.min(1.0, Math.max(0.0, sinc * sinc));
+        }
+        
+        function mapXtoSinTheta(x, width, maxSin = maxSinTheta) {
+            const t = (x / width) * 2 - 1;
+            return t * maxSin;
+        }
+        
+        // ----- 将相对波长 (0.4~1.8) 映射为 RGB 颜色 (真实可见光谱：紫→蓝→绿→黄→红) -----
+        // 使用 HSL 色相: 0° 红, 60° 黄, 120° 绿, 240° 蓝, 300° 紫。映射区间：
+        // λ=0.4 (紫) → hue=300°, λ=0.6 → 240°(蓝), λ=0.9 → 120°(绿), λ=1.2 → 60°(黄), λ=1.8 → 0°(红)
+        // 线性插值 hue 从 300° 递减至 0°
+        function wavelengthToRGB(lambdaRel) {
+            // 限制范围
+            let l = Math.min(1.8, Math.max(0.4, lambdaRel));
+            // 映射 hue: lambda=0.4 -> 300°, lambda=1.8 -> 0°
+            let hue = 300 - ( (l - 0.4) / (1.8 - 0.4) ) * 300;
+            hue = Math.min(300, Math.max(0, hue));
+            // 饱和度100%，亮度70% (让颜色鲜艳但不刺眼)
+            let saturation = 0.95;
+            let lightness = 0.68;
+            // HSL 转 RGB
+            let c = (1 - Math.abs(2 * lightness - 1)) * saturation;
+            let hp = hue / 60.0;
+            let x = c * (1 - Math.abs(hp % 2 - 1));
+            let r1, g1, b1;
+            if (hp < 1) { r1 = c; g1 = x; b1 = 0; }
+            else if (hp < 2) { r1 = x; g1 = c; b1 = 0; }
+            else if (hp < 3) { r1 = 0; g1 = c; b1 = x; }
+            else if (hp < 4) { r1 = 0; g1 = x; b1 = c; }
+            else if (hp < 5) { r1 = x; g1 = 0; b1 = c; }
+            else { r1 = c; g1 = 0; b1 = x; }
+            let m = lightness - c/2;
+            let r = Math.floor((r1 + m) * 255);
+            let g = Math.floor((g1 + m) * 255);
+            let b = Math.floor((b1 + m) * 255);
+            return { r, g, b };
+        }
+        
+        // 获取当前颜色 (用于曲线和色样)
+        let currentColorRGB = { r: 180, g: 220, b: 100 };
+        
+        // 更新色样显示
+        function updateColorSwatch(lambda) {
+            const rgb = wavelengthToRGB(lambda);
+            currentColorRGB = rgb;
+            lightSwatch.style.backgroundColor = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+            lightSwatch.style.boxShadow = `0 0 10px rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+            // 颜色名称简单描述
+            let colorName = "";
+            if (lambda <= 0.55) colorName = "紫蓝";
+            else if (lambda <= 0.75) colorName = "蓝";
+            else if (lambda <= 0.95) colorName = "绿";
+            else if (lambda <= 1.25) colorName = "黄绿";
+            else if (lambda <= 1.55) colorName = "橙黄";
+            else colorName = "红";
+            if (lambda < 0.45) colorName = "紫";
+            if (lambda > 1.7) colorName = "深红";
+            lightColorText.innerHTML = `当前光色: ${colorName} (λ=${lambda.toFixed(2)})`;
+        }
+        
+        // 绘制彩色衍射条纹 (基于波长颜色调制亮度)
+        function drawDiffractionPattern() {
+            const w = PAT_WIDTH;
+            const h = PAT_HEIGHT;
+            const imgData = patCtx.getImageData(0, 0, w, h);
+            const data = imgData.data;
+            const baseColor = wavelengthToRGB(wavelength);
+            // gamma 让弱条纹可见，同时保留颜色特性
+            const gamma = 0.52;
+            
+            for (let x = 0; x < w; x++) {
+                const sinTheta = mapXtoSinTheta(x, w, maxSinTheta);
+                const I = intensity(slitWidth, wavelength, sinTheta);
+                // 强度映射亮度系数 (0~1)
+                let brightness = Math.pow(I, gamma);
+                brightness = Math.min(1.0, Math.max(0.0, brightness));
+                const r = Math.floor(baseColor.r * brightness);
+                const g = Math.floor(baseColor.g * brightness);
+                const b = Math.floor(baseColor.b * brightness);
+                for (let y = 0; y < h; y++) {
+                    const idx = (y * w + x) * 4;
+                    data[idx] = r;
+                    data[idx+1] = g;
+                    data[idx+2] = b;
+                    data[idx+3] = 255;
+                }
+            }
+            patCtx.putImageData(imgData, 0, 0);
+            // 添加中心辅助虚线
+            patCtx.beginPath();
+            patCtx.strokeStyle = "#ffffff80";
+            patCtx.lineWidth = 1;
+            patCtx.setLineDash([4, 6]);
+            patCtx.moveTo(w/2, 0);
+            patCtx.lineTo(w/2, h);
+            patCtx.stroke();
+            patCtx.setLineDash([]);
+        }
+        
+        // 绘制同色系光强曲线 (曲线颜色与波长一致，填充半透明)
+        function drawIntensityCurve() {
+            const w = CURVE_WIDTH;
+            const h = CURVE_HEIGHT;
+            curveCtx.clearRect(0, 0, w, h);
+            const baseColor = wavelengthToRGB(wavelength);
+            const lineColor = `rgb(${baseColor.r}, ${baseColor.g}, ${baseColor.b})`;
+            const fillColor = `rgba(${baseColor.r}, ${baseColor.g}, ${baseColor.b}, 0.25)`;
+            
+            // 绘制浅色网格
+            curveCtx.save();
+            curveCtx.strokeStyle = "#2a4a6e";
+            curveCtx.fillStyle = "#8aa9d0";
+            curveCtx.font = "10px 'Segoe UI'";
+            for (let i = 0; i <= 4; i++) {
+                const x = (i / 4) * w;
+                curveCtx.beginPath();
+                curveCtx.moveTo(x, 0);
+                curveCtx.lineTo(x, h);
+                curveCtx.strokeStyle = "#1e3a5f";
+                curveCtx.stroke();
+                const sinVal = -maxSinTheta + (i/4)*2*maxSinTheta;
+                if(i%2===0) curveCtx.fillStyle = "#9ab3d0";
+                curveCtx.fillText(sinVal.toFixed(1), x+2, h-6);
+            }
+            for (let i = 0; i <= 5; i++) {
+                const y = h - (i/5)*h;
+                curveCtx.beginPath();
+                curveCtx.moveTo(0, y);
+                curveCtx.lineTo(w, y);
+                curveCtx.strokeStyle = "#1e3a5f";
+                curveCtx.stroke();
+                if(i>0 && i<5) {
+                    curveCtx.fillStyle = "#9ab3d0";
+                    curveCtx.fillText((i/5).toFixed(1), 5, y-2);
+                }
+            }
+            
+            // 采样绘制曲线
+            const points = [];
+            const samples = 400;
+            for (let i = 0; i <= samples; i++) {
+                const x = (i / samples) * w;
+                const sinTheta = mapXtoSinTheta(x, w, maxSinTheta);
+                let I = intensity(slitWidth, wavelength, sinTheta);
+                const yVal = h - I * h;
+                points.push({x, y: yVal});
+            }
+            // 填充区域
+            curveCtx.beginPath();
+            curveCtx.moveTo(points[0].x, h);
+            for (let p of points) curveCtx.lineTo(p.x, p.y);
+            curveCtx.lineTo(points[points.length-1].x, h);
+            curveCtx.closePath();
+            curveCtx.fillStyle = fillColor;
+            curveCtx.fill();
+            // 绘制曲线
+            curveCtx.beginPath();
+            curveCtx.moveTo(points[0].x, points[0].y);
+            for (let i = 1; i < points.length; i++) curveCtx.lineTo(points[i].x, points[i].y);
+            curveCtx.strokeStyle = lineColor;
+            curveCtx.lineWidth = 2.5;
+            curveCtx.stroke();
+            // 中央极大标记
+            const centerX = w/2;
+            const centerSin = mapXtoSinTheta(centerX, w, maxSinTheta);
+            const centerI = intensity(slitWidth, wavelength, centerSin);
+            const centerY = h - centerI * h;
+            curveCtx.beginPath();
+            curveCtx.arc(centerX, centerY, 4, 0, 2*Math.PI);
+            curveCtx.fillStyle = lineColor;
+            curveCtx.fill();
+            curveCtx.fillStyle = "#ffffff";
+            curveCtx.font = "bold 10px monospace";
+            curveCtx.fillText("中央极大", centerX-28, centerY-6);
+            curveCtx.restore();
+        }
+        
+        // AI 讲解 (增强颜色提示)
+        function updateAIExplanation() {
+            const b = slitWidth;
+            const l = wavelength;
+            const diffRatio = l / b;
+            const colorRGB = wavelengthToRGB(l);
+            let description = `🔬 当前相对波长 λ = ${l.toFixed(2)}，对应颜色为 RGB(${colorRGB.r},${colorRGB.g},${colorRGB.b})，`;
+            let phenomenon = "";
+            let advice = "";
+            
+            if (b < 0.45) phenomenon = "缝宽极小，衍射极其显著，中央亮纹极宽。";
+            else if (b < 0.85) phenomenon = "缝宽适中，衍射明显，条纹宽且清晰。";
+            else if (b < 1.3) phenomenon = "缝宽较大，衍射减弱，条纹收窄。";
+            else phenomenon = "缝宽很大，几何光学主导，衍射微弱。";
+            
+            if (l > 1.3) phenomenon += " 波长较长(偏红)，衍射角大，条纹间距变宽。";
+            else if (l < 0.7) phenomenon += " 波长较短(偏蓝紫)，衍射角小，条纹向中心收缩。";
+            else phenomenon += " 波长适中，典型可见光衍射。";
+            
+            if (diffRatio > 1.4) advice = " 🌟 衍射极强，彩色条纹弥散明显，颜色边缘可见色散效应。";
+            else if (diffRatio > 0.9) advice = " ✨ 明显衍射，不同颜色光条纹宽度差异显著。";
+            else if (diffRatio > 0.5) advice = " 📐 中等衍射，中央亮纹带明显颜色。";
+            else advice = " ⚡ 衍射较弱，颜色较集中，减小缝宽或增大波长增强效果。";
+            
+            const finalMsg = `${description} ${phenomenon} ${advice}`;
+            aiMessageDiv.innerHTML = finalMsg;
+            formulaDiv.innerHTML = `b = ${b.toFixed(2)} &nbsp; λ = ${l.toFixed(2)}<br>
+                                    衍射程度 ∝ λ/b ≈ ${diffRatio.toFixed(2)}<br>
+                                    颜色随波长变化 | 红光条纹更宽`;
+        }
+        
+        function refreshAll() {
+            drawDiffractionPattern();
+            drawIntensityCurve();
+            updateColorSwatch(wavelength);
+            updateAIExplanation();
+        }
+        
+        function updateFromSliders() {
+            slitWidth = parseFloat(slitSlider.value);
+            wavelength = parseFloat(lambdaSlider.value);
+            slitValSpan.innerText = slitWidth.toFixed(2);
+            lambdaValSpan.innerText = wavelength.toFixed(2);
+            refreshAll();
+        }
+        
+        slitSlider.addEventListener('input', updateFromSliders);
+        lambdaSlider.addEventListener('input', updateFromSliders);
+        resetBtn.addEventListener('click', () => {
+            slitSlider.value = "0.65";
+            lambdaSlider.value = "1.00";
+            updateFromSliders();
+        });
+        
+        // 初始启动
+        updateFromSliders();
+    })();
+</script>
+</body>
+</html>

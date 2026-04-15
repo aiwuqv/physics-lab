@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>弹簧振子演示实验 · 简谐运动 + 高考考点精练</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* 可自定义尺寸的容器 */
+        .app-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            min-width: 160px;
+            min-height: 90px;
+        }
+
+        #app {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 1920px;
+            height: 1080px;
+            transform-origin: 0 0;
+            overflow: hidden;
+            transform: translate(calc(50% - 960px), calc(50% - 540px));
+        }
+
+        /* 主容器 */
+        #main-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        /* 左侧主区域 */
+        .main-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* 绘图区域 */
+        .drawing-area {
+            flex: 1;
+            background-color: rgba(255, 255, 255, 0.9);
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        /* 控制面板样式（增加滚动） */
+        .control-panel {
+            width: 460px;
+            background-color: rgba(255, 255, 255, 0.95);
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            font-size: 28px;
+            overflow-y: auto;
+            max-height: 100%;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+
+        .control-group .value-display {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* 图形区域 */
+        .graph-container {
+            flex: 1;
+            background-color: rgba(255, 255, 255, 0.9);
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 10px;
+            padding: 10px;
+        }
+
+        .graph {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            position: relative;
+            min-height: 0;
+        }
+
+        .graph svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .graph-title {
+            position: absolute;
+            top: 5px;
+            left: 10px;
+            font-weight: bold;
+            font-size: 24px;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .graph-value {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            font-size: 24px;
+            color: #666;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 2px 5px;
+            border-radius: 3px;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        /* 按钮容器 */
+        .button-container {
+            display: flex;
+            width: 100%;
+            gap: 10px;
+        }
+
+        /* 按钮样式 */
+        .control-button {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 20px;
+            font-size: 28px;
+            font-weight: 500;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: white;
+        }
+
+        .control-button svg {
+            width: 40px;
+            height: 40px;
+        }
+
+        .btn-reset {
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+            box-shadow: 0 2px 8px rgba(71, 85, 105, 0.3);
+        }
+
+        .btn-reset:hover {
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
+            box-shadow: 0 4px 12px rgba(71, 85, 105, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .btn-play-pause {
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-play-pause:hover {
+            background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .btn-play-pause:disabled {
+            background: linear-gradient(135deg, #94a3b8 0%, #cbd5e1 100%);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* ===== 新增：高考考点精练样式 ===== */
+        .exam-block {
+            margin-top: 20px;
+            border-top: 2px solid #f4b942;
+            padding-top: 15px;
+            font-size: 1rem;
+        }
+        .exam-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1f6e5c;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .knowledge-box {
+            background: #f8f9fa;
+            border-radius: 16px;
+            padding: 12px 16px;
+            margin-bottom: 18px;
+            font-size: 0.85rem;
+            line-height: 1.45;
+        }
+        .knowledge-box p {
+            margin: 6px 0;
+        }
+        .knowledge-box strong {
+            color: #c0392b;
+        }
+        .formula-highlight {
+            background: #eef2ff;
+            font-family: monospace;
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-weight: bold;
+        }
+        .question-item {
+            background: #fefaf5;
+            border-radius: 20px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            border: 1px solid #ffe0b5;
+        }
+        .question-text {
+            font-weight: 700;
+            margin-bottom: 12px;
+            font-size: 0.95rem;
+        }
+        .option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 8px 0 8px 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .option input {
+            transform: scale(1);
+            width: 16px;
+            height: 16px;
+        }
+        .check-btn {
+            background: #2c7a6e;
+            border: none;
+            color: white;
+            padding: 5px 16px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+            font-size: 0.75rem;
+            transition: 0.2s;
+        }
+        .check-btn:hover {
+            background: #1e5f53;
+            transform: scale(0.96);
+        }
+        .feedback {
+            margin-top: 12px;
+            padding: 10px 14px;
+            border-radius: 1rem;
+            font-size: 0.8rem;
+            display: none;
+            line-height: 1.4;
+        }
+        .feedback.correct {
+            background: #dff0e4;
+            color: #145c33;
+            display: block;
+            border-left: 5px solid #2e7d64;
+        }
+        .feedback.wrong {
+            background: #ffe6e5;
+            color: #b13b2d;
+            display: block;
+            border-left: 5px solid #e35f4b;
+        }
+        hr {
+            margin: 12px 0;
+            border: 0;
+            height: 1px;
+            background: #e2e8f0;
+        }
+    </style>
+</head>
+
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <!-- 可自定义尺寸的容器 -->
+    <div class="app-container" id="app-container">
+        <div id="app">
+            <div id="main-container">
+                <!-- 左侧主区域 -->
+                <div class="main-area">
+                    <!-- SVG绘图区域容器 -->
+                    <div class="drawing-area">
+                        <svg width="100%" height="100%" viewBox="0 0 1480 210" xmlns="http://www.w3.org/2000/svg">
+                            <!-- 渐变定义 -->
+                            <defs>
+                                <linearGradient id="wallShadowLeft" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stop-color="#ffffff" stop-opacity="1" />
+                                    <stop offset="100%" stop-color="#978461" stop-opacity="1" />
+                                </linearGradient>
+                                <linearGradient id="wallShadowRight" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stop-color="#978461" stop-opacity="1" />
+                                    <stop offset="100%" stop-color="#ffffff" stop-opacity="1" />
+                                </linearGradient>
+                                <radialGradient id="ballGradient" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#ffffff" />
+                                    <stop offset="100%" stop-color="#3D6FA7" />
+                                </radialGradient>
+                                <marker id="arrowhead" markerWidth="15" markerHeight="10" refX="10" refY="5"
+                                    orient="auto">
+                                    <polygon points="0 2, 10 5, 0 8" fill="context-stroke" />
+                                </marker>
+                            </defs>
+                            <!-- x 轴 -->
+                            <path d="M150 105 L1450 105" stroke="#333" stroke-width="2" fill="none" />
+                            <polygon points="1440,100 1450,105 1440,110" fill="#333" />
+                            <text x="1440" y="90" font-size="32" font-family="Times New Roman" font-style="italic"
+                                fill="#333">x</text>
+                            <!-- 原点标记 -->
+                            <circle cx="740" cy="105" r="5" fill="#333" />
+                            <line x1="740" y1="200" x2="740" y2="300" stroke="#333" stroke-width="1"
+                                stroke-dasharray="5,5" />
+                            <!-- 墙体矩形 -->
+                            <rect x="75" y="0" width="75" height="210" fill="url(#wallShadowLeft)" />
+                            <rect x="1330" y="0" width="75" height="210" fill="url(#wallShadowRight)" />
+                            <!-- 墙壁 -->
+                            <line x1="150" y1="0" x2="150" y2="210" stroke="#333" stroke-width="4" />
+                            <line x1="1330" y1="0" x2="1330" y2="210" stroke="#333" stroke-width="4" />
+
+                            <!-- 弹簧振子主视图 -->
+                            <g id="oscillator">
+                                <!-- 弹簧 -->
+                                <path id="spring" stroke="#666" stroke-width="2" fill="none"
+                                    d="M150,105C151,95,155,85,162,85c14,0,14,40,8,40S164,85,178,85s14,40,8,40S180,85,194,85s14,40,8,40S196,85,210,85s14,40,8,40S212,85,226,85s14,40,8,40S228,85,242,85s14,40,8,40S244,85,258,85s14,40,8,40S260,85,274,85s14,40,8,40S276,85,290,85s14,40,8,40S292,85,306,85s14,40,8,40S308,85,322,85s14,40,8,40S324,85,338,85s14,40,8,40S340,85,354,85s14,40,8,40S356,85,370,85s14,40,8,40S372,85,386,85s14,40,8,40S388,85,402,85s14,40,8,40S404,85,418,85s14,40,8,40S420,85,434,85s14,40,8,40S436,85,450,85s14,40,8,40S452,85,466,85s14,40,8,40S468,85,482,85s14,40,8,40S484,85,498,85s14,40,8,40S500,85,514,85s14,40,8,40S516,85,530,85s14,40,8,40S532,85,546,85s14,40,8,40S548,85,562,85s14,40,8,40S564,85,578,85s14,40,8,40S580,85,594,85s14,40,8,40S596,85,610,85s14,40,8,40S612,85,626,85s14,40,8,40S628,85,642,85s14,40,8,40S644,85,658,85s14,40,8,40S660,85,674,85s14,40,8,40S676,85,690,85c5.95,0,9.38,7.23,10.88,15.55" />
+
+                                <!-- 小球 -->
+                                <circle id="ball" cx="740" cy="105" r="20" fill="url(#ballGradient)" stroke="#333"
+                                    stroke-width="2" cursor="move" />
+
+                                <!-- 位移箭头 -->
+                                <g id="arrowX">
+                                    <line id="arrowXPath" stroke="#FF5722" stroke-width="3" marker-end="url(#arrowhead)"
+                                        y1="105" y2="105" x1="740" />
+                                    <text id="arrowXLabel" y="60" font-size="32" font-weight="bold" fill="#FF5722"
+                                        font-family="Times New Roman" font-style="italic" text-anchor="middle"
+                                        dominant-baseline="middle">x</text>
+                                </g>
+
+                                <!-- 力箭头 -->
+                                <g id="arrowF">
+                                    <line id="arrowFPath" stroke="#2196F3" stroke-width="3" marker-end="url(#arrowhead)"
+                                        y1="105" y2="105" />
+                                    <text id="arrowFLabel" y="150" font-size="32" font-weight="bold" fill="#2196F3"
+                                        font-family="Times New Roman" font-style="italic" text-anchor="middle"
+                                        dominant-baseline="middle">F</text>
+                                </g>
+
+                                <!-- 加速度箭头 -->
+                                <g id="arrowA">
+                                    <line id="arrowAPath" stroke="#9C27B0" stroke-width="3" marker-end="url(#arrowhead)"
+                                        y1="175" y2="175" />
+                                    <text id="arrowALabel" y="215" font-size="32" font-weight="bold" fill="#9C27B0"
+                                        font-family="Times New Roman" font-style="italic" text-anchor="middle"
+                                        dominant-baseline="middle">a</text>
+                                </g>
+
+                                <!-- 速度箭头 -->
+                                <g id="arrowV">
+                                    <line id="arrowVPath" stroke="#FFC107" stroke-width="3" marker-end="url(#arrowhead)"
+                                        y1="35" y2="35" />
+                                    <text id="arrowVLabel" y="5" font-size="32" font-weight="bold" fill="#FFC107"
+                                        font-family="Book Antiqua" font-style="italic" text-anchor="middle"
+                                        dominant-baseline="middle">v</text>
+                                </g>
+
+                                <!-- 动态虚线B和C -->
+                                <g id="dynamicLines">
+                                    <line id="dynamicLineB" x1="740" y1="200" x2="740" y2="300" stroke="#333"
+                                        stroke-width="1" stroke-dasharray="5,5" style="display: none" />
+                                    <text id="dynamicTextB" x="740" y="330" font-size="32" font-weight="bold"
+                                        font-family="Times New Roman" font-style="italic" fill="#333"
+                                        text-anchor="middle" style="display: none">B</text>
+                                    <line id="dynamicLineC" x1="740" y1="200" x2="740" y2="300" stroke="#333"
+                                        stroke-width="1" stroke-dasharray="5,5" style="display: none" />
+                                    <text id="dynamicTextC" x="740" y="330" font-size="32" font-weight="bold"
+                                        font-family="Times New Roman" font-style="italic" fill="#333"
+                                        text-anchor="middle" style="display: none">C</text>
+                                    <text id="dynamicTextO" x="740" y="330" font-size="32" font-weight="bold"
+                                        font-family="Times New Roman" font-style="italic" fill="#333"
+                                        text-anchor="middle">O</text>
+                                </g>
+                            </g>
+                        </svg>
+                    </div>
+
+                    <!-- 时间图像区域 -->
+                    <div class="graph-container">
+                        <div class="graph" id="x-t-graph-container">
+                            <div class="graph-title"><span
+                                    style="font-family: Times New Roman; font-style: italic;">x</span>-<span
+                                    style="font-family: Times New Roman; font-style: italic;">t</span> 图像</div>
+                            <div class="graph-value"><span
+                                    style="font-family: Times New Roman; font-style: italic;">x</span> = <span
+                                    id="x-value">0.0</span> cm</div>
+                            <svg width="100%" height="100%" viewBox="0 0 730 260" preserveAspectRatio="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <line x1="0" y1="130" x2="730" y2="130" stroke="#333" stroke-width="1" />
+                                <line x1="0" y1="65" x2="730" y2="65" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <line x1="0" y1="195" x2="730" y2="195" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <line x1="0" y1="0" x2="0" y2="260" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <line x1="91.25" y1="0" x2="91.25" y2="260" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <line x1="182.5" y1="0" x2="182.5" y2="260" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <line x1="273.75" y1="0" x2="273.75" y2="260" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <line x1="365" y1="0" x2="365" y2="260" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <line x1="456.25" y1="0" x2="456.25" y2="260" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <line x1="547.5" y1="0" x2="547.5" y2="260" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <line x1="638.75" y1="0" x2="638.75" y2="260" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <path id="x-t-graph" fill="none" stroke="#FF5722" stroke-width="3" />
+                            </svg>
+                        </div>
+                        <div class="graph" id="F-t-graph-container">
+                            <div class="graph-title"><span
+                                    style="font-family: Times New Roman; font-style: italic;">F</span>-<span
+                                    style="font-family: Times New Roman; font-style: italic;">t</span> 图像</div>
+                            <div class="graph-value"><span
+                                    style="font-family: Times New Roman; font-style: italic;">F</span> = <span
+                                    id="F-value">0.0</span> N</div>
+                            <svg width="100%" height="100%" viewBox="0 0 730 260" preserveAspectRatio="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <line x1="0" y1="130" x2="730" y2="130" stroke="#333" stroke-width="1" />
+                                <line x1="0" y1="65" x2="730" y2="65" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <line x1="0" y1="195" x2="730" y2="195" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <line x1="0" y1="0" x2="0" y2="260" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <line x1="91.25" y1="0" x2="91.25" y2="260" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <line x1="182.5" y1="0" x2="182.5" y2="260" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <line x1="273.75" y1="0" x2="273.75" y2="260" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <line x1="365" y1="0" x2="365" y2="260" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <line x1="456.25" y1="0" x2="456.25" y2="260" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <line x1="547.5" y1="0" x2="547.5" y2="260" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <line x1="638.75" y1="0" x2="638.75" y2="260" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <path id="F-t-graph" fill="none" stroke="#2196F3" stroke-width="3" />
+                            </svg>
+                        </div>
+                        <div class="graph" id="a-t-graph-container">
+                            <div class="graph-title"><span
+                                    style="font-family: Times New Roman; font-style: italic;">a</span>-<span
+                                    style="font-family: Times New Roman; font-style: italic;">t</span> 图像</div>
+                            <div class="graph-value"><span
+                                    style="font-family: Times New Roman; font-style: italic;">a</span> = <span
+                                    id="a-value">0.0</span> m/s²</div>
+                            <svg width="100%" height="100%" viewBox="0 0 730 260" preserveAspectRatio="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <line x1="0" y1="130" x2="730" y2="130" stroke="#333" stroke-width="1" />
+                                <line x1="0" y1="65" x2="730" y2="65" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <line x1="0" y1="195" x2="730" y2="195" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <line x1="0" y1="0" x2="0" y2="260" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <line x1="91.25" y1="0" x2="91.25" y2="260" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <line x1="182.5" y1="0" x2="182.5" y2="260" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <line x1="273.75" y1="0" x2="273.75" y2="260" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <line x1="365" y1="0" x2="365" y2="260" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <line x1="456.25" y1="0" x2="456.25" y2="260" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <line x1="547.5" y1="0" x2="547.5" y2="260" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <line x1="638.75" y1="0" x2="638.75" y2="260" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <path id="a-t-graph" fill="none" stroke="#9C27B0" stroke-width="3" />
+                            </svg>
+                        </div>
+                        <div class="graph" id="v-t-graph-container">
+                            <div class="graph-title"><span
+                                    style="font-family: Book Antiqua; font-style: italic;">v</span>-<span
+                                    style="font-family: Times New Roman; font-style: italic;">t</span> 图像</div>
+                            <div class="graph-value"><span
+                                    style="font-family: Book Antiqua; font-style: italic;">v</span> = <span
+                                    id="v-value">0.0</span> m/s</div>
+                            <svg width="100%" height="100%" viewBox="0 0 730 260" preserveAspectRatio="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <line x1="0" y1="130" x2="730" y2="130" stroke="#333" stroke-width="1" />
+                                <line x1="0" y1="65" x2="730" y2="65" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <line x1="0" y1="195" x2="730" y2="195" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <line x1="0" y1="0" x2="0" y2="260" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <line x1="91.25" y1="0" x2="91.25" y2="260" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <line x1="182.5" y1="0" x2="182.5" y2="260" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <line x1="273.75" y1="0" x2="273.75" y2="260" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <line x1="365" y1="0" x2="365" y2="260" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <line x1="456.25" y1="0" x2="456.25" y2="260" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <line x1="547.5" y1="0" x2="547.5" y2="260" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <line x1="638.75" y1="0" x2="638.75" y2="260" stroke="#ddd" stroke-width="1"
+                                    stroke-dasharray="3,3" />
+                                <path id="v-t-graph" fill="none" stroke="#FFC107" stroke-width="3" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 控制面板（右侧，已整合考点模块） -->
+                <div class="control-panel">
+                    <div class="control-group">
+                        <label for="m-slider">振子质量 <span
+                                style="font-family: Times New Roman; font-style: italic;">m</span> = <span
+                                id="m-value">1</span> kg</label>
+                        <input type="range" id="m-slider" min="0.5" max="2" value="1" step="0.1">
+                    </div>
+
+                    <div class="control-group">
+                        <label for="k-slider">劲度系数 <span
+                                style="font-family: Times New Roman; font-style: italic;">k</span> = <span
+                                id="k-value">1</span> N/m</label>
+                        <input type="range" id="k-slider" min="0.5" max="2" value="1" step="0.1">
+                    </div>
+
+                    <div class="control-group">
+                        <label>周期 <span style="font-family: Times New Roman; font-style: italic;">T</span> = <span
+                                id="T-value">0.00</span> s</label>
+                    </div>
+
+                    <div class="control-group">
+                        <label>振幅 <span style="font-family: Times New Roman; font-style: italic;">A</span> = <span
+                                id="A-value">0.0</span> cm</label>
+                    </div>
+
+                    <!-- 能量显示控制 -->
+                    <div class="control-group">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="checkbox" id="energy-toggle"
+                                style="width: 24px; height: 24px; transform: translateY(2px);">
+                            <label for="energy-toggle">能量</label>
+                        </div>
+                    </div>
+
+                    <!-- 动能和势能显示 -->
+                    <div class="control-group" id="energy-container">
+                        <div style="display: flex; flex-direction: column; gap: 15px;">
+                            <div>
+                                <div style="margin-bottom: 5px;">动能&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                    <span style="font-family: Times New Roman; font-style: italic;">E</span><span
+                                        style="font-family: Times New Roman;"><sub>k</sub></span> = <span
+                                        id="Ek-value">0.000</span> J
+                                </div>
+                                <div
+                                    style="width: 100%; height: 20px; background-color: #f0f0f0; border-radius: 10px; overflow: hidden;">
+                                    <div id="Ek-bar" style="height: 100%; background-color: #4CAF50; width: 0%;"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div style="margin-bottom: 5px;">弹性势能
+                                    <span style="font-family: Times New Roman; font-style: italic;">E</span><span
+                                        style="font-family: Times New Roman;"><sub>p</sub></span> =
+                                    <span id="Ep-value">0.000</span> J
+                                </div>
+                                <div
+                                    style="width: 100%; height: 20px; background-color: #f0f0f0; border-radius: 10px; overflow: hidden;">
+                                    <div id="Ep-bar" style="height: 100%; background-color: #2196F3; width: 0%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="time-slider">时间 <span
+                                style="font-family: Times New Roman; font-style: italic;">t</span> = <span
+                                id="time-value">0.00</span> s</label>
+                        <input type="range" id="time-slider" min="0" max="10" value="0" step="0.01">
+                    </div>
+
+                    <!-- 控制按钮 -->
+                    <div class="button-container">
+                        <button id="btn-play-pause" class="control-button btn-play-pause" disabled>
+                            <svg id="play-icon" class="hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z">
+                                </path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <svg id="pause-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span id="play-pause-text">暂停</span>
+                        </button>
+                        <button id="btn-reset" class="control-button btn-reset">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                                </path>
+                            </svg>
+                            重置
+                        </button>
+                    </div>
+
+                    <!-- 矢量及图像显示开关 -->
+                    <div class="control-group" style="margin-top: 20px;">
+                        <hr />
+                        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <input type="checkbox" id="x-t-toggle"
+                                    style="width: 24px; height: 24px; transform: translateY(2px);">
+                                <label for="x-t-toggle"><span
+                                        style="font-family: Times New Roman; font-style: italic;">x</span> 矢量及 <span
+                                        style="font-family: Times New Roman; font-style: italic;">x</span>-<span
+                                        style="font-family: Times New Roman; font-style: italic;">t</span> 图像</label>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <input type="checkbox" id="F-t-toggle"
+                                    style="width: 24px; height: 24px; transform: translateY(2px);">
+                                <label for="F-t-toggle"><span
+                                        style="font-family: Times New Roman; font-style: italic;">F</span> 矢量及 <span
+                                        style="font-family: Times New Roman; font-style: italic;">F</span>-<span
+                                        style="font-family: Times New Roman; font-style: italic;">t</span> 图像</label>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <input type="checkbox" id="a-t-toggle"
+                                    style="width: 24px; height: 24px; transform: translateY(2px);">
+                                <label for="a-t-toggle"><span
+                                        style="font-family: Times New Roman; font-style: italic;">a</span> 矢量及 <span
+                                        style="font-family: Times New Roman; font-style: italic;">a</span>-<span
+                                        style="font-family: Times New Roman; font-style: italic;">t</span> 图像</label>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <input type="checkbox" id="v-t-toggle"
+                                    style="width: 24px; height: 24px; transform: translateY(2px);">
+                                <label for="v-t-toggle"><span
+                                        style="font-family: Book Antiqua; font-style: italic;">v</span> 矢量及 <span
+                                        style="font-family: Book Antiqua; font-style: italic;">v</span>-<span
+                                        style="font-family: Times New Roman; font-style: italic;">t</span> 图像</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ========= 新增：高考考点精练模块 ========= -->
+                    <div class="exam-block">
+                        <div class="exam-title">📚 高考考点精练 · 简谐运动</div>
+                        <div class="knowledge-box">
+                            <p><strong>🎯 核心考点</strong><br>
+                            ✔ 回复力 <em>F = -kx</em>，加速度 <em>a = -ω²x</em><br>
+                            ✔ 周期 <em>T = 2π√(m/k)</em>，与振幅无关<br>
+                            ✔ 位移、速度、加速度随时间按正弦/余弦规律变化<br>
+                            ✔ 动能 <em>Eₖ = ½mv²</em>，势能 <em>Eₚ = ½kx²</em>，机械能守恒 <em>E = ½kA²</em><br>
+                            ✔ 对称性：平衡位置速度最大，位移最大处加速度最大</p>
+                            <p><span class="formula-highlight">重要推论：x-t, v-t, a-t 图像相位关系，v 超前 x π/2，a 与 x 反相。</span></p>
+                        </div>
+                        <!-- 题目1 -->
+                        <div class="question-item" id="q1-item">
+                            <div class="question-text">📝 1. 弹簧振子做简谐运动，当它经过平衡位置时，下列物理量中最大的是？</div>
+                            <div class="option"><input type="radio" name="q1" value="A"> A. 位移</div>
+                            <div class="option"><input type="radio" name="q1" value="B"> B. 回复力</div>
+                            <div class="option"><input type="radio" name="q1" value="C"> C. 加速度</div>
+                            <div class="option"><input type="radio" name="q1" value="D"> D. 速度</div>
+                            <button class="check-btn" data-qid="q1">✅ 核对答案</button>
+                            <div class="feedback" id="fb1"></div>
+                        </div>
+                        <!-- 题目2 -->
+                        <div class="question-item" id="q2-item">
+                            <div class="question-text">📝 2. 弹簧振子的周期由什么决定？</div>
+                            <div class="option"><input type="radio" name="q2" value="A"> A. 振幅</div>
+                            <div class="option"><input type="radio" name="q2" value="B"> B. 振子质量和劲度系数</div>
+                            <div class="option"><input type="radio" name="q2" value="C"> C. 最大速度</div>
+                            <div class="option"><input type="radio" name="q2" value="D"> D. 初始位移</div>
+                            <button class="check-btn" data-qid="q2">✅ 核对答案</button>
+                            <div class="feedback" id="fb2"></div>
+                        </div>
+                        <!-- 题目3 -->
+                        <div class="question-item" id="q3-item">
+                            <div class="question-text">📝 3. 一个弹簧振子，振幅为 A，当位移为 A/2 时，动能与势能之比为？</div>
+                            <div class="option"><input type="radio" name="q3" value="A"> A. 1:1</div>
+                            <div class="option"><input type="radio" name="q3" value="B"> B. 3:1</div>
+                            <div class="option"><input type="radio" name="q3" value="C"> C. 1:3</div>
+                            <div class="option"><input type="radio" name="q3" value="D"> D. 4:1</div>
+                            <button class="check-btn" data-qid="q3">✅ 核对答案</button>
+                            <div class="feedback" id="fb3"></div>
+                        </div>
+                        <div style="font-size:0.7rem; text-align:center; margin-top: 8px;">💡 拖动小球调节振幅，观察能量与图像变化，加深理解。</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const app = document.getElementById('app');
+            const appContainer = document.getElementById('app-container');
+
+            // 初始缩放
+            updateScale();
+            const resizeObserver = new ResizeObserver(updateScale);
+            resizeObserver.observe(appContainer);
+
+            function updateScale() {
+                const containerWidth = appContainer.clientWidth;
+                const containerHeight = appContainer.clientHeight;
+                const scaleX = containerWidth / 1920;
+                const scaleY = containerHeight / 1080;
+                const scale = Math.min(scaleX, scaleY);
+                const scaledWidth = 1920 * scale;
+                const scaledHeight = 1080 * scale;
+                const offsetX = (containerWidth - scaledWidth) / 2;
+                const offsetY = (containerHeight - scaledHeight) / 2;
+                app.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+            }
+
+            // 物理常量与缩放
+            const SCALE_FACTOR_CM_PER_PX = 0.1;
+            const SCALE_FACTOR_M_PER_PX = 0.001;
+            const SCALE_FACTOR_PX_PER_M = 1000;
+
+            const state = {
+                x: 0, v: 0, a: 0, F: 0, k: 1, m: 1, T: 2 * Math.PI, t: 0,
+                isDragging: false, isOscillating: false, canDrag: true, A: 0, phi: 0,
+                Ek: 0, Ep: 0
+            };
+
+            // DOM 元素 (保持原有全部引用，新增的习题单独处理)
+            const elements = {
+                ball: document.getElementById('ball'), spring: document.getElementById('spring'),
+                arrowX: document.getElementById('arrowX'), arrowXPath: document.getElementById('arrowXPath'), arrowXLabel: document.getElementById('arrowXLabel'),
+                arrowF: document.getElementById('arrowF'), arrowFPath: document.getElementById('arrowFPath'), arrowFLabel: document.getElementById('arrowFLabel'),
+                arrowA: document.getElementById('arrowA'), arrowAPath: document.getElementById('arrowAPath'), arrowALabel: document.getElementById('arrowALabel'),
+                arrowV: document.getElementById('arrowV'), arrowVPath: document.getElementById('arrowVPath'), arrowVLabel: document.getElementById('arrowVLabel'),
+                kSlider: document.getElementById('k-slider'), kValue: document.getElementById('k-value'),
+                mSlider: document.getElementById('m-slider'), mValue: document.getElementById('m-value'),
+                TValue: document.getElementById('T-value'), playPauseBtn: document.getElementById('btn-play-pause'),
+                resetBtn: document.getElementById('btn-reset'), playIcon: document.getElementById('play-icon'), pauseIcon: document.getElementById('pause-icon'),
+                playPauseText: document.getElementById('play-pause-text'),
+                xToggle: document.getElementById('x-t-toggle'), FToggle: document.getElementById('F-t-toggle'),
+                aToggle: document.getElementById('a-t-toggle'), vToggle: document.getElementById('v-t-toggle'),
+                xGraphContainer: document.getElementById('x-t-graph-container'), FGraphContainer: document.getElementById('F-t-graph-container'),
+                aGraphContainer: document.getElementById('a-t-graph-container'), vGraphContainer: document.getElementById('v-t-graph-container'),
+                xGraph: document.getElementById('x-t-graph'), FGraph: document.getElementById('F-t-graph'),
+                aGraph: document.getElementById('a-t-graph'), vGraph: document.getElementById('v-t-graph'),
+                xValue: document.getElementById('x-value'), FValue: document.getElementById('F-value'),
+                aValue: document.getElementById('a-value'), vValue: document.getElementById('v-value'),
+                EkValue: document.getElementById('Ek-value'), EkBar: document.getElementById('Ek-bar'),
+                EpValue: document.getElementById('Ep-value'), EpBar: document.getElementById('Ep-bar'),
+                energyToggle: document.getElementById('energy-toggle'), energyContainer: document.getElementById('energy-container'),
+                AValue: document.getElementById('A-value'),
+                dynamicLineB: document.getElementById('dynamicLineB'), dynamicTextB: document.getElementById('dynamicTextB'),
+                dynamicLineC: document.getElementById('dynamicLineC'), dynamicTextC: document.getElementById('dynamicTextC'),
+                dynamicTextO: document.getElementById('dynamicTextO'),
+                timeSlider: document.getElementById('time-slider'), timeValue: document.getElementById('time-value')
+            };
+
+            // 数据点数组
+            const dataPoints = { t: [], x: [], F: [], a: [], v: [] };
+            const graphConfig = { width: 730, height: 260, timeWindow: 4 * Math.PI, x: { maxValue: 50 }, F: { maxValue: 1 }, a: { maxValue: 2 }, v: { maxValue: 1 } };
+
+            function updateSpringLength(ballRadius) { /* 原实现保留 */ 
+                const ballX = 740 + state.x;
+                const radius = ballRadius || parseFloat(elements.ball.getAttribute('r'));
+                const springEndX = ballX - radius;
+                const originalStartX = 150, originalEndX = 700, originalLength = originalEndX - originalStartX;
+                const newLength = springEndX - originalStartX;
+                const scale = newLength / originalLength;
+                elements.spring.setAttribute('transform-origin', '150 105');
+                elements.spring.setAttribute('transform', `scale(${scale}, 1)`);
+            }
+
+            function drawArrows() { /* 原逻辑不变 */ 
+                const ballX = 740 + state.x, OPointX = 740;
+                elements.arrowXPath.setAttribute('x2', ballX); elements.arrowXLabel.setAttribute('x', ballX);
+                const FScale = 0.5, FLength = Math.abs(state.F) * SCALE_FACTOR_PX_PER_M * FScale;
+                let Fx = (ballX === OPointX) ? ballX : ballX + (OPointX - ballX) / Math.abs(OPointX - ballX) * FLength;
+                elements.arrowFPath.setAttribute('x1', ballX); elements.arrowFPath.setAttribute('x2', Fx); elements.arrowFLabel.setAttribute('x', Fx);
+                const aScale = 0.5, aLength = Math.abs(state.a) * aScale;
+                let ax = (ballX === OPointX) ? ballX : ballX + (OPointX - ballX) / Math.abs(OPointX - ballX) * aLength;
+                elements.arrowAPath.setAttribute('x1', ballX); elements.arrowAPath.setAttribute('x2', ax); elements.arrowALabel.setAttribute('x', ax);
+                const vx = ballX + state.v * 0.5;
+                elements.arrowVPath.setAttribute('x1', ballX); elements.arrowVPath.setAttribute('x2', vx); elements.arrowVLabel.setAttribute('x', vx);
+            }
+
+            function drawGraph(graphElement, timeData, valueData, color, maxValue) { /* 原逻辑 */
+                if (timeData.length < 1) return;
+                const width = graphConfig.width, height = graphConfig.height, centerY = height / 2, timeWindow = graphConfig.timeWindow;
+                const yScale = centerY / maxValue;
+                const currentTime = timeData[timeData.length - 1];
+                let startTime = currentTime > timeWindow ? currentTime - timeWindow : 0;
+                let path = '';
+                for (let i = 0; i < timeData.length; i++) {
+                    const relativeTime = timeData[i] - startTime;
+                    const x = (relativeTime / timeWindow) * width;
+                    const y = centerY - valueData[i] * yScale;
+                    if (i === 0) path = `M ${x} ${y}`; else path += ` L ${x} ${y}`;
+                }
+                graphElement.setAttribute('d', path);
+                graphElement.setAttribute('stroke', color);
+            }
+
+            function updateGridLines() { /* 保持原有辅助线移动逻辑 */
+                const timeWindow = graphConfig.timeWindow, currentTime = state.t;
+                let timeOffset = 0;
+                if (currentTime > 4 * Math.PI) timeOffset = (currentTime - 4 * Math.PI) % timeWindow;
+                const verticalLines = [0, 91.25, 182.5, 273.75, 365, 456.25, 547.5, 638.75];
+                ['x-t', 'F-t', 'a-t', 'v-t'].forEach(id => {
+                    const svg = document.querySelector(`#${id}-graph-container svg`);
+                    if (svg) {
+                        const lines = svg.querySelectorAll('line[stroke-dasharray="3,3"]');
+                        lines.forEach((line, idx) => {
+                            if (line.getAttribute('y1') === '0' && line.getAttribute('y2') === '260') {
+                                let newX = verticalLines[idx % verticalLines.length] - (timeOffset / timeWindow) * 730;
+                                if (newX < 0) newX += 730;
+                                line.setAttribute('x1', newX); line.setAttribute('x2', newX);
+                            }
+                        });
+                    }
+                });
+            }
+
+            function addDataPoint(t, x, F, a, v) {
+                dataPoints.t.push(t); dataPoints.x.push(x); dataPoints.F.push(F); dataPoints.a.push(a); dataPoints.v.push(v);
+                while (dataPoints.t.length > 0 && t - dataPoints.t[0] > graphConfig.timeWindow) {
+                    dataPoints.t.shift(); dataPoints.x.shift(); dataPoints.F.shift(); dataPoints.a.shift(); dataPoints.v.shift();
+                }
+            }
+
+            function drawGraphs() {
+                if (dataPoints.t.length < 1) return;
+                drawGraph(elements.xGraph, dataPoints.t, dataPoints.x, '#FF5722', graphConfig.x.maxValue);
+                drawGraph(elements.FGraph, dataPoints.t, dataPoints.F, '#2196F3', graphConfig.F.maxValue);
+                drawGraph(elements.aGraph, dataPoints.t, dataPoints.a, '#9C27B0', graphConfig.a.maxValue);
+                drawGraph(elements.vGraph, dataPoints.t, dataPoints.v, '#FFC107', graphConfig.v.maxValue);
+            }
+
+            function updatePhysics(dt) {
+                if (!state.isOscillating) return;
+                const omega = Math.sqrt(state.k / state.m);
+                state.t += dt;
+                const phase = omega * state.t + state.phi;
+                state.x = state.A * Math.cos(phase);
+                state.v = -state.A * omega * Math.sin(phase);
+                state.a = -omega * omega * state.x;
+                const actualX = state.x * SCALE_FACTOR_M_PER_PX;
+                state.F = -state.k * actualX;
+                const vInM = state.v * SCALE_FACTOR_M_PER_PX;
+                state.Ek = 0.5 * state.m * vInM * vInM;
+                state.Ep = 0.5 * state.k * actualX * actualX;
+            }
+
+            function updateDisplay() {
+                elements.ball.setAttribute('cx', 740 + state.x);
+                updateSpringLength();
+                drawArrows();
+                const xInCm = state.x * SCALE_FACTOR_CM_PER_PX;
+                elements.xValue.innerHTML = `${xInCm.toFixed(1)}`;
+                elements.FValue.innerHTML = `${state.F.toFixed(2)}`;
+                const actualA = state.a * SCALE_FACTOR_M_PER_PX;
+                elements.aValue.innerHTML = `${actualA.toFixed(2)}`;
+                const actualV = state.v * SCALE_FACTOR_M_PER_PX;
+                elements.vValue.innerHTML = `${actualV.toFixed(2)}`;
+                elements.EkValue.textContent = state.Ek.toFixed(3);
+                elements.EpValue.textContent = state.Ep.toFixed(3);
+                const total = state.Ek + state.Ep;
+                if (total > 0) {
+                    elements.EkBar.style.width = `${(state.Ek / total) * 100}%`;
+                    elements.EpBar.style.width = `${(state.Ep / total) * 100}%`;
+                } else { elements.EkBar.style.width = '0%'; elements.EpBar.style.width = '0%'; }
+                if (state.isOscillating) {
+                    addDataPoint(state.t, xInCm, state.F, actualA, actualV);
+                    drawGraphs();
+                    updateGridLines();
+                }
+            }
+
+            function updatePeriod() {
+                const T = 2 * Math.PI * Math.sqrt(state.m / state.k);
+                state.T = T;
+                elements.TValue.innerHTML = `${T.toFixed(2)} `;
+                elements.timeSlider.max = T;
+            }
+
+            let lastTime = 0, animationId;
+            function animate(currentTime) {
+                const dt = (currentTime - lastTime) / 1000;
+                if (dt > 0 && dt < 0.1) { updatePhysics(dt); updateDisplay(); }
+                if (state.isOscillating) {
+                    lastTime = currentTime;
+                    const normT = state.t % state.T;
+                    elements.timeSlider.value = normT;
+                    elements.timeValue.innerHTML = `${normT.toFixed(2)}`;
+                }
+                animationId = requestAnimationFrame(animate);
+            }
+            animationId = requestAnimationFrame(animate);
+
+            // 拖动逻辑 (简化保留核心)
+            let startPageX, startBallX;
+            elements.ball.addEventListener('pointerdown', (e) => {
+                if (state.isOscillating || !state.canDrag) return;
+                e.preventDefault();
+                state.isDragging = true; state.isOscillating = false; state.v = 0;
+                elements.dynamicLineB.style.display = 'block'; elements.dynamicTextB.style.display = 'block';
+                elements.dynamicLineC.style.display = 'block'; elements.dynamicTextC.style.display = 'block';
+                startPageX = e.clientX;
+                startBallX = parseFloat(elements.ball.getAttribute('cx'));
+            });
+            document.addEventListener('pointermove', (e) => {
+                if (!state.isDragging) return;
+                const scale = app.style.transform.match(/scale\(([0-9.]+)\)/);
+                const currentScale = scale ? parseFloat(scale[1]) : 1;
+                const deltaSVG = (e.clientX - startPageX) / currentScale;
+                const newBallX = startBallX + deltaSVG;
+                state.x = newBallX - 740;
+                state.x = Math.max(-500, Math.min(500, state.x));
+                const actualX = state.x * SCALE_FACTOR_M_PER_PX;
+                state.F = -state.k * actualX;
+                state.a = (state.F / state.m) * SCALE_FACTOR_PX_PER_M;
+                const tempA = Math.abs(state.x);
+                elements.AValue.innerHTML = `${tempA * SCALE_FACTOR_CM_PER_PX.toFixed(1)}`;
+                const bX = 740 - tempA, cX = 740 + tempA;
+                elements.dynamicLineB.setAttribute('x1', bX); elements.dynamicLineB.setAttribute('x2', bX);
+                elements.dynamicTextB.setAttribute('x', bX);
+                elements.dynamicLineC.setAttribute('x1', cX); elements.dynamicLineC.setAttribute('x2', cX);
+                elements.dynamicTextC.setAttribute('x', cX);
+                updateDisplay();
+            });
+            document.addEventListener('pointerup', () => {
+                if (state.isDragging) {
+                    state.isDragging = false; state.isOscillating = true; state.canDrag = false;
+                    state.A = Math.abs(state.x);
+                    elements.AValue.innerHTML = `${state.A * SCALE_FACTOR_CM_PER_PX.toFixed(1)}`;
+                    state.phi = state.x >= 0 ? 0 : Math.PI;
+                    state.t = 0;
+                    elements.kSlider.disabled = true; elements.mSlider.disabled = true;
+                    elements.timeSlider.disabled = true;
+                    elements.playPauseBtn.disabled = false;
+                }
+            });
+
+            // 滑块监听
+            elements.kSlider.addEventListener('input', function () { if (!state.isOscillating && state.canDrag) { state.k = parseFloat(this.value); elements.kValue.innerHTML = `${state.k} `; updatePeriod(); elements.spring.setAttribute('stroke-width', 1 + (state.k - 0.5) * (2 / 1.5)); } });
+            elements.mSlider.addEventListener('input', function () { if (!state.isOscillating && state.canDrag) { state.m = parseFloat(this.value); elements.mValue.innerHTML = `${state.m} `; updatePeriod(); const radius = 15 + (state.m - 0.5) * (15 / 1.5); elements.ball.setAttribute('r', radius); updateSpringLength(radius); } });
+            elements.timeSlider.addEventListener('input', function () {
+                if (state.isOscillating) return;
+                const time = parseFloat(this.value); elements.timeValue.textContent = `${time.toFixed(2)}`;
+                const omega = 2 * Math.PI / state.T;
+                state.t = time; state.x = state.A * Math.cos(omega * time); state.v = -state.A * omega * Math.sin(omega * time);
+                const actualX = state.x * SCALE_FACTOR_M_PER_PX; state.F = -state.k * actualX; state.a = state.F / state.m * SCALE_FACTOR_PX_PER_M;
+                const vInM = state.v * SCALE_FACTOR_M_PER_PX; state.Ek = 0.5 * state.m * vInM * vInM; state.Ep = 0.5 * state.k * actualX * actualX;
+                updateDisplay();
+                // 重构数据点
+                dataPoints.t = []; dataPoints.x = []; dataPoints.F = []; dataPoints.a = []; dataPoints.v = [];
+                const startTime = Math.max(0, time - graphConfig.timeWindow);
+                for (let t = startTime; t <= time; t += 0.02) {
+                    const ph = omega * t + state.phi;
+                    const x = state.A * Math.cos(ph); const vv = -state.A * omega * Math.sin(ph); const aa = -omega * omega * x;
+                    const xm = x * SCALE_FACTOR_CM_PER_PX; const Fm = -state.k * (x * SCALE_FACTOR_M_PER_PX); const am = aa * SCALE_FACTOR_M_PER_PX; const vm = vv * SCALE_FACTOR_M_PER_PX;
+                    dataPoints.t.push(t); dataPoints.x.push(xm); dataPoints.F.push(Fm); dataPoints.a.push(am); dataPoints.v.push(vm);
+                }
+                drawGraphs(); updateGridLines();
+            });
+            elements.playPauseBtn.addEventListener('click', () => {
+                state.isOscillating = !state.isOscillating;
+                if (state.isOscillating) { elements.playIcon.classList.add('hidden'); elements.pauseIcon.classList.remove('hidden'); elements.playPauseText.textContent = '暂停'; lastTime = performance.now(); }
+                else { elements.playIcon.classList.remove('hidden'); elements.pauseIcon.classList.add('hidden'); elements.playPauseText.textContent = '播放'; elements.timeSlider.disabled = false; }
+            });
+            elements.resetBtn.addEventListener('click', () => {
+                state.x = 0; state.v = 0; state.a = 0; state.F = 0; state.t = 0; state.k = 1; state.m = 1; state.A = 0; state.phi = 0; state.Ek = 0; state.Ep = 0;
+                state.isOscillating = false; state.isDragging = false; state.canDrag = true;
+                elements.kSlider.value = 1; elements.kValue.innerHTML = `1`; elements.mSlider.value = 1; elements.mValue.innerHTML = `1`; elements.AValue.innerHTML = `0.0`;
+                elements.ball.setAttribute('r', 22.5); elements.spring.setAttribute('stroke-width', 2);
+                updatePeriod(); dataPoints.t = []; dataPoints.x = []; dataPoints.F = []; dataPoints.a = []; dataPoints.v = [];
+                elements.xGraph.setAttribute('d', ''); elements.FGraph.setAttribute('d', ''); elements.aGraph.setAttribute('d', ''); elements.vGraph.setAttribute('d', '');
+                elements.dynamicLineB.style.display = 'none'; elements.dynamicTextB.style.display = 'none'; elements.dynamicLineC.style.display = 'none'; elements.dynamicTextC.style.display = 'none';
+                updateDisplay(); elements.playIcon.classList.add('hidden'); elements.pauseIcon.classList.remove('hidden'); elements.playPauseText.textContent = '暂停';
+                elements.playPauseBtn.disabled = true; elements.kSlider.disabled = false; elements.mSlider.disabled = false; elements.timeSlider.disabled = true;
+            });
+            function toggleGraph(container, toggle, arrow) { container.style.display = toggle.checked ? 'block' : 'none'; arrow.style.display = toggle.checked ? 'block' : 'none'; }
+            toggleGraph(elements.xGraphContainer, elements.xToggle, elements.arrowX);
+            toggleGraph(elements.FGraphContainer, elements.FToggle, elements.arrowF);
+            toggleGraph(elements.aGraphContainer, elements.aToggle, elements.arrowA);
+            toggleGraph(elements.vGraphContainer, elements.vToggle, elements.arrowV);
+            elements.xToggle.addEventListener('change', function () { toggleGraph(elements.xGraphContainer, this, elements.arrowX); });
+            elements.FToggle.addEventListener('change', function () { toggleGraph(elements.FGraphContainer, this, elements.arrowF); });
+            elements.aToggle.addEventListener('change', function () { toggleGraph(elements.aGraphContainer, this, elements.arrowA); });
+            elements.vToggle.addEventListener('change', function () { toggleGraph(elements.vGraphContainer, this, elements.arrowV); });
+            function toggleEnergy() { elements.energyContainer.style.display = elements.energyToggle.checked ? 'block' : 'none'; }
+            elements.energyToggle.addEventListener('change', toggleEnergy); toggleEnergy();
+            updatePeriod(); updateSpringLength();
+
+            // ========= 习题交互判题 =========
+            const examAnswers = {
+                q1: { correct: "D", explanation: "✅ 平衡位置处位移为0，回复力为0，加速度为0，速度最大。" },
+                q2: { correct: "B", explanation: "✅ 弹簧振子周期 T = 2π√(m/k)，只与质量和劲度系数有关，与振幅无关。" },
+                q3: { correct: "B", explanation: "✅ 当位移 x = A/2 时，势能 Ep = ½k(A/2)² = (1/4)·½kA²，总能量 E = ½kA²，所以动能 Ek = E - Ep = (3/4)E，动能:势能 = 3:1。" }
+            };
+            document.querySelectorAll('.check-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const qid = btn.getAttribute('data-qid');
+                    const selected = document.querySelector(`input[name="${qid}"]:checked`);
+                    const fbDiv = document.getElementById(`fb${qid.slice(1)}`);
+                    if (!selected) { fbDiv.innerHTML = "⚠️ 请先选择一个选项！"; fbDiv.className = "feedback wrong"; return; }
+                    const userVal = selected.value;
+                    const correctVal = examAnswers[qid].correct;
+                    if (userVal === correctVal) { fbDiv.innerHTML = `✅ 回答正确！<br>📖 解析：${examAnswers[qid].explanation}`; fbDiv.className = "feedback correct"; }
+                    else { fbDiv.innerHTML = `❌ 回答错误！正确答案是 ${correctVal}。<br>📖 解析：${examAnswers[qid].explanation}`; fbDiv.className = "feedback wrong"; }
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

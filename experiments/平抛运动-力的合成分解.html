@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>平抛运动 · 可视化模拟 + 高考考点精练</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* 可自定义尺寸的容器 */
+        #app-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: auto;
+            min-width: 160px;
+            min-height: 90px;
+        }
+
+        #app {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 1920px;
+            height: 1080px;
+            transform-origin: 0 0;
+            overflow: visible;
+            transform: translate(calc(50% - 960px), calc(50% - 540px));
+        }
+
+        /* 布局容器样式 */
+        #layout-wrapper {
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* 内容面板样式 */
+        #content-panel {
+            height: 100%;
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 20px 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        /* 控制面板容器 */
+        #control-panel {
+            width: 620px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .control-group input[type="range"] {
+            flex: 1;
+            margin-bottom: 0;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 8px;
+            border-radius: 5px;
+            background: #e9ecef;
+            outline: none;
+            transition: background 0.3s ease;
+        }
+
+        .control-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #2196F3;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .control-group input[type="range"]::-webkit-slider-thumb:hover {
+            background: #1976D2;
+            transform: scale(1.2);
+        }
+
+        .control-group input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #0f8cf1;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .control-group input[type="range"]::-moz-range-thumb:hover {
+            background: #0f8cf1;
+            transform: scale(1.2);
+        }
+
+        .control-group input[type="range"]:focus {
+            background: #dee2e6;
+        }
+
+        .control-group .value-display {
+            font-size: 1.8rem;
+            color: #666;
+            min-width: 120px;
+        }
+
+        .control-group .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .control-group input[type="radio"] {
+            transform: scale(1.2);
+            margin-right: 5px;
+        }
+
+        .result-title {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .control-rectangle input[type="checkbox"] {
+            transform: scale(1.3);
+            margin-right: 5px;
+        }
+
+        /* 控制面板矩形 */
+        .control-rectangle {
+            background-color: #ffffff;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px 24px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            font-size: 1.8rem;
+            transition: all 0.3s ease;
+            flex-grow: 0;
+        }
+
+        .control-rectangle:hover {
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border-color: #dee2e6;
+            transform: translateY(-2px);
+        }
+
+        .content-panel:hover {
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border-color: #dee2e6;
+        }
+
+        /* 结果显示区域 */
+        .result-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .result-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .result-item {
+            margin-bottom: 5px;
+        }
+
+        .result-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 5px;
+        }
+
+        .result-row .result-item {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .result-item .label {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        .result-item .label.formula {
+            font-size: 1.9rem;
+            font-family: 'Times New Roman', serif;
+            color: #333;
+            display: inline-block;
+        }
+
+        .result-item .value {
+            color: #0f8cf1;
+            font-weight: bold;
+        }
+
+        .result-item .value.displacement {
+            color: #357A4A;
+        }
+
+        .result-item .value.velocity {
+            color: #C00000;
+        }
+
+        /* ========= 新增考点&习题样式 ========= */
+        .exam-block {
+            font-size: 1rem;
+        }
+
+        .exam-block .section-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #1f6e5c;
+            border-left: 5px solid #f4b942;
+            padding-left: 12px;
+            margin-bottom: 16px;
+        }
+
+        .knowledge-list {
+            background: #f8f9fa;
+            border-radius: 16px;
+            padding: 12px 18px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            line-height: 1.45;
+        }
+
+        .knowledge-list p {
+            margin: 6px 0;
+        }
+
+        .knowledge-list strong {
+            color: #c0392b;
+        }
+
+        .question-item {
+            background: #fefaf5;
+            border-radius: 20px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            border: 1px solid #ffe0b5;
+        }
+
+        .question-text {
+            font-weight: 700;
+            margin-bottom: 12px;
+            font-size: 1rem;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 8px 0 8px 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .option input {
+            transform: scale(1);
+            width: 16px;
+            height: 16px;
+        }
+
+        .check-btn {
+            background: #2c7a6e;
+            border: none;
+            color: white;
+            padding: 5px 16px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+            font-size: 0.8rem;
+            transition: 0.2s;
+        }
+
+        .check-btn:hover {
+            background: #1e5f53;
+            transform: scale(0.96);
+        }
+
+        .feedback {
+            margin-top: 12px;
+            padding: 10px 14px;
+            border-radius: 1rem;
+            font-size: 0.85rem;
+            display: none;
+            line-height: 1.4;
+        }
+
+        .feedback.correct {
+            background: #dff0e4;
+            color: #145c33;
+            display: block;
+            border-left: 5px solid #2e7d64;
+        }
+
+        .feedback.wrong {
+            background: #ffe6e5;
+            color: #b13b2d;
+            display: block;
+            border-left: 5px solid #e35f4b;
+        }
+
+        hr {
+            margin: 12px 0;
+            border: 0;
+            height: 1px;
+            background: #e2e8f0;
+        }
+    </style>
+</head>
+
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+    <!-- 可自定义尺寸的容器 -->
+    <div id="app-container">
+        <div id="app">
+            <!-- 布局容器 -->
+            <div id="layout-wrapper">
+                <!-- 内容面板 -->
+                <div id="content-panel">
+                    <!-- SVG绘图区域 -->
+                    <svg width="100%" height="100%" viewBox="0 0 450 600" xmlns="http://www.w3.org/2000/svg">
+                        <!-- 箭头标记定义 -->
+                        <defs>
+                            <marker id="arrowhead-v" markerWidth="10" markerHeight="4" refX="9" refY="2" orient="auto">
+                                <polygon points="0 0, 10 2, 0 4" fill="#C00000" />
+                            </marker>
+                            <marker id="arrowhead-displacement" markerWidth="10" markerHeight="4" refX="9" refY="2"
+                                orient="auto">
+                                <polygon points="0 0, 10 2, 0 4" fill="#357A4A" />
+                            </marker>
+                            <marker id="arrowhead-axis" markerWidth="20" markerHeight="8" refX="18" refY="4"
+                                orient="auto">
+                                <polygon points="0 0, 20 4, 0 8" fill="#000" />
+                            </marker>
+                        </defs>
+                        <!-- 坐标系和标度 -->
+                        <g id="coordinate-system">
+                            <!-- x轴 -->
+                            <path id="x-axis" stroke="black" stroke-width="1" fill="none" d="M 25 50 L 425 50"
+                                marker-end="url(#arrowhead-axis)" />
+                            <text x="435" y="55" text-anchor="start" font-size="20" font-family="Times New Roman">
+                                <tspan font-style="italic">x</tspan>/m
+                            </text>
+
+                            <!-- y轴 -->
+                            <path id="y-axis" stroke="black" stroke-width="1" fill="none" d="M 25 50 L 25 550"
+                                marker-end="url(#arrowhead-axis)" />
+                            <text x="2" y="545" text-anchor="middle" font-size="20" font-family="Times New Roman">
+                                <tspan font-style="italic">y</tspan>/m
+                            </text>
+
+                            <!-- 原点O -->
+                            <circle id="origin" cx="25" cy="50" r="4" fill="black" />
+                            <text x="10" y="55" text-anchor="middle" font-size="20" font-family="Times New Roman"
+                                font-style="italic">O</text>
+
+                            <!-- 标度线段（保持原有） -->
+                            <line x1="25" y1="100" x2="32" y2="100" stroke="#666" stroke-width="1" />
+                            <text x="18" y="105" text-anchor="end" font-size="20" font-family="Times New Roman">5</text>
+                            <line x1="25" y1="150" x2="35" y2="150" stroke="#666" stroke-width="1" />
+                            <text x="18" y="155" text-anchor="end" font-size="20" font-family="Times New Roman">10</text>
+                            <line x1="25" y1="200" x2="32" y2="200" stroke="#666" stroke-width="1" />
+                            <text x="18" y="205" text-anchor="end" font-size="20" font-family="Times New Roman">15</text>
+                            <line x1="25" y1="250" x2="35" y2="250" stroke="#666" stroke-width="1" />
+                            <text x="18" y="255" text-anchor="end" font-size="20" font-family="Times New Roman">20</text>
+                            <line x1="25" y1="300" x2="32" y2="300" stroke="#666" stroke-width="1" />
+                            <text x="18" y="305" text-anchor="end" font-size="20" font-family="Times New Roman">25</text>
+                            <line x1="25" y1="350" x2="35" y2="350" stroke="#666" stroke-width="1" />
+                            <text x="18" y="355" text-anchor="end" font-size="20" font-family="Times New Roman">30</text>
+                            <line x1="25" y1="400" x2="32" y2="400" stroke="#666" stroke-width="1" />
+                            <text x="18" y="405" text-anchor="end" font-size="20" font-family="Times New Roman">35</text>
+                            <line x1="25" y1="450" x2="35" y2="450" stroke="#666" stroke-width="1" />
+                            <text x="18" y="455" text-anchor="end" font-size="20" font-family="Times New Roman">40</text>
+                            <line x1="25" y1="500" x2="32" y2="500" stroke="#666" stroke-width="1" />
+                            <text x="18" y="505" text-anchor="end" font-size="20" font-family="Times New Roman">45</text>
+
+                            <line x1="75" y1="50" x2="75" y2="57" stroke="#666" stroke-width="1" />
+                            <text x="75" y="40" text-anchor="middle" font-size="20" font-family="Times New Roman">5</text>
+                            <line x1="125" y1="50" x2="125" y2="60" stroke="#666" stroke-width="1" />
+                            <text x="125" y="40" text-anchor="middle" font-size="20" font-family="Times New Roman">10</text>
+                            <line x1="175" y1="50" x2="175" y2="57" stroke="#666" stroke-width="1" />
+                            <text x="175" y="40" text-anchor="middle" font-size="20" font-family="Times New Roman">15</text>
+                            <line x1="225" y1="50" x2="225" y2="60" stroke="#666" stroke-width="1" />
+                            <text x="225" y="40" text-anchor="middle" font-size="20" font-family="Times New Roman">20</text>
+                            <line x1="275" y1="50" x2="275" y2="57" stroke="#666" stroke-width="1" />
+                            <text x="275" y="40" text-anchor="middle" font-size="20" font-family="Times New Roman">25</text>
+                            <line x1="325" y1="50" x2="325" y2="60" stroke="#666" stroke-width="1" />
+                            <text x="325" y="40" text-anchor="middle" font-size="20" font-family="Times New Roman">30</text>
+                            <line x1="375" y1="50" x2="375" y2="57" stroke="#666" stroke-width="1" />
+                            <text x="375" y="40" text-anchor="middle" font-size="20" font-family="Times New Roman">35</text>
+                        </g>
+
+                        <!-- 平抛运动轨迹 -->
+                        <g id="trajectory">
+                            <path id="trajectory-path" fill="none" stroke="#0f8cf1" stroke-width="3" />
+                        </g>
+
+                        <!-- 速度辅助虚线 -->
+                        <g id="velocity-dashed-lines"></g>
+
+                        <!-- 速度矢量 -->
+                        <g id="velocity-vectors">
+                            <g id="vector-vx">
+                                <line id="path-vx" fill="none" stroke="#C00000" stroke-width="2"
+                                    marker-end="url(#arrowhead-v)" />
+                                <text id="label-vx" font-size="20" font-weight="bold" fill="#C00000">
+                                    <tspan font-family="Book Antiqua" font-style="italic">v</tspan>
+                                    <tspan font-family="Times New Roman" font-style="italic" font-size="14" dy="0.3em"
+                                        dx="-0.2em">x</tspan>
+                                </text>
+                            </g>
+                            <g id="vector-vy">
+                                <line id="path-vy" fill="none" stroke="#C00000" stroke-width="2"
+                                    marker-end="url(#arrowhead-v)" />
+                                <text id="label-vy" font-size="20" font-weight="bold" fill="#C00000">
+                                    <tspan font-family="Book Antiqua" font-style="italic">v</tspan>
+                                    <tspan font-family="Times New Roman" font-style="italic" font-size="14" dy="0.3em"
+                                        dx="-0.2em">y</tspan>
+                                </text>
+                            </g>
+                            <g id="vector-v">
+                                <line id="path-v" fill="none" stroke="#C00000" stroke-width="2"
+                                    marker-end="url(#arrowhead-v)" />
+                                <text id="label-v" font-size="20" font-weight="bold" fill="#C00000"
+                                    font-family="Book Antiqua" font-style="italic" />
+                            </g>
+                        </g>
+
+                        <!-- 位移辅助虚线 -->
+                        <g id="displacement-dashed-lines"></g>
+
+                        <!-- 角度圆弧 -->
+                        <g id="angle-arcs"></g>
+
+                        <!-- 位移矢量 -->
+                        <g id="displacement-vectors">
+                            <g id="vector-x">
+                                <line id="path-x" fill="none" stroke="#357A4A" stroke-width="2"
+                                    marker-end="url(#arrowhead-displacement)" />
+                                <text id="label-x" font-size="20" font-weight="bold" fill="#357A4A"
+                                    font-family="Times New Roman" text-anchor="middle" font-style="italic" />
+                            </g>
+                            <g id="vector-y">
+                                <line id="path-y" fill="none" stroke="#357A4A" stroke-width="2"
+                                    marker-end="url(#arrowhead-displacement)" />
+                                <text id="label-y" font-size="20" font-weight="bold" fill="#357A4A"
+                                    font-family="Times New Roman" text-anchor="start" font-style="italic" />
+                            </g>
+                            <g id="vector-s">
+                                <line id="path-s" fill="none" stroke="#357A4A" stroke-width="2"
+                                    marker-end="url(#arrowhead-displacement)" />
+                                <text id="label-s" font-size="20" font-weight="bold" fill="#357A4A"
+                                    font-family="Times New Roman" text-anchor="middle" font-style="italic" />
+                            </g>
+                        </g>
+                        <!-- 轨迹端点（小球） -->
+                        <circle id="projectile" cx="25" cy="50" r="8" fill="#2196F3" stroke="#333" stroke-width="1"
+                            opacity="0.8" style="cursor: pointer;" />
+                    </svg>
+                </div>
+
+                <!-- 控制面板（包含原有功能 + 新增考点习题） -->
+                <div id="control-panel">
+                    <!-- 原有三个矩形 -->
+                    <div class="control-rectangle" style="border-color:#0d69c5;">
+                        <div class="control-group">
+                            <label for="v0-slider">初速度 <span
+                                    style="font-family: Book Antiqua;font-style: italic;">v</span><sub>0</sub></label>
+                            <div class="slider-container">
+                                <input type="range" id="v0-slider" min="1" max="15" value="10" step="1">
+                                <div class="value-display" id="v0-value">10 m/s</div>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="t-slider">时间 <span
+                                    style="font-family: 'Times New Roman', serif;font-style:italic;">t</span></label>
+                            <div class="slider-container">
+                                <input type="range" id="t-slider" min="0" max="3" value="2" step="0.1">
+                                <div class="value-display" id="t-value">2.0 s</div>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label>重力加速度 <span
+                                    style="font-family: 'Times New Roman', serif;font-style: italic;">g</span></label>
+                            <div class="checkbox-group">
+                                <input type="radio" id="g-10" name="g" value="10" checked>
+                                <label for="g-10">10 m/s²</label>
+                                <input type="radio" id="g-98" name="g" value="9.8">
+                                <label for="g-98">9.8 m/s²</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 位移相关 -->
+                    <div class="control-rectangle" style="border-color:#357A4A">
+                        <div class="result-title" style="color:#357A4A;">位移相关 <input type="checkbox"
+                                id="show-displacement" checked style="margin-left:10px;"></div>
+                        <div class="result-row">
+                            <div class="result-item">
+                                <span class="label formula"><span
+                                        style="font-family: 'Times New Roman', Times, serif;font-style: italic;">x</span>
+                                    = <span style="font-family: Book Antiqua;font-style: italic;">v</span><sub>0</sub><span
+                                        style="font-style: italic;">t</span> = </span>
+                                <span class="value displacement" id="result-x">0.0 m</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="label formula"><span style="font-style: italic;">y</span> = ½ <span
+                                        style="font-style: italic;">gt</span><sup>2</sup> = </span>
+                                <span class="value displacement" id="result-y">0.0 m</span>
+                            </div>
+                        </div>
+                        <div class="result-item">
+                            <span class="label formula"><span style="font-style: italic;">s</span> = √(x²+y²) = </span>
+                            <span class="value displacement" id="result-s">0.0 m</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label formula">tan<span style="font-style:italic;">α</span> = y/x = </span>
+                            <span class="value displacement" id="result-tan-alpha">0.0</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label formula"><span style="font-style: italic;">α</span> = </span>
+                            <span class="value displacement" id="result-alpha">0.0°</span>
+                        </div>
+                    </div>
+
+                    <!-- 速度相关 -->
+                    <div class="control-rectangle" style="border-color:#C00000;">
+                        <div class="result-title" style="color:#C00000;">速度相关 <input type="checkbox" id="show-velocity"
+                                checked style="margin-left:10px;"></div>
+                        <div class="result-row">
+                            <div class="result-item">
+                                <span class="label formula"><span
+                                        style="font-family: Book Antiqua;font-style: italic;">v</span><sub><span
+                                            style="font-style: italic;">x</span></sub> = <span
+                                        style="font-family: Book Antiqua;font-style: italic;">v</span><sub>0</sub> =
+                                </span>
+                                <span class="value velocity" id="result-vx">0.0 m/s</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="label formula"><span
+                                        style="font-family: Book Antiqua;font-style: italic;">v</span><sub><span
+                                            style="font-style: italic;">y</span></sub> = <span
+                                        style="font-style: italic;">gt</span> = </span>
+                                <span class="value velocity" id="result-vy">0.0 m/s</span>
+                            </div>
+                        </div>
+                        <div class="result-item">
+                            <span class="label formula"><span
+                                    style="font-family: Book Antiqua;font-style: italic;">v</span> = √(v<sub>x</sub>²+v<sub>y</sub>²) = </span>
+                            <span class="value velocity" id="result-v">0.0 m/s</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label formula">tan<span style="font-style: italic;">θ</span> = v<sub>y</sub>/v<sub>x</sub> = </span>
+                            <span class="value velocity" id="result-tan-theta">0.0</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label formula"><span style="font-style: italic;">θ</span> = </span>
+                            <span class="value velocity" id="result-theta">0.0°</span>
+                        </div>
+                    </div>
+
+                    <!-- ========= 新增：高考考点精练模块 ========= -->
+                    <div class="control-rectangle exam-block" style="border-color:#f4b942;">
+                        <div class="section-title">📚 高考考点精练 · 互动自测</div>
+                        <div class="knowledge-list">
+                            <p><strong>🎯 核心考点提炼</strong><br>
+                            ✔ 水平方向：匀速直线运动 &nbsp; <em>x = v₀t</em><br>
+                            ✔ 竖直方向：自由落体运动 &nbsp; <em>y = ½gt²</em> &nbsp; 飞行时间 <em>t = √(2h/g)</em><br>
+                            ✔ 合位移 <em>s = √(x²+y²)</em>，偏向角 <em>α</em> 满足 <em>tanα = y/x = gt/(2v₀)</em><br>
+                            ✔ 合速度 <em>v = √(v₀²+(gt)²)</em>，偏向角 <em>θ</em> 满足 <em>tanθ = gt/v₀</em><br>
+                            ✔ <strong>重要推论：</strong> <em>tanθ = 2tanα</em> (速度角正切是位移角正切的2倍)<br>
+                            ✔ 速度反向延长线过水平位移中点，常考作图题。</p>
+                        </div>
+                        <hr>
+                        <!-- 题目1 -->
+                        <div class="question-item" id="q1-item">
+                            <div class="question-text">📝 1. 平抛运动飞行时间由下列哪个物理量决定？</div>
+                            <div class="option"><input type="radio" name="q1" value="A"> A. 初速度 v₀</div>
+                            <div class="option"><input type="radio" name="q1" value="B"> B. 水平位移 x</div>
+                            <div class="option"><input type="radio" name="q1" value="C"> C. 下落高度 h</div>
+                            <div class="option"><input type="radio" name="q1" value="D"> D. 初速度与高度共同决定</div>
+                            <button class="check-btn" data-qid="q1">✅ 核对答案</button>
+                            <div class="feedback" id="fb1"></div>
+                        </div>
+                        <!-- 题目2 -->
+                        <div class="question-item" id="q2-item">
+                            <div class="question-text">📝 2. 平抛运动中，速度偏角θ与位移偏角α的关系是？</div>
+                            <div class="option"><input type="radio" name="q2" value="A"> A. tanθ = tanα</div>
+                            <div class="option"><input type="radio" name="q2" value="B"> B. tanθ = 2tanα</div>
+                            <div class="option"><input type="radio" name="q2" value="C"> C. tanα = 2tanθ</div>
+                            <div class="option"><input type="radio" name="q2" value="D"> D. θ = 2α</div>
+                            <button class="check-btn" data-qid="q2">✅ 核对答案</button>
+                            <div class="feedback" id="fb2"></div>
+                        </div>
+                        <!-- 题目3 -->
+                        <div class="question-item" id="q3-item">
+                            <div class="question-text">📝 3. 以初速度v₀水平抛出一个小球，落地时速度与水平方向夹角为θ，不计空气阻力，则抛出点离地高度为？</div>
+                            <div class="option"><input type="radio" name="q3" value="A"> A. (v₀² tan²θ) / (2g)</div>
+                            <div class="option"><input type="radio" name="q3" value="B"> B. (v₀² tanθ) / g</div>
+                            <div class="option"><input type="radio" name="q3" value="C"> C. (v₀²) / (2g tan²θ)</div>
+                            <div class="option"><input type="radio" name="q3" value="D"> D. (v₀² tan²θ) / g</div>
+                            <button class="check-btn" data-qid="q3">✅ 核对答案</button>
+                            <div class="feedback" id="fb3"></div>
+                        </div>
+                        <div style="font-size:0.7rem; text-align:center; margin-top: 8px;">💡 结合左侧模拟器拖动小球/调节参数，观察角度变化，加深理解。</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // 常量定义
+            const CONSTANTS = {
+                SVG_VIEWBOX_HEIGHT: 600,
+                Y_MAX_PIXEL: 540,
+                ORIGIN_X: 25,
+                ORIGIN_Y: 50,
+                TRAJECTORY_STEPS: 55,
+                MAX_TIME: 3
+            };
+            
+            const app = document.getElementById('app');
+            const appContainer = document.getElementById('app-container');
+
+            function updateScale() {
+                const containerWidth = appContainer.clientWidth;
+                const containerHeight = appContainer.clientHeight;
+                const scaleX = containerWidth / 1920;
+                const scaleY = containerHeight / 1080;
+                const scale = Math.min(scaleX, scaleY);
+                const scaledWidth = 1920 * scale;
+                const scaledHeight = 1080 * scale;
+                const offsetX = (containerWidth - scaledWidth) / 2;
+                const offsetY = (containerHeight - scaledHeight) / 2;
+                app.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+            }
+
+            const resizeObserver = new ResizeObserver(updateScale);
+            resizeObserver.observe(appContainer);
+            updateScale();
+
+            const state = {
+                v0: 10,
+                t: 2,
+                g: 10,
+                scale: 10
+            };
+
+            const elements = {
+                trajectoryPath: document.getElementById('trajectory-path'),
+                projectile: document.getElementById('projectile'),
+                velocityDashedLines: document.getElementById('velocity-dashed-lines'),
+                velocityVectors: document.getElementById('velocity-vectors'),
+                pathVx: document.getElementById('path-vx'),
+                labelVx: document.getElementById('label-vx'),
+                pathVy: document.getElementById('path-vy'),
+                labelVy: document.getElementById('label-vy'),
+                pathV: document.getElementById('path-v'),
+                labelV: document.getElementById('label-v'),
+                displacementDashedLines: document.getElementById('displacement-dashed-lines'),
+                displacementVectors: document.getElementById('displacement-vectors'),
+                pathX: document.getElementById('path-x'),
+                labelX: document.getElementById('label-x'),
+                pathY: document.getElementById('path-y'),
+                labelY: document.getElementById('label-y'),
+                pathS: document.getElementById('path-s'),
+                labelS: document.getElementById('label-s'),
+                v0Slider: document.getElementById('v0-slider'),
+                v0Value: document.getElementById('v0-value'),
+                tSlider: document.getElementById('t-slider'),
+                tValue: document.getElementById('t-value'),
+                g10Radio: document.getElementById('g-10'),
+                g98Radio: document.getElementById('g-98'),
+                showDisplacement: document.getElementById('show-displacement'),
+                showVelocity: document.getElementById('show-velocity'),
+                angleArcs: document.getElementById('angle-arcs'),
+                resultVx: document.getElementById('result-vx'),
+                resultVy: document.getElementById('result-vy'),
+                resultV: document.getElementById('result-v'),
+                resultX: document.getElementById('result-x'),
+                resultY: document.getElementById('result-y'),
+                resultS: document.getElementById('result-s'),
+                resultTanAlpha: document.getElementById('result-tan-alpha'),
+                resultAlpha: document.getElementById('result-alpha'),
+                resultTanTheta: document.getElementById('result-tan-theta'),
+                resultTheta: document.getElementById('result-theta')
+            };
+
+            function calculatePosition(t) {
+                const validT = isFinite(t) && t >= 0 ? t : 0;
+                const x = state.v0 * validT;
+                const y = 0.5 * state.g * validT * validT;
+                return { x: isFinite(x) ? x : 0, y: isFinite(y) ? y : 0 };
+            }
+
+            function calculateVelocity(t) {
+                const validT = isFinite(t) && t >= 0 ? t : 0;
+                const vx = state.v0;
+                const vy = state.g * validT;
+                const v = Math.sqrt(vx * vx + vy * vy);
+                return { vx, vy, v };
+            }
+
+            function drawAngleArc(centerX, centerY, radius, startAngle, endAngle, color, label, labelX, labelY) {
+                const startX = centerX + radius * Math.cos(startAngle);
+                const startY = centerY + radius * Math.sin(startAngle);
+                const endX = centerX + radius * Math.cos(endAngle);
+                const endY = centerY + radius * Math.sin(endAngle);
+                const largeArcFlag = endAngle - startAngle <= Math.PI ? 0 : 1;
+                const arcPath = `M ${centerX} ${centerY} L ${startX} ${startY} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${endX} ${endY}`;
+                return `<path d="${arcPath}" fill="none" stroke="${color}" stroke-width="2" />
+                        <text x="${labelX}" y="${labelY}" font-size="18" font-family="Times New Roman" font-style="italic" fill="${color}">${label}</text>`;
+            }
+
+            function drawVelocityVectors(projectileX, projectileY, vx, vy) {
+                const scale = state.scale;
+                const isVisible = elements.showVelocity.checked;
+                elements.velocityVectors.style.display = isVisible ? 'block' : 'none';
+                const vxEndX = projectileX + vx * scale;
+                const vxEndY = projectileY;
+                const vyEndX = projectileX;
+                const vyEndY = projectileY + vy * scale;
+                let dashed = '';
+                if (isVisible) {
+                    dashed += `<line x1="${vyEndX}" y1="${vyEndY}" x2="${vxEndX}" y2="${vyEndY}" stroke="#000000" stroke-dasharray="5,5" stroke-width="1" />`;
+                    dashed += `<line x1="${vxEndX}" y1="${vxEndY}" x2="${vxEndX}" y2="${vyEndY}" stroke="#000000" stroke-dasharray="5,5" stroke-width="1" />`;
+                }
+                elements.velocityDashedLines.innerHTML = dashed;
+                elements.pathVx.setAttribute('x1', projectileX);
+                elements.pathVx.setAttribute('y1', projectileY);
+                elements.pathVx.setAttribute('x2', isVisible ? vxEndX : projectileX);
+                elements.pathVx.setAttribute('y2', isVisible ? vxEndY : projectileY);
+                elements.labelVx.setAttribute('x', vxEndX - 5);
+                elements.labelVx.setAttribute('y', vxEndY - 10);
+                elements.labelVx.style.display = isVisible ? 'block' : 'none';
+                elements.pathVy.setAttribute('x1', projectileX);
+                elements.pathVy.setAttribute('y1', projectileY);
+                elements.pathVy.setAttribute('x2', isVisible ? vyEndX : projectileX);
+                elements.pathVy.setAttribute('y2', isVisible ? vyEndY : projectileY);
+                elements.labelVy.setAttribute('x', vyEndX - 30);
+                elements.labelVy.setAttribute('y', vyEndY - 5);
+                elements.labelVy.style.display = isVisible ? 'block' : 'none';
+                elements.pathV.setAttribute('x1', projectileX);
+                elements.pathV.setAttribute('y1', projectileY);
+                elements.pathV.setAttribute('x2', isVisible ? vxEndX : projectileX);
+                elements.pathV.setAttribute('y2', isVisible ? vyEndY : projectileY);
+                elements.labelV.setAttribute('x', vxEndX + 8);
+                elements.labelV.setAttribute('y', vyEndY + 10);
+                elements.labelV.textContent = isVisible ? `v` : '';
+                if (isVisible && vx > 0) {
+                    const theta = Math.atan2(vy, vx);
+                    const radius = 25;
+                    const centerX = projectileX;
+                    const centerY = projectileY;
+                    const labelAngle = theta / 2;
+                    const labelX = centerX + (radius + 10) * Math.cos(labelAngle);
+                    const labelY = centerY + (radius + 20) * Math.sin(labelAngle);
+                    const velArc = drawAngleArc(centerX, centerY, radius, 0, theta, '#C00000', 'θ', labelX, labelY);
+                    const dispArc = elements.angleArcs.innerHTML;
+                    elements.angleArcs.innerHTML = dispArc + velArc;
+                }
+            }
+
+            function drawDisplacementVectors(x, y) {
+                const scale = state.scale;
+                const originX = CONSTANTS.ORIGIN_X;
+                const originY = CONSTANTS.ORIGIN_Y;
+                const projectileX = originX + x * scale;
+                const projectileY = originY + y * scale;
+                const isVisible = elements.showDisplacement.checked;
+                elements.displacementVectors.style.display = isVisible ? 'block' : 'none';
+                let dashed = '';
+                if (isVisible) {
+                    dashed += `<line x1="${originX}" y1="${projectileY}" x2="${projectileX}" y2="${projectileY}" stroke="#999" stroke-dasharray="5,5" />`;
+                    dashed += `<line x1="${projectileX}" y1="${originY}" x2="${projectileX}" y2="${projectileY}" stroke="#999" stroke-dasharray="5,5" />`;
+                }
+                elements.displacementDashedLines.innerHTML = dashed;
+                elements.pathX.setAttribute('x1', originX);
+                elements.pathX.setAttribute('y1', originY);
+                elements.pathX.setAttribute('x2', isVisible ? projectileX : originX);
+                elements.pathX.setAttribute('y2', originY);
+                elements.labelX.setAttribute('x', projectileX - 10);
+                elements.labelX.setAttribute('y', originY + 20);
+                elements.labelX.textContent = isVisible ? `x` : '';
+                elements.pathY.setAttribute('x1', originX);
+                elements.pathY.setAttribute('y1', originY);
+                elements.pathY.setAttribute('x2', originX);
+                elements.pathY.setAttribute('y2', isVisible ? projectileY : originY);
+                elements.labelY.setAttribute('x', originX + 15);
+                elements.labelY.setAttribute('y', projectileY - 10);
+                elements.labelY.textContent = isVisible ? `y` : '';
+                elements.pathS.setAttribute('x1', originX);
+                elements.pathS.setAttribute('y1', originY);
+                elements.pathS.setAttribute('x2', isVisible ? projectileX : originX);
+                elements.pathS.setAttribute('y2', isVisible ? projectileY : originY);
+                const midX = (originX + projectileX) / 2;
+                const midY = (originY + projectileY) / 2;
+                elements.labelS.setAttribute('x', midX - 5);
+                elements.labelS.setAttribute('y', midY + 20);
+                elements.labelS.textContent = isVisible ? `s` : '';
+                if (isVisible && x > 0) {
+                    const alpha = Math.atan2(y, x);
+                    const radius = 30;
+                    const centerX = originX;
+                    const centerY = originY;
+                    const labelAngle = alpha / 2;
+                    const labelX = centerX + (radius + 10) * Math.cos(labelAngle);
+                    const labelY = centerY + (radius + 25) * Math.sin(labelAngle);
+                    const dispArc = drawAngleArc(centerX, centerY, radius, 0, alpha, '#357A4A', 'α', labelX, labelY);
+                    elements.angleArcs.innerHTML = dispArc;
+                }
+            }
+
+            function drawTrajectory() {
+                const originX = CONSTANTS.ORIGIN_X;
+                const originY = CONSTANTS.ORIGIN_Y;
+                const scale = state.scale;
+                const steps = CONSTANTS.TRAJECTORY_STEPS;
+                const dt = CONSTANTS.MAX_TIME / steps;
+                let path = `M ${originX} ${originY}`;
+                for (let i = 1; i <= steps; i++) {
+                    const t = i * dt;
+                    const pos = calculatePosition(t);
+                    const x = originX + pos.x * scale;
+                    const y = originY + pos.y * scale;
+                    if (y > CONSTANTS.Y_MAX_PIXEL) break;
+                    path += ` L ${x} ${y}`;
+                }
+                elements.trajectoryPath.setAttribute('d', path);
+            }
+
+            function updatePhysics() {
+                const pos = calculatePosition(state.t);
+                const vel = calculateVelocity(state.t);
+                const originX = CONSTANTS.ORIGIN_X;
+                const originY = CONSTANTS.ORIGIN_Y;
+                const scale = state.scale;
+                const projectileX = originX + pos.x * scale;
+                const projectileY = originY + pos.y * scale;
+                elements.projectile.setAttribute('cx', projectileX);
+                elements.projectile.setAttribute('cy', projectileY);
+                drawTrajectory();
+                drawDisplacementVectors(pos.x, pos.y);
+                drawVelocityVectors(projectileX, projectileY, vel.vx, vel.vy);
+                elements.resultVx.textContent = `${vel.vx.toFixed(1)} m/s`;
+                elements.resultVy.textContent = `${vel.vy.toFixed(1)} m/s`;
+                elements.resultV.textContent = `${vel.v.toFixed(1)} m/s`;
+                elements.resultX.textContent = `${pos.x.toFixed(1)} m`;
+                elements.resultY.textContent = `${pos.y.toFixed(1)} m`;
+                elements.resultS.textContent = `${Math.sqrt(pos.x * pos.x + pos.y * pos.y).toFixed(1)} m`;
+                const tanAlpha = pos.x > 0 ? pos.y / pos.x : 0;
+                const alpha = pos.x > 0 ? Math.atan2(pos.y, pos.x) : 0;
+                const tanTheta = vel.vx > 0 ? vel.vy / vel.vx : 0;
+                const theta = vel.vx > 0 ? Math.atan2(vel.vy, vel.vx) : 0;
+                elements.resultTanAlpha.textContent = `${tanAlpha.toFixed(2)}`;
+                elements.resultAlpha.textContent = `${(alpha * 180 / Math.PI).toFixed(1)}°`;
+                elements.resultTanTheta.textContent = `${tanTheta.toFixed(2)}`;
+                elements.resultTheta.textContent = `${(theta * 180 / Math.PI).toFixed(1)}°`;
+            }
+
+            function init() { updatePhysics(); }
+
+            elements.v0Slider.addEventListener('input', function () {
+                state.v0 = Math.max(parseFloat(this.value), 1);
+                elements.v0Value.textContent = `${state.v0} m/s`;
+                updatePhysics();
+            });
+            elements.tSlider.addEventListener('input', function () {
+                state.t = parseFloat(this.value);
+                elements.tValue.textContent = `${state.t.toFixed(1)} s`;
+                updatePhysics();
+            });
+            elements.g10Radio.addEventListener('change', function () { state.g = 10; updatePhysics(); });
+            elements.g98Radio.addEventListener('change', function () { state.g = 9.8; updatePhysics(); });
+            elements.showDisplacement.addEventListener('change', updatePhysics);
+            elements.showVelocity.addEventListener('change', updatePhysics);
+
+            // 拖拽小球
+            let isDragging = false;
+            function mouseToSvgCoordinates(clientX, clientY, svgElement) {
+                const rect = svgElement.getBoundingClientRect();
+                const scaleX = 450 / rect.width;
+                const scaleY = 600 / rect.height;
+                return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+            }
+            elements.projectile.addEventListener('mousedown', (e) => { isDragging = true; e.preventDefault(); });
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                const svg = document.querySelector('svg');
+                const coords = mouseToSvgCoordinates(e.clientX, e.clientY, svg);
+                const originX = CONSTANTS.ORIGIN_X;
+                const originY = CONSTANTS.ORIGIN_Y;
+                const xPhys = Math.max(0, (coords.x - originX) / state.scale);
+                const yPhys = Math.max(0, (coords.y - originY) / state.scale);
+                if (state.v0 > 0 && state.g > 0) {
+                    let t1 = xPhys / state.v0;
+                    let t2 = Math.sqrt(2 * yPhys / state.g);
+                    let t = Math.max(t1, t2);
+                    if (t > CONSTANTS.MAX_TIME) t = CONSTANTS.MAX_TIME;
+                    state.t = t;
+                    elements.tSlider.value = t;
+                    elements.tValue.textContent = `${t.toFixed(1)} s`;
+                    updatePhysics();
+                }
+            });
+            document.addEventListener('mouseup', () => { isDragging = false; });
+            init();
+
+            // ========= 习题交互判题 =========
+            const examAnswers = {
+                q1: { correct: "C", explanation: "✅ 平抛运动竖直方向为自由落体，飞行时间 t = √(2h/g) 仅由下落高度决定，与初速度无关。" },
+                q2: { correct: "B", explanation: "✅ 重要推论：tanθ = vy/vx = gt/v₀，tanα = y/x = gt/(2v₀)，所以 tanθ = 2tanα。" },
+                q3: { correct: "A", explanation: "✅ 落地时 tanθ = vy/v₀ = gt/v₀ → t = v₀ tanθ / g，高度 h = ½gt² = (v₀² tan²θ)/(2g)。" }
+            };
+            document.querySelectorAll('.check-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const qid = btn.getAttribute('data-qid');
+                    const selected = document.querySelector(`input[name="${qid}"]:checked`);
+                    const fbDiv = document.getElementById(`fb${qid.slice(1)}`);
+                    if (!selected) {
+                        fbDiv.innerHTML = "⚠️ 请先选择一个选项！";
+                        fbDiv.className = "feedback wrong";
+                        return;
+                    }
+                    const userVal = selected.value;
+                    const correctVal = examAnswers[qid].correct;
+                    if (userVal === correctVal) {
+                        fbDiv.innerHTML = `✅ 回答正确！<br>📖 解析：${examAnswers[qid].explanation}`;
+                        fbDiv.className = "feedback correct";
+                    } else {
+                        fbDiv.innerHTML = `❌ 回答错误！正确答案是 ${correctVal}。<br>📖 解析：${examAnswers[qid].explanation}`;
+                        fbDiv.className = "feedback wrong";
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

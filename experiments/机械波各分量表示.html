@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>机械波模拟 - 运动学方法</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --bg-color: #f4f7f6;
+            --panel-bg: #ffffff;
+            --text-color: #333;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            color: var(--text-color);
+        }
+
+        /* 左侧画布区域 */
+        #canvas-container {
+            flex: 1;
+            position: relative;
+            background-image: radial-gradient(#ddd 1px, transparent 1px);
+            background-size: 20px 20px; /* 网格背景 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        canvas {
+            background-color: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+
+        /* 右侧控制面板 */
+        #controls {
+            width: 320px;
+            background-color: var(--panel-bg);
+            padding: 20px;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.05);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .control-group {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+        }
+
+        .control-group h3 {
+            margin-top: 0;
+            font-size: 1.1rem;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .slider-container {
+            margin-bottom: 10px;
+        }
+
+        .slider-container label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        input[type=range] {
+            width: 100%;
+            cursor: pointer;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+            color: white;
+        }
+
+        .btn-primary { background-color: var(--primary-color); }
+        .btn-primary:hover { background-color: #357abd; }
+        .btn-primary.active { background-color: #2c3e50; box-shadow: inset 0 0 5px rgba(0,0,0,0.2); }
+
+        .btn-secondary { background-color: #95a5a6; }
+        .btn-secondary:hover { background-color: #7f8c8d; }
+        .btn-secondary.active { background-color: #7f8c8d; }
+
+        .btn-success { background-color: #2ecc71; }
+        .btn-danger { background-color: #e74c3c; }
+
+        /* 开关样式 */
+        .toggle-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+
+        .switch input { opacity: 0; width: 0; height: 0; }
+
+        .slider-switch {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 20px;
+        }
+
+        .slider-switch:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider-switch {
+            background-color: var(--primary-color);
+        }
+
+        input:checked + .slider-switch:before {
+            transform: translateX(20px);
+        }
+
+        /* 底部操作栏 */
+        .action-bar {
+            margin-top: auto;
+            display: flex;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+
+    <!-- 画布区域 -->
+    <div id="canvas-container">
+        <canvas id="waveCanvas" width="800" height="500"></canvas>
+    </div>
+
+    <!-- 控制面板 -->
+    <div id="controls">
+        <div class="control-group">
+            <h3>波参数控制</h3>
+            <div class="slider-container">
+                <label>振幅 A <span id="val-amplitude">0.31</span> m</label>
+                <input type="range" id="amplitude" min="0.05" max="1.0" step="0.01" value="0.31">
+            </div>
+            <div class="slider-container">
+                <label>频率 f <span id="val-frequency">0.20</span> Hz</label>
+                <input type="range" id="frequency" min="0.05" max="2.0" step="0.01" value="0.20">
+            </div>
+            <div class="slider-container">
+                <label>波速 v <span id="val-velocity">5.00</span> m/s</label>
+                <input type="range" id="velocity" min="1" max="20" step="0.5" value="5.00">
+            </div>
+            <div style="font-size: 0.85rem; color: #666; margin-top: 10px; background: #f0f0f0; padding: 5px; border-radius: 4px;">
+                波长 λ = v/f = <span id="val-wavelength">25.00</span> m
+            </div>
+        </div>
+
+        <div class="control-group">
+            <h3>波传播方向</h3>
+            <div class="btn-group">
+                <button class="btn-primary active" onclick="setDirection('right')">向右</button>
+                <button class="btn-primary" onclick="setDirection('left')">向左</button>
+                <button class="btn-primary" onclick="setDirection('both')">向两侧</button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <h3>波源起振方向</h3>
+            <div class="btn-group">
+                <button class="btn-primary active" onclick="setStartDir('up')">↑ 向上</button>
+                <button class="btn-primary" onclick="setStartDir('down')">↓ 向下</button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <h3>显示选项</h3>
+            <div class="toggle-item">
+                <span>显示质点</span>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-dots" checked>
+                    <span class="slider-switch"></span>
+                </label>
+            </div>
+            <div class="toggle-item">
+                <span>显示速度矢量</span>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-vectors" checked>
+                    <span class="slider-switch"></span>
+                </label>
+            </div>
+            <div class="toggle-item">
+                <span>显示加速度矢量</span>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-acc">
+                    <span class="slider-switch"></span>
+                </label>
+            </div>
+            <div class="toggle-item">
+                <span>显示残影</span>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-trail">
+                    <span class="slider-switch"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="action-bar">
+            <button class="btn-primary" id="btn-play-pause" style="flex:2" onclick="togglePlay()">⏸ 暂停</button>
+            <button class="btn-success" style="flex:1" onclick="stepForward()">单步</button>
+            <button class="btn-secondary" style="flex:1" onclick="resetSim()">重置</button>
+        </div>
+    </div>
+
+<script>
+    // --- 配置与状态 ---
+    const canvas = document.getElementById('waveCanvas');
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+    const centerY = height / 2;
+    const scaleX = 40; // 1米对应40像素
+
+    let state = {
+        amplitude: 0.31,   // A (m)
+        frequency: 0.20,   // f (Hz)
+        velocity: 5.00,    // v (m/s)
+        direction: 'right', // 'right', 'left', 'both'
+        startDir: 'up',    // 'up', 'down'
+        time: 0,
+        isPlaying: true,
+        showDots: true,
+        showVectors: true,
+        showAcc: false,
+        showTrail: false
+    };
+
+    // UI 元素引用
+    const ui = {
+        amp: document.getElementById('amplitude'),
+        freq: document.getElementById('frequency'),
+        vel: document.getElementById('velocity'),
+        valAmp: document.getElementById('val-amplitude'),
+        valFreq: document.getElementById('val-frequency'),
+        valVel: document.getElementById('val-velocity'),
+        valLambda: document.getElementById('val-wavelength'),
+        btnPlay: document.getElementById('btn-play-pause')
+    };
+
+    // --- 事件监听 ---
+    ui.amp.oninput = (e) => { state.amplitude = parseFloat(e.target.value); ui.valAmp.textContent = state.amplitude.toFixed(2); };
+    ui.freq.oninput = (e) => { state.frequency = parseFloat(e.target.value); ui.valFreq.textContent = state.frequency.toFixed(2); updateLambda(); };
+    ui.vel.oninput = (e) => { state.velocity = parseFloat(e.target.value); ui.valVel.textContent = state.velocity.toFixed(2); updateLambda(); };
+
+    document.getElementById('toggle-dots').onchange = (e) => state.showDots = e.target.checked;
+    document.getElementById('toggle-vectors').onchange = (e) => state.showVectors = e.target.checked;
+    document.getElementById('toggle-acc').onchange = (e) => state.showAcc = e.target.checked;
+    document.getElementById('toggle-trail').onchange = (e) => state.showTrail = e.target.checked;
+
+    function updateLambda() {
+        const lambda = state.velocity / state.frequency;
+        ui.valLambda.textContent = lambda.toFixed(2);
+    }
+
+    // --- 控制函数 ---
+    function setDirection(dir) {
+        state.direction = dir;
+        updateBtnStyles('.control-group:nth-child(2) button', dir);
+    }
+
+    function setStartDir(dir) {
+        state.startDir = dir;
+        updateBtnStyles('.control-group:nth-child(3) button', dir);
+    }
+
+    function updateBtnStyles(selector, activeValue) {
+        const btns = document.querySelectorAll(selector);
+        btns.forEach(btn => {
+            if(btn.textContent.includes(activeValue === 'right' ? '向右' : activeValue === 'left' ? '向左' : activeValue === 'up' ? '向上' : '向下')) {
+                btn.classList.add('active');
+            } else {
+                // 简单处理：如果文本不包含当前值关键词，移除active（实际项目中最好用data属性）
+                if(!btn.classList.contains('active') ||
+                   (activeValue === 'right' && !btn.textContent.includes('向右')) ||
+                   (activeValue === 'left' && !btn.textContent.includes('向左')) ||
+                   (activeValue === 'both' && !btn.textContent.includes('两侧')) ||
+                   (activeValue === 'up' && !btn.textContent.includes('向上')) ||
+                   (activeValue === 'down' && !btn.textContent.includes('向下'))) {
+                     // 这里逻辑稍显粗糙，为了演示方便，直接移除所有再添加
+                }
+            }
+        });
+        // 重新强制添加
+        btns.forEach(btn => btn.classList.remove('active'));
+        Array.from(btns).find(b => {
+             if(activeValue === 'right') return b.textContent.includes('向右');
+             if(activeValue === 'left') return b.textContent.includes('向左');
+             if(activeValue === 'both') return b.textContent.includes('两侧');
+             if(activeValue === 'up') return b.textContent.includes('向上');
+             if(activeValue === 'down') return b.textContent.includes('向下');
+        }).classList.add('active');
+    }
+
+    function togglePlay() {
+        state.isPlaying = !state.isPlaying;
+        ui.btnPlay.textContent = state.isPlaying ? '⏸ 暂停' : '▶ 播放';
+        if(state.isPlaying) requestAnimationFrame(animate);
+    }
+
+    function stepForward() {
+        if(!state.isPlaying) {
+            state.time += 0.05;
+            draw();
+        }
+    }
+
+    function resetSim() {
+        state.time = 0;
+        draw();
+    }
+
+    // --- 核心绘图逻辑 ---
+    function draw() {
+        // 如果不显示残影，则清除画布
+        if (!state.showTrail) {
+            ctx.clearRect(0, 0, width, height);
+        } else {
+            // 残影效果：绘制半透明白色矩形覆盖
+            ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
+            ctx.fillRect(0, 0, width, height);
+        }
+
+        // 绘制网格线 (可选，为了美观)
+        drawGrid();
+
+        const A = state.amplitude * 100; // 放大显示
+        const f = state.frequency;
+        const v = state.velocity;
+        const omega = 2 * Math.PI * f;
+        const k = omega / v; // 波数
+        const sign = state.startDir === 'up' ? -1 : 1; // 向上起振，sin相位通常取负或调整初相，这里简单处理
+
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#e74c3c'; // 红色波形
+        ctx.beginPath();
+
+        const points = [];
+
+        // 遍历屏幕上的x像素坐标
+        for (let px = 0; px <= width; px += 5) {
+            // 将像素转换为物理坐标 x (m)
+            // 假设 x=0 在屏幕中心
+            let x_phys = (px - width / 2) / scaleX;
+
+            // 计算波的传播
+            // 标准方程: y = A sin(kx - wt + phi)
+            // 向右: kx - wt
+            // 向左: kx + wt
+            // 向两侧: 叠加
+
+            let y = 0;
+
+            if (state.direction === 'right' || state.direction === 'both') {
+                // 右行波
+                // 只有当波传到时才有位移 (x < vt)
+                if (Math.abs(x_phys) < state.time * v || x_phys < 0) { // 简单处理边界
+                     // 实际上波源在中心，向右传是 x>0 区域
+                     if (x_phys >= 0) {
+                         y += sign * A * Math.sin(k * x_phys - omega * state.time);
+                     }
+                }
+            }
+
+            if (state.direction === 'left' || state.direction === 'both') {
+                 // 左行波 (x < 0)
+                 if (x_phys <= 0) {
+                     // 注意左侧坐标的对称性处理
+                     // 这里简单模拟：左侧也是从中心向外传
+                     y += sign * A * Math.sin(k * Math.abs(x_phys) - omega * state.time);
+                 }
+            }
+
+            // 如果只显示单向，需要置零另一侧（上面逻辑中已部分处理，这里做修正）
+            if (state.direction === 'right' && x_phys < 0) y = 0;
+            if (state.direction === 'left' && x_phys > 0) y = 0;
+
+            const py = centerY - y;
+            points.push({x: px, y: py, physY: y});
+
+            if (px === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        }
+
+        ctx.stroke();
+
+        // 绘制手
+        drawHand(width/2, centerY);
+
+        // 绘制质点和矢量
+        if (state.showDots || state.showVectors || state.showAcc) {
+            // 稀疏采样绘制点，避免太密
+            const step = 20; // 像素间隔
+            for(let i=0; i<points.length; i+=step) {
+                const p = points[i];
+                // 计算速度 v_y = dy/dt = -A*omega*cos(...)
+                // 这里的符号取决于具体的波函数定义
+                let vy = 0;
+
+                // 近似数值微分或直接计算
+                // 为了准确，我们重新计算相位
+                let x_phys = (p.x - width/2) / scaleX;
+                let phase = 0;
+                let active = false;
+
+                if (state.direction === 'right' && x_phys >= 0) {
+                    phase = k * x_phys - omega * state.time;
+                    active = true;
+                } else if (state.direction === 'left' && x_phys <= 0) {
+                    phase = k * Math.abs(x_phys) - omega * state.time;
+                    active = true;
+                } else if (state.direction === 'both') {
+                     phase = k * Math.abs(x_phys) - omega * state.time;
+                     active = true;
+                }
+
+                if(active) {
+                     vy = - sign * A * omega * Math.cos(phase);
+
+                    // 绘制质点
+                    if (state.showDots) {
+                        ctx.fillStyle = '#e74c3c';
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, 4, 0, Math.PI*2);
+                        ctx.fill();
+                    }
+
+                    // 绘制速度矢量 (蓝色箭头)
+                    if (state.showVectors) {
+                        drawArrow(p.x, p.y, 0, vy * 0.5, '#3498db'); // 缩放系数0.5为了好看
+                    }
+
+                    // 绘制加速度矢量 (绿色箭头, a = -omega^2 * y)
+                    if (state.showAcc) {
+                        let ay = -omega * omega * (p.physY / 100) * 100; // 还原物理位移再计算
+                        drawArrow(p.x, p.y, 0, -ay * 0.05, '#2ecc71'); // 方向相反，缩放
+                    }
+                }
+            }
+        }
+    }
+
+    function drawHand(x, y) {
+        // 简单画一个手示意波源
+        ctx.fillStyle = "#f1c40f";
+        ctx.strokeStyle = "#e67e22";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.ellipse(x, y, 20, 30, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // 手指
+        ctx.beginPath();
+        ctx.moveTo(x+10, y-10);
+        ctx.lineTo(x+30, y-5);
+        ctx.stroke();
+    }
+
+    function drawArrow(fromX, fromY, toX, toY, color) {
+        if (Math.abs(toY) < 0.1) return; // 速度太小不画
+        const headlen = 6;
+        const dx = toX;
+        const dy = toY;
+        const angle = Math.atan2(dy, dx);
+
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(fromX, fromY);
+        ctx.lineTo(fromX + dx, fromY + dy);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(fromX + dx, fromY + dy);
+        ctx.lineTo(fromX + dx - headlen * Math.cos(angle - Math.PI / 6), fromY + dy - headlen * Math.sin(angle - Math.PI / 6));
+        ctx.lineTo(fromX + dx - headlen * Math.cos(angle + Math.PI / 6), fromY + dy - headlen * Math.sin(angle + Math.PI / 6));
+        ctx.fill();
+    }
+
+    function drawGrid() {
+        ctx.strokeStyle = "#eee";
+        ctx.lineWidth = 1;
+        const gap = 40; // 20px * 2
+        ctx.beginPath();
+        for(let x=0; x<=width; x+=gap) { ctx.moveTo(x,0); ctx.lineTo(x, height); }
+        for(let y=0; y<=height; y+=gap) { ctx.moveTo(0,y); ctx.lineTo(width, y); }
+        ctx.stroke();
+
+        // 中心轴线
+        ctx.strokeStyle = "#ccc";
+        ctx.beginPath();
+        ctx.moveTo(0, centerY);
+        ctx.lineTo(width, centerY);
+        ctx.stroke();
+    }
+
+    // --- 动画循环 ---
+    function animate() {
+        if (state.isPlaying) {
+            state.time += 0.02; // 时间步长
+            draw();
+            requestAnimationFrame(animate);
+        }
+    }
+
+    // 初始化
+    updateLambda();
+    draw(); // 绘制第一帧
+    requestAnimationFrame(animate);
+
+</script>
+</body>
+</html>

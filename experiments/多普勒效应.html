@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>多普勒效应 - AI物理实验室</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background: #f7f8fa;
+            padding: 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .title {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+        .desc {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 25px;
+        }
+        .container {
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+        .canvas-box {
+            flex: 1;
+            min-width: 600px;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        #canvas {
+            width: 100%;
+            height: 460px;
+            background: #fafbfc;
+            border-radius: 8px;
+        }
+        .control-box {
+            width: 320px;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .item {
+            margin: 14px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+            color: #34495e;
+        }
+        input {
+            width: 100%;
+            height: 6px;
+            background: #ddd;
+            border-radius: 3px;
+        }
+        .ai-box {
+            margin-top: 22px;
+            padding: 12px;
+            background: #e3f2fd;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 9px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+        .btn:hover {
+            background: #2980b9;
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+
+<h1 class="title">多普勒效应 - AI互动模拟</h1>
+<p class="desc">波源或观察者运动 → 接收频率变化</p>
+
+<div class="container">
+    <div class="canvas-box">
+        <canvas id="canvas"></canvas>
+    </div>
+
+    <div class="control-box">
+        <div class="item">
+            <label>波速 V</label>
+            <input type="range" id="v" min="3" max="8" value="5">
+        </div>
+        <div class="item">
+            <label>波源频率 f</label>
+            <input type="range" id="f" min="5" max="15" value="10">
+        </div>
+        <div class="item">
+            <label>波源速度 Vs（右+ 左-）</label>
+            <input type="range" id="vs" min="-4" max="4" value="0">
+        </div>
+        <div class="item">
+            <label>观察者速度 Vo（右+ 左-）</label>
+            <input type="range" id="vo" min="-4" max="4" value="0">
+        </div>
+
+        <button class="btn" onclick="reset()">重置默认</button>
+        <button class="btn" onclick="moveRight()">波源向右移动</button>
+        <button class="btn" onclick="moveLeft()">波源向左移动</button>
+
+        <div class="ai-box" id="aiResult">
+            AI 分析：等待启动...
+        </div>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+
+    // 物理参数
+    let V = 5;      // 波速
+    let f = 10;     // 频率
+    let Vs = 0;     // 波源速度
+    let Vo = 0;     // 观察者速度
+
+    let sourceX = 200;
+    let observerX = 700;
+    const Y = canvas.height / 2;
+
+    let waves = [];
+    let frame = 0;
+
+    // 生成波
+    function createWave() {
+        waves.push({
+            x: sourceX,
+            r: 0
+        });
+    }
+
+    // 绘制
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // 中心线
+        ctx.strokeStyle = "#ddd";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, Y);
+        ctx.lineTo(canvas.width, Y);
+        ctx.stroke();
+
+        // 波源
+        ctx.fillStyle = "#e74c3c";
+        ctx.beginPath();
+        ctx.arc(sourceX, Y, 16, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 观察者
+        ctx.fillStyle = "#3498db";
+        ctx.beginPath();
+        ctx.arc(observerX, Y, 16, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 画波面
+        ctx.strokeStyle = "#3498db";
+        ctx.lineWidth = 1.5;
+        for (let w of waves) {
+            ctx.beginPath();
+            ctx.arc(w.x, Y, w.r, 0, Math.PI * 2);
+            ctx.stroke();
+            w.r += V;
+        }
+
+        // 波源移动
+        sourceX += Vs;
+
+        // 观察者移动
+        observerX += Vo;
+
+        // 边界限制
+        if (sourceX < 50) sourceX = 50;
+        if (sourceX > canvas.width - 50) sourceX = canvas.width - 50;
+        if (observerX < 50) observerX = 50;
+        if (observerX > canvas.width - 50) observerX = canvas.width - 50;
+
+        // 生成波
+        if (frame % Math.round(60 / f) === 0) {
+            createWave();
+        }
+
+        // 清理太远的波
+        if (waves.length > 60) {
+            waves.shift();
+        }
+
+        // AI 分析多普勒效应
+        aiAnalyze();
+
+        frame++;
+        requestAnimationFrame(draw);
+    }
+
+    // AI 智能判断频率变化
+    function aiAnalyze() {
+        let text = "";
+        const dx = observerX - sourceX;
+
+        if (Math.abs(Vs) < 0.2 && Math.abs(Vo) < 0.2) {
+            text = "✅ 波源与观察者均静止<br>接收频率 = 发射频率";
+        } else if (dx > 0 && Vs > 0) {
+            text = "✅ 波源靠近观察者 → 频率升高";
+        } else if (dx > 0 && Vs < 0) {
+            text = "✅ 波源远离观察者 → 频率降低";
+        } else if (dx < 0 && Vs < 0) {
+            text = "✅ 波源靠近观察者 → 频率升高";
+        } else if (dx < 0 && Vs > 0) {
+            text = "✅ 波源远离观察者 → 频率降低";
+        } else {
+            text = "✅ 运动中，AI 正在计算频率变化";
+        }
+
+        document.getElementById("aiResult").innerHTML = text;
+    }
+
+    // 控制
+    document.getElementById('v').oninput = () => V = +document.getElementById('v').value;
+    document.getElementById('f').oninput = () => f = +document.getElementById('f').value;
+    document.getElementById('vs').oninput = () => Vs = +document.getElementById('vs').value;
+    document.getElementById('vo').oninput = () => Vo = +document.getElementById('vo').value;
+
+    function reset() {
+        V = 5; f = 10; Vs = 0; Vo = 0;
+        document.getElementById('v').value = 5;
+        document.getElementById('f').value = 10;
+        document.getElementById('vs').value = 0;
+        document.getElementById('vo').value = 0;
+        sourceX = 200; observerX = 700;
+    }
+
+    function moveRight() { Vs = 2.5; document.getElementById('vs').value = 2.5; }
+    function moveLeft() { Vs = -2.5; document.getElementById('vs').value = -2.5; }
+
+    draw();
+</script>
+</body>
+</html>

@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>干涉法检验平整度 | 劈尖干涉原理 · 凹凸判断规则 · 互动模拟</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(145deg, #f0f4fa 0%, #e2eaf5 100%);
+            font-family: 'Segoe UI', 'Roboto', 'Noto Sans', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            padding: 28px 24px;
+            color: #1a2c3e;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* 主布局：左图右文 */
+        .principle-layout {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 28px;
+            margin-bottom: 40px;
+        }
+
+        .left-panel {
+            flex: 1.3;
+            min-width: 380px;
+            background: #fffef7;
+            border-radius: 2rem;
+            box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .right-panel {
+            flex: 1;
+            min-width: 280px;
+            background: rgba(255, 255, 245, 0.96);
+            border-radius: 2rem;
+            box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.15);
+            padding: 1.6rem;
+            backdrop-filter: blur(2px);
+        }
+
+        .section-title {
+            font-size: 1.7rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #1f6e5c, #2b8b75);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            border-left: 6px solid #f4b942;
+            padding-left: 16px;
+            margin-bottom: 1.2rem;
+        }
+
+        /* 模拟区 */
+        .canvas-area {
+            padding: 20px;
+            text-align: center;
+            background: #fef8eb;
+            border-bottom: 1px solid #ffe0aa;
+        }
+
+        canvas {
+            background: #111;
+            border-radius: 24px;
+            width: 100%;
+            height: auto;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+        }
+
+        .control-bar {
+            background: #fff6e8;
+            padding: 14px 20px;
+            border-radius: 1.5rem;
+            margin: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .defect-type {
+            display: flex;
+            gap: 12px;
+            background: #eef2fa;
+            padding: 6px 12px;
+            border-radius: 60px;
+        }
+
+        .defect-type button {
+            background: #d9e2ef;
+            border: none;
+            padding: 6px 18px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.2s;
+            color: #1f4e6e;
+        }
+
+        .defect-type button.active {
+            background: #2c7a6e;
+            color: white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        .slider-container {
+            flex: 2;
+            min-width: 180px;
+        }
+
+        .slider-container label {
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin-top: 4px;
+        }
+
+        .value-badge {
+            background: #e2e8f0;
+            border-radius: 30px;
+            padding: 2px 10px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .explain-note {
+            background: #eef3fc;
+            border-radius: 1rem;
+            padding: 8px 14px;
+            margin: 12px 16px;
+            font-size: 0.8rem;
+            text-align: center;
+        }
+
+        /* 右侧样式 */
+        .formula-card {
+            background: #eef3fc;
+            border-radius: 1.5rem;
+            padding: 1rem;
+            margin: 1.2rem 0;
+            border-left: 8px solid #2c8f7a;
+        }
+
+        .rule-card {
+            background: #fef1cf;
+            padding: 12px 16px;
+            border-radius: 1.2rem;
+            margin: 1rem 0;
+        }
+
+        .key-point {
+            background: #e6f4ea;
+            padding: 12px 16px;
+            border-radius: 1.2rem;
+            margin: 1rem 0;
+        }
+
+        /* 习题区 */
+        .quiz-area {
+            background: white;
+            border-radius: 2rem;
+            padding: 1.8rem 2rem;
+            box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.12);
+            margin-top: 0.5rem;
+        }
+
+        .quiz-title {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .question-card {
+            background: #fafafc;
+            border-radius: 1.5rem;
+            margin-bottom: 1.8rem;
+            padding: 1.2rem 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e9eef3;
+        }
+
+        .question-text {
+            font-weight: 700;
+            font-size: 1.05rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 10px 0 10px 18px;
+            cursor: pointer;
+        }
+
+        .check-btn {
+            background: #2c7a6e;
+            border: none;
+            color: white;
+            padding: 6px 18px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: 0.2s;
+        }
+
+        .feedback {
+            margin-top: 12px;
+            padding: 10px 14px;
+            border-radius: 1rem;
+            font-size: 0.9rem;
+            display: none;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .feedback.correct {
+            background: #dff0e4;
+            color: #145c33;
+            display: flex;
+            border-left: 5px solid #2e7d64;
+        }
+
+        .feedback.wrong {
+            background: #ffe6e5;
+            color: #b13b2d;
+            display: flex;
+            border-left: 5px solid #e35f4b;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 0.75rem;
+            color: #5c6f87;
+        }
+
+        @media (max-width: 800px) {
+            .principle-layout {
+                flex-direction: column;
+            }
+
+            .quiz-area {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- ===== 导航栏开始 ===== -->
+<div id="top-nav" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+">
+    <button onclick="location.href='../index.html'" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 主页</button>
+
+    <button onclick="history.back()" style="
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.4)'" 
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'">⬅ 返回上级</button>
+</div>
+<div style="height: 60px;"></div>
+<!-- ===== 导航栏结束 ===== -->
+
+<div class="container">
+    <div class="principle-layout">
+        <!-- 左侧：劈尖干涉模拟 + 缺陷控制 -->
+        <div class="left-panel">
+            <div class="canvas-area">
+                <canvas id="interferenceCanvas" width="550" height="400" style="width:100%; height:auto; max-width:550px; aspect-ratio:550/400"></canvas>
+                <div class="control-bar">
+                    <div class="defect-type">
+                        <button id="btnNoDefect" class="active">✨ 平整 (无缺陷)</button>
+                        <button id="btnConcave">凹陷 (凹坑)</button>
+                        <button id="btnConvex">凸起 (凸包)</button>
+                    </div>
+                    <div class="slider-container">
+                        <label>📏 缺陷幅度 (nm) </label>
+                        <input type="range" id="defectAmp" min="0" max="200" value="80" step="5">
+                        <span id="ampValue" class="value-badge">80 nm</span>
+                    </div>
+                </div>
+                <div class="explain-note">
+                    💡 <strong>实时模拟：</strong> 单色光垂直照射空气劈尖，下表面为待测工件。缺陷导致局部空气隙厚度变化 → 干涉条纹弯曲。<br>
+                    <span style="color:#b45309;">📌 弯曲方向判据：<strong>条纹向劈尖棱边弯曲 → 凹陷；背向棱边弯曲 → 凸起</strong></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧：原理讲解 + 核心考点 -->
+        <div class="right-panel">
+            <div class="section-title">📐 劈尖干涉 · 平整度检测</div>
+            <div class="formula-card">
+                <strong>🔬 光程差公式 (垂直入射)</strong><br>
+                \[
+                \Delta = 2d + \frac{\lambda}{2}
+                \]
+                \(d\) 为空气隙厚度，\(\lambda/2\) 来自半波损失（下表面反射有突变）。
+            </div>
+            <div class="rule-card">
+                <strong>🧪 检测原理</strong><br>
+                标准玻璃板与待测工件间形成空气劈尖，单色光照射产生等厚干涉条纹。若工件平整，条纹为平行等距直线。<br>
+                <strong>✨ 凹凸判断规则：</strong><br>
+                • 条纹局部向棱边（薄端）弯曲 → 对应位置空气隙变薄 → 工件表面<span class="highlight">凹陷</span><br>
+                • 条纹局部背向棱边（厚端）弯曲 → 空气隙变厚 → 工件表面<span class="highlight">凸起</span>
+            </div>
+            <div class="key-point">
+                <strong>🎯 高考高频考点</strong><br>
+                ✔ 干涉成因：光程差由空气隙厚度决定<br>
+                ✔ 条纹弯曲方向与凹凸对应关系<br>
+                ✔ 相邻明纹（暗纹）对应厚度差 \(\Delta d = \lambda/2\)<br>
+                ✔ 利用条纹弯曲量可估算缺陷深度/高度
+            </div>
+            <div class="key-point" style="background: #e9f0f9;">
+                <strong>⚙️ 模拟说明</strong><br>
+                左侧模拟劈尖（左薄右厚），缺陷位于中央。调整缺陷类型与幅度，观察条纹弯曲方向变化。
+            </div>
+        </div>
+    </div>
+
+    <!-- 习题区 -->
+    <div class="quiz-area">
+        <div class="quiz-title">
+            <span>📝 考点精练 · 平整度检测专项</span>
+            <span style="font-size:0.8rem;">✅ 核对答案自动判对错 + 解析</span>
+        </div>
+
+        <div class="question-card" id="q1">
+            <div class="question-text">📌 1. 用劈尖干涉检测工件平整度时，观察到局部干涉条纹向劈尖棱边方向弯曲，则该处工件表面是？</div>
+            <div class="option"><input type="radio" name="q1" value="A"> A. 凸起</div>
+            <div class="option"><input type="radio" name="q1" value="B"> B. 凹陷</div>
+            <div class="option"><input type="radio" name="q1" value="C"> C. 平整</div>
+            <div class="option"><input type="radio" name="q1" value="D"> D. 无法判断</div>
+            <button class="check-btn" data-qid="q1">🔍 核对答案</button>
+            <div class="feedback" id="fb1"></div>
+        </div>
+
+        <div class="question-card" id="q2">
+            <div class="question-text">📌 2. 用波长 λ=589nm 的单色光垂直照射劈尖，相邻明纹对应的空气隙厚度差为？</div>
+            <div class="option"><input type="radio" name="q2" value="A"> A. 589 nm</div>
+            <div class="option"><input type="radio" name="q2" value="B"> B. 294.5 nm</div>
+            <div class="option"><input type="radio" name="q2" value="C"> C. 1178 nm</div>
+            <div class="option"><input type="radio" name="q2" value="D"> D. 147.25 nm</div>
+            <button class="check-btn" data-qid="q2">🔍 核对答案</button>
+            <div class="feedback" id="fb2"></div>
+        </div>
+
+        <div class="question-card" id="q3">
+            <div class="question-text">📌 3. 若待测工件表面有一凸起，在干涉图样中，凸起处的条纹将如何变化？</div>
+            <div class="option"><input type="radio" name="q3" value="A"> A. 向棱边弯曲</div>
+            <div class="option"><input type="radio" name="q3" value="B"> B. 背向棱边弯曲</div>
+            <div class="option"><input type="radio" name="q3" value="C"> C. 条纹断开</div>
+            <div class="option"><input type="radio" name="q3" value="D"> D. 条纹间距变大</div>
+            <button class="check-btn" data-qid="q3">🔍 核对答案</button>
+            <div class="feedback" id="fb3"></div>
+        </div>
+
+        <div class="question-card" id="q4">
+            <div class="question-text">📌 4. 劈尖干涉实验中，若将标准玻璃板向上抬起（增大劈尖角），则条纹将如何变化？</div>
+            <div class="option"><input type="radio" name="q4" value="A"> A. 条纹变密 (间距减小)</div>
+            <div class="option"><input type="radio" name="q4" value="B"> B. 条纹变疏 (间距增大)</div>
+            <div class="option"><input type="radio" name="q4" value="C"> C. 条纹不变</div>
+            <div class="option"><input type="radio" name="q4" value="D"> D. 条纹向棱边移动</div>
+            <button class="check-btn" data-qid="q4">🔍 核对答案</button>
+            <div class="feedback" id="fb4"></div>
+        </div>
+        <div style="font-size:0.8rem; text-align:center; margin-top: 8px;">💡 左侧模拟可互动验证凹凸规则，结合习题巩固考点。</div>
+    </div>
+    <footer>
+        🌟 干涉法平整度检测核心：等厚干涉 + 条纹弯曲方向 ↔ 凹凸对应关系 &nbsp;|&nbsp; 相邻条纹对应厚度差 λ/2
+    </footer>
+</div>
+
+<script>
+    (function () {
+        // ----- 物理参数 -----
+        const lambda = 589;          // 单色光波长 nm (钠黄光)
+        const halfLambda = lambda / 2;
+        // 劈尖几何参数 (模拟区域宽550px,高400px, 左侧厚度小,右侧厚度大)
+        const width = 550, height = 400;
+        const canvas = document.getElementById('interferenceCanvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+
+        // 劈尖基本厚度分布: d(x) = d_min + (x / width) * (d_max - d_min)
+        const d_min = 50;      // 左侧最小厚度 nm
+        const d_max = 600;     // 右侧最大厚度 nm
+
+        // 缺陷参数
+        let defectType = 'none';     // 'none', 'concave', 'convex'
+        let defectAmp = 80;          // nm 缺陷幅度 (深度或高度)
+        
+        // 缺陷中心区域 (模拟一个高斯型缺陷，位置在中央偏右)
+        const defectCenterX = width * 0.55;
+        const defectCenterY = height / 2;
+        const defectSigma = 45;       // 影响范围(px)
+
+        // 获取某点空气隙厚度 (考虑缺陷)
+        function getThickness(x, y) {
+            // 基础劈尖厚度 (线性, 左薄右厚)
+            let d = d_min + (x / width) * (d_max - d_min);
+            // 高斯型缺陷
+            const dx = x - defectCenterX;
+            const dy = y - defectCenterY;
+            const dist2 = dx * dx + dy * dy;
+            const gauss = Math.exp(-dist2 / (2 * defectSigma * defectSigma));
+            let defectDelta = 0;
+            if (defectType === 'concave') {
+                defectDelta = -defectAmp * gauss;   // 凹陷 => 空气隙变薄
+            } else if (defectType === 'convex') {
+                defectDelta = +defectAmp * gauss;   // 凸起 => 空气隙变厚
+            }
+            d += defectDelta;
+            // 限制厚度范围避免负值
+            d = Math.max(10, Math.min(750, d));
+            return d;
+        }
+
+        // 计算反射光强度 (垂直入射, 半波损失)
+        // 光程差 δ = 2d + λ/2, 相位差 φ = 2πδ/λ, 强度 I = cos²(φ/2) = (1+cosφ)/2
+        function getIntensity(d_nm, lambda_nm) {
+            const delta = 2 * d_nm + lambda_nm / 2;
+            const phase = (2 * Math.PI * delta) / lambda_nm;
+            const intensity = (1 + Math.cos(phase)) / 2;
+            return intensity;
+        }
+
+        // 绘制干涉图样 (灰度，亮度代表强度)
+        function drawInterference() {
+            const imgData = ctx.getImageData(0, 0, width, height);
+            const data = imgData.data;
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const d = getThickness(x, y);
+                    let I = getIntensity(d, lambda);
+                    // 增强对比度，并映射到灰度
+                    let gray = Math.floor(80 + I * 175);
+                    gray = Math.min(255, Math.max(30, gray));
+                    const idx = (y * width + x) * 4;
+                    data[idx] = gray;     // R
+                    data[idx + 1] = gray; // G
+                    data[idx + 2] = gray; // B
+                    data[idx + 3] = 255;
+                }
+            }
+            ctx.putImageData(imgData, 0, 0);
+            // 额外标注棱边位置和缺陷区域指示
+            ctx.save();
+            ctx.font = "bold 12px 'Segoe UI'";
+            ctx.fillStyle = "#ffd966";
+            ctx.shadowBlur = 0;
+            ctx.fillText("棱边 (薄端)", 15, 40);
+            ctx.fillText("厚端 →", width-70, 40);
+            ctx.beginPath();
+            ctx.moveTo(10, 30);
+            ctx.lineTo(40, 30);
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = "#ffaa66";
+            ctx.stroke();
+            // 标记缺陷区域示意
+            if (defectType !== 'none') {
+                ctx.beginPath();
+                ctx.arc(defectCenterX, defectCenterY, defectSigma, 0, 2 * Math.PI);
+                ctx.strokeStyle = "#f0a3a3";
+                ctx.setLineDash([6, 8]);
+                ctx.stroke();
+                ctx.fillStyle = "#ffccaa";
+                ctx.font = "10px monospace";
+                ctx.fillText(defectType === 'concave' ? "⬇️ 凹陷区" : "⬆️ 凸起区", defectCenterX-30, defectCenterY-15);
+                ctx.setLineDash([]);
+            }
+            ctx.restore();
+        }
+
+        // 重新绘制并更新UI
+        function updateSimulation() {
+            drawInterference();
+        }
+
+        // 缺陷幅度滑块
+        const ampSlider = document.getElementById('defectAmp');
+        const ampValueSpan = document.getElementById('ampValue');
+        const btnNoDefect = document.getElementById('btnNoDefect');
+        const btnConcave = document.getElementById('btnConcave');
+        const btnConvex = document.getElementById('btnConvex');
+
+        function setDefectType(type) {
+            defectType = type;
+            // 更新按钮样式
+            btnNoDefect.classList.remove('active');
+            btnConcave.classList.remove('active');
+            btnConvex.classList.remove('active');
+            if (type === 'none') btnNoDefect.classList.add('active');
+            else if (type === 'concave') btnConcave.classList.add('active');
+            else if (type === 'convex') btnConvex.classList.add('active');
+            updateSimulation();
+        }
+
+        btnNoDefect.addEventListener('click', () => setDefectType('none'));
+        btnConcave.addEventListener('click', () => setDefectType('concave'));
+        btnConvex.addEventListener('click', () => setDefectType('convex'));
+        ampSlider.addEventListener('input', (e) => {
+            defectAmp = parseFloat(e.target.value);
+            ampValueSpan.innerText = defectAmp + " nm";
+            if (defectType !== 'none') updateSimulation();
+            else {
+                // 如果当前无缺陷，改变幅度没有视觉效果，但保留值
+            }
+            if (defectType !== 'none') updateSimulation();
+        });
+
+        // 若幅度改变且当前有缺陷则刷新
+        function syncAmp() {
+            if (defectType !== 'none') updateSimulation();
+        }
+        ampSlider.addEventListener('change', syncAmp);
+
+        // 初始化
+        setDefectType('none');
+        defectAmp = 80;
+        ampSlider.value = 80;
+        ampValueSpan.innerText = "80 nm";
+        updateSimulation();
+
+        // 响应窗口大小自适应（画布尺寸固定无需额外，但以防万一）
+        window.addEventListener('resize', () => updateSimulation());
+
+        // ----- 习题交互 + 自动判错 -----
+        const answers = {
+            q1: { correct: "B", explanation: "✅ 条纹向劈尖棱边（薄端）弯曲 → 该处空气隙厚度相对变薄 → 工件表面凹陷（凹坑）。若凸起，条纹背向棱边弯曲。" },
+            q2: { correct: "B", explanation: "✅ 相邻明纹（或暗纹）对应的空气隙厚度差 Δd = λ/2 = 589/2 = 294.5 nm。因为光程差每变化λ，厚度变化λ/2。" },
+            q3: { correct: "B", explanation: "✅ 凸起导致空气隙厚度局部增大，等厚线向厚度增加方向移动，因此干涉条纹背向棱边弯曲。" },
+            q4: { correct: "A", explanation: "✅ 劈尖角增大时，相同厚度差对应的水平距离减小，条纹间距变密。公式：条纹间距 Δx = λ/(2θ)。" }
+        };
+
+        const btns = document.querySelectorAll('.check-btn');
+        btns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const qid = btn.getAttribute('data-qid');
+                const questionDiv = document.getElementById(qid);
+                const selected = questionDiv.querySelector(`input[name="${qid}"]:checked`);
+                const feedbackDiv = document.getElementById(`fb${qid.slice(1)}`);
+                if (!selected) {
+                    feedbackDiv.innerHTML = "⚠️ 请先选择一个选项！";
+                    feedbackDiv.className = "feedback wrong";
+                    feedbackDiv.style.display = "flex";
+                    setTimeout(() => {
+                        if (feedbackDiv) feedbackDiv.style.display = "none";
+                    }, 2000);
+                    return;
+                }
+                const userVal = selected.value;
+                const correctVal = answers[qid].correct;
+                if (userVal === correctVal) {
+                    feedbackDiv.innerHTML = `✅ 回答正确！<br>📖 解析：${answers[qid].explanation}`;
+                    feedbackDiv.className = "feedback correct";
+                } else {
+                    feedbackDiv.innerHTML = `❌ 回答错误！正确答案是 ${correctVal}。<br>📖 解析：${answers[qid].explanation}`;
+                    feedbackDiv.className = "feedback wrong";
+                }
+                feedbackDiv.style.display = "flex";
+            });
+        });
+
+        // 增加说明: 模拟中凹陷使局部厚度减小，条纹向左侧(棱边)弯曲；凸起使厚度增大，条纹向右弯曲。与规则一致。
+        console.log("劈尖干涉平整度检测模拟已启动 | 条纹弯曲方向直观展示凹凸");
+    })();
+</script>
+</body>
+</html>
