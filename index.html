@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI物趣 - 高中物理虚拟仿真实验平台</title>
+<style>
+:root {
+  --bg-primary: #07111f;
+  --bg-secondary: #0e1a2d;
+  --card-bg: rgba(15, 29, 50, 0.72);
+  --border: rgba(0, 212, 255, 0.18);
+  --text: #d7e4f1;
+  --text-dim: #8ea3b7;
+  --blue: #00d4ff;
+  --purple: #8b5cf6;
+  --green: #00e676;
+  --white: #ffffff;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(0, 212, 255, 0.12), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(139, 92, 246, 0.10), transparent 28%),
+    linear-gradient(180deg, var(--bg-primary), var(--bg-secondary));
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+/* 背景 */
+.grid-bg {
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0, 212, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 212, 255, 0.035) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.glow-orb {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(90px);
+  opacity: 0.18;
+  z-index: 0;
+}
+
+.glow-orb-1 {
+  width: 360px;
+  height: 360px;
+  background: radial-gradient(circle, var(--blue), transparent 70%);
+  top: -100px;
+  left: -100px;
+  animation: orb-float 18s ease-in-out infinite;
+}
+
+.glow-orb-2 {
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle, var(--purple), transparent 70%);
+  bottom: -60px;
+  right: -40px;
+  animation: orb-float 22s ease-in-out infinite reverse;
+}
+
+@keyframes orb-float {
+  0%, 100% { transform: translate(0, 0); }
+  33% { transform: translate(50px, -30px); }
+  66% { transform: translate(-20px, 40px); }
+}
+
+.stars-container {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.star {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.9);
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.25);
+  animation: float-star linear infinite;
+}
+
+@keyframes float-star {
+  0% { transform: translateY(0); opacity: 0; }
+  10% { opacity: 0.7; }
+  90% { opacity: 0.7; }
+  100% { transform: translateY(-100vh); opacity: 0; }
+}
+
+/* 主容器 */
+.page {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 18px;
+}
+
+.card {
+  width: 100%;
+  max-width: 980px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  box-shadow:
+    0 24px 80px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(255,255,255,0.04) inset;
+  overflow: hidden;
+  position: relative;
+  animation: slideUp 0.8s ease-out;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.65), transparent);
+}
+
+.card-inner {
+  padding: 56px 46px 42px;
+  position: relative;
+}
+
+/* 顶部标题 */
+.hero {
+  text-align: center;
+  margin-bottom: 34px;
+}
+
+.hero-icon {
+  font-size: 70px;
+  margin-bottom: 16px;
+  display: inline-block;
+  animation: pulse 2.4s ease-in-out infinite;
+  filter: drop-shadow(0 0 18px rgba(0, 212, 255, 0.35));
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.1) rotate(4deg); }
+}
+
+.hero-title {
+  font-size: 54px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  line-height: 1.1;
+  margin-bottom: 12px;
+  background: linear-gradient(135deg, var(--blue), #a78bfa, var(--green), var(--blue));
+  background-size: 220% 220%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientShift 4s ease infinite;
+}
+
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.hero-subtitle {
+  font-size: 16px;
+  color: var(--blue);
+  letter-spacing: 2px;
+  font-weight: 700;
+  opacity: 0.9;
+}
+
+.divider {
+  width: 88px;
+  height: 3px;
+  margin: 18px auto 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, var(--blue), var(--purple), transparent);
+}
+
+/* 简介 */
+.intro {
+  text-align: center;
+  font-size: 16px;
+  color: var(--text);
+  margin: 0 auto 30px;
+  max-width: 760px;
+  line-height: 1.9;
+}
+
+.highlight {
+  color: var(--blue);
+  font-weight: 800;
+  text-shadow: 0 0 16px rgba(0, 212, 255, 0.18);
+}
+
+/* 功能卡片 */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin: 30px 0 28px;
+}
+
+.feature-card {
+  background: linear-gradient(145deg, rgba(0, 212, 255, 0.07), rgba(139, 92, 246, 0.05));
+  border: 1px solid rgba(0, 212, 255, 0.14);
+  border-radius: 18px;
+  padding: 24px 18px;
+  text-align: center;
+  transition: 0.35s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.14), rgba(139, 92, 246, 0.08));
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(0, 212, 255, 0.35);
+  box-shadow: 0 14px 36px rgba(0, 212, 255, 0.12);
+}
+
+.feature-card:hover::before {
+  opacity: 1;
+}
+
+.feature-icon {
+  font-size: 34px;
+  margin-bottom: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.feature-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--blue);
+  margin-bottom: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.feature-text {
+  font-size: 13px;
+  color: var(--text-dim);
+  position: relative;
+  z-index: 1;
+}
+
+/* 访问量模块 */
+.visit-counter-section {
+  margin: 34px 0 24px;
+  padding: 30px 24px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.12), rgba(139, 92, 246, 0.10), rgba(0, 230, 118, 0.08));
+  border: 1px solid rgba(0, 212, 255, 0.22);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 30px rgba(0, 212, 255, 0.08);
+}
+
+.visit-counter-section::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+  animation: shimmer 4.5s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+.visit-counter-label {
+  font-size: 17px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+}
+
+.visit-counter-number-wrapper {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 6px;
+}
+
+.visit-counter-number {
+  font-size: 54px;
+  font-weight: 900;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  background: linear-gradient(135deg, var(--blue), #a78bfa, var(--green), var(--blue));
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientShift 3s ease infinite;
+  filter: drop-shadow(0 0 14px rgba(0, 212, 255, 0.35));
+}
+
+.visit-counter-unit {
+  font-size: 18px;
+  color: var(--blue);
+  font-weight: 700;
+  padding-bottom: 10px;
+}
+
+.visit-counter-bar {
+  width: 120px;
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, var(--blue), var(--purple), transparent);
+  margin: 12px auto 0;
+  animation: barPulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes barPulse {
+  0% { width: 80px; opacity: 0.5; }
+  100% { width: 120px; opacity: 1; }
+}
+
+.visit-counter-sub {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--text-dim);
+  opacity: 0.75;
+}
+
+/* 数据区 */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 6px;
+}
+
+.stat-item {
+  background: linear-gradient(145deg, rgba(0, 212, 255, 0.05), rgba(139, 92, 246, 0.03));
+  border: 1px solid rgba(0, 212, 255, 0.12);
+  border-radius: 18px;
+  padding: 20px 14px;
+  text-align: center;
+  transition: 0.3s ease;
+}
+
+.stat-item:hover {
+  transform: translateY(-3px);
+  border-color: rgba(0, 212, 255, 0.28);
+  box-shadow: 0 10px 24px rgba(0, 212, 255, 0.08);
+}
+
+.stat-number {
+  font-size: 30px;
+  font-weight: 900;
+  margin-bottom: 8px;
+}
+
+.stat-item:nth-child(1) .stat-number { color: var(--blue); }
+.stat-item:nth-child(2) .stat-number { color: #a78bfa; }
+.stat-item:nth-child(3) .stat-number { color: var(--green); }
+
+.stat-label {
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+/* 按钮 */
+.start-btn {
+  display: inline-block;
+  width: 100%;
+  margin-top: 30px;
+  padding: 20px 30px;
+  text-align: center;
+  text-decoration: none;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  box-shadow: 0 12px 30px rgba(0, 212, 255, 0.22);
+  transition: 0.35s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.start-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.28), transparent);
+  transition: left 0.6s;
+}
+
+.start-btn:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 40px rgba(0, 212, 255, 0.34);
+}
+
+.start-btn:hover::before {
+  left: 100%;
+}
+
+/* 动画 */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes countPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+.count-pop {
+  animation: countPop 0.4s ease;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .card-inner { padding: 42px 22px 30px; }
+  .hero-title { font-size: 38px; }
+  .hero-icon { font-size: 56px; }
+  .intro { font-size: 14px; text-align: left; }
+  .feature-grid,
+  .stats-row {
+    grid-template-columns: 1fr;
+  }
+  .visit-counter-number { font-size: 40px; }
+  .visit-counter-label { font-size: 15px; }
+  .start-btn { font-size: 15px; padding: 18px 24px; }
+}
+
+@media (max-width: 480px) {
+  .hero-title { font-size: 30px; letter-spacing: 1.5px; }
+  .visit-counter-number { font-size: 34px; }
+  .card { border-radius: 22px; }
+}
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+<div class="glow-orb glow-orb-1"></div>
+<div class="glow-orb glow-orb-2"></div>
+<div class="stars-container" id="starsContainer"></div>
+
+<div class="page">
+  <div class="card">
+    <div class="card-inner">
+      <div class="hero">
+        <div class="hero-icon">🔬</div>
+        <h1 class="hero-title">AI物趣</h1>
+        <div class="divider"></div>
+        <p class="hero-subtitle">高中物理虚拟仿真实验平台</p>
+      </div>
+
+      <p class="intro">
+        欢迎来到<span class="highlight">AI物趣</span>，一个面向中学物理学习的虚拟交互实验平台。
+        在这里，你可以通过可视化、可操作的实验方式，自主调节参数、观察现象变化、探索物理规律，
+        让抽象知识变得直观、生动、可体验。
+      </p>
+
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🎯</div>
+          <div class="feature-title">沉浸体验</div>
+          <div class="feature-text">真实感更强的虚拟实验场景</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🎮</div>
+          <div class="feature-title">自由调控</div>
+          <div class="feature-text">自主设置参数，探索变量关系</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <div class="feature-title">数据观察</div>
+          <div class="feature-text">实时查看现象与实验结果</div>
+        </div>
+      </div>
+
+      <div class="visit-counter-section">
+        <div class="visit-counter-label">👁️ 平台访问量</div>
+        <div class="visit-counter-number-wrapper">
+          <span class="visit-counter-number" id="busuanzi_value_page_pv">0</span>
+          <span class="visit-counter-unit">次</span>
+        </div>
+        <div class="visit-counter-bar"></div>
+        <div class="visit-counter-sub">每一次访问，都是一次新的探索 ✨</div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-item">
+          <div class="stat-number">多</div>
+          <div class="stat-label">实验类型</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">强</div>
+          <div class="stat-label">交互性</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">趣</div>
+          <div class="stat-label">学习体验</div>
+        </div>
+      </div>
+
+      <a href="experiments-list.html" class="start-btn">✨ 开始探索</a>
+    </div>
+  </div>
+</div>
+
+<script>
+// 星空粒子
+var container = document.getElementById('starsContainer');
+for (var i = 0; i < 80; i++) {
+  var star = document.createElement('div');
+  star.className = 'star';
+  star.style.left = Math.random() * 100 + '%';
+  star.style.top = Math.random() * 100 + '%';
+  var size = (1 + Math.random() * 3) + 'px';
+  star.style.width = size;
+  star.style.height = size;
+  star.style.animationDuration = (15 + Math.random() * 25) + 's';
+  star.style.animationDelay = Math.random() * 8 + 's';
+  container.appendChild(star);
+}
+
+// 数字动画
+function animateCounter(el, start, end, duration) {
+  var startTime = null;
+
+  function step(timestamp) {
+    if (!startTime) startTime = timestamp;
+    var progress = Math.min((timestamp - startTime) / duration, 1);
+    var eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+    var current = Math.floor(eased * (end - start) + start);
+    el.innerText = current.toLocaleString();
+
+    if (progress < 1) {
+      requestAnimationFrame(step);
+    } else {
+      el.innerText = end.toLocaleString();
+      el.classList.add('count-pop');
+      setTimeout(function () {
+        el.classList.remove('count-pop');
+      }, 400);
+    }
+  }
+
+  requestAnimationFrame(step);
+}
+
+// 访问量加载后播放动画
+document.addEventListener("DOMContentLoaded", function () {
+  var timer = setInterval(function () {
+    var el = document.getElementById("busuanzi_value_page_pv");
+    if (el && el.innerText && el.innerText !== "0") {
+      var finalVal = parseInt(el.innerText) || 0;
+      animateCounter(el, 0, finalVal, 1200);
+      clearInterval(timer);
+    }
+  }, 600);
+});
+
+// 卡片点击涟漪效果
+document.querySelectorAll('.feature-card').forEach(function (card) {
+  card.addEventListener('click', function (e) {
+    var rect = card.getBoundingClientRect();
+    var ripple = document.createElement('div');
+    ripple.style.cssText = 'position:absolute;border-radius:50%;background:rgba(0,212,255,0.3);transform:scale(0);animation:ripple 0.6s ease-out forwards;pointer-events:none;';
+    ripple.style.left = (e.clientX - rect.left - 25) + 'px';
+    ripple.style.top = (e.clientY - rect.top - 25) + 'px';
+    ripple.style.width = '50px';
+    ripple.style.height = '50px';
+    card.appendChild(ripple);
+    setTimeout(function () { ripple.remove(); }, 600);
+  });
+});
+
+var style = document.createElement('style');
+style.textContent = '@keyframes ripple{to{transform:scale(6);opacity:0}}';
+document.head.appendChild(style);
+</script>
+
+<script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<script>
+  var _hmt = _hmt || [];
+  (function() {
+    var hm = document.createElement("script");
+    hm.src = "https://hm.baidu.com/hm.js?ac767b1801023bbced078f6aa6b0d5d8";
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(hm, s);
+  })();
+</script>
+</body>
+</html>
